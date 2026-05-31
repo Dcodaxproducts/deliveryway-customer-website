@@ -1,3 +1,4 @@
+import { buildApiUrl } from "@/lib/api-endpoint";
 import { API_BASE_URL } from "@/lib/constants";
 import { isAuthSession, isAuthUser } from "@/lib/auth";
 import type {
@@ -27,7 +28,7 @@ const getMessage = (value: unknown, fallback: string) => {
 const getResponseData = (value: unknown) => (isRecord(value) ? value.data : undefined);
 
 const requestAuth = async (endpoint: string, init: RequestInit = {}) => {
-  const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const res = await fetch(buildApiUrl(API_BASE_URL, endpoint), {
     ...init,
     headers: {
       "Content-Type": "application/json",

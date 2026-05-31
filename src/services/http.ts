@@ -1,4 +1,4 @@
-import { httpClient } from "@/lib/axios";
+import { httpClient, normalizeApiEndpoint } from "@/lib/axios";
 
 export type ApiMethod = "GET" | "POST" | "PATCH" | "DELETE";
 
@@ -42,7 +42,7 @@ export const request = async (
 ): Promise<ApiResult> => {
   try {
     const response = await httpClient.request<unknown>({
-      url: endpoint,
+      url: normalizeApiEndpoint(endpoint),
       method,
       data: body,
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,

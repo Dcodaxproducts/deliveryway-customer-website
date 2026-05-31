@@ -1,5 +1,6 @@
 import axios, { type AxiosRequestHeaders } from "axios";
 
+import { normalizeApiEndpoint as normalizeEndpointForBase } from "@/lib/api-endpoint";
 import { getAuthToken } from "@/lib/storage";
 
 const apiVersionPath = ["api", "v1"].join("/");
@@ -11,6 +12,9 @@ const normalizeBaseUrl = (value?: string) => {
 };
 
 export const API_BASE_URL = normalizeBaseUrl(process.env.NEXT_PUBLIC_API_BASE_URL);
+
+export const normalizeApiEndpoint = (endpoint: string, baseUrl = API_BASE_URL) =>
+  normalizeEndpointForBase(endpoint, baseUrl);
 
 export const httpClient = axios.create({
   baseURL: API_BASE_URL,
