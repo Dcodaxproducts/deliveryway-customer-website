@@ -3,7 +3,7 @@ import "./globals.css";
 import { poppins } from "@/lib/fonts";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/context/AuthContext";
-import OrderNowFloatingButton from "@/components/ui/OrderNowFloatingButton";
+import Providers from "@/app/providers";
 
 export const metadata: Metadata = {
   title: "Home | Food",
@@ -21,11 +21,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={poppins.className}>
-  <AuthProvider>
-    <Toaster position="top-right" richColors />
+  <Providers>
+    <AuthProvider>
+      <Toaster position="top-right" richColors />
 
-    {children}
-  </AuthProvider>
+      {children}
+    </AuthProvider>
+  </Providers>
 </body>
     </html>
   );
