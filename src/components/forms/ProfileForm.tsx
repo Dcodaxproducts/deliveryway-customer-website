@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import {
   Camera,
   Pencil,
   Trash2,
   Plus,
-  Home,
   Building2,
   ArrowUpRight,
   Wallet,
@@ -20,187 +21,154 @@ import useApi from "@/hooks/useApi";
 import { useAuth } from "@/hooks/useAuth";
 import { useAuthContext } from "@/context/AuthContext";
 import Link from "next/link";
+import { useProfile } from "@/hooks/useProfile";
+import { readAuthSession, saveAuthSession } from "@/lib/auth";
+import {
+  getFullName,
+  getProfileDefaults,
+  getProfileUpdatePayload,
+  mergeUpdatedProfileAuth,
+  type AddressRecord,
+} from "@/services/profile";
+import {
+  profileSchema,
+  type ProfileFormValues,
+} from "@/validations/profile";
 
 export default function ProfileForm() {
   const { token, user } = useAuth();
   const { login } = useAuthContext();
 
-  const { get, del, patch, post } = useApi(token);
+  const api = useApi(token);
+  const profileApi = useProfile(api);
 
   const fileRef = useRef<HTMLInputElement | null>(null);
 
+  const form = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: getProfileDefaults(null),
+  });
+
+  const profile = {
+    ...getProfileDefaults(user),
+    ...useWatch({ control: form.control }),
+  };
+
   const [isEditing, setIsEditing] = useState(false);
   const [addressOpen, setAddressOpen] = useState(false);
-  const [selectedAddress, setSelectedAddress] = useState<any>(null);
+  const [selectedAddress, setSelectedAddress] = useState<AddressRecord | null>(null);
 const [walletBalance, setWalletBalance] = useState(0);
 const [walletCurrency, setWalletCurrency] = useState("USD");
 const [walletTxns, setWalletTxns] = useState(0);
   const [updating, setUpdating] = useState(false);
-  const [addresses, setAddresses] = useState<any[]>([]);
+  const [addresses, setAddresses] = useState<AddressRecord[]>([]);
   const [loadingAddresses, setLoadingAddresses] = useState(false);
 
-  const [profile, setProfile] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    avatarUrl: "",
-    bio: "",
-    gender: "",
-    country: "",
-    language: "",
-  });
-
-  useEffect(() => {
-    if (!user) return;
-
-    setProfile({
-      firstName: user?.profile?.firstName || "",
-      lastName: user?.profile?.lastName || "",
-      email: user?.email || "",
-      phone: user?.profile?.phone || "",
-      bio: user?.profile?.bio || "",
-      avatarUrl: user?.profile?.avatarUrl || "",
-      gender: "",
-      country: "",
-      language: "",
-    });
-
-    fetchAddresses();
-    fetchWallet();
-  }, [user, token]);
-
-  const fetchWallet = async () => {
+  const fetchWallet = useCallback(async (skipStateUpdate = false) => {
   try {
-    const res = await get("/v1/customer-app/wallet");
+    const res = await profileApi.fetchWallet();
 
-    if (!res?.error) {
-      setWalletBalance(res?.data?.balance || 0);
-      setWalletCurrency(res?.data?.currency || "USD");
-      setWalletTxns(res?.data?.history?.length || 0);
+    if (skipStateUpdate) {
+      return;
     }
+
+    setWalletBalance(res.balance);
+    setWalletCurrency(res.currency);
+    setWalletTxns(res.transactionCount);
   } catch (error) {
     console.error(error);
     toast.error("Failed to load wallet");
   }
-};
+}, [profileApi]);
 
-  const fetchAddresses = async () => {
+  const fetchAddresses = useCallback(async (skipStateUpdate = false) => {
     try {
-      setLoadingAddresses(true);
-      const res = await get("/v1/addresses");
-      setAddresses(res?.data || []);
+      if (!skipStateUpdate) {
+        setLoadingAddresses(true);
+      }
+      const res = await profileApi.fetchAddresses();
+
+      if (!skipStateUpdate) {
+        setAddresses(res);
+      }
     } catch (error) {
       console.error(error);
     } finally {
-      setLoadingAddresses(false);
+      if (!skipStateUpdate) {
+        setLoadingAddresses(false);
+      }
     }
-  };
+  }, [profileApi]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    form.reset(getProfileDefaults(user));
+
+    const loadAddresses = () => fetchAddresses();
+    const loadWallet = () => fetchWallet();
+
+    void loadAddresses();
+    void loadWallet();
+  }, [fetchAddresses, fetchWallet, form, user, token]);
 
   const handleDelete = async (id: string) => {
     try {
-      await del(`/v1/addresses/${id}`);
+      await profileApi.deleteAddress(id);
       toast.success("Address deleted");
       fetchAddresses();
-    } catch (error) {
+    } catch {
       toast.error("Delete failed");
     }
   };
 
-  const handleChange = (field: string, value: string) => {
-    setProfile((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const handleFileUpload = async (e: any) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     try {
       setUpdating(true);
 
-      const presigned = await post("/v1/storage/presigned-upload", {
-        fileName: file.name,
-        contentType: file.type,
-      });
+      const fileUrl = await profileApi.uploadAvatar(file);
 
-      const { uploadUrl, fileUrl, headers } = presigned.data;
-
-      await fetch(uploadUrl, {
-        method: "PUT",
-        headers: {
-          "Content-Type": file.type,
-          ...headers,
-        },
-        body: file,
-      });
-
-      setProfile((prev) => ({
-        ...prev,
-        avatarUrl: fileUrl,
-      }));
+      form.setValue("avatarUrl", fileUrl, { shouldDirty: true, shouldValidate: true });
 
       toast.success("Avatar uploaded");
-    } catch (error) {
+    } catch {
       toast.error("Upload failed");
     } finally {
       setUpdating(false);
     }
   };
 
-  const handleSubmit = async () => {
+  const onSubmit = async (values: ProfileFormValues) => {
     try {
       setUpdating(true);
 
       // ✅ EMAIL NOT SENT
-      const payload = {
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-        avatarUrl: profile.avatarUrl,
-        phone: profile.phone,
-        bio: profile.bio,
-      };
+      const payload = getProfileUpdatePayload(values);
 
-      await patch("/v1/auth/me/profile", payload);
+      await profileApi.updateProfile(payload);
 
-      const authRaw = browserStorage.getItem("auth");
+      const auth = readAuthSession();
 
-      if (authRaw) {
-        const auth = JSON.parse(authRaw);
+      if (auth) {
+        const updatedAuth = mergeUpdatedProfileAuth(auth, payload);
 
-        const updatedUser = {
-          ...auth.user,
-          profile: {
-            ...auth.user.profile,
-            firstName: profile.firstName,
-            lastName: profile.lastName,
-            phone: profile.phone,
-            bio: profile.bio,
-            avatarUrl: profile.avatarUrl,
-          },
-        };
-
-        const updatedAuth = {
-          ...auth,
-          user: updatedUser,
-        };
-
-        browserStorage.setItem("auth", JSON.stringify(updatedAuth));
+        saveAuthSession(updatedAuth);
         login(updatedAuth);
       }
 
       toast.success("Profile updated successfully");
       setIsEditing(false);
-    } catch (error) {
+    } catch {
       toast.error("Update failed");
     } finally {
       setUpdating(false);
     }
   };
 
-  const fullName = `${profile.firstName} ${profile.lastName}`;
+  const fullName = getFullName(profile);
 
   return (
   <div
@@ -318,37 +286,30 @@ const [walletTxns, setWalletTxns] = useState(0);
               Edit Profile
             </h3>
 
+            <form onSubmit={form.handleSubmit(onSubmit)} noValidate>
             <div className="grid md:grid-cols-2 gap-4">
               <Input
-                value={profile.firstName}
-                onChange={(e) =>
-                  handleChange("firstName", e.target.value)
-                }
+                id="firstName"
                 placeholder="First Name"
+                {...form.register("firstName")}
               />
 
               <Input
-                value={profile.lastName}
-                onChange={(e) =>
-                  handleChange("lastName", e.target.value)
-                }
+                id="lastName"
                 placeholder="Last Name"
+                {...form.register("lastName")}
               />
 
               <Input
-                value={profile.phone}
-                onChange={(e) =>
-                  handleChange("phone", e.target.value)
-                }
+                id="phone"
                 placeholder="Phone"
+                {...form.register("phone")}
               />
 
               <Input
-                value={profile.bio}
-                onChange={(e) =>
-                  handleChange("bio", e.target.value)
-                }
+                id="bio"
                 placeholder="Bio"
+                {...form.register("bio")}
               />
             </div>
 
@@ -361,13 +322,14 @@ const [walletTxns, setWalletTxns] = useState(0);
               </Button>
 
               <Button
-                onClick={handleSubmit}
+                type="submit"
                 disabled={updating}
                 className="bg-red-600 hover:bg-red-700"
               >
                 {updating ? "Saving..." : "Save Changes"}
               </Button>
             </div>
+            </form>
           </>
         )}
       </div>
