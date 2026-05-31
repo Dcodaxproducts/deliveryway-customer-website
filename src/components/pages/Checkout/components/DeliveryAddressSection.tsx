@@ -6,6 +6,8 @@ import { Card } from "@/components/ui/card";
 import useCustomer from "@/hooks/useCustomer";
 import { useAuth } from "@/hooks/useAuth";
 
+type AddressRecord = { id: string; street?: string; area?: string; city?: string; state?: string; country?: string };
+
 interface Props {
   selectedAddress: string | null;
   setSelectedAddress: (value: string) => void;
@@ -18,7 +20,7 @@ export default function DeliveryAddressSection({
   const { token } = useAuth();
   const { get } = useCustomer(token);
 
-  const [addresses, setAddresses] = useState<any[]>([]);
+  const [addresses, setAddresses] = useState<AddressRecord[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -28,11 +30,11 @@ export default function DeliveryAddressSection({
   const fetchAddresses = async () => {
     try {
       setLoading(true);
-      const res: any = await get("/v1/addresses");
+      const res = await get("/v1/addresses");
 
       if (!res) return;
 
-      setAddresses(res.data || []);
+      setAddresses(Array.isArray(res.data) ? res.data as AddressRecord[] : []);
     } catch (err) {
       console.error(err);
     } finally {

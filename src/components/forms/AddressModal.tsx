@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, MapPin, Navigation, X } from "lucide-react";
 import {
   Dialog,
@@ -15,25 +17,16 @@ import { toast } from "sonner";
 import useCustomer from "@/hooks/useCustomer";
 import { reverseGeocode } from "@/services/geocoding";
 import { useAuth } from "@/hooks/useAuth";
+import { checkoutAddressSchema, type CheckoutAddressValues } from "@/validations/checkout";
 
 type AddressModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
-  editData?: any;
+  editData?: (Partial<CheckoutAddressValues> & { id?: string | number }) | null;
 };
 
-type AddressFormState = {
-  street: string;
-  city: string;
-  state: string;
-  country: string;
-  area: string;
-  lat: string;
-  lng: string;
-};
-
-const initialForm: AddressFormState = {
+const initialForm: CheckoutAddressValues = {
   street: "",
   city: "",
   state: "",
@@ -54,13 +47,16 @@ export default function AddressModal({
 
   const [loading, setLoading] = useState(false);
   const [locating, setLocating] = useState(false);
-  const [form, setForm] = useState<AddressFormState>(initialForm);
+  const { register, reset, setValue, getValues, handleSubmit } = useForm<CheckoutAddressValues>({
+    resolver: zodResolver(checkoutAddressSchema),
+    defaultValues: initialForm,
+  });
 
   useEffect(() => {
     if (!open) return;
 
     if (editData) {
-      setForm({
+      reset({
         street: editData.street || "",
         city: editData.city || "",
         state: editData.state || "",
@@ -70,16 +66,9 @@ export default function AddressModal({
         lng: editData.lng ? String(editData.lng) : "",
       });
     } else {
-      setForm(initialForm);
+      reset(initialForm);
     }
-  }, [editData, open]);
-
-  const handleChange = (field: keyof AddressFormState, value: string) => {
-    setForm((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
+  }, [editData, open, reset]);
 
   const handleGetCurrentLocation = async () => {
     if (!navigator.geolocation) {
@@ -101,11 +90,8 @@ export default function AddressModal({
       const lat = position.coords.latitude.toString();
       const lng = position.coords.longitude.toString();
 
-      setForm((prev) => ({
-        ...prev,
-        lat,
-        lng,
-      }));
+      setValue("lat", lat);
+      setValue("lng", lng);
 
       // Reverse geocoding using OpenStreetMap Nominatim
       // Good for quick integration, but for production use your own geocoding provider/keyed API.
@@ -119,41 +105,42 @@ export default function AddressModal({
       const address = data.address || {};
       const getAddressValue = (value: unknown) => typeof value === "string" ? value : "";
 
-      setForm((prev) => ({
-        ...prev,
-        street:
-          data.displayName ||
-          prev.street ||
-          "",
-        area:
-          getAddressValue(address.suburb) ||
+      const currentValues = getValues();
+      setValue("street", data.displayName || currentValues.street || "");
+      setValue(
+        "area",
+        getAddressValue(address.suburb) ||
           getAddressValue(address.neighbourhood) ||
           getAddressValue(address.quarter) ||
           getAddressValue(address.village) ||
-          prev.area ||
-          "",
-        city:
-          getAddressValue(address.city) ||
+          currentValues.area ||
+          ""
+      );
+      setValue(
+        "city",
+        getAddressValue(address.city) ||
           getAddressValue(address.town) ||
           getAddressValue(address.village) ||
           getAddressValue(address.municipality) ||
-          prev.city ||
-          "",
-        state: getAddressValue(address.state) || prev.state || "",
-        country: getAddressValue(address.country) || prev.country || "",
-        lat,
-        lng,
-      }));
+          currentValues.city ||
+          ""
+      );
+      setValue("state", getAddressValue(address.state) || currentValues.state || "");
+      setValue("country", getAddressValue(address.country) || currentValues.country || "");
+      setValue("lat", lat);
+      setValue("lng", lng);
 
       toast.success("Current location fetched successfully");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Location error:", error);
 
-      if (error?.code === 1) {
+      const geolocationError = error instanceof GeolocationPositionError ? error : null;
+
+      if (geolocationError?.code === 1) {
         toast.error("Location permission denied");
-      } else if (error?.code === 2) {
+      } else if (geolocationError?.code === 2) {
         toast.error("Unable to detect your location");
-      } else if (error?.code === 3) {
+      } else if (geolocationError?.code === 3) {
         toast.error("Location request timed out");
       } else {
         toast.error("Failed to get current location");
@@ -163,21 +150,7 @@ export default function AddressModal({
     }
   };
 
-  const handleSubmit = async () => {
-    if (!form.street.trim()) {
-      toast.error("Street address is required");
-      return;
-    }
-
-    if (!form.city.trim()) {
-      toast.error("City is required");
-      return;
-    }
-
-    if (!form.country.trim()) {
-      toast.error("Country is required");
-      return;
-    }
+  const submitAddress = async (form: CheckoutAddressValues) => {
 
     try {
       setLoading(true);
@@ -203,9 +176,9 @@ export default function AddressModal({
       toast.success(editData ? "Address updated" : "Address added");
       onSuccess?.();
       onOpenChange(false);
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      toast.error(err?.message || "Something went wrong");
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -237,7 +210,7 @@ export default function AddressModal({
             <X size={18} />
           </button>
 
-          <div className="mt-6 space-y-5">
+          <form noValidate className="mt-6 space-y-5">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#8A8A8A]">
@@ -279,8 +252,7 @@ export default function AddressModal({
                 <MapPin className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#A3A3A3]" />
                 <Input
                   placeholder="123 Gastronomy Lane"
-                  value={form.street}
-                  onChange={(e) => handleChange("street", e.target.value)}
+                  {...register("street")}
                   className="h-[56px] rounded-[16px] border-0 bg-[#F6F6F6] pl-11 pr-4 text-[15px] shadow-none focus-visible:ring-1 focus-visible:ring-[#D91F26]"
                 />
               </div>
@@ -293,8 +265,7 @@ export default function AddressModal({
               </label>
               <Input
                 placeholder="Apartment, suite, unit, area"
-                value={form.area}
-                onChange={(e) => handleChange("area", e.target.value)}
+                {...register("area")}
                 className="h-[56px] rounded-[16px] border-0 bg-[#F6F6F6] px-4 text-[15px] shadow-none focus-visible:ring-1 focus-visible:ring-[#D91F26]"
               />
             </div>
@@ -307,8 +278,7 @@ export default function AddressModal({
                 </label>
                 <Input
                   placeholder="New York"
-                  value={form.city}
-                  onChange={(e) => handleChange("city", e.target.value)}
+                  {...register("city")}
                   className="h-[56px] rounded-[16px] border-0 bg-[#F6F6F6] px-4 text-[15px] shadow-none focus-visible:ring-1 focus-visible:ring-[#D91F26]"
                 />
               </div>
@@ -319,8 +289,7 @@ export default function AddressModal({
                 </label>
                 <Input
                   placeholder="NY"
-                  value={form.state}
-                  onChange={(e) => handleChange("state", e.target.value)}
+                  {...register("state")}
                   className="h-[56px] rounded-[16px] border-0 bg-[#F6F6F6] px-4 text-[15px] shadow-none focus-visible:ring-1 focus-visible:ring-[#D91F26]"
                 />
               </div>
@@ -333,8 +302,7 @@ export default function AddressModal({
               </label>
               <Input
                 placeholder="United States"
-                value={form.country}
-                onChange={(e) => handleChange("country", e.target.value)}
+                {...register("country")}
                 className="h-[56px] rounded-[16px] border-0 bg-[#F6F6F6] px-4 text-[15px] shadow-none focus-visible:ring-1 focus-visible:ring-[#D91F26]"
               />
             </div>
@@ -347,8 +315,7 @@ export default function AddressModal({
                 </label>
                 <Input
                   placeholder="Latitude"
-                  value={form.lat}
-                  onChange={(e) => handleChange("lat", e.target.value)}
+                  {...register("lat")}
                   className="h-[56px] rounded-[16px] border-0 bg-[#F6F6F6] px-4 text-[15px] shadow-none focus-visible:ring-1 focus-visible:ring-[#D91F26]"
                 />
               </div>
@@ -359,8 +326,7 @@ export default function AddressModal({
                 </label>
                 <Input
                   placeholder="Longitude"
-                  value={form.lng}
-                  onChange={(e) => handleChange("lng", e.target.value)}
+                  {...register("lng")}
                   className="h-[56px] rounded-[16px] border-0 bg-[#F6F6F6] px-4 text-[15px] shadow-none focus-visible:ring-1 focus-visible:ring-[#D91F26]"
                 />
               </div>
@@ -378,7 +344,7 @@ export default function AddressModal({
 
               <Button
                 type="button"
-                onClick={handleSubmit}
+                onClick={handleSubmit(submitAddress)}
                 disabled={loading || locating}
                 className="h-[52px] min-w-[180px] rounded-full bg-[#D91F26] px-8 text-white shadow-[0_12px_30px_rgba(217,31,38,0.28)] hover:bg-[#c61b22]"
               >
@@ -394,7 +360,7 @@ export default function AddressModal({
                 )}
               </Button>
             </div>
-          </div>
+          </form>
         </div>
       </DialogContent>
     </Dialog>
