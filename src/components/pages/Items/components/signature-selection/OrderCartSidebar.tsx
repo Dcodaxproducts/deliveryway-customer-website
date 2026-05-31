@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useCart from "@/hooks/useCart";
 import type { CartItemRecord } from "./types";
-import { getCartItemUnitPrice, getSelectedModifierTotal, normalizeArray, toNumber } from "./signature-selection-utils";
+import { getCartItemUnitPrice, toNumber } from "./signature-selection-utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 
@@ -35,7 +35,7 @@ export default function OrderCartSidebar({
 }: OrderCartSidebarProps) {
   const router = useRouter();
   const { token } = useAuth();
-  const { get, patch, del } = useCart(token);
+  const { fetchCustomerCart, updateCustomerCartItemQuantity, deleteCustomerCartItem } = useCart(token);
 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loadingCart, setLoadingCart] = useState(false);
@@ -47,17 +47,12 @@ export default function OrderCartSidebar({
     try {
       setLoadingCart(true);
 
-      const res = await get(`/v1/cart?customerId=${customerId}`);
+      const { response: res, items } = await fetchCustomerCart({ customerId });
 
       if (!res || res.error) {
         setCartItems([]);
         return;
       }
-
-      const resData = typeof res?.data === "object" && res.data !== null && !Array.isArray(res.data) ? res.data as CartItemRecord : null;
-      const nestedData = typeof resData?.data === "object" && resData.data !== null && !Array.isArray(resData.data) ? resData.data as CartItemRecord : null;
-      const cart = resData?.items ? resData : nestedData ?? resData;
-      const items = normalizeArray<CartItemRecord>(cart?.items);
 
       const formatted: CartItem[] = items.map((item) => {
         const quantity = toNumber(item.quantity, 1);
@@ -108,9 +103,7 @@ export default function OrderCartSidebar({
     try {
       setActionId(id);
 
-      const res = await patch(`/v1/cart/items/${id}?customerId=${customerId}`, {
-        quantity: newQty,
-      });
+      const res = await updateCustomerCartItemQuantity({ customerId, cartItemId: id, quantity: newQty });
 
       if (!res || res.error) {
         toast.error(res?.error || "Failed to update quantity");
@@ -143,7 +136,7 @@ export default function OrderCartSidebar({
     try {
       setActionId(id);
 
-      const res = await del(`/v1/cart/items/${id}?customerId=${customerId}`);
+      const res = await deleteCustomerCartItem({ customerId, cartItemId: id });
 
       if (!res || res.error) {
         toast.error(res?.error || "Failed to remove item");

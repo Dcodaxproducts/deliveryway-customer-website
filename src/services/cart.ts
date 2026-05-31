@@ -1,6 +1,9 @@
 import { createDomainApiService } from "@/services/domain-api";
 import { normalizeApiList, normalizeArray } from "@/components/pages/Items/utils/product-normalizers";
-import type { ApiRecord, CartPayload } from "@/components/pages/Items/types";
+import type { ApiRecord } from "@/components/pages/Items/types";
+import type { CartItemRecord } from "@/components/pages/Items/components/signature-selection/types";
+
+type CartMutationPayload = Record<string, unknown>;
 
 const cartService = createDomainApiService();
 
@@ -11,6 +14,29 @@ export const deleteCart = cartService.del;
 
 const getRecord = (value: unknown): ApiRecord | null =>
   typeof value === "object" && value !== null && !Array.isArray(value) ? value as ApiRecord : null;
+
+export const fetchCustomerCart = async ({
+  customerId,
+  token,
+}: {
+  customerId: string;
+  token?: string | null;
+}) => {
+  const response = await getCart(`/v1/cart?customerId=${customerId}`, token);
+
+  if (!response || response.error) {
+    return { response, items: [] as CartItemRecord[] };
+  }
+
+  const resData = getRecord(response.data);
+  const nestedData = getRecord(resData?.data);
+  const cart = resData?.items ? resData : nestedData ?? resData;
+
+  return {
+    response,
+    items: normalizeArray<CartItemRecord>(cart?.items),
+  };
+};
 
 export const fetchCustomerCartItem = async ({
   customerId,
@@ -36,7 +62,7 @@ export const addCustomerCartItem = ({
   token,
 }: {
   customerId: string;
-  payload: CartPayload & Record<string, unknown>;
+  payload: CartMutationPayload;
   token?: string | null;
 }) => postCart(`/v1/cart/items?customerId=${customerId}`, payload, token);
 
@@ -46,12 +72,34 @@ export const updateCustomerCartItem = ({
   token,
 }: {
   cartItemId: string;
-  payload: CartPayload & Record<string, unknown>;
+  payload: CartMutationPayload;
   token?: string | null;
 }) => patchCart(`/v1/cart/items/${cartItemId}`, payload, token);
 
 export const clearCustomerCart = ({ customerId, token }: { customerId: string; token?: string | null }) =>
   deleteCart(`/v1/cart?customerId=${customerId}`, token);
+
+export const updateCustomerCartItemQuantity = ({
+  customerId,
+  cartItemId,
+  quantity,
+  token,
+}: {
+  customerId: string;
+  cartItemId: string;
+  quantity: number;
+  token?: string | null;
+}) => patchCart(`/v1/cart/items/${cartItemId}?customerId=${customerId}`, { quantity }, token);
+
+export const deleteCustomerCartItem = ({
+  customerId,
+  cartItemId,
+  token,
+}: {
+  customerId: string;
+  cartItemId: string;
+  token?: string | null;
+}) => deleteCart(`/v1/cart/items/${cartItemId}?customerId=${customerId}`, token);
 
 export const fetchGroupOrders = async (token?: string | null) => {
   const response = await getCart("/v1/group-orders", token);
@@ -68,6 +116,6 @@ export const addGroupOrderItem = ({
   token,
 }: {
   groupOrderId: string;
-  payload: CartPayload & Record<string, unknown>;
+  payload: CartMutationPayload;
   token?: string | null;
 }) => postCart(`/v1/group-orders/${groupOrderId}/items`, payload, token);

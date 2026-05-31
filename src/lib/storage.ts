@@ -37,4 +37,18 @@ export const safeRemoveLocalStorageItem = (key: string) => {
   }
 };
 
+const SIGNATURE_MENU_VIEW_MODE_KEY = "signatureMenuViewMode";
+
+export type SignatureMenuViewMode = "multiple" | "onePage";
+
+export const getSignatureMenuViewMode = (): SignatureMenuViewMode => {
+  const stored = safeGetLocalStorageItem(SIGNATURE_MENU_VIEW_MODE_KEY);
+
+  return stored === "onePage" || stored === "multiple" ? stored : "multiple";
+};
+
+export const setSignatureMenuViewMode = (viewMode: SignatureMenuViewMode) => {
+  safeSetLocalStorageItem(SIGNATURE_MENU_VIEW_MODE_KEY, viewMode);
+};
+
 export const getAuthToken = () => readAuthSession()?.accessToken ?? null;

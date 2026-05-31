@@ -15,12 +15,14 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
-import useItems from "@/hooks/useItems";
+import useCart from "@/hooks/useCart";
+import useMenu from "@/hooks/useMenu";
 import { useAuth } from "@/hooks/useAuth";
+import { getSignatureMenuViewMode, setSignatureMenuViewMode } from "@/lib/storage";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import AsyncSelect from "@/components/ui/AsyncSelect";
 import type { ApiRecord, CartPayload, ItemPriceOverride, MenuItem, MenuRecord, MenuVariation, Modifier, ModifierGroup, ModifierLink, ProductCardData, RawModifierLink, SelectedModifier, SelectedModifiersMap, SplitPizzaSelection, VariationPriceOverride } from "./types";
-import { groupMenuRecords, normalizeApiList, normalizeApiMeta, normalizeArray, normalizeSelectedModifiers, sortBySortOrder, toNumber } from "./signature-selection-utils";
+import { normalizeArray, sortBySortOrder, toNumber } from "./signature-selection-utils";
 
 type SignatureSelectionContentProps = {
   restaurantId?: string | null;
@@ -32,37 +34,10 @@ type SignatureSelectionContentProps = {
 type MenuViewMode = "multiple" | "onePage";
 
 const ADDONS_GROUP_ID = "__item_addons__";
-const MENU_PAGE_LIMIT = 20;
 
 const hasText = (value: unknown) => {
   const text = String(value ?? "").trim();
   return text !== "" && text.toLowerCase() !== "null";
-};
-
-const resolveHasNext = ({
-  meta,
-  page,
-  limit,
-  receivedCount,
-  totalLoaded,
-}: {
-  meta: ApiRecord;
-  page: number;
-  limit: number;
-  receivedCount: number;
-  totalLoaded: number;
-}) => {
-  if (typeof meta?.hasNext === "boolean") return meta.hasNext;
-  if (typeof meta?.hasMore === "boolean") return meta.hasMore;
-
-  const currentPage = Number(meta?.page ?? page);
-  const totalPages = Number(meta?.totalPages ?? meta?.pages ?? 0);
-  const total = Number(meta?.total ?? 0);
-
-  if (totalPages > 0) return currentPage < totalPages;
-  if (total > 0) return totalLoaded < total;
-
-  return receivedCount >= limit;
 };
 
 const titleizeConstant = (value: unknown) => {
@@ -491,7 +466,8 @@ export default function SignatureSelectionContent({
   onCartRefresh,
 }: SignatureSelectionContentProps) {
   const { token } = useAuth();
-  const { get, post, del } = useItems(token);
+  const { fetchSignatureMenus, fetchSignatureSplitPizzaItems } = useMenu(token);
+  const { addCustomerCartItem, clearCustomerCart } = useCart(token);
 
   const [menus, setMenus] = useState<MenuRecord[]>([]);
   const [activeMenuId, setActiveMenuId] = useState<string>("");
@@ -499,13 +475,7 @@ export default function SignatureSelectionContent({
   const [loadingMenus, setLoadingMenus] = useState(false);
 
   const [viewMode, setViewMode] = useState<MenuViewMode>(() => {
-    if (typeof window === "undefined") return "multiple";
-
-    const stored = browserStorage.getItem("signatureMenuViewMode");
-
-    return stored === "onePage" || stored === "multiple"
-      ? stored
-      : "multiple";
+    return getSignatureMenuViewMode();
   });
 
   const [scrollTarget, setScrollTarget] = useState<{
@@ -550,7 +520,7 @@ export default function SignatureSelectionContent({
   }, [menus]);
 
   useEffect(() => {
-    browserStorage.setItem("signatureMenuViewMode", viewMode);
+    setSignatureMenuViewMode(viewMode);
   }, [viewMode]);
 
   const normalizeMenuRecords = (items: MenuRecord[]): MenuRecord[] => {
@@ -577,46 +547,12 @@ export default function SignatureSelectionContent({
     try {
       setLoadingMenus(true);
 
-      let page = 1;
-      let totalLoaded = 0;
-      let collected: MenuRecord[] = [];
-      let shouldContinue = true;
+      const { menus: collected, error } = await fetchSignatureMenus({
+        restaurantId: String(restaurantId),
+      });
 
-      while (shouldContinue) {
-        const params = new URLSearchParams({
-          restaurantId: String(restaurantId),
-          page: String(page),
-          limit: String(MENU_PAGE_LIMIT),
-          sortBy: "sortOrder",
-          sortOrder: "ASC",
-        });
-
-        const res = await get(`/v1/menus?${params.toString()}`);
-
-        if (!res || res.error) {
-          toast.error(res?.error || "Failed to fetch menus");
-          break;
-        }
-
-        const fetchedMenus = normalizeApiList<MenuRecord>(res);
-        const meta = normalizeApiMeta(res);
-
-        collected = [...collected, ...fetchedMenus];
-        totalLoaded += fetchedMenus.length;
-
-        shouldContinue = resolveHasNext({
-          meta,
-          page,
-          limit: MENU_PAGE_LIMIT,
-          receivedCount: fetchedMenus.length,
-          totalLoaded,
-        });
-
-        page += 1;
-
-        if (page > 30) {
-          shouldContinue = false;
-        }
+      if (error) {
+        toast.error(error);
       }
 
       const menuData = normalizeMenuRecords(collected);
@@ -1579,29 +1515,7 @@ export default function SignatureSelectionContent({
     search: string;
     page: number;
   }) => {
-    const queryParams = new URLSearchParams();
-
-    queryParams.set("page", String(page));
-    queryParams.set("supportsSplitPizza", "true");
-
-    if (restaurantId) {
-      queryParams.set("restaurantId", String(restaurantId));
-    }
-
-    const resolvedSearch = search?.trim();
-
-    if (resolvedSearch) {
-      queryParams.set("search", resolvedSearch);
-    }
-
-    const res = await get(`/v1/menu/items?${queryParams.toString()}`);
-    const data = normalizeApiList<MenuItem>(res);
-    const meta = normalizeApiMeta(res);
-
-    return {
-      data,
-      meta,
-    };
+    return fetchSignatureSplitPizzaItems({ restaurantId, search, page });
   };
 
   const openItemModal = (item: MenuItem) => {
@@ -1681,7 +1595,7 @@ export default function SignatureSelectionContent({
             ]
           : undefined;
 
-      const payload: CartPayload = {
+      const payload: CartPayload & Record<string, unknown> = {
         menuItemId: item.id,
         quantity,
         variationId: variation?.id ?? null,
@@ -1695,7 +1609,7 @@ export default function SignatureSelectionContent({
       }
 
       const addCartItem = async () => {
-        return post(`/v1/cart/items?customerId=${customerId}`, payload);
+        return addCustomerCartItem({ customerId, payload });
       };
 
       let res = await addCartItem();
@@ -1703,7 +1617,7 @@ export default function SignatureSelectionContent({
       if (isBranchCartConflictResponse(res)) {
         toast.info("Your cart had items from another branch. Clearing cart...");
 
-        const clearCartRes = await del(`/v1/cart?customerId=${customerId}`);
+        const clearCartRes = await clearCustomerCart({ customerId });
 
         if (!clearCartRes || clearCartRes.error) {
           toast.error(
