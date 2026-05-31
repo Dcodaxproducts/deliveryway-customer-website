@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { MapPin } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import useCustomer from "@/hooks/useCustomer";
+import useCheckout from "@/hooks/useCheckout";
 import { useAuth } from "@/hooks/useAuth";
 
 type AddressRecord = { id: string; street?: string; area?: string; city?: string; state?: string; country?: string };
@@ -18,7 +18,7 @@ export default function DeliveryAddressSection({
   setSelectedAddress,
 }: Props) {
   const { token } = useAuth();
-  const { get } = useCustomer(token);
+  const { get } = useCheckout(token);
 
   const [addresses, setAddresses] = useState<AddressRecord[]>([]);
   const [loading, setLoading] = useState(false);

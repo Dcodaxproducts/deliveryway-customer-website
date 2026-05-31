@@ -4,7 +4,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import useCustomer from "@/hooks/useCustomer";
+import useOrders from "@/hooks/useOrders";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -19,7 +19,7 @@ export default function ExploreCategories() {
   const router = useRouter();
   
 const { token, user, loading: authLoading } = useAuth();
-  const { get , post} = useCustomer(token);
+  const { get , post} = useOrders(token);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 

@@ -1,22 +1,17 @@
-import {
-  deleteAddress,
-  fetchAddresses,
-  fetchWalletSummary,
-  requestPresignedAvatarUpload,
-  updateProfile,
-  uploadAvatarFile,
-  type ApiClient,
-  type ProfileUpdatePayload,
-} from "@/services/profile";
+"use client";
 
-export const useProfile = (api: ApiClient) => ({
-  fetchWallet: () => fetchWalletSummary(api),
-  fetchAddresses: () => fetchAddresses(api),
-  deleteAddress: (id: string) => deleteAddress(api, id),
-  updateProfile: (payload: ProfileUpdatePayload) => updateProfile(api, payload),
-  uploadAvatar: async (file: File) => {
-    const upload = await requestPresignedAvatarUpload(api, file);
-    await uploadAvatarFile(upload, file);
-    return upload.fileUrl;
-  },
-});
+import { queryKeys } from "@/config/query-keys";
+import { useDomainApi } from "@/hooks/useDomainApi";
+import { deleteProfileApi, getProfileApi, patchProfileApi, postProfileApi } from "@/services/profile-api";
+
+const service = {
+  get: getProfileApi,
+  post: postProfileApi,
+  patch: patchProfileApi,
+  del: deleteProfileApi,
+};
+
+export const useProfile = (token: string | null) =>
+  useDomainApi(token, { service, requestKey: queryKeys.profile.request });
+
+export default useProfile;

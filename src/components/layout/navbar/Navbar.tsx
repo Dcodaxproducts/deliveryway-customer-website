@@ -20,7 +20,7 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { useAuthContext } from "@/context/AuthContext"
 import { useAuth } from "@/hooks/useAuth"
-import useCustomer from "@/hooks/useCustomer"
+import useMenu from "@/hooks/useMenu"
 import BranchSwitcher from "@/components/common/branch-selector/BranchSwitcher"
 import { BrandLogo } from "@/components/common/BrandLogo"
 
@@ -98,7 +98,7 @@ const isSearchResponse = (value: unknown): value is SearchResponse =>
 const Navbar = () => {
   const { user, logout } = useAuthContext()
   const { token, loading: authLoading, restaurantId } = useAuth()
-  const { get } = useCustomer(token)
+  const { get } = useMenu(token)
 
   const isAuth = !!user
   const userName = `${user?.profile?.firstName || ""} ${user?.profile?.lastName || ""}`.trim()

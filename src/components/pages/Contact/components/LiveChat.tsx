@@ -4,13 +4,13 @@
 import { useState, useEffect, useRef } from "react";
 import { Send, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import useCustomer from "@/hooks/useCustomer";
+import useChat from "@/hooks/useChat";
 import { io, Socket } from "socket.io-client";
 import { useSearchParams } from "next/navigation";
 
 export default function ChatUI() {
   const { token, user } = useAuth();
-  const api = useCustomer(token);
+  const api = useChat(token);
 const searchParams = useSearchParams();
 
 const orderId = searchParams.get("orderId");

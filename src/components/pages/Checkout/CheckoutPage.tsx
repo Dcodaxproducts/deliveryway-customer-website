@@ -7,7 +7,7 @@ import DeliverySection from "@/components/pages/Checkout/components/DeliverySect
 import PickupSection from "@/components/pages/Checkout/components/PickupSection";
 import CartSummarySection from "@/components/pages/Checkout/components/CartSummarySection";
 import { useRouter, useSearchParams } from "next/navigation";
-import useCustomer from "@/hooks/useCustomer";
+import useCheckout from "@/hooks/useCheckout";
 import { toast } from "sonner";
 import { useAuthContext } from "@/context/AuthContext";
 import {
@@ -96,7 +96,7 @@ function CheckoutPageContent() {
   const [validatingCoupon, setValidatingCoupon] = useState(false);
 
   const { user, token } = useAuthContext();
-  const { get, patch, del, post } = useCustomer(token);
+  const { get, patch, del, post } = useCheckout(token);
 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cartQuote, setCartQuote] = useState<unknown | null>(null);
@@ -700,7 +700,7 @@ const OrderStripeCheckout = ({
   const [loading, setLoading] = useState(false);
 
   const { token } = useAuth();
-  const { post } = useCustomer(token);
+  const { post } = useCheckout(token);
 
   const handlePay = async () => {
     if (!stripe || !elements) return;

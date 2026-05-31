@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import TestimonialsSection from "@/components/pages/Items/components/Testimonials";
-import useCustomer from "@/hooks/useCustomer";
+import useItems from "@/hooks/useItems";
 import { useAuthContext } from "@/context/AuthContext";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -811,7 +811,7 @@ function ProductDetailsPageContent() {
   const isEditingCartItem = Boolean(cartItemId);
 
   const { token } = useAuthContext();
-  const { get, post, patch, del } = useCustomer(token);
+  const { get, post, patch, del } = useItems(token);
   const router = useRouter();
 
   const [item, setItem] = useState<MenuItem | null>(null);

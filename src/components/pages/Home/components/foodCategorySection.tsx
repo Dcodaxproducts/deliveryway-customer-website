@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/carousel";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import useCustomer from "@/hooks/useCustomer";
+import useMenu from "@/hooks/useMenu";
 import { useAuth } from "@/hooks/useAuth";
 
 type PromotionCampaign = {
@@ -298,7 +298,7 @@ function PromotionBannerCard({
 export default function FoodCategorySection() {
   const router = useRouter();
   const { token, user, restaurantId: authRestaurantId } = useAuth();
-  const { get } = useCustomer(token);
+  const { get } = useMenu(token);
 
   const [categories, setCategories] = useState<unknown[]>([]);
   const [promotions, setPromotions] = useState<PromotionCampaign[]>([]);
@@ -404,7 +404,7 @@ export default function FoodCategorySection() {
 
     fetchPromotions();
 
-    // Keep get out of deps to avoid repeated useCustomer-triggered refetch flicker.
+    // Keep get out of deps to avoid repeated domain-hook-triggered refetch flicker.
   }, [token, authRestaurantId, user?.restaurantId, user?.branchId]);
 
   /* ================= NAVIGATION ================= */

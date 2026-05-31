@@ -4,7 +4,7 @@
 import Image from "next/image";
 import { Star, RefreshCw, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import useCustomer from "@/hooks/useCustomer";
+import useOrders from "@/hooks/useOrders";
 import { useAuthContext } from "@/context/AuthContext";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -13,7 +13,7 @@ import useBranchSelector from "@/hooks/useBranchSelector";
 import BranchPopup from "@/components/common/popups/BranchPopup";
 export function OrdersHistoryPage() {
   const { token } = useAuthContext();
-  const { get, post } = useCustomer(token);
+  const { get, post } = useOrders(token);
 const router = useRouter();
   const [orders, setOrders] = useState<unknown[]>([]);
   const [loading, setLoading] = useState(true);

@@ -3,7 +3,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import useCustomer from "@/hooks/useCustomer";
+import usePayments from "@/hooks/usePayments";
 import { Button } from "@/components/ui/button";
 import PaginationSection from "@/components/ui/PaginationComponent";
 import { Input } from "@/components/ui/input";
@@ -44,7 +44,7 @@ type WalletItem = {
 
 export default function PaymentsHistory() {
   const { token, restaurantId } = useAuth();
-  const api = useCustomer(token);
+  const api = usePayments(token);
 
   const [tab, setTab] = useState<"payments" | "wallet">("wallet");
 

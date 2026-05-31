@@ -4,11 +4,11 @@
 import { useEffect, useState } from "react";
 import { Calendar, Wallet, Check } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import useCustomer from "@/hooks/useCustomer";
+import useNotifications from "@/hooks/useNotifications";
 
 export function NotificationsPage() {
   const { token } = useAuth();
-  const { get } = useCustomer(token);
+  const { get } = useNotifications(token);
 
   const [notifications, setNotifications] = useState<unknown[]>([]);
   const [loading, setLoading] = useState(false);

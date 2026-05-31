@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import useCustomer from "@/hooks/useCustomer";
+import useReservations from "@/hooks/useReservations";
 import { useAuth } from "@/hooks/useAuth";
 import ReservationSuccess from "@/components/pages/Reservations/components/ReservationSuccess";
 import AsyncSelect from "@/components/ui/AsyncSelect";
@@ -288,7 +288,7 @@ const buildAvailableTimeSlots = ({
 
 export function ReserveTablePage() {
   const { token, user } = useAuth();
-  const { post, get, loading } = useCustomer(token);
+  const { post, get, loading } = useReservations(token);
 
   const [success, setSuccess] = useState(false);
   const [reservationData, setReservationData] = useState<unknown>(null);

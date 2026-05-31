@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Star, Loader2, Camera } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import useCustomer from "@/hooks/useCustomer";
+import useOrders from "@/hooks/useOrders";
 import { useAuthContext } from "@/context/AuthContext";
 
 export default function WriteReview() {
@@ -14,7 +14,7 @@ export default function WriteReview() {
   const orderId = params.get("orderId");
 
   const { token } = useAuthContext();
-  const { get } = useCustomer(token);
+  const { get } = useOrders(token);
 
   const [order, setOrder] = useState<unknown>(null);
   const [loading, setLoading] = useState(true);

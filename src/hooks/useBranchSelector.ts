@@ -3,12 +3,12 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import useHttpClient from "@/hooks/useHttpClient";
+import useBranches from "@/hooks/useBranches";
 import { useAuthContext } from "@/context/AuthContext";
 
 export default function useBranchSelector(onSelect?: () => void) {
   const { token, user, setUser } = useAuthContext();
-  const { get } = useHttpClient(token);
+  const { get } = useBranches(token);
 
   const [showBranchPopup, setShowBranchPopup] = useState(false);
   const [branches, setBranches] = useState<unknown[]>([]);

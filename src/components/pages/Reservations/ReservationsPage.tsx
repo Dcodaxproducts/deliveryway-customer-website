@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import ReservationCard from "@/components/pages/Reservations/components/ReservationCard";
 import { useAuth } from "@/hooks/useAuth";
-import useCustomer from "@/hooks/useCustomer";
+import useReservations from "@/hooks/useReservations";
 
 import {
   Select,
@@ -16,7 +16,7 @@ import {
 
 export function ReservationsPage() {
   const { token } = useAuth();
-  const api = useCustomer(token);
+  const api = useReservations(token);
 
   const [reservations, setReservations] = useState<unknown[]>([]);
   const [page, setPage] = useState(1);

@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 import RestaurantHeader from "@/components/pages/Items/components/RestaurantHeader";
 import ItemsLayout from "@/components/pages/Items/components/ItemsLayout";
-import useCustomer from "@/hooks/useCustomer";
+import useOrders from "@/hooks/useOrders";
 import { useAuth } from "@/hooks/useAuth";
 
 const GROUP_ORDER_CODE_KEY = "groupOrderCode";
@@ -20,7 +20,7 @@ function ItemsPageContent() {
   const codeFromUrl = searchParams.get("code") || "";
 
   const { token, user, loading: authLoading } = useAuth();
-  const { get, post } = useCustomer(token);
+  const { get, post } = useOrders(token);
 
   const [joiningGroupOrder, setJoiningGroupOrder] = useState(false);
 

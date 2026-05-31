@@ -5,12 +5,12 @@ import { ChevronDown } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import useCustomer from "@/hooks/useCustomer";
+import useBranches from "@/hooks/useBranches";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function BranchSelect({ value, onChange }: unknown) {
   const { user, token } = useAuth();
-  const { get } = useCustomer(token);
+  const { get } = useBranches(token);
 
   const [branches, setBranches] = useState<unknown[]>([]);
   const [search, setSearch] = useState("");

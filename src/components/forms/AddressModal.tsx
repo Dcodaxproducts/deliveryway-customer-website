@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { INPUT_BASE_CLASS, LABEL_TEXT_CLASS } from "@/components/common/common-classes";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import useCustomer from "@/hooks/useCustomer";
+import useCheckout from "@/hooks/useCheckout";
 import { reverseGeocode } from "@/services/geocoding";
 import { useAuth } from "@/hooks/useAuth";
 import { checkoutAddressSchema, type CheckoutAddressValues } from "@/validations/checkout";
@@ -44,7 +44,7 @@ export default function AddressModal({
   editData,
 }: AddressModalProps) {
   const { token } = useAuth();
-  const { post, patch } = useCustomer(token);
+  const { post, patch } = useCheckout(token);
 
   const [loading, setLoading] = useState(false);
   const [locating, setLocating] = useState(false);

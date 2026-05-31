@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Star, MapPin, Clock, Utensils, Loader2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import useCustomer from "@/hooks/useCustomer";
+import useMenu from "@/hooks/useMenu";
 import { useAuth } from "@/hooks/useAuth";
 import type { AuthRestaurantUser, ItemsCategory, StoredAuthState } from "@/components/pages/Items/types";
 import { getImageUrl, getOperatingHours, getRatingInfo, getRestaurantAddress, getRestaurantName, hasText, normalizeApiArray, normalizeApiMeta, resolveHasNext } from "@/components/pages/Items/utils/restaurant-card-utils";
@@ -39,7 +39,7 @@ export default function RestaurantHeader() {
   const router = useRouter();
 
   const { token, restaurantId: authRestaurantId, user } = useAuth();
-  const { get } = useCustomer(token);
+  const { get } = useMenu(token);
 
   const [category, setCategory] = useState<ItemsCategory | null>(null);
   const [restaurant, setRestaurant] = useState<{ name: string; address: string; operatingHours: string; ratingInfo: ReturnType<typeof getRatingInfo>; coverImage?: string | null } | null>(null);

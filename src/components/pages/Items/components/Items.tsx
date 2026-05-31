@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import RestaurantCard from "./RestaurantCard";
-import useCustomer from "@/hooks/useCustomer";
+import useItems from "@/hooks/useItems";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 import type { ItemsCategory, MenuItem } from "@/components/pages/Items/types";
@@ -51,7 +51,7 @@ export default function ItemsListing({
   onActiveCategoryChange,
 }: ItemsListingProps) {
   const { token, restaurantId: authRestaurantId, user } = useAuth();
-  const { get } = useCustomer(token);
+  const { get } = useItems(token);
 
   const [categoryItemsMap, setCategoryItemsMap] = useState<
     Record<string, CategoryItemsState>

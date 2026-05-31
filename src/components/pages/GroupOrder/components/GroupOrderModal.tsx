@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import useCustomer from "@/hooks/useCustomer";
+import useOrders from "@/hooks/useOrders";
 import { useAuth } from "@/hooks/useAuth";
 import BranchSelect from "@/components/ui/BranchSelect";
 import { X } from "lucide-react";
@@ -16,7 +16,7 @@ type GroupOrderModalProps = { open: boolean; onClose: () => void };
 
 export default function GroupOrderModal({ open, onClose }: GroupOrderModalProps) {
   const { user, token } = useAuth();
-  const { post, loading } = useCustomer(token);
+  const { post, loading } = useOrders(token);
 const router = useRouter();
   const [selectedBranch, setSelectedBranch] = useState<unknown>(null);
   const [date, setDate] = useState("");

@@ -9,7 +9,7 @@ import {
   FaTimes,
 } from "react-icons/fa";
 import { toast } from "sonner";
-import useCustomer from "@/hooks/useCustomer";
+import useBranches from "@/hooks/useBranches";
 import { useAuthContext } from "@/context/AuthContext";
 import { Branch, BranchApiResponse } from "@/types/branch-selector";
 import {
@@ -42,7 +42,7 @@ export default function BranchSelectorModal({
   onSelected,
 }: BranchSelectorModalProps) {
   const { token, user, setUser } = useAuthContext();
-  const api = useCustomer(token);
+  const api = useBranches(token);
   const getRef = useRef(api.get);
   const pathname = usePathname();
   const isBlockedRoute = pathname === "/login" || pathname === "/auth/login";

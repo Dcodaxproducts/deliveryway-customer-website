@@ -3,7 +3,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import useHttpClient from "@/hooks/useHttpClient";
+import useOrders from "@/hooks/useOrders";
 import { useAuth } from "@/hooks/useAuth";
 
 const GROUP_ORDER_CODE_KEY = "groupOrderCode";
@@ -38,7 +38,7 @@ export default function useGroupOrder() {
   const router = useRouter();
 
   const { token, user } = useAuth();
-  const { get } = useHttpClient(token);
+  const { get } = useOrders(token);
 
   const [order, setOrder] = useState<unknown>(null);
   const [loading, setLoading] = useState(true);

@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Plus, Info, Loader2, Eye, Minus, Download, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import useCustomer from "@/hooks/useCustomer";
+import useItems from "@/hooks/useItems";
 import { useAuthContext } from "@/context/AuthContext";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -511,7 +511,7 @@ function ProductInfoContent({ item }: { item: MenuItem | null }) {
 export default function RestaurantCard({ item }: { item: MenuItem }) {
   const router = useRouter();
   const { token } = useAuthContext();
-  const { post, get, del } = useCustomer(token);
+  const { post, get, del } = useItems(token);
   const { user } = useAuth();
 
   const [infoOpen, setInfoOpen] = useState(false);

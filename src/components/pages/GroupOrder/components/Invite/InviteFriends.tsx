@@ -7,12 +7,12 @@ import FeaturesSection from "./FeaturesSection";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import useCustomer from "@/hooks/useCustomer";
+import useOrders from "@/hooks/useOrders";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function InviteFriends() {
   const { token } = useAuth();
-  const { get } = useCustomer(token);
+  const { get } = useOrders(token);
   const router = useRouter();
 
   const [order, setOrder] = useState<unknown>(null);

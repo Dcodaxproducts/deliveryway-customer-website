@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/dialog";
 
 import { useAuth } from "@/hooks/useAuth";
-import useCustomer from "@/hooks/useCustomer";
+import usePayments from "@/hooks/usePayments";
 import { toast } from "sonner";
 
 type Props = {
@@ -102,7 +102,7 @@ const Balance = ({
   loyaltyPoints = 0,
 }: Props) => {
   const { token } = useAuth();
-  const api = useCustomer(token);
+  const api = usePayments(token);
 
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState("1000");

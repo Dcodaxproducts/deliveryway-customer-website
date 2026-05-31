@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import CategorySidebar from "./CategorySidebar";
 import ItemsListing from "./Items";
-import useCustomer from "@/hooks/useCustomer";
+import useMenu from "@/hooks/useMenu";
 import { useAuth } from "@/hooks/useAuth";
 
 type MenuViewMode = "multiple" | "onePage";
@@ -59,7 +59,7 @@ const resolveHasNext = ({
 
 export default function ItemsLayout({ categoryId }: unknown) {
   const { token, restaurantId: authRestaurantId, user } = useAuth();
-  const { get } = useCustomer(token);
+  const { get } = useMenu(token);
 
   const [categories, setCategories] = useState<unknown[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(false);

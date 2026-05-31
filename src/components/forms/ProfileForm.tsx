@@ -2,7 +2,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import {
   Camera,
@@ -19,17 +19,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import AddressModal from "./AddressModal";
-import useCustomer from "@/hooks/useCustomer";
+import useProfileApi from "@/hooks/useProfile";
 import { useAuth } from "@/hooks/useAuth";
 import { useAuthContext } from "@/context/AuthContext";
 import Link from "next/link";
-import { useProfile } from "@/hooks/useProfile";
 import { readAuthSession, saveAuthSession } from "@/lib/auth";
 import {
+  deleteAddress as deleteProfileAddress,
+  fetchAddresses as fetchProfileAddresses,
+  fetchWalletSummary,
   getFullName,
   getProfileDefaults,
   getProfileUpdatePayload,
   mergeUpdatedProfileAuth,
+  requestPresignedAvatarUpload,
+  updateProfile as updateProfileRequest,
+  uploadAvatarFile,
   type AddressRecord,
 } from "@/services/profile";
 import {
@@ -41,8 +46,18 @@ export default function ProfileForm() {
   const { token, user } = useAuth();
   const { login } = useAuthContext();
 
-  const api = useCustomer(token);
-  const profileApi = useProfile(api);
+  const api = useProfileApi(token);
+  const profileApi = useMemo(() => ({
+    fetchWallet: () => fetchWalletSummary(api),
+    fetchAddresses: () => fetchProfileAddresses(api),
+    deleteAddress: (id: string) => deleteProfileAddress(api, id),
+    uploadAvatar: async (file: File) => {
+      const upload = await requestPresignedAvatarUpload(api, file);
+      await uploadAvatarFile(upload, file);
+      return upload.fileUrl;
+    },
+    updateProfile: (payload: ReturnType<typeof getProfileUpdatePayload>) => updateProfileRequest(api, payload),
+  }), [api]);
 
   const fileRef = useRef<HTMLInputElement | null>(null);
 

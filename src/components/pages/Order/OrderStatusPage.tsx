@@ -4,13 +4,13 @@
 import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import useCustomer from "@/hooks/useCustomer";
+import useOrders from "@/hooks/useOrders";
 import { useAuthContext } from "@/context/AuthContext";
 import OrderSummary from "@/components/pages/Order/components/OrderSummary";
 
 function OrderStatusContent() {
   const { token } = useAuthContext();
-  const { get } = useCustomer(token);
+  const { get } = useOrders(token);
 
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");

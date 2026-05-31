@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Minus, Plus, Tag, X, ArrowRight, Loader2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import useCustomer from "@/hooks/useCustomer";
+import useCart from "@/hooks/useCart";
 import type { CartItemRecord } from "./types";
 import { getCartItemUnitPrice, getSelectedModifierTotal, normalizeArray, toNumber } from "./signature-selection-utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -35,7 +35,7 @@ export default function OrderCartSidebar({
 }: OrderCartSidebarProps) {
   const router = useRouter();
   const { token } = useAuth();
-  const { get, patch, del } = useCustomer(token);
+  const { get, patch, del } = useCart(token);
 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loadingCart, setLoadingCart] = useState(false);

@@ -15,7 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
-import useCustomer from "@/hooks/useCustomer";
+import useItems from "@/hooks/useItems";
 import { useAuth } from "@/hooks/useAuth";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import AsyncSelect from "@/components/ui/AsyncSelect";
@@ -491,7 +491,7 @@ export default function SignatureSelectionContent({
   onCartRefresh,
 }: SignatureSelectionContentProps) {
   const { token } = useAuth();
-  const { get, post, del } = useCustomer(token);
+  const { get, post, del } = useItems(token);
 
   const [menus, setMenus] = useState<MenuRecord[]>([]);
   const [activeMenuId, setActiveMenuId] = useState<string>("");

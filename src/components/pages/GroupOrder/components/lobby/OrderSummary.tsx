@@ -4,7 +4,7 @@
 import { Info, Loader2, LogOut } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import useCustomer from "@/hooks/useCustomer";
+import useOrders from "@/hooks/useOrders";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
@@ -20,7 +20,7 @@ export default function OrderSummary({ order, onSuccess }: unknown) {
   const summary = order?.summary;
 const { canCheckout, isHost } = useGroupOrder();
   const { token } = useAuth();
-  const { post } = useCustomer(token);
+  const { post } = useOrders(token);
 
   const [noteOpen, setNoteOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);

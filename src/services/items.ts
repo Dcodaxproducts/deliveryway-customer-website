@@ -1,1 +1,8 @@
-export { deleteRequest, getRequest, patchRequest, postRequest, request } from "@/services/http";
+import { createDomainApiService } from "@/services/domain-api";
+
+const itemsService = createDomainApiService();
+
+export const getItems = itemsService.get;
+export const postItems = itemsService.post;
+export const patchItems = itemsService.patch;
+export const deleteItems = itemsService.del;
