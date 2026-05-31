@@ -1,65 +1,45 @@
-// @ts-nocheck
 "use client";
 
 import { useState } from "react";
 import { toast } from "sonner";
 import useBranches from "@/hooks/useBranches";
 import { useAuthContext } from "@/context/AuthContext";
+import { persistSelectedBranch } from "@/lib/branch-selector";
+import type { BranchRecord } from "@/types/branch-selector";
 
 export default function useBranchSelector(onSelect?: () => void) {
-  const { token, user, setUser } = useAuthContext();
-  const { get } = useBranches(token);
+  const { token, setUser } = useAuthContext();
+  const { fetchBranches } = useBranches(token);
 
   const [showBranchPopup, setShowBranchPopup] = useState(false);
-  const [branches, setBranches] = useState<unknown[]>([]);
+  const [branches, setBranches] = useState<BranchRecord[]>([]);
   const [loadingBranches, setLoadingBranches] = useState(false);
 
-  const fetchBranches = async () => {
+  const fetchBranchOptions = async () => {
     try {
       setLoadingBranches(true);
 
-      const res: unknown = await get(`/v1/branches`);
-
-      const activeBranches =
-        res?.data?.filter((b: unknown) => b.isActive) || [];
+      const activeBranches = (await fetchBranches(`/v1/branches`)).filter((branch) => branch.isActive !== false);
 
       setBranches(activeBranches);
       setShowBranchPopup(true);
-    } catch (err) {
+    } catch {
       toast.error("Failed to load branches");
     } finally {
       setLoadingBranches(false);
     }
   };
 
-  const selectBranch = async (branch: unknown) => {
+  const selectBranch = async (branch: BranchRecord) => {
     try {
-      // ---------------- UPDATE LOCAL STORAGE ----------------
-      const authRaw = browserStorage.getItem("auth");
-      const auth = authRaw ? JSON.parse(authRaw) : null;
-
-      if (auth?.user) {
-        auth.user.branchId = branch.id;
-        browserStorage.setItem("auth", JSON.stringify(auth));
-      }
-
-      // ---------------- UPDATE CONTEXT (IMPORTANT FIX) ----------------
-      setUser((prev: unknown) => {
-        if (!prev) return prev;
-
-        return {
-          ...prev,
-          branchId: branch.id,
-        };
-      });
+      persistSelectedBranch(branch, setUser, { includeBranch: false });
 
       toast.success("Branch selected");
       setShowBranchPopup(false);
 
-      // 🔥 resume flow (retry API call etc.)
       if (onSelect) onSelect();
 
-    } catch (err) {
+    } catch {
       toast.error("Failed to set branch");
     }
   };
@@ -69,7 +49,7 @@ export default function useBranchSelector(onSelect?: () => void) {
     setShowBranchPopup,
     branches,
     loadingBranches,
-    fetchBranches,
+    fetchBranches: fetchBranchOptions,
     selectBranch,
   };
 }

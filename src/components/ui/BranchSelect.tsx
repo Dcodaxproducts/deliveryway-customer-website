@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import { ChevronDown } from "lucide-react";
@@ -7,24 +6,30 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import useBranches from "@/hooks/useBranches";
 import { useAuth } from "@/hooks/useAuth";
+import type { BranchRecord } from "@/types/branch-selector";
 
-export default function BranchSelect({ value, onChange }: unknown) {
+type BranchSelectProps = {
+  value: BranchRecord | null;
+  onChange: (branch: BranchRecord) => void;
+};
+
+export default function BranchSelect({ value, onChange }: BranchSelectProps) {
   const { user, token } = useAuth();
-  const { get } = useBranches(token);
+  const { fetchBranches } = useBranches(token);
 
-  const [branches, setBranches] = useState<unknown[]>([]);
+  const [branches, setBranches] = useState<BranchRecord[]>([]);
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const dropdownRef = useRef<unknown>(null);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
 
-  const fetchBranches = async () => {
+  const fetchBranchOptions = async () => {
     try {
       setLoading(true);
-      const res: unknown = await get(
+      const list = await fetchBranches(
         `/v1/branches?restaurantId=${user?.restaurantId}&search=${search}`
       );
-      setBranches(res?.data?.filter((b: unknown) => b.isActive) || []);
+      setBranches(list.filter((b) => b.isActive !== false));
     } catch {
       toast.error("Failed to load branches");
     } finally {
@@ -33,12 +38,12 @@ export default function BranchSelect({ value, onChange }: unknown) {
   };
 
   useEffect(() => {
-    if (user?.restaurantId) fetchBranches();
+    if (user?.restaurantId) fetchBranchOptions();
   }, [search]);
 
   useEffect(() => {
-    const handleClick = (e: unknown) => {
-      if (!dropdownRef.current?.contains(e.target)) {
+    const handleClick = (e: MouseEvent) => {
+      if (!dropdownRef.current?.contains(e.target as Node)) {
         setOpen(false);
       }
     };
@@ -46,7 +51,6 @@ export default function BranchSelect({ value, onChange }: unknown) {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  // if user already has branch
   if (user?.branchId) return null;
 
   return (

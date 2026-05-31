@@ -1,14 +1,14 @@
-// @ts-nocheck
 "use client";
 
 import { FaMapMarkerAlt, FaTimes, FaStore } from "react-icons/fa";
+import type { BranchRecord } from "@/types/branch-selector";
 
 type BranchPopupProps = {
   show: boolean;
   onClose: () => void;
-  branches: unknown[];
+  branches: BranchRecord[];
   loading: boolean;
-  onSelect: (branch: unknown) => void;
+  onSelect: (branch: BranchRecord) => void;
 };
 
 export default function BranchPopup({
@@ -77,7 +77,7 @@ export default function BranchPopup({
             </div>
           ) : (
             <div className="space-y-3">
-              {branches.map((branch: unknown) => (
+              {branches.map((branch) => (
                 <button
                   key={branch.id}
                   type="button"

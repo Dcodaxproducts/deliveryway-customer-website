@@ -43,13 +43,13 @@ export default function BranchSelectorModal({
 }: BranchSelectorModalProps) {
   const { token, user, setUser } = useAuthContext();
   const api = useBranches(token);
-  const getRef = useRef(api.get);
+  const getRef = useRef(api.fetchBranchPage);
   const pathname = usePathname();
   const isBlockedRoute = pathname === "/login" || pathname === "/auth/login";
 
   useEffect(() => {
-    getRef.current = api.get;
-  }, [api.get]);
+    getRef.current = api.fetchBranchPage;
+  }, [api.fetchBranchPage]);
 
   const [loading, setLoading] = useState(false);
   const [selectingId, setSelectingId] = useState<string | null>(null);
