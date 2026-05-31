@@ -1,6 +1,6 @@
-import { Button } from "../ui/button"; // button
+import { Button } from "@/components/ui/button"; // button
 import { Checkbox } from "../ui/checkbox"; // checkbox
-import { Input } from "../ui/input"; // input
+import { Input } from "@/components/ui/input"; // input
 
 export default function PaymentForm({ type }: { type?: "payment" | "history" }) {
     return (

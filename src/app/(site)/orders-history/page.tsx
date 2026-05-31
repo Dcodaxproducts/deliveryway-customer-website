@@ -9,7 +9,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import useBranchSelector from "@/hooks/useBranchSelector";
-import BranchPopup from "@/components/popups/BranchPopup";
+import BranchPopup from "@/components/common/popups/BranchPopup";
 export default function Page() {
   const { token } = useAuthContext();
   const { get, post } = useApi(token);

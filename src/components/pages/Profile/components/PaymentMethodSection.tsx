@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import Image from "next/image";
-import PaymentForm from "../forms/PaymentForm";
-import { Button } from "../ui/button";
+import PaymentForm from "@/components/forms/PaymentForm";
+import { Button } from "@/components/ui/button";
 
 export default function PaymentMethodSection() {
   return (

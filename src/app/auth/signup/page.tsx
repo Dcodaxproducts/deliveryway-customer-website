@@ -1,4 +1,4 @@
-import { AuthHero } from "@/components/auth/hero"
+import { AuthHero } from "@/components/pages/Auth/components/hero"
 import SignUpForm from "@/components/forms/SignupForm"
 
 export const metadata = {

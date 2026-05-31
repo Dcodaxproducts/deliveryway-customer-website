@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import SignatureSelectionContent from "@/components/signature-selection/SignatureSelectionContent";
-import OrderCartSidebar from "@/components/signature-selection/OrderCartSidebar";
+import SignatureSelectionContent from "@/components/pages/Items/components/signature-selection/SignatureSelectionContent";
+import OrderCartSidebar from "@/components/pages/Items/components/signature-selection/OrderCartSidebar";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function SignatureSelectionPage() {

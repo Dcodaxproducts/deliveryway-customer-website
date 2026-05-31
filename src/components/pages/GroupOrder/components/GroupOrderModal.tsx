@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import useApi from "@/hooks/useApi";
 import { useAuth } from "@/hooks/useAuth";
-import BranchSelect from "../ui/BranchSelect";
+import BranchSelect from "@/components/ui/BranchSelect";
 import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
 

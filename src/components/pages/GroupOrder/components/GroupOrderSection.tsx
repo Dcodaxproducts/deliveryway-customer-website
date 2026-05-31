@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, UsersRound, Utensils, Share2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import GroupOrderModal from "@/components/GroupOrder/GroupOrderModal";
+import GroupOrderModal from "@/components/pages/GroupOrder/components/GroupOrderModal";
 
 const GROUP_ORDER_CODE_KEY = "groupOrderCode";
 

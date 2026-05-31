@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import ReservationCard from "@/components/cards/ReservationCard";
+import ReservationCard from "@/components/pages/Reservations/components/ReservationCard";
 import { useAuth } from "@/hooks/useAuth";
 import useApi from "@/hooks/useApi";
 

@@ -1,4 +1,4 @@
-import PaymentsHistory from '@/components/profile/PaymentsHistory'
+import PaymentsHistory from '@/components/pages/Profile/components/PaymentsHistory'
 import React from 'react'
 
 const page = () => {

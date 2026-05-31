@@ -1,4 +1,4 @@
-import ChatUI from "@/components/contact/LiveChat";
+import ChatUI from "@/components/pages/Contact/components/LiveChat";
 import React, { Suspense } from "react";
 
 const Page = () => {

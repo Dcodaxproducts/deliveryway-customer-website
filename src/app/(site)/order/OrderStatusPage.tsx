@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import useApi from "@/hooks/useApi";
 import { useAuthContext } from "@/context/AuthContext";
-import OrderSummary from "@/components/order/OrderSummary";
+import OrderSummary from "@/components/pages/Order/components/OrderSummary";
 
 export default function OrderStatusPage() {
   const { token } = useAuthContext();

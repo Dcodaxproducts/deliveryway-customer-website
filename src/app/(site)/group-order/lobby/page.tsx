@@ -1,10 +1,10 @@
 "use client";
 
-import HeaderSection from "@/components/GroupOrder/lobby/HeaderSection";
-import UserCard from "@/components/GroupOrder/lobby/UserCard";
-import OrderSummary from "@/components/GroupOrder/lobby/OrderSummary";
-import InviteSection from "@/components/GroupOrder/lobby/InviteSection";
-import OrderSuccess from "@/components/GroupOrder/Success/OrderSuccess";
+import HeaderSection from "@/components/pages/GroupOrder/components/lobby/HeaderSection";
+import UserCard from "@/components/pages/GroupOrder/components/lobby/UserCard";
+import OrderSummary from "@/components/pages/GroupOrder/components/lobby/OrderSummary";
+import InviteSection from "@/components/pages/GroupOrder/components/lobby/InviteSection";
+import OrderSuccess from "@/components/pages/GroupOrder/components/Success/OrderSuccess";
 import useGroupOrder from "@/hooks/useGroupOrder";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";

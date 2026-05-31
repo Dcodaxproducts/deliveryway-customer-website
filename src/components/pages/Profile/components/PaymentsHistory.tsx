@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import useApi from "@/hooks/useApi";
 import { Button } from "@/components/ui/button";
-import PaginationSection from "../ui/PaginationComponent";
+import PaginationSection from "@/components/ui/PaginationComponent";
 import { Input } from "@/components/ui/input";
 import {
   Select,

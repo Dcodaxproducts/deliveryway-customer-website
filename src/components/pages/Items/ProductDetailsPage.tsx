@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import TestimonialsSection from "./Testimonials";
+import TestimonialsSection from "@/components/pages/Items/components/Testimonials";
 import useApi from "@/hooks/useApi";
 import { useAuthContext } from "@/context/AuthContext";
 import { toast } from "sonner";

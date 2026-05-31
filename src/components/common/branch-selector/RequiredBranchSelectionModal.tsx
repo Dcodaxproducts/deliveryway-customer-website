@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuthContext } from "@/context/AuthContext";
 import BranchSelectorModal from "./BranchSelectorModal";
-import { Branch } from "../types/branch-selector";
+import { Branch } from "@/types/branch-selector";
 
 type RequiredBranchSelectionModalProps = {
   restaurantId?: string | number | null;

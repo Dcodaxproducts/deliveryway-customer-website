@@ -1,4 +1,4 @@
-import { Branch } from "../types/branch-selector";
+import { Branch } from "@/types/branch-selector";
 
 export function persistSelectedBranch(branch: Branch, setUser?: any) {
   const authRaw = browserStorage.getItem("auth");

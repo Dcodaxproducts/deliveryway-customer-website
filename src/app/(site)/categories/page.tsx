@@ -1,14 +1,3 @@
-import ExploreCategories from '@/components/categories/ExploreCategories'
-import FoodBanner from '@/components/categories/FoodBanner'
-import React from 'react'
+import CategoriesPage from "@/components/pages/Categories/CategoriesPage";
 
-const page = () => {
-  return (
-    <div>
-      <FoodBanner />
-      <ExploreCategories />
-    </div>
-  )
-}
-
-export default page
+export default CategoriesPage;

@@ -1,5 +1,5 @@
 import React, { Suspense } from "react";
-import ProductPage from "./ProductPage";
+import ProductPage from "@/components/pages/Items/ProductDetailsPage";
 
 const Page = () => {
   return (

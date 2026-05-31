@@ -11,11 +11,11 @@ import {
 import { toast } from "sonner";
 import useApi from "@/hooks/useApi";
 import { useAuthContext } from "@/context/AuthContext";
-import { Branch, BranchApiResponse } from "../types/branch-selector";
+import { Branch, BranchApiResponse } from "@/types/branch-selector";
 import {
   getBranchAddressText,
   persistSelectedBranch,
-} from "../utils/branch-selector";
+} from "@/lib/branch-selector";
 import { usePathname } from "next/navigation";
 
 type BranchSelectorModalProps = {

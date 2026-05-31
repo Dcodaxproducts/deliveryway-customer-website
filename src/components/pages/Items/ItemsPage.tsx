@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
-import RestaurantHeader from "@/components/items/RestaurantHeader";
-import ItemsLayout from "@/components/items/ItemsLayout";
+import RestaurantHeader from "@/components/pages/Items/components/RestaurantHeader";
+import ItemsLayout from "@/components/pages/Items/components/ItemsLayout";
 import useApi from "@/hooks/useApi";
 import { useAuth } from "@/hooks/useAuth";
 

@@ -1,5 +1,5 @@
 import React, { Suspense } from "react";
-import CheckoutPage from "./CheckoutPage";
+import CheckoutPage from "@/components/pages/Checkout/CheckoutPage";
 
 const page = () => {
   return (

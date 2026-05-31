@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { getAuthErrorMessage } from "@/lib/auth";
 import { resendResetOtp, resetPassword } from "@/services/auth";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Input } from "../ui/input";
+import { Input } from "@/components/ui/input";
 import {
   resetPasswordSchema,
   type ResetPasswordFormValues,

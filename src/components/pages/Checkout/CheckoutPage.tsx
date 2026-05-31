@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Tabs from "@/components/checkout/Tabs";
-import DeliverySection from "@/components/checkout/DeliverySection";
-import PickupSection from "@/components/checkout/PickupSection";
-import CartSummarySection from "@/components/checkout/CartSummarySection";
+import Tabs from "@/components/pages/Checkout/components/Tabs";
+import DeliverySection from "@/components/pages/Checkout/components/DeliverySection";
+import PickupSection from "@/components/pages/Checkout/components/PickupSection";
+import CartSummarySection from "@/components/pages/Checkout/components/CartSummarySection";
 import { useRouter, useSearchParams } from "next/navigation";
 import useApi from "@/hooks/useApi";
 import { toast } from "sonner";

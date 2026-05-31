@@ -9,7 +9,7 @@ import { useAuthContext } from "@/context/AuthContext";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
-import AsyncSelect from "../ui/AsyncSelect";
+import AsyncSelect from "@/components/ui/AsyncSelect";
 
 type PromotionInfo = {
   promotionId?: string;

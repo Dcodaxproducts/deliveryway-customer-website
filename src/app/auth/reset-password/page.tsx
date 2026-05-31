@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { AuthHero } from "@/components/auth/hero";
+import { AuthHero } from "@/components/pages/Auth/components/hero";
 import ResetPassword from "@/components/forms/ResetPassword";
 
 export const metadata = {
