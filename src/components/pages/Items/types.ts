@@ -180,11 +180,11 @@ export type CartPayload = {
   menuItemId?: string | number;
   quantity: number;
   checkoutType?: CheckoutType;
-  variationId?: string;
+  variationId?: string | null;
   modifiers: Array<{ modifierId: string; quantity: number }>;
   note?: string;
   branchId?: string | null;
-  sections?: Array<{ slot: string; menuItemId: string | number }>;
+  sections?: Array<{ slot: string; menuItemId?: string | number }>;
   splitPizza?: unknown;
 };
 

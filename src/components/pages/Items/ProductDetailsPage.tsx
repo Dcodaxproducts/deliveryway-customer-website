@@ -5,49 +5,36 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import TestimonialsSection from "@/components/pages/Items/components/Testimonials";
 import useItems from "@/hooks/useItems";
+import useCart from "@/hooks/useCart";
 import { useAuthContext } from "@/context/AuthContext";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { Download, Eye, Loader2, Minus, Plus, X } from "lucide-react";
 import AsyncSelect from "@/components/ui/AsyncSelect";
 import type { CartPayload, CheckoutType, ItemPriceOverride, MenuItem, MenuVariation, Modifier, ModifierGroup, ModifierLink, ModifierSelectionMap, PromotionInfo, RawModifierLink, SelectedModifier, VariationPriceOverride } from "@/components/pages/Items/types";
+import {
+  buildCartPayload,
+  buildModifiersPayload,
+  getApiErrorMessage,
+  isCartBranchConflict,
+} from "@/components/pages/Items/utils/product-cart";
+import {
+  getDepositAmount,
+  getProductDetailsQuantityLimits,
+  normalizeApiList,
+  normalizeArray,
+  sortBySortOrder,
+  toNumber,
+} from "@/components/pages/Items/utils/product-normalizers";
 
 
 type ApiRecord = Record<string, unknown>;
 type OverrideLike = VariationPriceOverride | ItemPriceOverride | ApiRecord | null | undefined;
 type PromotionPricing = { promotion: PromotionInfo | null; originalPrice: number; finalPrice: number; discountAmount: number; hasPromotion: boolean; hasDiscount: boolean };
 
-const toNumber = (value: unknown, fallback = 0) => {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : fallback;
-};
-
-const sortBySortOrder = <T extends { sortOrder?: number }>(items: T[]) => {
-  return [...items].sort(
-    (a, b) => toNumber(a?.sortOrder, 0) - toNumber(b?.sortOrder, 0)
-  );
-};
-
 const hasText = (value: unknown) => {
   const text = String(value ?? "").trim();
   return text !== "" && text.toLowerCase() !== "null";
-};
-
-const normalizeApiList = <T = unknown,>(res: unknown): T[] => {
-  const record = typeof res === "object" && res !== null ? (res as ApiRecord) : {};
-  const data = record.data;
-  const dataRecord = typeof data === "object" && data !== null ? (data as ApiRecord) : {};
-
-  if (Array.isArray(data)) return data as T[];
-  if (Array.isArray(dataRecord.data)) return dataRecord.data as T[];
-  if (Array.isArray(dataRecord.items)) return dataRecord.items as T[];
-  if (Array.isArray(record.items)) return record.items as T[];
-  return [];
-};
-
-const normalizeArray = <T = unknown,>(value: unknown): T[] => {
-  if (!value) return [];
-  return Array.isArray(value) ? (value as T[]) : [];
 };
 
 const getCheckoutType = (type?: string | null): CheckoutType => {
@@ -811,7 +798,15 @@ function ProductDetailsPageContent() {
   const isEditingCartItem = Boolean(cartItemId);
 
   const { token } = useAuthContext();
-  const { get, post, patch, del } = useItems(token);
+  const { fetchMenuItems } = useItems(token);
+  const {
+    addCustomerCartItem,
+    addGroupOrderItem,
+    clearCustomerCart,
+    fetchCustomerCartItem,
+    fetchGroupOrders,
+    updateCustomerCartItem,
+  } = useCart(token);
   const router = useRouter();
 
   const [item, setItem] = useState<MenuItem | null>(null);
@@ -1198,18 +1193,6 @@ function ProductDetailsPageContent() {
     };
   };
 
-  const getItemQuantityLimits = (menuItem: MenuItem | null) => {
-    const minQuantity = Math.max(1, toNumber(menuItem?.minQuantity, 1));
-    const rawMaxQuantity = toNumber(menuItem?.maxQuantity, 0);
-    const maxQuantity =
-      rawMaxQuantity > 0 ? Math.max(minQuantity, rawMaxQuantity) : undefined;
-
-    return {
-      minQuantity,
-      maxQuantity,
-    };
-  };
-
   const clampQuantity = (
     value: unknown,
     limits: {
@@ -1319,7 +1302,7 @@ function ProductDetailsPageContent() {
 
   const itemSupportsSplitPizza = Boolean(item?.supportsSplitPizza);
 
-  const itemQuantityLimits = getItemQuantityLimits(item);
+  const itemQuantityLimits = getProductDetailsQuantityLimits(item);
 
   const resolvedItemPrice = getMenuItemResolvedPrice(item, selectedVariation);
 
@@ -1337,10 +1320,6 @@ function ProductDetailsPageContent() {
     source: getPromotionSourceForPrice(splitPizzaItem, splitPizzaDefaultVariation),
     originalPrice: splitPizzaResolvedItemPrice,
   });
-
-  const getDepositAmount = (menuItem: MenuItem | null) => {
-    return toNumber(menuItem?.depositAmount, 0);
-  };
 
   const depositAmount = getDepositAmount(item);
 
@@ -1406,7 +1385,7 @@ function ProductDetailsPageContent() {
       try {
         setPageLoading(true);
 
-        const res = await get(
+        const { response: res, items } = await fetchMenuItems(
           `/v1/menu/items?search=${encodeURIComponent(searchValue)}`
         );
 
@@ -1417,8 +1396,6 @@ function ProductDetailsPageContent() {
           setItem(null);
           return;
         }
-
-        const items = normalizeApiList<MenuItem>(res);
 
         const matchedItem =
           items.find(
@@ -1439,7 +1416,7 @@ function ProductDetailsPageContent() {
         setItem(matchedItem);
         setSelectedVariation(getDefaultVariation(matchedItem));
         setSelectedModifiers({});
-        setQty(getItemQuantityLimits(matchedItem).minQuantity);
+        setQty(getProductDetailsQuantityLimits(matchedItem).minQuantity);
         setInstructions("");
         setSplitPizzaEnabled(false);
         setSplitPizzaItem(null);
@@ -1459,24 +1436,13 @@ function ProductDetailsPageContent() {
     return () => {
       isMounted = false;
     };
-  }, [slug, itemIdParam, token]);
+  }, [slug, itemIdParam, token, fetchMenuItems]);
 
   useEffect(() => {
     const fetchCartItemToEdit = async () => {
       if (!cartItemId || !customerId || !token) return;
 
-      const res = await get(`/v1/cart?customerId=${customerId}`);
-
-      if (!res || res?.error) return;
-
-      const resData = typeof res?.data === "object" && res.data !== null && !Array.isArray(res.data) ? res.data as ApiRecord : null;
-      const nestedData = typeof resData?.data === "object" && resData.data !== null && !Array.isArray(resData.data) ? resData.data as ApiRecord : null;
-      const cart = resData?.items ? resData : nestedData ?? resData;
-      const items = normalizeArray<ApiRecord>(cart?.items);
-
-      const found = items.find((entry: ApiRecord) => {
-        return String(entry?.id || "") === String(cartItemId);
-      });
+      const found = await fetchCustomerCartItem({ customerId, cartItemId });
 
       if (!found) return;
 
@@ -1486,7 +1452,7 @@ function ProductDetailsPageContent() {
     };
 
     fetchCartItemToEdit();
-  }, [cartItemId, customerId, token]);
+  }, [cartItemId, customerId, token, fetchCustomerCartItem]);
 
   useEffect(() => {
     if (!cartItemToEdit || !item || editPrefilledRef.current) return;
@@ -1579,7 +1545,7 @@ function ProductDetailsPageContent() {
   useEffect(() => {
     if (!item) return;
 
-    setQty((prev) => clampQuantity(prev, getItemQuantityLimits(item)));
+    setQty((prev) => clampQuantity(prev, getProductDetailsQuantityLimits(item)));
   }, [item?.id, item?.minQuantity, item?.maxQuantity]);
 
   useEffect(() => {
@@ -1675,7 +1641,7 @@ function ProductDetailsPageContent() {
   };
 
   const handleItemQuantityChange = (nextQuantity: number) => {
-    const limits = getItemQuantityLimits(item);
+    const limits = getProductDetailsQuantityLimits(item);
     const clamped = clampQuantity(nextQuantity, limits);
 
     if (
@@ -1723,15 +1689,6 @@ function ProductDetailsPageContent() {
     return true;
   };
 
-  const buildModifiersPayload = (selectionMap: ModifierSelectionMap) => {
-    return Object.values(selectionMap)
-      .flat()
-      .map((modifier) => ({
-        modifierId: modifier.id,
-        quantity: 1,
-      }));
-  };
-
   const fetchPizzaItems = async ({
     search,
     page,
@@ -1754,13 +1711,12 @@ function ProductDetailsPageContent() {
       queryParams.set("search", resolvedSearch);
     }
 
-    const res = await get(`/v1/menu/items?${queryParams.toString()}`);
-    const data = normalizeApiList<MenuItem>(res);
-    const resData = typeof res?.data === "object" && res.data !== null && !Array.isArray(res.data) ? res.data as ApiRecord : null;
+    const { response, items } = await fetchMenuItems(`/v1/menu/items?${queryParams.toString()}`);
+    const resData = typeof response?.data === "object" && response.data !== null && !Array.isArray(response.data) ? response.data as ApiRecord : null;
 
     return {
-      data,
-      meta: resData?.meta ?? res?.meta,
+      data: items,
+      meta: resData?.meta ?? response?.meta,
     };
   };
 
@@ -1922,113 +1878,32 @@ function ProductDetailsPageContent() {
     });
   };
 
-  const buildCreateCartPayload = () => {
-    const splitSections =
-      splitPizzaEnabled && splitPizzaItem?.id
-        ? [
-            {
-              slot: "LEFT",
-              menuItemId: item?.id,
-            },
-            {
-              slot: "RIGHT",
-              menuItemId: splitPizzaItem.id,
-            },
-          ]
-        : undefined;
+  const buildCreateCartPayload = () => buildCartPayload({
+    item,
+    branchId,
+    selectedVariation,
+    qty,
+    selectedModifiers,
+    instructions,
+    splitPizzaEnabled,
+    splitPizzaItem,
+    includeMenuItem: true,
+    includeBranch: true,
+    clearSectionsWhenEmpty: false,
+  });
 
-    const restaurantMenuId = getId(
-      item?.restaurantMenuId ||
-        item?.restaurantMenu?.id ||
-        item?.menuLinks?.[0]?.restaurantMenuId ||
-        item?.menuLinks?.[0]?.restaurantMenu?.id ||
-        item?.menuLinks?.[0]?.menuId
-    );
-
-    const payload: ApiRecord = {
-      branchId,
-      menuItemId: item?.id,
-      ...(restaurantMenuId ? { restaurantMenuId } : {}),
-      variationId: selectedVariation?.id || null,
-      quantity: qty,
-      modifiers: buildModifiersPayload(selectedModifiers),
-      note: instructions?.trim() || "",
-    };
-
-    if (splitSections) {
-      payload.sections = splitSections;
-    }
-
-    return payload;
-  };
-
-  const buildPatchCartPayload = () => {
-    const splitSections =
-      splitPizzaEnabled && splitPizzaItem?.id
-        ? [
-            {
-              slot: "LEFT",
-              menuItemId: item?.id,
-            },
-            {
-              slot: "RIGHT",
-              menuItemId: splitPizzaItem.id,
-            },
-          ]
-        : undefined;
-
-    const payload: ApiRecord = {
-      variationId: selectedVariation?.id || null,
-      quantity: qty,
-      modifiers: buildModifiersPayload(selectedModifiers),
-      note: instructions?.trim() || "",
-    };
-
-    if (splitSections) {
-      payload.sections = splitSections;
-    } else {
-      payload.sections = [];
-    }
-
-    return payload;
-  };
-
-  const getApiErrorMessage = (res: ApiRecord | null | undefined, fallback = "Something went wrong") => {
-    const errorValue = res?.error;
-    const dataValue = res?.data;
-    const errorRecord = typeof errorValue === "object" && errorValue !== null && !Array.isArray(errorValue) ? errorValue as ApiRecord : null;
-    const dataRecord = typeof dataValue === "object" && dataValue !== null && !Array.isArray(dataValue) ? dataValue as ApiRecord : null;
-    const dataErrorValue = dataRecord?.error;
-    const dataErrorRecord = typeof dataErrorValue === "object" && dataErrorValue !== null && !Array.isArray(dataErrorValue) ? dataErrorValue as ApiRecord : null;
-
-    const candidate =
-      errorRecord?.message ||
-      res?.message ||
-      res?.error ||
-      dataRecord?.message ||
-      dataErrorRecord?.message;
-
-    if (typeof candidate === "string" && candidate.trim()) {
-      return candidate;
-    }
-
-    if (Array.isArray(candidate) && candidate.length) {
-      return candidate.filter(Boolean).join(", ");
-    }
-
-    return fallback;
-  };
-
-  const isCartBranchConflict = (res: ApiRecord | null | undefined) => {
-    const message = getApiErrorMessage(res, "")
-      .toLowerCase()
-      .trim();
-
-    return (
-      message.includes("cart already contains items from another branch") ||
-      message.includes("clear it before switching branches")
-    );
-  };
+  const buildPatchCartPayload = () => buildCartPayload({
+    item,
+    selectedVariation,
+    qty,
+    selectedModifiers,
+    instructions,
+    splitPizzaEnabled,
+    splitPizzaItem,
+    includeMenuItem: false,
+    includeBranch: false,
+    clearSectionsWhenEmpty: true,
+  });
 
   const clearCartAndRetryAdd = async () => {
     if (!customerId) {
@@ -2036,7 +1911,7 @@ function ProductDetailsPageContent() {
       return null;
     }
 
-    const clearRes = await del(`/v1/cart?customerId=${customerId}`);
+    const clearRes = await clearCustomerCart({ customerId });
 
     if (!clearRes || clearRes?.error) {
       toast.error(
@@ -2048,10 +1923,10 @@ function ProductDetailsPageContent() {
       return null;
     }
 
-    return post(
-      `/v1/cart/items?customerId=${customerId}`,
-      buildCreateCartPayload()
-    );
+    return addCustomerCartItem({
+      customerId,
+      payload: buildCreateCartPayload(),
+    });
   };
 
   const handleAddToCart = async () => {
@@ -2080,14 +1955,12 @@ function ProductDetailsPageContent() {
       let res: ApiRecord | null = null;
 
       if (groupCode) {
-        const groupOrdersRes = await get("/v1/group-orders");
+        const { response: groupOrdersRes, groupOrders } = await fetchGroupOrders();
 
         if (!groupOrdersRes || groupOrdersRes.error) {
           toast.error("Failed to fetch group order");
           return;
         }
-
-        const groupOrders = normalizeApiList<ApiRecord>(groupOrdersRes);
 
         const groupOrder = groupOrders.find(
           (order: ApiRecord) => order?.inviteCode === groupCode
@@ -2101,7 +1974,10 @@ function ProductDetailsPageContent() {
         const groupPayload = buildPatchCartPayload();
         groupPayload.menuItemId = item.id;
 
-        res = await post(`/v1/group-orders/${groupOrder.id}/items`, groupPayload);
+        res = await addGroupOrderItem({
+          groupOrderId: String(groupOrder.id),
+          payload: groupPayload,
+        });
       } else {
         if (!customerId) {
           toast.error("Customer not found");
@@ -2114,15 +1990,15 @@ function ProductDetailsPageContent() {
         }
 
         if (isEditingCartItem) {
-          res = await patch(
-            `/v1/cart/items/${cartItemId}`,
-            buildPatchCartPayload()
-          );
+          res = await updateCustomerCartItem({
+            cartItemId,
+            payload: buildPatchCartPayload(),
+          });
         } else {
-          res = await post(
-            `/v1/cart/items?customerId=${customerId}`,
-            buildCreateCartPayload()
-          );
+          res = await addCustomerCartItem({
+            customerId,
+            payload: buildCreateCartPayload(),
+          });
         }
       }
 

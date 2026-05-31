@@ -35,6 +35,17 @@ export const getItemQuantityLimits = (menuItem: MenuItem | null | undefined) => 
   };
 };
 
+export const getProductDetailsQuantityLimits = (menuItem: MenuItem | null | undefined) => {
+  const minQuantity = Math.max(1, toNumber(menuItem?.minQuantity, 1));
+  const rawMaxQuantity = toNumber(menuItem?.maxQuantity, 0);
+  const maxQuantity = rawMaxQuantity > 0 ? Math.max(minQuantity, rawMaxQuantity) : undefined;
+
+  return {
+    minQuantity,
+    maxQuantity,
+  };
+};
+
 export const getDepositAmount = (menuItem: MenuItem | null | undefined) =>
   toNumber(menuItem?.depositAmount, 0);
 
