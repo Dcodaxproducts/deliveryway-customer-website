@@ -1,12 +1,22 @@
-import Image from 'next/image';
-import { Search, ShoppingBag, Bike, MapPin } from 'lucide-react';
+import Image from "next/image";
+import { Search, ShoppingBag, Bike, MapPin } from "lucide-react";
 
-const HeroSection = () => {
+type HeroSectionProps = {
+    restaurantName?: string;
+    tagline?: string;
+    heroImage?: string | null;
+};
+
+const HeroSection = ({
+    restaurantName = "Are you starving?",
+    tagline = "Within a few clicks, find meals that are accessible near you",
+    heroImage = "/hero.png",
+}: HeroSectionProps) => {
     return (
         <main className="relative h-[630px] w-full flex items-center justify-center">
             <div className="absolute inset-0 z-0">
                 <Image
-                    src="/hero.png"
+                    src={heroImage || "/hero.png"}
                     alt="Hero Pizza Background"
                     fill
                     className="object-cover brightness-75"
@@ -16,10 +26,10 @@ const HeroSection = () => {
 
             <div className="relative z-10 w-full max-w-4xl px-4 flex flex-col items-center ml-0 md:ml-20">
                 <h1 className="text-white text-5xl md:text-7xl font-extrabold mb-2 drop-shadow-md">
-                    Are you starving?
+                    {restaurantName}
                 </h1>
                 <p className="text-white text-[22px] font-medium mb-8">
-                    Within a few clicks, find meals that are accessible near you
+                    {tagline}
                 </p>
 
                 {/* Search Card */}

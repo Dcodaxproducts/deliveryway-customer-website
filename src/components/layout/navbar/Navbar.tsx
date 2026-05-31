@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client"
 
 import Image from "next/image"
@@ -23,6 +22,7 @@ import { useAuthContext } from "@/context/AuthContext"
 import { useAuth } from "@/hooks/useAuth"
 import useCustomer from "@/hooks/useCustomer"
 import BranchSwitcher from "@/components/common/branch-selector/BranchSwitcher"
+import { BrandLogo } from "@/components/common/BrandLogo"
 
 type MenuItem = {
   id: string
@@ -81,7 +81,7 @@ type MenuItem = {
 type SearchResponse = {
   success: boolean
   data: MenuItem[]
-  message: string
+  message?: string
   meta?: {
     page: number
     limit: number
@@ -91,6 +91,9 @@ type SearchResponse = {
     hasPrevious: boolean
   }
 }
+
+const isSearchResponse = (value: unknown): value is SearchResponse =>
+  typeof value === "object" && value !== null && "success" in value
 
 const Navbar = () => {
   const { user, logout } = useAuthContext()
@@ -205,13 +208,13 @@ const Navbar = () => {
     try {
       setSearchLoading(true)
 
-      const response = (await get(
+      const response = await get(
         `/v1/menu/items?search=${encodeURIComponent(trimmedKeyword)}&restaurantId=${encodeURIComponent(
           restaurantId
         )}`
-      )) as SearchResponse
+      )
 
-      if (response?.success) {
+      if (isSearchResponse(response) && response.success) {
         setSearchResults(Array.isArray(response.data) ? response.data : [])
         setSearchMeta(response.meta || null)
       } else {
@@ -255,12 +258,7 @@ const Navbar = () => {
         <nav className="flex items-center justify-between px-6 2xl:px-40 py-6">
           {/* LEFT - LOGO */}
           <Link href="/" className="relative w-[160px] h-[32px]">
-            <Image
-              src="/nav-logo.png"
-              alt="Logo"
-              fill
-              className="object-contain"
-            />
+            <BrandLogo alt="Logo" fill className="object-contain" />
           </Link>
 
           {/* DESKTOP NAV */}

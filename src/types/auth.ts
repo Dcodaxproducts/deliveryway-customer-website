@@ -2,6 +2,7 @@ export type AuthBranch = {
   id: string;
   name: string;
   isActive?: boolean;
+  restaurantId?: string | null;
   address?: {
     area?: string;
     city?: string;
