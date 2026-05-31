@@ -1,4 +1,4 @@
-import { Input } from '@/components/ui/input'
+import { SECTION_TITLE_CLASS } from '@/components/common/common-classes'
 
 interface Props {
   customer: {
@@ -16,7 +16,7 @@ interface Props {
 const CustomerDetailsForm = ({ customer, setCustomer }: Props) => {
   return (
     <section className="space-y-[36px] -mt-[20px]">
-      <h2 className="text-[24px] font-semibold text-gray-900 pt-[8px] border-b-2 border-gray-300">
+      <h2 className={`${SECTION_TITLE_CLASS} pt-[8px] border-b-2 border-gray-300`}>
         Customer Details
       </h2>
 

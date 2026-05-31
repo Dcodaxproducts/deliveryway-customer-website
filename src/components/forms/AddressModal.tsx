@@ -12,6 +12,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { INPUT_BASE_CLASS, LABEL_TEXT_CLASS } from "@/components/common/common-classes";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import useCustomer from "@/hooks/useCustomer";
@@ -213,7 +214,7 @@ export default function AddressModal({
           <form noValidate className="mt-6 space-y-5">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#8A8A8A]">
+                <p className={LABEL_TEXT_CLASS}>
                   Quick fill
                 </p>
                 <p className="mt-1 text-[13px] text-[#8A8A8A]">
@@ -245,7 +246,7 @@ export default function AddressModal({
 
             {/* STREET */}
             <div className="space-y-2">
-              <label className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#8A8A8A]">
+              <label className={LABEL_TEXT_CLASS}>
                 Street Address
               </label>
               <div className="relative">
@@ -260,74 +261,74 @@ export default function AddressModal({
 
             {/* AREA */}
             <div className="space-y-2">
-              <label className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#8A8A8A]">
+              <label className={LABEL_TEXT_CLASS}>
                 Area
               </label>
               <Input
                 placeholder="Apartment, suite, unit, area"
                 {...register("area")}
-                className="h-[56px] rounded-[16px] border-0 bg-[#F6F6F6] px-4 text-[15px] shadow-none focus-visible:ring-1 focus-visible:ring-[#D91F26]"
+                className={INPUT_BASE_CLASS}
               />
             </div>
 
             {/* CITY / STATE */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-[1.4fr_1fr]">
               <div className="space-y-2">
-                <label className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#8A8A8A]">
+                <label className={LABEL_TEXT_CLASS}>
                   City
                 </label>
                 <Input
                   placeholder="New York"
                   {...register("city")}
-                  className="h-[56px] rounded-[16px] border-0 bg-[#F6F6F6] px-4 text-[15px] shadow-none focus-visible:ring-1 focus-visible:ring-[#D91F26]"
+                  className={INPUT_BASE_CLASS}
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#8A8A8A]">
+                <label className={LABEL_TEXT_CLASS}>
                   State
                 </label>
                 <Input
                   placeholder="NY"
                   {...register("state")}
-                  className="h-[56px] rounded-[16px] border-0 bg-[#F6F6F6] px-4 text-[15px] shadow-none focus-visible:ring-1 focus-visible:ring-[#D91F26]"
+                  className={INPUT_BASE_CLASS}
                 />
               </div>
             </div>
 
             {/* COUNTRY */}
             <div className="space-y-2">
-              <label className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#8A8A8A]">
+              <label className={LABEL_TEXT_CLASS}>
                 Country
               </label>
               <Input
                 placeholder="United States"
                 {...register("country")}
-                className="h-[56px] rounded-[16px] border-0 bg-[#F6F6F6] px-4 text-[15px] shadow-none focus-visible:ring-1 focus-visible:ring-[#D91F26]"
+                className={INPUT_BASE_CLASS}
               />
             </div>
 
             {/* LAT / LNG */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <label className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#8A8A8A]">
+                <label className={LABEL_TEXT_CLASS}>
                   Latitude
                 </label>
                 <Input
                   placeholder="Latitude"
                   {...register("lat")}
-                  className="h-[56px] rounded-[16px] border-0 bg-[#F6F6F6] px-4 text-[15px] shadow-none focus-visible:ring-1 focus-visible:ring-[#D91F26]"
+                  className={INPUT_BASE_CLASS}
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#8A8A8A]">
+                <label className={LABEL_TEXT_CLASS}>
                   Longitude
                 </label>
                 <Input
                   placeholder="Longitude"
                   {...register("lng")}
-                  className="h-[56px] rounded-[16px] border-0 bg-[#F6F6F6] px-4 text-[15px] shadow-none focus-visible:ring-1 focus-visible:ring-[#D91F26]"
+                  className={INPUT_BASE_CLASS}
                 />
               </div>
             </div>

@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { getSafeRedirectPath } from "@/lib/auth-routes";
 import { getAuthErrorMessage } from "@/lib/auth";
 import { forgotPassword } from "@/services/auth";
+import { MUTED_TEXT_CLASS } from "@/components/common/common-classes";
 import {
   forgotPasswordSchema,
   type ForgotPasswordFormValues,
@@ -64,7 +65,7 @@ router.push(getSafeRedirectPath(`/auth/reset-password?email=${encodeURIComponent
             {/* Header */}
             <div className="space-y-1">
                 <h1 className="text-headline-sm font-bold font-roboto text-primary">Forgot password?</h1>
-                <p className="text-sm text-muted-foreground">Please, fill in email to reset password</p>
+                <p className={MUTED_TEXT_CLASS}>Please, fill in email to reset password</p>
             </div>
 
             {/* Form */}

@@ -9,6 +9,7 @@ import { FaFacebook } from "react-icons/fa"
 import { FcGoogle } from "react-icons/fc"
 import { toast } from "sonner"
 
+import { MUTED_TEXT_CLASS } from "@/components/common/common-classes"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
@@ -131,7 +132,7 @@ export default function SignUpForm() {
           {showOtpField ? "Verify Email" : "Sign Up"}
         </h1>
 
-        <p className="text-sm text-muted-foreground">
+        <p className={MUTED_TEXT_CLASS}>
           {showOtpField
             ? "Enter the OTP sent to your email"
             : "Please, fill in this form to sign up"}

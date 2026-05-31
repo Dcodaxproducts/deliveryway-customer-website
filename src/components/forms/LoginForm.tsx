@@ -9,6 +9,7 @@ import { FaFacebook } from "react-icons/fa"
 import { FcGoogle } from "react-icons/fc"
 import { toast } from "sonner"
 
+import { MUTED_TEXT_CLASS } from "@/components/common/common-classes"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "../ui/checkbox"
@@ -114,7 +115,7 @@ setTimeout(() => {
         <h1 className="text-headline-sm font-bold font-roboto text-primary">
           {isGuestMode ? "Guest Login" : "Login"}
         </h1>
-        <p className="text-sm text-muted-foreground">
+        <p className={MUTED_TEXT_CLASS}>
           {isGuestMode
             ? "Continue as guest"
             : "Please, fill in this form to login"}

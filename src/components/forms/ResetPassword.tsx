@@ -9,6 +9,7 @@ import { getAuthErrorMessage } from "@/lib/auth";
 import { resendResetOtp, resetPassword } from "@/services/auth";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
+import { MUTED_TEXT_CLASS } from "@/components/common/common-classes";
 import {
   resetPasswordSchema,
   type ResetPasswordFormValues,
@@ -116,7 +117,7 @@ const ResetPassword = () => {
         <h1 className="text-headline-sm font-bold font-roboto text-primary">
           Reset password
         </h1>
-        <p className="text-sm text-muted-foreground">
+        <p className={MUTED_TEXT_CLASS}>
           Enter the OTP sent to your email and set a new password
         </p>
       </div>

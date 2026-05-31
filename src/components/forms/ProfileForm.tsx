@@ -13,6 +13,7 @@ import {
   Wallet,
 } from "lucide-react";
 import Image from "next/image";
+import { CARD_PANEL_CLASS } from "@/components/common/common-classes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -239,7 +240,7 @@ const [walletTxns, setWalletTxns] = useState(0);
     {/* ROW 1 */}
     <div className="grid lg:grid-cols-[1fr_320px] gap-5 mb-5">
       {/* PERSONAL INFO */}
-      <div className="bg-[#F5F5F5] rounded-[20px] p-6">
+      <div className={CARD_PANEL_CLASS}>
         {!isEditing ? (
           <>
             <h3 className="text-[22px] font-medium text-[#222] mb-6">
@@ -391,7 +392,7 @@ const [walletTxns, setWalletTxns] = useState(0);
     </div>
 
     {/* ROW 2 */}
-    <div className="bg-[#F5F5F5] rounded-[20px] p-6">
+    <div className={CARD_PANEL_CLASS}>
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
           <h3 className="text-[28px] font-medium text-[#222]">
