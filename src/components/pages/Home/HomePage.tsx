@@ -15,7 +15,7 @@ import OrderNowFloatingButton from "@/components/ui/OrderNowFloatingButton";
 import BranchOpeningHoursPopup from "@/components/pages/Home/components/BranchOpeningHours";
 
 import { useAuth } from "@/hooks/useAuth";
-import useApi from "@/hooks/useApi";
+import useCustomer from "@/hooks/useCustomer";
 
 const normalizeHomeData = (res: any) => {
   return res?.data?.data || res?.data || res || {};
@@ -31,7 +31,7 @@ const getUserRestaurantId = (user: any) => {
 
 const HomePage = () => {
   const { user, token } = useAuth();
-  const { get } = useApi(token);
+  const { get } = useCustomer(token);
 
   const [homeData, setHomeData] = useState<any>(null);
 
@@ -56,8 +56,8 @@ const HomePage = () => {
         }
 
         const query = params.toString();
-        const res = await get(
-          `/v1/customer-app/home${query ? `?${query}` : ""}`
+        const res: any = await get(
+          `/customer-app/home${query ? `?${query}` : ""}`
         );
 
         if (!isMounted) return;

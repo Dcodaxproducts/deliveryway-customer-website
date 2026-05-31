@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { Star, RefreshCw, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import useApi from "@/hooks/useApi";
+import useCustomer from "@/hooks/useCustomer";
 import { useAuthContext } from "@/context/AuthContext";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -12,7 +12,7 @@ import useBranchSelector from "@/hooks/useBranchSelector";
 import BranchPopup from "@/components/common/popups/BranchPopup";
 export function OrdersHistoryPage() {
   const { token } = useAuthContext();
-  const { get, post } = useApi(token);
+  const { get, post } = useCustomer(token);
 const router = useRouter();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -86,7 +86,7 @@ const {
         setLoading(true);
         setError(null);
 
-        const res = await get(`/v1/orders?page=${page}&limit=10`);
+        const res: any = await get(`/v1/orders?page=${page}&limit=10`);
 
         if (!res || res.success === false) {
           setError(res?.message || "Failed to fetch orders");

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import RestaurantCard from "./RestaurantCard";
-import useApi from "@/hooks/useApi";
+import useCustomer from "@/hooks/useCustomer";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 
@@ -108,7 +108,7 @@ export default function ItemsListing({
   onActiveCategoryChange,
 }: ItemsListingProps) {
   const { token, restaurantId: authRestaurantId, user } = useAuth();
-  const { get } = useApi(token);
+  const { get } = useCustomer(token);
 
   const [categoryItemsMap, setCategoryItemsMap] = useState<
     Record<string, CategoryItemsState>
@@ -195,7 +195,7 @@ export default function ItemsListing({
         sortOrder: "ASC",
       });
 
-      const res = await get(`/v1/menu/items?${params.toString()}`);
+      const res: any = await get(`/v1/menu/items?${params.toString()}`);
 
       const fetchedItems = normalizeApiArray(res);
       const meta = normalizeApiMeta(res);

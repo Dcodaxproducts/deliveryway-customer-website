@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/carousel";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import useApi from "@/hooks/useApi";
+import useCustomer from "@/hooks/useCustomer";
 import { useAuth } from "@/hooks/useAuth";
 
 type PromotionCampaign = {
@@ -297,7 +297,7 @@ function PromotionBannerCard({
 export default function FoodCategorySection() {
   const router = useRouter();
   const { token, user, restaurantId: authRestaurantId } = useAuth();
-  const { get } = useApi(token);
+  const { get } = useCustomer(token);
 
   const [categories, setCategories] = useState<any[]>([]);
   const [promotions, setPromotions] = useState<PromotionCampaign[]>([]);
@@ -327,7 +327,7 @@ export default function FoodCategorySection() {
 
         setLoading(true);
 
-        const res = await get(
+        const res: any = await get(
           `/v1/menu/categories?restaurantId=${restaurantId}`
         );
 
@@ -391,8 +391,8 @@ export default function FoodCategorySection() {
           params.set("branchId", String(branchId));
         }
 
-        const res = await get(
-          `/v1/customer-app/promotions?${params.toString()}`
+        const res: any = await get(
+          `/customer-app/promotions?${params.toString()}`
         );
 
         setPromotions(normalizePromotions(res));
@@ -406,7 +406,7 @@ export default function FoodCategorySection() {
 
     fetchPromotions();
 
-    // Keep get out of deps to avoid repeated useApi-triggered refetch flicker.
+    // Keep get out of deps to avoid repeated useCustomer-triggered refetch flicker.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, authRestaurantId, user?.restaurantId, user?.branchId]);
 

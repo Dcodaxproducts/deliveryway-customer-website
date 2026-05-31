@@ -20,7 +20,7 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { useAuthContext } from "@/context/AuthContext"
 import { useAuth } from "@/hooks/useAuth"
-import useApi from "@/hooks/useApi"
+import useCustomer from "@/hooks/useCustomer"
 import BranchSwitcher from "@/components/common/branch-selector/BranchSwitcher"
 
 type MenuItem = {
@@ -94,7 +94,7 @@ type SearchResponse = {
 const Navbar = () => {
   const { user, logout } = useAuthContext()
   const { token, loading: authLoading, restaurantId } = useAuth()
-  const { get } = useApi(token)
+  const { get } = useCustomer(token)
 
   const isAuth = !!user
   const userName = `${user?.profile?.firstName || ""} ${user?.profile?.lastName || ""}`.trim()
@@ -208,7 +208,7 @@ const Navbar = () => {
         `/v1/menu/items?search=${encodeURIComponent(trimmedKeyword)}&restaurantId=${encodeURIComponent(
           restaurantId
         )}`
-      )) as SearchResponse
+      )) as unknown as SearchResponse
 
       if (response?.success) {
         setSearchResults(Array.isArray(response.data) ? response.data : [])

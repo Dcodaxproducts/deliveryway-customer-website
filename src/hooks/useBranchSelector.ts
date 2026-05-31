@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import useApi from "@/hooks/useApi";
+import useHttpClient from "@/hooks/useHttpClient";
 import { useAuthContext } from "@/context/AuthContext";
 
 export default function useBranchSelector(onSelect?: () => void) {
   const { token, user, setUser } = useAuthContext();
-  const { get } = useApi(token);
+  const { get } = useHttpClient(token);
 
   const [showBranchPopup, setShowBranchPopup] = useState(false);
   const [branches, setBranches] = useState<any[]>([]);
@@ -17,7 +17,7 @@ export default function useBranchSelector(onSelect?: () => void) {
     try {
       setLoadingBranches(true);
 
-      const res = await get(`/v1/branches`);
+      const res: any = await get(`/v1/branches`);
 
       const activeBranches =
         res?.data?.filter((b: any) => b.isActive) || [];

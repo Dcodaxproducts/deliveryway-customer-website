@@ -2,13 +2,13 @@
 
 import Image from "next/image";
 import { Trash2, Plus, Minus } from "lucide-react";
-import useApi from "@/hooks/useApi";
+import useCustomer from "@/hooks/useCustomer";
 import { useAuth } from "@/hooks/useAuth";
 import useGroupOrder from "@/hooks/useGroupOrder";
 
 export default function UserCard({ participant, orderId, isHost }: any) {
   const { token } = useAuth();
-  const { del, patch } = useApi(token);
+  const { del, patch } = useCustomer(token);
 
   const user = participant?.user;
   const items = participant?.items || [];

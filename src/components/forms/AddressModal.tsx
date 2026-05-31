@@ -12,7 +12,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import useApi from "@/hooks/useApi";
+import useCustomer from "@/hooks/useCustomer";
+import { reverseGeocode } from "@/services/geocoding";
 import { useAuth } from "@/hooks/useAuth";
 
 type AddressModalProps = {
@@ -49,7 +50,7 @@ export default function AddressModal({
   editData,
 }: AddressModalProps) {
   const { token } = useAuth();
-  const { post, patch } = useApi(token);
+  const { post, patch } = useCustomer(token);
 
   const [loading, setLoading] = useState(false);
   const [locating, setLocating] = useState(false);
@@ -108,40 +109,38 @@ export default function AddressModal({
 
       // Reverse geocoding using OpenStreetMap Nominatim
       // Good for quick integration, but for production use your own geocoding provider/keyed API.
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${position.coords.latitude}&lon=${position.coords.longitude}`
-      );
+      const data = await reverseGeocode(position.coords.latitude, position.coords.longitude);
 
-      if (!response.ok) {
+      if (!data.ok) {
         toast.success("Location fetched. Please complete address details manually.");
         return;
       }
 
-      const data = await response.json();
-      const address = data?.address || {};
+      const address = data.address || {};
+      const getAddressValue = (value: unknown) => typeof value === "string" ? value : "";
 
       setForm((prev) => ({
         ...prev,
         street:
-          data?.display_name ||
+          data.displayName ||
           prev.street ||
           "",
         area:
-          address?.suburb ||
-          address?.neighbourhood ||
-          address?.quarter ||
-          address?.village ||
+          getAddressValue(address.suburb) ||
+          getAddressValue(address.neighbourhood) ||
+          getAddressValue(address.quarter) ||
+          getAddressValue(address.village) ||
           prev.area ||
           "",
         city:
-          address?.city ||
-          address?.town ||
-          address?.village ||
-          address?.municipality ||
+          getAddressValue(address.city) ||
+          getAddressValue(address.town) ||
+          getAddressValue(address.village) ||
+          getAddressValue(address.municipality) ||
           prev.city ||
           "",
-        state: address?.state || prev.state || "",
-        country: address?.country || prev.country || "",
+        state: getAddressValue(address.state) || prev.state || "",
+        country: getAddressValue(address.country) || prev.country || "",
         lat,
         lng,
       }));

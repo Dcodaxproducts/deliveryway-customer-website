@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import useApi from "@/hooks/useApi";
+import useCustomer from "@/hooks/useCustomer";
 import { Button } from "@/components/ui/button";
 import PaginationSection from "@/components/ui/PaginationComponent";
 import { Input } from "@/components/ui/input";
@@ -43,7 +43,7 @@ type WalletItem = {
 
 export default function PaymentsHistory() {
   const { token, restaurantId } = useAuth();
-  const api = useApi(token);
+  const api = useCustomer(token);
 
   const [tab, setTab] = useState<"payments" | "wallet">("wallet");
 
@@ -83,7 +83,7 @@ export default function PaymentsHistory() {
     if (status) params.set("status", status);
     if (restaurantId) params.set("restaurantId", restaurantId);
 
-    const res = await api.get(`/v1/payments?${params.toString()}`);
+    const res: any = await api.get(`/v1/payments?${params.toString()}`);
 
     if (!res?.error) {
       setPayments(res?.data || []);
@@ -96,7 +96,7 @@ export default function PaymentsHistory() {
   const fetchWallet = async () => {
     setLoading(true);
 
-    const res = await api.get(`/v1/customer-app/wallet`);
+    const res: any = await api.get(`/customer-app/wallet`);
 
     if (!res?.error) {
       setWallet(res?.data?.history || []);

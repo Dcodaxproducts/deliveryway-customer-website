@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Star, MapPin, Clock, Utensils, Loader2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import useApi from "@/hooks/useApi";
+import useCustomer from "@/hooks/useCustomer";
 import { useAuth } from "@/hooks/useAuth";
 
 const CATEGORY_PAGE_LIMIT = 50;
@@ -236,7 +236,7 @@ export default function RestaurantHeader() {
   const router = useRouter();
 
   const { token, restaurantId: authRestaurantId, user } = useAuth();
-  const { get } = useApi(token);
+  const { get } = useCustomer(token);
 
   const [category, setCategory] = useState<any>(null);
   const [restaurant, setRestaurant] = useState<any>(null);
@@ -292,7 +292,7 @@ export default function RestaurantHeader() {
             sortOrder: "ASC",
           });
 
-          const res = await get(`/v1/menu/categories?${params.toString()}`);
+          const res: any = await get(`/v1/menu/categories?${params.toString()}`);
           const fetchedCategories = normalizeApiArray(res);
           const meta = normalizeApiMeta(res);
 

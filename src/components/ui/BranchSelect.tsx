@@ -4,12 +4,12 @@ import { ChevronDown } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import useApi from "@/hooks/useApi";
+import useCustomer from "@/hooks/useCustomer";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function BranchSelect({ value, onChange }: any) {
   const { user, token } = useAuth();
-  const { get } = useApi(token);
+  const { get } = useCustomer(token);
 
   const [branches, setBranches] = useState<any[]>([]);
   const [search, setSearch] = useState("");
@@ -20,7 +20,7 @@ export default function BranchSelect({ value, onChange }: any) {
   const fetchBranches = async () => {
     try {
       setLoading(true);
-      const res = await get(
+      const res: any = await get(
         `/v1/branches?restaurantId=${user?.restaurantId}&search=${search}`
       );
       setBranches(res?.data?.filter((b: any) => b.isActive) || []);

@@ -6,12 +6,12 @@ import FeaturesSection from "./FeaturesSection";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import useApi from "@/hooks/useApi";
+import useCustomer from "@/hooks/useCustomer";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function InviteFriends() {
   const { token } = useAuth();
-  const { get } = useApi(token);
+  const { get } = useCustomer(token);
   const router = useRouter();
 
   const [order, setOrder] = useState<any>(null);
@@ -24,7 +24,7 @@ export default function InviteFriends() {
       if (isRefresh) setRefreshing(true);
       else setLoading(true);
 
-      const res = await get("/v1/group-orders");
+      const res: any = await get("/v1/group-orders");
 
       if (!res || res.error) {
         toast.error("Failed to fetch group orders");

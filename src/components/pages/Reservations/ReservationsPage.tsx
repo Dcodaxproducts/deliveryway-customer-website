@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import ReservationCard from "@/components/pages/Reservations/components/ReservationCard";
 import { useAuth } from "@/hooks/useAuth";
-import useApi from "@/hooks/useApi";
+import useCustomer from "@/hooks/useCustomer";
 
 import {
   Select,
@@ -15,7 +15,7 @@ import {
 
 export function ReservationsPage() {
   const { token } = useAuth();
-  const api = useApi(token);
+  const api = useCustomer(token);
 
   const [reservations, setReservations] = useState<any[]>([]);
   const [page, setPage] = useState(1);
@@ -30,7 +30,7 @@ export function ReservationsPage() {
   const fetchReservations = async () => {
     setError(null);
 
-    const res = await api.get(`/v1/customer-app/table-reservations`);
+    const res: any = await api.get(`/customer-app/table-reservations`);
 
     if (res?.error) {
       setError(res.error);
@@ -169,7 +169,7 @@ export function ReservationsPage() {
               res={res}
               onCancel={async () => {
                 await api.post(
-                  `/v1/customer-app/table-reservations/${res.id}/cancel`,
+                  `/customer-app/table-reservations/${res.id}/cancel`,
                   {}
                 );
                 fetchReservations();

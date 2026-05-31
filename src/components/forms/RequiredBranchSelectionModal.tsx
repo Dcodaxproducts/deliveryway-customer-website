@@ -8,7 +8,7 @@ import {
   FaSearch,
 } from "react-icons/fa";
 import { toast } from "sonner";
-import useApi from "@/hooks/useApi";
+import useCustomer from "@/hooks/useCustomer";
 import { useAuthContext } from "@/context/AuthContext";
 
 type Branch = {
@@ -53,8 +53,8 @@ export default function RequiredBranchSelectionModal({
   onSelected,
 }: RequiredBranchSelectionModalProps) {
   const { token, user, setUser } = useAuthContext();
-  const { get } = useApi(token);
-const api = useApi(token);
+  const { get } = useCustomer(token);
+const api = useCustomer(token);
 const getRef = useRef(api.get);
 
 useEffect(() => {

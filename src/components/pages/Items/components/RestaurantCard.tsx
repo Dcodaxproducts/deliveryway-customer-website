@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Plus, Info, Loader2, Eye, Minus, Download, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import useApi from "@/hooks/useApi";
+import useCustomer from "@/hooks/useCustomer";
 import { useAuthContext } from "@/context/AuthContext";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -624,7 +624,7 @@ function ProductInfoContent({ item }: { item: any }) {
 export default function RestaurantCard({ item }: any) {
   const router = useRouter();
   const { token } = useAuthContext();
-  const { post, get, del } = useApi(token);
+  const { post, get, del } = useCustomer(token);
   const { user } = useAuth();
 
   const [infoOpen, setInfoOpen] = useState(false);
@@ -1400,7 +1400,7 @@ export default function RestaurantCard({ item }: any) {
       queryParams.set("search", resolvedSearch);
     }
 
-    const res = await get(`/v1/menu/items?${queryParams.toString()}`);
+    const res: any = await get(`/v1/menu/items?${queryParams.toString()}`);
 
     const data = normalizeApiList(res).filter((menuItem: any) => {
       return Boolean(menuItem?.id);
@@ -1617,7 +1617,7 @@ export default function RestaurantCard({ item }: any) {
       let res: any;
 
       if (groupCode) {
-        const groupOrdersRes = await get("/v1/group-orders");
+        const groupOrdersRes: any = await get("/v1/group-orders");
 
         const groupOrders = Array.isArray(groupOrdersRes?.data)
           ? groupOrdersRes.data

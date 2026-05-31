@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 import RestaurantHeader from "@/components/pages/Items/components/RestaurantHeader";
 import ItemsLayout from "@/components/pages/Items/components/ItemsLayout";
-import useApi from "@/hooks/useApi";
+import useCustomer from "@/hooks/useCustomer";
 import { useAuth } from "@/hooks/useAuth";
 
 const GROUP_ORDER_CODE_KEY = "groupOrderCode";
@@ -19,7 +19,7 @@ function ItemsPageContent() {
   const codeFromUrl = searchParams.get("code") || "";
 
   const { token, user, loading: authLoading } = useAuth();
-  const { get, post } = useApi(token);
+  const { get, post } = useCustomer(token);
 
   const [joiningGroupOrder, setJoiningGroupOrder] = useState(false);
 
@@ -27,7 +27,7 @@ function ItemsPageContent() {
 
   const isUserAlreadyInOrder = async (code: string) => {
     try {
-      const res = await get(`/v1/group-orders?search=${code}`);
+      const res: any = await get(`/v1/group-orders?search=${code}`);
 
       if (!res || res.error) {
         return false;
@@ -57,7 +57,7 @@ function ItemsPageContent() {
   };
 
   const handleJoinGroupOrder = async (inviteCode: string) => {
-    const res = await post("/v1/group-orders/join", { inviteCode });
+    const res: any = await post("/v1/group-orders/join", { inviteCode });
 
     if (!res || res.error) {
       toast.error(res?.message || res?.error || "Failed to join group order");

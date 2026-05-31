@@ -1,3 +1,4 @@
+import { uploadAvatarFile as uploadStorageFile } from "@/services/storage";
 import type { AuthSession, AuthUser } from "@/types/auth";
 import type { ProfileFormValues } from "@/validations/profile";
 
@@ -69,7 +70,7 @@ export const getProfileUpdatePayload = (values: ProfileFormValues): ProfileUpdat
 export const getFullName = (values: ProfileFormValues) => `${values.firstName} ${values.lastName}`;
 
 export const fetchWalletSummary = async (api: Pick<ApiClient, "get">): Promise<WalletSummary> => {
-  const res = await api.get("/v1/customer-app/wallet");
+  const res = await api.get("/customer-app/wallet");
 
   if (isRecord(res) && res.error) {
     return {
@@ -147,16 +148,8 @@ export const requestPresignedAvatarUpload = async (
   };
 };
 
-export const uploadAvatarFile = async (upload: PresignedUploadResponse, file: File) => {
-  await fetch(upload.uploadUrl, {
-    method: "PUT",
-    headers: {
-      "Content-Type": file.type,
-      ...(upload.headers ?? {}),
-    },
-    body: file,
-  });
-};
+export const uploadAvatarFile = (upload: PresignedUploadResponse, file: File) =>
+  uploadStorageFile(upload.uploadUrl, file, upload.headers);
 
 export const mergeUpdatedProfileAuth = (
   auth: AuthSession,

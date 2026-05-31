@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import useApi from "@/hooks/useApi";
+import useCustomer from "@/hooks/useCustomer";
 import { useAuth } from "@/hooks/useAuth";
 import ReservationSuccess from "@/components/pages/Reservations/components/ReservationSuccess";
 import AsyncSelect from "@/components/ui/AsyncSelect";
@@ -287,7 +287,7 @@ const buildAvailableTimeSlots = ({
 
 export function ReserveTablePage() {
   const { token, user } = useAuth();
-  const { post, get, loading } = useApi(token);
+  const { post, get, loading } = useCustomer(token);
 
   const [success, setSuccess] = useState(false);
   const [reservationData, setReservationData] = useState<any>(null);
@@ -307,7 +307,7 @@ export function ReserveTablePage() {
       if (!user?.branchId) return;
 
       try {
-        const res = await get(`/v1/branches/${user.branchId}`);
+        const res: any = await get(`/v1/branches/${user.branchId}`);
         const branch = res?.data?.data || res?.data;
 
         if (branch) {
@@ -451,8 +451,8 @@ export function ReserveTablePage() {
 
       const reservationDate = new Date(`${date}T${time}:00`).toISOString();
 
-      const res = await post(
-        `/v1/customer-app/table-reservations?customerId=${customerId}`,
+      const res: any = await post(
+        `/customer-app/table-reservations?customerId=${customerId}`,
         {
           branchId: selectedBranch.id,
           reservationDate,

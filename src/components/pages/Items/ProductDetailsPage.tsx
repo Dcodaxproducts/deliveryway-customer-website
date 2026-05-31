@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import TestimonialsSection from "@/components/pages/Items/components/Testimonials";
-import useApi from "@/hooks/useApi";
+import useCustomer from "@/hooks/useCustomer";
 import { useAuthContext } from "@/context/AuthContext";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -909,7 +909,7 @@ function ProductDetailsPageContent() {
   const isEditingCartItem = Boolean(cartItemId);
 
   const { token } = useAuthContext();
-  const { get, post, patch, del } = useApi(token);
+  const { get, post, patch, del } = useCustomer(token);
   const router = useRouter();
 
   const [item, setItem] = useState<any>(null);
@@ -1504,7 +1504,7 @@ function ProductDetailsPageContent() {
       try {
         setPageLoading(true);
 
-        const res = await get(
+        const res: any = await get(
           `/v1/menu/items?search=${encodeURIComponent(searchValue)}`
         );
 
@@ -1564,7 +1564,7 @@ function ProductDetailsPageContent() {
     const fetchCartItemToEdit = async () => {
       if (!cartItemId || !customerId || !token) return;
 
-      const res = await get(`/v1/cart?customerId=${customerId}`);
+      const res: any = await get(`/v1/cart?customerId=${customerId}`);
 
       if (!res || res?.error) return;
 
@@ -1851,7 +1851,7 @@ function ProductDetailsPageContent() {
       queryParams.set("search", resolvedSearch);
     }
 
-    const res = await get(`/v1/menu/items?${queryParams.toString()}`);
+    const res: any = await get(`/v1/menu/items?${queryParams.toString()}`);
     const data = normalizeApiList(res);
 
     return {
@@ -2169,7 +2169,7 @@ function ProductDetailsPageContent() {
       let res: any;
 
       if (groupCode) {
-        const groupOrdersRes = await get("/v1/group-orders");
+        const groupOrdersRes: any = await get("/v1/group-orders");
 
         if (!groupOrdersRes || groupOrdersRes.error) {
           toast.error("Failed to fetch group order");

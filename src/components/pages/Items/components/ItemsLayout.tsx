@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import CategorySidebar from "./CategorySidebar";
 import ItemsListing from "./Items";
-import useApi from "@/hooks/useApi";
+import useCustomer from "@/hooks/useCustomer";
 import { useAuth } from "@/hooks/useAuth";
 
 type MenuViewMode = "multiple" | "onePage";
@@ -58,7 +58,7 @@ const resolveHasNext = ({
 
 export default function ItemsLayout({ categoryId }: any) {
   const { token, restaurantId: authRestaurantId, user } = useAuth();
-  const { get } = useApi(token);
+  const { get } = useCustomer(token);
 
   const [categories, setCategories] = useState<any[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
@@ -154,7 +154,7 @@ export default function ItemsLayout({ categoryId }: any) {
         params.set("search", searchValue);
       }
 
-      const res = await get(`/v1/menu/categories?${params.toString()}`);
+      const res: any = await get(`/v1/menu/categories?${params.toString()}`);
 
       const fetchedCategories = normalizeApiArray(res);
       const meta = normalizeApiMeta(res);

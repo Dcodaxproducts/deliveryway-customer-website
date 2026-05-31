@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import useApi from "@/hooks/useApi";
+import useCustomer from "@/hooks/useCustomer";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -18,7 +18,7 @@ export default function ExploreCategories() {
   const router = useRouter();
   
 const { token, user, loading: authLoading } = useAuth();
-  const { get , post} = useApi(token);
+  const { get , post} = useCustomer(token);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -41,7 +41,7 @@ console.log("tok is", token);
 
       if (pageNumber === 1) setLoading(true);
 
-      const res = await get(
+      const res: any = await get(
         `/v1/menu/categories?restaurantId=${restaurantId}&page=${pageNumber}&limit=10`
       );
 
@@ -68,7 +68,7 @@ console.log("tok is", token);
 
 const isUserAlreadyInOrder = async (code: string) => {
   try {
-    const res = await get(`/v1/group-orders?search=${code}`);
+    const res: any = await get(`/v1/group-orders?search=${code}`);
     const order = res?.data?.find((o: any) => o.inviteCode === code);
 
     if (!order) return false;
@@ -89,7 +89,7 @@ const isUserAlreadyInOrder = async (code: string) => {
 };
 
 const handleJoinGroupOrder = async (inviteCode: string) => {
-  const res = await post("/v1/group-orders/join", { inviteCode });
+  const res: any = await post("/v1/group-orders/join", { inviteCode });
 
   if (!res || res.error) {
     // ✅ show real backend message

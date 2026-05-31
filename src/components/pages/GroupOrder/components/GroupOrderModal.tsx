@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import useApi from "@/hooks/useApi";
+import useCustomer from "@/hooks/useCustomer";
 import { useAuth } from "@/hooks/useAuth";
 import BranchSelect from "@/components/ui/BranchSelect";
 import { X } from "lucide-react";
@@ -13,7 +13,7 @@ import { useRouter } from "next/navigation";
 
 export default function GroupOrderModal({ open, onClose }: any) {
   const { user, token } = useAuth();
-  const { post, loading } = useApi(token);
+  const { post, loading } = useCustomer(token);
 const router = useRouter();
   const [selectedBranch, setSelectedBranch] = useState<any>(null);
   const [date, setDate] = useState("");
@@ -32,7 +32,7 @@ const router = useRouter();
 
     const orderTime = new Date(`${date}T${time}`).toISOString();
 
-    const res = await post("/v1/group-orders", {
+    const res: any = await post("/v1/group-orders", {
       branchId,
       orderType,
       deliveryAddressId: null,

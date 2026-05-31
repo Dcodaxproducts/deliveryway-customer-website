@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Star, Loader2, Camera } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import useApi from "@/hooks/useApi";
+import useCustomer from "@/hooks/useCustomer";
 import { useAuthContext } from "@/context/AuthContext";
 
 export default function WriteReview() {
@@ -13,7 +13,7 @@ export default function WriteReview() {
   const orderId = params.get("orderId");
 
   const { token } = useAuthContext();
-  const { get } = useApi(token);
+  const { get } = useCustomer(token);
 
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -34,7 +34,7 @@ export default function WriteReview() {
       try {
         setLoading(true);
 
-        const res = await get(`/v1/orders/${orderId}`);
+        const res: any = await get(`/v1/orders/${orderId}`);
 
         if (!res || res.success === false || !res.data) {
           setNotFound(true);

@@ -3,7 +3,7 @@
 import { Info, Loader2, LogOut } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import useApi from "@/hooks/useApi";
+import useCustomer from "@/hooks/useCustomer";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
@@ -19,7 +19,7 @@ export default function OrderSummary({ order, onSuccess }: any) {
   const summary = order?.summary;
 const { canCheckout, isHost } = useGroupOrder();
   const { token } = useAuth();
-  const { post } = useApi(token);
+  const { post } = useCustomer(token);
 
   const [noteOpen, setNoteOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -34,7 +34,7 @@ const { canCheckout, isHost } = useGroupOrder();
   const handleLeave = async () => {
     try {
       setLoadingLeave(true);
-      await post(`/v1/group-orders/${order?.id}/leave`);
+      await post(`/v1/group-orders/${order?.id}/leave`, {});
       toast.success("Left group successfully");
       window.location.href = "/";
     } catch (err) {
@@ -49,7 +49,7 @@ const { canCheckout, isHost } = useGroupOrder();
   try {
     setLoadingCheckout(true);
 
-    const res = await post(`/v1/group-orders/${order?.id}/checkout`, {
+    const res: any = await post(`/v1/group-orders/${order?.id}/checkout`, {
       paymentMethod,
       orderTime: order?.orderTime,
       customerNote: note || "",

@@ -3,13 +3,13 @@
 import { useState, useEffect, useRef } from "react";
 import { Send, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import useApi from "@/hooks/useApi";
+import useCustomer from "@/hooks/useCustomer";
 import { io, Socket } from "socket.io-client";
 import { useSearchParams } from "next/navigation";
 
 export default function ChatUI() {
   const { token, user } = useAuth();
-  const api = useApi(token);
+  const api = useCustomer(token);
 const searchParams = useSearchParams();
 
 const orderId = searchParams.get("orderId");
@@ -36,7 +36,7 @@ const [creatingThread, setCreatingThread] = useState(false);
 
   setCreatingThread(true);
 
-  const res = await api.post("/v1/chat/threads", {
+  const res: any = await api.post("/v1/chat/threads", {
     message: "Hi, I need support.",
     subject: "General Support",
   });
@@ -68,7 +68,7 @@ const [creatingThread, setCreatingThread] = useState(false);
   const shortId = orderId.slice(-6).toUpperCase();
   const subject = `Order #${shortId}`;
 
-  const res = await api.post("/v1/chat/threads", {
+  const res: any = await api.post("/v1/chat/threads", {
     message: "Hi, I need help regarding this order.",
     orderId,
     subject,
@@ -115,7 +115,7 @@ useEffect(() => {
 
   // 🔹 Fetch Threads
   const fetchThreads = async () => {
-    const res = await api.get("/v1/chat/threads");
+    const res: any = await api.get("/v1/chat/threads");
     if (res?.success) {
       setThreads(res.data);
      if (res.data.length > 0 && !activeThread && !orderId) {
@@ -125,7 +125,7 @@ useEffect(() => {
   };
 
 const fetchMessages = async (id: string) => {
-  const res = await api.get(`/v1/chat/threads/${id}`);
+  const res: any = await api.get(`/v1/chat/threads/${id}`);
   if (res?.success) {
     setMessages(res.data.messages || []);
   }

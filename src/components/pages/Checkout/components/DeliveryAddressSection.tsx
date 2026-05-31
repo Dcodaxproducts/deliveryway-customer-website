@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { MapPin } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import useApi from "@/hooks/useApi";
+import useCustomer from "@/hooks/useCustomer";
 import { useAuth } from "@/hooks/useAuth";
 
 interface Props {
@@ -16,7 +16,7 @@ export default function DeliveryAddressSection({
   setSelectedAddress,
 }: Props) {
   const { token } = useAuth();
-  const { get } = useApi(token);
+  const { get } = useCustomer(token);
 
   const [addresses, setAddresses] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -28,7 +28,7 @@ export default function DeliveryAddressSection({
   const fetchAddresses = async () => {
     try {
       setLoading(true);
-      const res = await get("/v1/addresses");
+      const res: any = await get("/v1/addresses");
 
       if (!res) return;
 

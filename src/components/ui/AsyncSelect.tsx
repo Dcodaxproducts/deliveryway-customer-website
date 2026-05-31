@@ -43,7 +43,7 @@ export default function AsyncSelect({
     try {
       setLoading(true);
 
-      const res = await fetchOptions({
+      const res: any = await fetchOptions({
         search: nextSearch ?? search,
         page: reset ? 1 : page,
       });

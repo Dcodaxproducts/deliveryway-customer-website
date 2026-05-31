@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import AddressModal from "./AddressModal";
-import useApi from "@/hooks/useApi";
+import useCustomer from "@/hooks/useCustomer";
 import { useAuth } from "@/hooks/useAuth";
 import { useAuthContext } from "@/context/AuthContext";
 import Link from "next/link";
@@ -39,7 +39,7 @@ export default function ProfileForm() {
   const { token, user } = useAuth();
   const { login } = useAuthContext();
 
-  const api = useApi(token);
+  const api = useCustomer(token);
   const profileApi = useProfile(api);
 
   const fileRef = useRef<HTMLInputElement | null>(null);
@@ -66,7 +66,7 @@ const [walletTxns, setWalletTxns] = useState(0);
 
   const fetchWallet = useCallback(async (skipStateUpdate = false) => {
   try {
-    const res = await profileApi.fetchWallet();
+    const res: any = await profileApi.fetchWallet();
 
     if (skipStateUpdate) {
       return;
@@ -86,7 +86,7 @@ const [walletTxns, setWalletTxns] = useState(0);
       if (!skipStateUpdate) {
         setLoadingAddresses(true);
       }
-      const res = await profileApi.fetchAddresses();
+      const res: any = await profileApi.fetchAddresses();
 
       if (!skipStateUpdate) {
         setAddresses(res);

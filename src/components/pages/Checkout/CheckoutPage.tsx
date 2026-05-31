@@ -6,7 +6,7 @@ import DeliverySection from "@/components/pages/Checkout/components/DeliverySect
 import PickupSection from "@/components/pages/Checkout/components/PickupSection";
 import CartSummarySection from "@/components/pages/Checkout/components/CartSummarySection";
 import { useRouter, useSearchParams } from "next/navigation";
-import useApi from "@/hooks/useApi";
+import useCustomer from "@/hooks/useCustomer";
 import { toast } from "sonner";
 import { useAuthContext } from "@/context/AuthContext";
 import {
@@ -397,7 +397,7 @@ function CheckoutPageContent() {
   const [validatingCoupon, setValidatingCoupon] = useState(false);
 
   const { user, token } = useAuthContext();
-  const { get, patch, del, post } = useApi(token);
+  const { get, patch, del, post } = useCustomer(token);
 
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [cartQuote, setCartQuote] = useState<any | null>(null);
@@ -446,7 +446,7 @@ function CheckoutPageContent() {
     try {
       setLoadingCart(true);
 
-      const res = await get(`/v1/cart?customerId=${customerId}`);
+      const res: any = await get(`/v1/cart?customerId=${customerId}`);
 
       if (hasBackendError(res)) {
         setCartItems([]);
@@ -534,7 +534,7 @@ function CheckoutPageContent() {
     );
 
     try {
-      const res = await patch(`/v1/cart/items/${id}?customerId=${customerId}`, {
+      const res: any = await patch(`/v1/cart/items/${id}?customerId=${customerId}`, {
         quantity: newQty,
       });
 
@@ -566,7 +566,7 @@ function CheckoutPageContent() {
     try {
       setCartItems((prev) => prev.filter((item) => item.id !== id));
 
-      const res = await del(`/v1/cart/items/${id}?customerId=${customerId}`);
+      const res: any = await del(`/v1/cart/items/${id}?customerId=${customerId}`);
 
       if (hasBackendError(res)) {
         setCartItems(previousCartItems);
@@ -599,7 +599,7 @@ function CheckoutPageContent() {
       setCartItems([]);
       setCartQuote(null);
 
-      const res = await del(`/v1/cart?customerId=${customerId}`);
+      const res: any = await del(`/v1/cart?customerId=${customerId}`);
 
       if (hasBackendError(res)) {
         setCartItems(previousCartItems);
@@ -629,7 +629,7 @@ function CheckoutPageContent() {
 
   const setOrderType = async () => {
     try {
-      const res = await patch(`/v1/cart/order-type?customerId=${customerId}`, {
+      const res: any = await patch(`/v1/cart/order-type?customerId=${customerId}`, {
         orderType: activeTab === "pickup" ? "TAKEAWAY" : "DELIVERY",
       });
 
@@ -659,7 +659,7 @@ function CheckoutPageContent() {
     if (activeTab !== "delivery") return true;
 
     try {
-      const res = await patch(`/v1/cart/address?customerId=${customerId}`, {
+      const res: any = await patch(`/v1/cart/address?customerId=${customerId}`, {
         deliveryAddressId: selectedAddress,
       });
 
@@ -754,7 +754,7 @@ function CheckoutPageContent() {
         return;
       }
 
-      const res = await post(`/v1/cart/checkout?customerId=${customerId}`, {
+      const res: any = await post(`/v1/cart/checkout?customerId=${customerId}`, {
         orderTime,
         paymentMethod:
           paymentMethod === "card"
@@ -803,7 +803,7 @@ function CheckoutPageContent() {
           return;
         }
 
-        const payment = attemptRes?.data;
+        const payment: any = attemptRes?.data;
 
         setStripePayment({
           open: true,
@@ -859,7 +859,7 @@ function CheckoutPageContent() {
     try {
       setValidatingCoupon(true);
 
-      const res = await post(`/v1/coupons/validate`, {
+      const res: any = await post(`/v1/coupons/validate`, {
         code: couponCode.trim(),
         branchId: user?.branchId || user?.restaurantId,
         subtotal,
@@ -1007,7 +1007,7 @@ const OrderStripeCheckout = ({
   const [loading, setLoading] = useState(false);
 
   const { token } = useAuth();
-  const { post } = useApi(token);
+  const { post } = useCustomer(token);
 
   const handlePay = async () => {
     if (!stripe || !elements) return;

@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Minus, Plus, Tag, X, ArrowRight, Loader2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import useApi from "@/hooks/useApi";
+import useCustomer from "@/hooks/useCustomer";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 
@@ -79,7 +79,7 @@ export default function OrderCartSidebar({
 }: OrderCartSidebarProps) {
   const router = useRouter();
   const { token } = useAuth();
-  const { get, patch, del } = useApi(token);
+  const { get, patch, del } = useCustomer(token);
 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loadingCart, setLoadingCart] = useState(false);
@@ -91,7 +91,7 @@ export default function OrderCartSidebar({
     try {
       setLoadingCart(true);
 
-      const res = await get(`/v1/cart?customerId=${customerId}`);
+      const res: any = await get(`/v1/cart?customerId=${customerId}`);
 
       if (!res || res.error) {
         setCartItems([]);
@@ -150,7 +150,7 @@ export default function OrderCartSidebar({
     try {
       setActionId(id);
 
-      const res = await patch(`/v1/cart/items/${id}?customerId=${customerId}`, {
+      const res: any = await patch(`/v1/cart/items/${id}?customerId=${customerId}`, {
         quantity: newQty,
       });
 
@@ -186,7 +186,7 @@ export default function OrderCartSidebar({
     try {
       setActionId(id);
 
-      const res = await del(`/v1/cart/items/${id}?customerId=${customerId}`);
+      const res: any = await del(`/v1/cart/items/${id}?customerId=${customerId}`);
 
       if (!res || res.error) {
         toast.error(res?.error || "Failed to remove item");

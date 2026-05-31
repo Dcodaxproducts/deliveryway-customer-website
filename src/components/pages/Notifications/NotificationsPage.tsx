@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 import { Calendar, Wallet, Check } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import useApi from "@/hooks/useApi";
+import useCustomer from "@/hooks/useCustomer";
 
 export function NotificationsPage() {
   const { token } = useAuth();
-  const { get } = useApi(token);
+  const { get } = useCustomer(token);
 
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -48,7 +48,7 @@ export function NotificationsPage() {
     try {
       pageNumber === 1 ? setLoading(true) : setLoadingMore(true);
 
-      const res = await get(`/v1/notifications?page=${pageNumber}&limit=10`);
+      const res: any = await get(`/v1/notifications?page=${pageNumber}&limit=10`);
 
       const newData = res.data || [];
 

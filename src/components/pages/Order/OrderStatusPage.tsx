@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import useApi from "@/hooks/useApi";
+import useCustomer from "@/hooks/useCustomer";
 import { useAuthContext } from "@/context/AuthContext";
 import OrderSummary from "@/components/pages/Order/components/OrderSummary";
 
 function OrderStatusContent() {
   const { token } = useAuthContext();
-  const { get } = useApi(token);
+  const { get } = useCustomer(token);
 
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
@@ -30,7 +30,7 @@ function OrderStatusContent() {
         setLoading(true);
         setNotFound(false);
 
-        const res = await get(`/v1/orders/${orderId}`);
+        const res: any = await get(`/v1/orders/${orderId}`);
 
         // ✅ handle backend "success: false" OR no data
         if (!res || res.success === false || !res?.data) {

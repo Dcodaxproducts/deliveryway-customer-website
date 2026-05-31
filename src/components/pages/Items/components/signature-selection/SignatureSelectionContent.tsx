@@ -15,7 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
-import useApi from "@/hooks/useApi";
+import useCustomer from "@/hooks/useCustomer";
 import { useAuth } from "@/hooks/useAuth";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import AsyncSelect from "@/components/ui/AsyncSelect";
@@ -677,7 +677,7 @@ export default function SignatureSelectionContent({
   onCartRefresh,
 }: SignatureSelectionContentProps) {
   const { token } = useAuth();
-  const { get, post, del } = useApi(token);
+  const { get, post, del } = useCustomer(token);
 
   const [menus, setMenus] = useState<MenuRecord[]>([]);
   const [activeMenuId, setActiveMenuId] = useState<string>("");
@@ -777,7 +777,7 @@ export default function SignatureSelectionContent({
           sortOrder: "ASC",
         });
 
-        const res = await get(`/v1/menus?${params.toString()}`);
+        const res: any = await get(`/v1/menus?${params.toString()}`);
 
         if (!res || res.error) {
           toast.error(res?.error || "Failed to fetch menus");
@@ -1787,7 +1787,7 @@ export default function SignatureSelectionContent({
       queryParams.set("search", resolvedSearch);
     }
 
-    const res = await get(`/v1/menu/items?${queryParams.toString()}`);
+    const res: any = await get(`/v1/menu/items?${queryParams.toString()}`);
     const data = normalizeApiList(res);
 
     return {

@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dialog";
 
 import { useAuth } from "@/hooks/useAuth";
-import useApi from "@/hooks/useApi";
+import useCustomer from "@/hooks/useCustomer";
 import { toast } from "sonner";
 
 type Props = {
@@ -101,7 +101,7 @@ const Balance = ({
   loyaltyPoints = 0,
 }: Props) => {
   const { token } = useAuth();
-  const api = useApi(token);
+  const api = useCustomer(token);
 
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState("1000");
@@ -141,7 +141,7 @@ const Balance = ({
       return;
     }
 
-    const res = await api.post("/v1/customer-app/wallet/top-up", {
+    const res: any = await api.post("/customer-app/wallet/top-up", {
       amount: numericAmount,
       currency: "PKR",
       note,
