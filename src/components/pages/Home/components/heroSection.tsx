@@ -32,9 +32,7 @@ const HeroSection = ({
                     {tagline}
                 </p>
 
-                {/* Search Card */}
                 <div className="bg-white rounded-2xl shadow-xl w-full p-6 md:p-8">
-                    {/* Tabs */}
                     <div className="flex gap-4 mb-6">
                         <button className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-md font-semibold">
                             <Bike size={20} />
@@ -46,7 +44,6 @@ const HeroSection = ({
                         </button>
                     </div>
 
-                    {/* Input Row */}
                     <div className="flex flex-col md:flex-row gap-3">
                         <div className="relative grow my-auto">
                             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">

@@ -16,27 +16,23 @@ import BranchOpeningHoursPopup from "@/components/pages/Home/components/BranchOp
 
 import { DEFAULT_BRANDING } from "@/config/default-branding";
 import { useAuth } from "@/hooks/useAuth";
+import { useBranding } from "@/hooks/useBranding";
 import { useHome } from "@/hooks/useHome";
-
-const getUserBranchId = (user: ReturnType<typeof useAuth>["user"]) => {
-  return user?.branchId ?? user?.branch?.id ?? "";
-};
-
-const getUserRestaurantId = (user: ReturnType<typeof useAuth>["user"]) => {
-  return user?.restaurantId ?? user?.branch?.restaurantId ?? "";
-};
+import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
 
 const HomePage = () => {
-  const { user, token } = useAuth();
+  const { user, token, restaurantId: authRestaurantId } = useAuth();
+  const { branding: fallbackBranding } = useBranding();
 
-  const restaurantId = useMemo(() => getUserRestaurantId(user), [user]);
-  const branchId = useMemo(() => getUserBranchId(user), [user]);
+  const restaurantId = useMemo(() => resolveHomeRestaurantId(user, authRestaurantId), [authRestaurantId, user]);
+  const branchId = useMemo(() => resolveHomeBranchId(user), [user]);
   const homeQuery = useHome(restaurantId, branchId, Boolean(token && branchId));
-  const homeData = homeQuery.data?.data;
-  const branding = homeData?.branding ?? DEFAULT_BRANDING;
+  const homeResponse = homeQuery.data;
+  const homeData = homeResponse ? homeResponse.data : undefined;
+  const branding = homeData?.branding ?? fallbackBranding ?? DEFAULT_BRANDING;
   const resolvedBranch = homeData?.branch ?? user?.branch ?? null;
   const landingPopup = homeData?.landingPopup ?? null;
-  const heroTitle = homeData?.restaurant?.name ?? "Are you starving?";
+  const heroTitle = homeData?.restaurant?.name ?? branding.restaurantName ?? "Are you starving?";
   const heroTagline = branding.tagline;
   const heroImage = branding.assets.heroImage ?? branding.assets.coverImage ?? DEFAULT_BRANDING.assets.heroImage;
 

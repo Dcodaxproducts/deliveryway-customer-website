@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import Image from "next/image";
@@ -18,68 +17,18 @@ import {
   CarouselItem,
 } from "@/components/ui/carousel";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import useMenu from "@/hooks/useMenu";
+import type { UseEmblaCarouselType } from "embla-carousel-react";
+import { useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useHomeCategories, useHomePromotions } from "@/hooks/useHomeCategories";
+import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
+import type { HomeCategory, PromotionCampaign } from "@/types/home";
 
-type PromotionCampaign = {
-  id: string;
-  title?: string;
-  description?: string;
-  applyMode?: "ORDER_TOTAL" | "SCOPED_ITEMS" | string;
-  discountType?: "FLAT" | "PERCENTAGE" | string;
-  discountValue?: number | string;
-  maxDiscountAmount?: number | string;
-  minOrderAmount?: number | string;
-  startsAt?: string;
-  expiresAt?: string;
-  branch?: {
-    id?: string;
-    name?: string;
-  } | null;
-  restaurant?: {
-    id?: string;
-    name?: string;
-    slug?: string;
-    logoUrl?: string | null;
-    coverImage?: string | null;
-  } | null;
-  scopeMenuItems?: {
-    id?: string;
-    name?: string;
-    imageUrl?: string | null;
-  }[];
-  scopeCategories?: {
-    id?: string;
-    name?: string;
-    imageUrl?: string | null;
-  }[];
-};
+type CarouselApi = UseEmblaCarouselType[1];
 
 const toNumber = (value: unknown, fallback = 0) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
-};
-
-const getStoredAuth = () => {
-  if (typeof window === "undefined") return null;
-
-  try {
-    const stored = browserStorage.getItem("auth");
-    return stored ? JSON.parse(stored) : null;
-  } catch {
-    return null;
-  }
-};
-
-const normalizePromotions = (res: unknown): PromotionCampaign[] => {
-  if (Array.isArray(res)) return res;
-  if (Array.isArray(res?.data)) return res.data;
-  if (Array.isArray(res?.data?.data)) return res.data.data;
-  if (Array.isArray(res?.data?.items)) return res.data.items;
-  if (Array.isArray(res?.items)) return res.items;
-
-  return [];
 };
 
 const formatDiscount = (promotion: PromotionCampaign) => {
@@ -298,116 +247,16 @@ function PromotionBannerCard({
 export default function FoodCategorySection() {
   const router = useRouter();
   const { token, user, restaurantId: authRestaurantId } = useAuth();
-  const { get } = useMenu(token);
+  const restaurantId = resolveHomeRestaurantId(user, authRestaurantId);
+  const branchId = resolveHomeBranchId(user);
+  const categoriesQuery = useHomeCategories(restaurantId, Boolean(token));
+  const promotionsQuery = useHomePromotions(restaurantId, branchId, Boolean(token));
+  const categories = categoriesQuery.data ?? [];
+  const promotions = promotionsQuery.data ?? [];
+  const loading = categoriesQuery.isLoading;
+  const promotionsLoading = promotionsQuery.isLoading;
 
-  const [categories, setCategories] = useState<unknown[]>([]);
-  const [promotions, setPromotions] = useState<PromotionCampaign[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [promotionsLoading, setPromotionsLoading] = useState(true);
-
-  const carouselApi = useRef<unknown>(null);
-
-  const promotionsFetchKeyRef = useRef("");
-
-  /* ================= FETCH CATEGORIES ================= */
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const stored = getStoredAuth();
-
-        const restaurantId =
-          stored?.user?.restaurantId ||
-          authRestaurantId ||
-          user?.restaurantId ||
-          (user as unknown)?.tenantId;
-
-        if (!restaurantId || !token) {
-          setLoading(false);
-          return;
-        }
-
-        setLoading(true);
-
-        const res: unknown = await get(
-          `/v1/menu/categories?restaurantId=${restaurantId}`
-        );
-
-        if (res) {
-          if (Array.isArray(res.data)) {
-            setCategories(res.data);
-          } else if (Array.isArray(res?.data?.data)) {
-            setCategories(res.data.data);
-          } else if (Array.isArray(res?.data?.items)) {
-            setCategories(res.data.items);
-          } else {
-            setCategories([]);
-          }
-        }
-      } catch (err) {
-        setCategories([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCategories();
-
-    // Keep same stable dependency behavior as the working version.
-  }, [token]);
-
-  /* ================= FETCH LIVE PROMOTIONS ================= */
-  useEffect(() => {
-    const fetchPromotions = async () => {
-      try {
-        const stored = getStoredAuth();
-
-        const restaurantId =
-          stored?.user?.restaurantId ||
-          authRestaurantId ||
-          user?.restaurantId ||
-          (user as unknown)?.tenantId;
-
-        const branchId = stored?.user?.branchId || user?.branchId || "";
-
-        if (!restaurantId || !token) {
-          setPromotionsLoading(false);
-          return;
-        }
-
-        const fetchKey = `${restaurantId}:${branchId}:${token}`;
-
-        if (promotionsFetchKeyRef.current === fetchKey) {
-          return;
-        }
-
-        promotionsFetchKeyRef.current = fetchKey;
-        setPromotionsLoading(true);
-
-        const params = new URLSearchParams();
-        params.set("restaurantId", String(restaurantId));
-
-        if (branchId) {
-          params.set("branchId", String(branchId));
-        }
-
-        const res: unknown = await get(
-          `/customer-app/promotions?${params.toString()}`
-        );
-
-        setPromotions(normalizePromotions(res));
-      } catch (err) {
-        setPromotions([]);
-      } finally {
-        setPromotionsLoading(false);
-      }
-    };
-
-    fetchPromotions();
-
-    // Keep get out of deps to avoid repeated domain-hook-triggered refetch flicker.
-  }, [token, authRestaurantId, user?.restaurantId, user?.branchId]);
-
-  /* ================= NAVIGATION ================= */
+  const carouselApi = useRef<CarouselApi>(null);
   const scrollLeft = () => {
     carouselApi.current?.scrollPrev();
   };
@@ -418,7 +267,6 @@ export default function FoodCategorySection() {
 
   return (
     <section className="mx-auto max-w-[1400px] px-4 pt-[40px] sm:px-6 sm:pt-[80px]">
-      {/* Header */}
       <div className="mb-[30px] flex items-center justify-between sm:mb-[60px]">
         <h2 className="text-[24px] font-semibold text-[#212121] sm:text-[32px] lg:text-[42px]">
           Categories
@@ -434,7 +282,6 @@ export default function FoodCategorySection() {
             <ChevronRight className="h-[16px] w-[10px]" strokeWidth={3} />
           </Button>
 
-          {/* Arrows (hide on mobile) */}
           <div className="hidden gap-2 sm:flex">
             <button
               type="button"
@@ -455,7 +302,6 @@ export default function FoodCategorySection() {
         </div>
       </div>
 
-      {/* Categories */}
       {loading ? (
         <div className="flex gap-4 overflow-hidden sm:gap-6">
           {[1, 2, 3, 4].map((i) => (
@@ -475,7 +321,7 @@ export default function FoodCategorySection() {
           }}
         >
           <CarouselContent>
-            {categories.map((item) => {
+            {categories.map((item: HomeCategory) => {
               const image =
                 item.imageUrl && item.imageUrl.startsWith("http")
                   ? item.imageUrl
@@ -509,7 +355,6 @@ export default function FoodCategorySection() {
         </Carousel>
       )}
 
-      {/* CTA */}
       <div className="mb-[50px] mt-[30px] flex flex-col justify-center gap-3 sm:mb-[80px] sm:mt-[60px] sm:flex-row sm:justify-end">
         <Button
           variant="ghost"
@@ -528,7 +373,6 @@ export default function FoodCategorySection() {
         </Button>
       </div>
 
-      {/* Live Promotion Banners */}
       <div className="mb-4 flex items-end justify-between gap-4">
         <div>
           <p className="text-sm font-semibold uppercase tracking-wide text-primary">

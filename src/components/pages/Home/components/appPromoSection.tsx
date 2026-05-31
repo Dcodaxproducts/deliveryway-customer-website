@@ -8,7 +8,6 @@ return (
     <div className="max-w-[1400px] mx-auto">
       <div className="relative w-full overflow-hidden rounded-[20px]">
 
-        {/* Background */}
         <Image
           src="/banner-bg.png"
           alt="Banner Background"
@@ -17,7 +16,6 @@ return (
           className="w-full h-[560px] md:h-full object-cover"
         />
 
-        {/* Phone Mockup */}
         <div className="
           absolute
           top-0 md:-top-3
@@ -34,7 +32,6 @@ return (
           </div>
         </div>
 
-        {/* Content */}
         <div className="
           absolute top-0 h-full flex items-center
           px-4 sm:px-6
@@ -52,7 +49,6 @@ return (
 
             <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8 justify-center md:justify-start">
               
-              {/* Avatars */}
               <div className="flex justify-center md:justify-start -space-x-2">
                 {[1, 2, 3, 4, 5].map((i) => (
                   <div
@@ -68,7 +64,6 @@ return (
                 ))}
               </div>
 
-              {/* Rating */}
               <div className="flex flex-col items-center md:items-start">
                 <span className="text-sm md:text-lg font-bold">
                   Our Happy Customer
@@ -84,7 +79,6 @@ return (
 
             </div>
 
-            {/* ✅ Buttons INSIDE flow on mobile */}
             <div className="flex md:hidden justify-center gap-3 mt-6">
               <img
                 src="/app-store.png"
@@ -99,7 +93,6 @@ return (
           </div>
         </div>
 
-        {/* ✅ Desktop Buttons (unchanged) */}
         <div className="
           hidden md:flex
           flex-col gap-3 absolute right-16 top-1/2 transform -translate-y-1/2

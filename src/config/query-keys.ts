@@ -31,6 +31,8 @@ export const queryKeys = {
   },
   home: {
     detail: (restaurantId?: string | null, branchId?: string | null) => ["customer-home", restaurantId ?? "", branchId ?? ""] as const,
+    categories: (restaurantId?: string | null) => ["customer-home", "categories", restaurantId ?? ""] as const,
+    promotions: (restaurantId?: string | null, branchId?: string | null) => ["customer-home", "promotions", restaurantId ?? "", branchId ?? ""] as const,
   },
   orders: {
     all: ["orders"] as const,

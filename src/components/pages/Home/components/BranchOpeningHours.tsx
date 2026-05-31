@@ -1,7 +1,6 @@
-// @ts-nocheck
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   AlertTriangle,
   CalendarDays,
@@ -18,35 +17,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import type { AuthBranch } from "@/types/auth";
+import type { HomeBranch, LandingPopup } from "@/types/home";
 
-type LandingPopupType =
-  | "TEMPORARY_CLOSURE"
-  | "HOLIDAY_CLOSURE"
-  | "VACATION"
-  | "CLOSED"
-  | string;
-
-type LandingPopup = {
-  show?: boolean;
-  type?: LandingPopupType;
-  title?: string;
-  message?: string;
-  period?: {
-    fromDate?: string | null;
-    toDate?: string | null;
-  } | null;
-  temporaryClosure?: {
-    isClosed?: boolean;
-    closedAt?: string | null;
-    closedUntil?: string | null;
-    reason?: string | null;
-    message?: string | null;
-  } | null;
-};
+type LandingPopupType = NonNullable<LandingPopup["type"]>;
 
 type BranchOpeningHoursPopupProps = {
   popup?: LandingPopup | null;
-  branch?: unknown;
+  branch?: HomeBranch | AuthBranch | null;
 };
 
 const formatDateTime = (value?: string | null) => {
