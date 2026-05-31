@@ -5,6 +5,8 @@ import RestaurantCard from "./RestaurantCard";
 import useCustomer from "@/hooks/useCustomer";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
+import type { ItemsCategory, MenuItem } from "@/components/pages/Items/types";
+import { mergeUniqueById, normalizeApiArray, normalizeApiMeta, resolveHasNext } from "@/components/pages/Items/utils/restaurant-card-utils";
 
 type MenuViewMode = "multiple" | "onePage";
 
@@ -15,14 +17,14 @@ type ScrollTarget = {
 
 type ItemsListingProps = {
   categoryId?: string;
-  categories?: any[];
+  categories?: ItemsCategory[];
   viewMode?: MenuViewMode;
   scrollTarget?: ScrollTarget;
   onActiveCategoryChange?: (categoryId: string) => void;
 };
 
 type CategoryItemsState = {
-  items: any[];
+  items: MenuItem[];
   page: number;
   hasMore: boolean;
   loading: boolean;
@@ -40,65 +42,6 @@ const createEmptyCategoryState = (): CategoryItemsState => ({
   loadingMore: false,
   loadedOnce: false,
 });
-
-const normalizeApiArray = (res: any) => {
-  if (Array.isArray(res?.data)) return res.data;
-  if (Array.isArray(res?.data?.data)) return res.data.data;
-  if (Array.isArray(res?.data?.items)) return res.data.items;
-  if (Array.isArray(res?.items)) return res.items;
-  return [];
-};
-
-const normalizeApiMeta = (res: any) => {
-  return (
-    res?.data?.pagination ||
-    res?.data?.meta ||
-    res?.data?.data?.pagination ||
-    res?.data?.data?.meta ||
-    res?.pagination ||
-    res?.meta ||
-    {}
-  );
-};
-
-const mergeUniqueById = (prev: any[], next: any[]) => {
-  const map = new Map<string, any>();
-
-  [...prev, ...next].forEach((item) => {
-    const id = String(item?.id || "");
-    if (!id) return;
-
-    map.set(id, item);
-  });
-
-  return Array.from(map.values());
-};
-
-const resolveHasNext = ({
-  meta,
-  page,
-  limit,
-  receivedCount,
-  totalLoaded,
-}: {
-  meta: any;
-  page: number;
-  limit: number;
-  receivedCount: number;
-  totalLoaded: number;
-}) => {
-  if (typeof meta?.hasNext === "boolean") return meta.hasNext;
-  if (typeof meta?.hasMore === "boolean") return meta.hasMore;
-
-  const total = Number(meta?.total ?? 0);
-  const totalPages = Number(meta?.totalPages ?? meta?.pages ?? 0);
-  const currentPage = Number(meta?.page ?? page);
-
-  if (totalPages > 0) return currentPage < totalPages;
-  if (total > 0) return totalLoaded < total;
-
-  return receivedCount >= limit;
-};
 
 export default function ItemsListing({
   categoryId,
@@ -135,7 +78,6 @@ export default function ItemsListing({
       getStoredRestaurantId() ||
       ""
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authRestaurantId, user?.restaurantId]);
 
   const categoryIdsKey = useMemo(() => {
@@ -148,9 +90,7 @@ export default function ItemsListing({
 
   const activeCategory = useMemo(() => {
     return (
-      categories.find(
-        (category: any) => String(category?.id || "") === activeCategoryId
-      ) || categories?.[0]
+      categories.find(({ id }) => String(id || "") === activeCategoryId) || categories?.[0]
     );
   }, [categories, activeCategoryId]);
 
@@ -172,18 +112,20 @@ export default function ItemsListing({
     try {
       inFlightRequestsRef.current.add(requestKey);
 
-      setCategoryItemsMap((prev) => {
-        const existing = prev[categoryId] || createEmptyCategoryState();
+      queueMicrotask(() => {
+        setCategoryItemsMap((prev) => {
+          const existing = prev[categoryId] || createEmptyCategoryState();
 
-        return {
-          ...prev,
-          [categoryId]: {
-            ...existing,
-            loading: !append,
-            loadingMore: append,
-            loadedOnce: append ? existing.loadedOnce : false,
-          },
-        };
+          return {
+            ...prev,
+            [categoryId]: {
+              ...existing,
+              loading: !append,
+              loadingMore: append,
+              loadedOnce: append ? existing.loadedOnce : false,
+            },
+          };
+        });
       });
 
       const params = new URLSearchParams({
@@ -195,52 +137,56 @@ export default function ItemsListing({
         sortOrder: "ASC",
       });
 
-      const res: any = await get(`/v1/menu/items?${params.toString()}`);
+      const res = await get(`/v1/menu/items?${params.toString()}`);
 
-      const fetchedItems = normalizeApiArray(res);
+      const fetchedItems = normalizeApiArray<MenuItem>(res);
       const meta = normalizeApiMeta(res);
 
-      setCategoryItemsMap((prev) => {
-        const existing = prev[categoryId] || createEmptyCategoryState();
+      queueMicrotask(() => {
+        setCategoryItemsMap((prev) => {
+          const existing = prev[categoryId] || createEmptyCategoryState();
 
-        const nextItems = append
-          ? mergeUniqueById(existing.items, fetchedItems)
-          : fetchedItems;
+          const nextItems = append
+            ? mergeUniqueById(existing.items, fetchedItems)
+            : fetchedItems;
 
-        return {
-          ...prev,
-          [categoryId]: {
-            items: nextItems,
-            page: Number(meta?.page ?? page),
-            hasMore: resolveHasNext({
-              meta,
-              page,
-              limit: ITEMS_PAGE_LIMIT,
-              receivedCount: fetchedItems.length,
-              totalLoaded: nextItems.length,
-            }),
-            loading: false,
-            loadingMore: false,
-            loadedOnce: true,
-          },
-        };
+          return {
+            ...prev,
+            [categoryId]: {
+              items: nextItems,
+              page: Number(meta?.page ?? page),
+              hasMore: resolveHasNext({
+                meta,
+                page,
+                limit: ITEMS_PAGE_LIMIT,
+                receivedCount: fetchedItems.length,
+                totalLoaded: nextItems.length,
+              }),
+              loading: false,
+              loadingMore: false,
+              loadedOnce: true,
+            },
+          };
+        });
       });
     } catch (err) {
       console.error("Failed to fetch category items:", err);
 
-      setCategoryItemsMap((prev) => {
-        const existing = prev[categoryId] || createEmptyCategoryState();
+      queueMicrotask(() => {
+        setCategoryItemsMap((prev) => {
+          const existing = prev[categoryId] || createEmptyCategoryState();
 
-        return {
-          ...prev,
-          [categoryId]: {
-            ...existing,
-            loading: false,
-            loadingMore: false,
-            loadedOnce: true,
-            hasMore: false,
-          },
-        };
+          return {
+            ...prev,
+            [categoryId]: {
+              ...existing,
+              loading: false,
+              loadingMore: false,
+              loadedOnce: true,
+              hasMore: false,
+            },
+          };
+        });
       });
     } finally {
       inFlightRequestsRef.current.delete(requestKey);
@@ -257,12 +203,13 @@ export default function ItemsListing({
 
     if (state?.loadedOnce || state?.loading) return;
 
-    fetchCategoryItems({
-      categoryId: activeCategoryId,
-      page: 1,
-      append: false,
+    queueMicrotask(() => {
+      fetchCategoryItems({
+        categoryId: activeCategoryId,
+        page: 1,
+        append: false,
+      });
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewMode, activeCategoryId, token, restaurantId]);
 
   /* ================= ONE PAGE MODE: LOAD EACH DISPLAYED CATEGORY ================= */
@@ -279,13 +226,14 @@ export default function ItemsListing({
 
       if (state?.loadedOnce || state?.loading) return;
 
-      fetchCategoryItems({
-        categoryId: id,
-        page: 1,
-        append: false,
+      queueMicrotask(() => {
+        fetchCategoryItems({
+          categoryId: id,
+          page: 1,
+          append: false,
+        });
       });
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewMode, categoryIdsKey, token, restaurantId]);
 
   /* ================= PRUNE OLD CATEGORY STATES AFTER SEARCH ================= */
@@ -295,16 +243,18 @@ export default function ItemsListing({
 
     const validIds = new Set(categories.map((category) => String(category.id)));
 
-    setCategoryItemsMap((prev) => {
-      const next: Record<string, CategoryItemsState> = {};
+    queueMicrotask(() => {
+      setCategoryItemsMap((prev) => {
+        const next: Record<string, CategoryItemsState> = {};
 
-      Object.entries(prev).forEach(([id, state]) => {
-        if (validIds.has(String(id))) {
-          next[id] = state;
-        }
+        Object.entries(prev).forEach(([id, state]) => {
+          if (validIds.has(String(id))) {
+            next[id] = state;
+          }
+        });
+
+        return next;
       });
-
-      return next;
     });
   }, [categoryIdsKey, categories]);
 
@@ -592,7 +542,7 @@ export default function ItemsListing({
             No categories found
           </div>
         ) : (
-          categories.map((category: any) => {
+          categories.map((category) => {
             const id = String(category?.id || "");
             const state = categoryItemsMap[id] || createEmptyCategoryState();
 

@@ -10,114 +10,46 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import AsyncSelect from "@/components/ui/AsyncSelect";
+import type { ApiRecord, CartPayload, ItemPriceOverride, MenuItem, MenuVariation, Modifier, ModifierGroup, ModifierLink, SelectedModifiersMap, PromotionInfo, PromotionPricing, RawModifierLink, SelectedModifier, VariationPriceOverride } from "@/components/pages/Items/types";
+import { normalizeApiArray, hasText, formatPrice, toNumber } from "@/components/pages/Items/utils/restaurant-card-utils";
 
-type PromotionInfo = {
-  promotionId?: string;
-  title?: string | null;
-  description?: string | null;
-  applyMode?: "ORDER_TOTAL" | "SCOPED_ITEMS" | string;
-  discountType?: "FLAT" | "PERCENTAGE" | string;
-  discountValue?: number | string | null;
-  maxDiscountAmount?: number | string | null;
-  discountAmount?: number | string | null;
-  discountedAmount?: number | string | null;
+
+const getApiResponseMessage = (res: ApiRecord | null | undefined) => {
+  const errorValue = res?.error;
+  const dataValue = res?.data;
+  const errorRecord = typeof errorValue === "object" && errorValue !== null && !Array.isArray(errorValue) ? errorValue as ApiRecord : null;
+  const dataRecord = typeof dataValue === "object" && dataValue !== null && !Array.isArray(dataValue) ? dataValue as ApiRecord : null;
+  const dataErrorValue = dataRecord?.error;
+  const dataErrorRecord = typeof dataErrorValue === "object" && dataErrorValue !== null && !Array.isArray(dataErrorValue) ? dataErrorValue as ApiRecord : null;
+
+  return [
+    res?.message,
+    typeof errorValue === "string" ? errorValue : "",
+    errorRecord?.message,
+    errorRecord?.code,
+    dataRecord?.message,
+    typeof dataErrorValue === "string" ? dataErrorValue : "",
+    dataErrorRecord?.message,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
 };
 
-type PromotionPricing = {
-  promotion: PromotionInfo | null;
-  originalPrice: number;
-  finalPrice: number;
-  discountAmount: number;
-  hasPromotion: boolean;
-  hasDiscount: boolean;
+const isApiErrorResponse = (res: ApiRecord | null | undefined) => {
+  return !res || res?.success === false || Boolean(res?.error);
 };
 
-type ItemPriceOverride = {
-  id?: string;
-  menuItemId?: string;
-  modifierId?: string;
-  price?: string | number;
-  priceDelta?: string | number;
+const getApiErrorMessage = (res: ApiRecord | null | undefined, fallback = "Something went wrong") => {
+  return getApiResponseMessage(res) || fallback;
 };
 
-type VariationPriceOverride = {
-  id?: string;
-  menuItemId?: string | null;
-  variationId?: string;
-  modifierId?: string;
-  price?: string | number;
-  priceDelta?: string | number;
+const isCartBranchConflictResponse = (res: ApiRecord | null | undefined) => {
+  const message = getApiResponseMessage(res).toLowerCase();
+  return message.includes("branch") && message.includes("cart");
 };
-
-type MenuVariation = {
-  id: string;
-  categoryId?: string;
-  name: string;
-  description?: string;
-  price?: string | number;
-  displayText?: string | null;
-  discountedPrice?: string | number | null;
-  promotion?: PromotionInfo | null;
-  sortOrder?: number;
-  isDefault?: boolean;
-  isActive?: boolean;
-  modifierPriceOverrides?: VariationPriceOverride[];
-};
-
-type Modifier = {
-  id: string;
-  modifierGroupId?: string;
-  restaurantId?: string;
-  name: string;
-  displayText?: string | null;
-  description?: string;
-  priceDelta?: string | number;
-  sortOrder?: number;
-  isActive?: boolean;
-  itemPriceOverrides?: ItemPriceOverride[];
-  variationPriceOverrides?: VariationPriceOverride[];
-};
-
-type SelectedModifier = Modifier & {
-  selectedQuantity: number;
-};
-
-type RawModifierLink = {
-  id?: string;
-  modifierGroupId?: string;
-  modifierId?: string;
-  sortOrder?: number;
-  modifier?: Modifier;
-};
-
-type ModifierGroup = {
-  id: string;
-  name: string;
-  description?: string;
-  minSelect?: number;
-  maxSelect?: number;
-  isRequired?: boolean;
-  sortOrder?: number;
-  isActive?: boolean;
-  modifiers?: Modifier[];
-  modifierLinks?: RawModifierLink[];
-};
-
-type ModifierLink = {
-  id: string;
-  variationId?: string | null;
-  sortOrder?: number;
-  modifierGroup: ModifierGroup;
-};
-
-type SelectedModifiersMap = Record<string, SelectedModifier[]>;
 
 const ADDONS_GROUP_ID = "__item_addons__";
-
-const toNumber = (value: unknown, fallback = 0) => {
-  const num = Number(value);
-  return Number.isFinite(num) ? num : fallback;
-};
 
 const sortBySortOrder = <T extends { sortOrder?: number }>(items: T[]) => {
   return [...items].sort(
@@ -125,65 +57,22 @@ const sortBySortOrder = <T extends { sortOrder?: number }>(items: T[]) => {
   );
 };
 
-const hasText = (value: unknown) => {
-  const text = String(value ?? "").trim();
-  return text !== "" && text.toLowerCase() !== "null";
-};
-
-const normalizeApiList = (res: any) => {
-  if (Array.isArray(res?.data)) return res.data;
-  if (Array.isArray(res?.data?.data)) return res.data.data;
-  return [];
-};
-
-const getApiResponseMessage = (res: any) => {
-  return [
-    res?.message,
-    typeof res?.error === "string" ? res.error : "",
-    res?.error?.message,
-    res?.error?.code,
-    res?.data?.message,
-    typeof res?.data?.error === "string" ? res.data.error : "",
-    res?.data?.error?.message,
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .trim();
-};
-
-const isApiErrorResponse = (res: any) => {
-  return !res || res?.success === false || Boolean(res?.error);
-};
-
-const getApiErrorMessage = (res: any, fallback = "Something went wrong") => {
-  return getApiResponseMessage(res) || fallback;
-};
-
-const isCartBranchConflictResponse = (res: any) => {
-  const message = getApiResponseMessage(res).toLowerCase();
-
-  return (
-    message.includes("cart already contains items from another branch") ||
-    message.includes("clear it before switching branches")
-  );
-};
-
-const normalizeArray = (value: any): any[] => {
+const normalizeArray = <T = unknown,>(value: unknown): T[] => {
   if (!value) return [];
-  return Array.isArray(value) ? value : [];
+  return Array.isArray(value) ? (value as T[]) : [];
 };
 
 /* ================= PROMOTION HELPERS ================= */
 
 const formatMoney = (value: unknown) => {
-  return `$${toNumber(value, 0).toFixed(2)}`;
+  return `$${formatPrice(value)}`;
 };
 
-const isPromotionObject = (value: any): value is PromotionInfo => {
+const isPromotionObject = (value: unknown): value is PromotionInfo => {
   return Boolean(value && typeof value === "object");
 };
 
-const getPromotionInfo = (source: any): PromotionInfo | null => {
+const getPromotionInfo = (source: MenuItem | MenuVariation | ApiRecord | null | undefined): PromotionInfo | null => {
   return isPromotionObject(source?.promotion) ? source.promotion : null;
 };
 
@@ -214,7 +103,7 @@ const getPromotionTitle = (promotion?: PromotionInfo | null) => {
 };
 
 const getBackendDiscountedPriceCandidate = (
-  source: any,
+  source: MenuItem | MenuVariation | ApiRecord | null | undefined,
   promotion?: PromotionInfo | null,
 ) => {
   const candidates = [
@@ -269,7 +158,7 @@ const getPromotionPricing = ({
   source,
   originalPrice,
 }: {
-  source: any;
+  source: MenuItem | MenuVariation | ApiRecord | null | undefined;
   originalPrice: number;
 }): PromotionPricing => {
   const safeOriginalPrice = Math.max(0, toNumber(originalPrice, 0));
@@ -319,7 +208,7 @@ const getPromotionPricing = ({
   };
 };
 
-const getPromotionSourceForPrice = (menuItem: any, variation?: any | null) => {
+const getPromotionSourceForPrice = (menuItem: MenuItem | null, variation?: MenuVariation | null) => {
   if (getPromotionInfo(variation)) return variation;
   if (getPromotionInfo(menuItem)) return menuItem;
   return variation || menuItem;
@@ -374,7 +263,7 @@ function PromotionPrice({
 
 /* ================= PRODUCT INFO HELPERS ================= */
 
-const titleizeConstant = (value: any) => {
+const titleizeConstant = (value: unknown) => {
   return String(value || "")
     .trim()
     .replace(/_/g, " ")
@@ -382,22 +271,22 @@ const titleizeConstant = (value: any) => {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 };
 
-const getTenantSettings = (item: any) => {
+const getTenantSettings = (item: MenuItem | null) => {
   return (
-    item?.restaurant?.tenant?.settings ||
-    item?.tenant?.settings ||
+    (item?.restaurant?.tenant as ApiRecord | undefined)?.settings ||
+    (item?.tenant as ApiRecord | undefined)?.settings ||
     item?.restaurant?.settings ||
     {}
   );
 };
 
-const getProductLabelMap = (item: any) => {
-  const settings = getTenantSettings(item);
-  const labels = normalizeArray(settings?.productLabels);
+const getProductLabelMap = (item: MenuItem | null) => {
+  const settings = getTenantSettings(item) as ApiRecord;
+  const labels = normalizeArray<ApiRecord>(settings?.productLabels);
 
   const map = new Map<string, string>();
 
-  labels.forEach((entry: any) => {
+  labels.forEach((entry: ApiRecord) => {
     const value = String(entry?.value || entry?.code || "").trim();
     const label = String(entry?.label || entry?.name || "").trim();
 
@@ -409,7 +298,7 @@ const getProductLabelMap = (item: any) => {
   return map;
 };
 
-const getProductLabels = (item: any) => {
+const getProductLabels = (item: MenuItem | null) => {
   const labelMap = getProductLabelMap(item);
 
   const rawLabels = [
@@ -433,20 +322,18 @@ const getProductLabels = (item: any) => {
     }));
 };
 
-const getAllergenTemplateMap = (item: any) => {
-  const settings = getTenantSettings(item);
+const getAllergenTemplateMap = (item: MenuItem | null) => {
+  const settings = getTenantSettings(item) as ApiRecord;
 
-  const templates =
-    settings?.customerApp?.allergenAdditiveTemplates ||
-    settings?.allergenAdditiveTemplates ||
-    {};
+  const customerApp = typeof settings.customerApp === "object" && settings.customerApp !== null ? settings.customerApp as ApiRecord : {};
+  const templates = (customerApp.allergenAdditiveTemplates || settings.allergenAdditiveTemplates || {}) as ApiRecord;
 
-  const allergens = normalizeArray(templates?.allergens);
-  const additives = normalizeArray(templates?.additives);
+  const allergens = normalizeArray<ApiRecord>(templates?.allergens);
+  const additives = normalizeArray<ApiRecord>(templates?.additives);
 
   const map = new Map<string, string>();
 
-  [...allergens, ...additives].forEach((entry: any) => {
+  [...allergens, ...additives].forEach((entry: ApiRecord) => {
     const code = String(entry?.code || entry?.value || "").trim();
     const label = String(entry?.label || entry?.name || "").trim();
 
@@ -458,12 +345,12 @@ const getAllergenTemplateMap = (item: any) => {
   return map;
 };
 
-const getAllergenAdditives = (item: any) => {
+const getAllergenAdditives = (item: MenuItem | null) => {
   const templateMap = getAllergenTemplateMap(item);
   const seen = new Set<string>();
 
-  const directEntries = normalizeArray(item?.allergenAdditives)
-    .map((entry: any) => {
+  const directEntries = normalizeArray<ApiRecord>(item?.allergenAdditives)
+    .map((entry: ApiRecord) => {
       const code = String(entry?.code || entry?.value || "").trim();
       const directLabel = String(entry?.label || entry?.name || "").trim();
       const mappedLabel = code ? templateMap.get(code) : "";
@@ -504,7 +391,7 @@ const getAllergenAdditives = (item: any) => {
     });
 };
 
-const hasProductInfoContent = (item: any) => {
+const hasProductInfoContent = (item: MenuItem | null) => {
   return Boolean(
     hasText(item?.ingredients) ||
     hasText(item?.nutritionalInformation) ||
@@ -514,7 +401,7 @@ const hasProductInfoContent = (item: any) => {
   );
 };
 
-function ProductInfoContent({ item }: { item: any }) {
+function ProductInfoContent({ item }: { item: MenuItem | null }) {
   const productLabels = getProductLabels(item);
   const allergenAdditives = getAllergenAdditives(item);
 
@@ -589,7 +476,7 @@ function ProductInfoContent({ item }: { item: any }) {
             Ingredients
           </h3>
           <p className="text-sm leading-relaxed text-gray-600">
-            {item.ingredients}
+            {String(item?.ingredients ?? "")}
           </p>
         </div>
       ) : null}
@@ -600,14 +487,14 @@ function ProductInfoContent({ item }: { item: any }) {
             Nutritional Information
           </h3>
           <p className="text-sm leading-relaxed text-gray-600">
-            {item.nutritionalInformation}
+            {String(item?.nutritionalInformation ?? "")}
           </p>
         </div>
       ) : null}
 
       {hasAllergenPdf ? (
         <a
-          href={String(item.allergenPdfUrl)}
+          href={String(item?.allergenPdfUrl)}
           download
           target="_blank"
           rel="noreferrer"
@@ -621,7 +508,7 @@ function ProductInfoContent({ item }: { item: any }) {
   );
 }
 
-export default function RestaurantCard({ item }: any) {
+export default function RestaurantCard({ item }: { item: MenuItem }) {
   const router = useRouter();
   const { token } = useAuthContext();
   const { post, get, del } = useCustomer(token);
@@ -640,7 +527,7 @@ export default function RestaurantCard({ item }: any) {
     useState<SelectedModifiersMap>({});
 
   const [splitPizzaEnabled, setSplitPizzaEnabled] = useState(false);
-  const [splitPizzaItem, setSplitPizzaItem] = useState<any>(null);
+  const [splitPizzaItem, setSplitPizzaItem] = useState<MenuItem | null>(null);
 
   const [animateCart, setAnimateCart] = useState(false);
 
@@ -649,13 +536,12 @@ export default function RestaurantCard({ item }: any) {
   const restaurantId =
     item?.restaurantId ||
     item?.restaurant?.id ||
-    (user as any)?.restaurantId ||
-    (user as any)?.profile?.restaurantId ||
+    user?.restaurantId ||
     "";
 
   const itemSupportsSplitPizza = Boolean(item?.supportsSplitPizza);
 
-  const getItemVariations = (menuItem: any): MenuVariation[] => {
+  const getItemVariations = (menuItem: MenuItem | null): MenuVariation[] => {
     const rawVariations = [
       ...(Array.isArray(menuItem?.variations) ? menuItem.variations : []),
       ...(Array.isArray(menuItem?.category?.variations)
@@ -667,27 +553,25 @@ export default function RestaurantCard({ item }: any) {
 
     for (const raw of rawVariations) {
       if (!raw?.id) continue;
-      if (raw?.isActive === false) continue;
+      if ((raw as { isActive?: boolean }).isActive === false) continue;
 
       const id = String(raw.id);
 
       const normalized: MenuVariation = {
         id,
-        categoryId: raw?.categoryId,
+        categoryId: typeof raw?.categoryId === "string" ? raw.categoryId : undefined,
         name: String(raw?.name || ""),
-        description: raw?.description || "",
-        price: raw?.price ?? raw?.itemPriceOverrides?.[0]?.price ?? 0,
+        description: typeof raw?.description === "string" ? raw.description : "",
+        price: typeof raw?.price === "string" || typeof raw?.price === "number" ? raw.price : raw?.itemPriceOverrides?.[0]?.price ?? 0,
         displayText:
-          raw?.displayText ?? raw?.itemPriceOverrides?.[0]?.displayText ?? null,
+          typeof raw?.displayText === "string" ? raw.displayText : raw?.itemPriceOverrides?.[0]?.displayText ?? null,
         discountedPrice:
           raw?.discountedPrice ?? raw?.promotion?.discountedAmount ?? null,
         promotion: getPromotionInfo(raw),
         sortOrder: toNumber(raw?.sortOrder, 0),
         isDefault: Boolean(raw?.isDefault),
         isActive: raw?.isActive !== false,
-        modifierPriceOverrides: Array.isArray(raw?.modifierPriceOverrides)
-          ? raw.modifierPriceOverrides
-          : [],
+        modifierPriceOverrides: normalizeArray<VariationPriceOverride>(raw?.modifierPriceOverrides),
       };
 
       if (!deduped.has(id)) {
@@ -698,40 +582,34 @@ export default function RestaurantCard({ item }: any) {
     return sortBySortOrder(Array.from(deduped.values()));
   };
 
-  const getNormalizedModifiersFromGroup = (group: any): Modifier[] => {
-    const directModifiers = Array.isArray(group?.modifiers)
-      ? group.modifiers
-      : [];
+  const getNormalizedModifiersFromGroup = (group: ModifierGroup | ApiRecord | null | undefined): Modifier[] => {
+    const directModifiers = normalizeArray<Modifier>(group?.modifiers);
 
-    const fromModifierLinks = Array.isArray(group?.modifierLinks)
-      ? group.modifierLinks.map((link: any) => link?.modifier).filter(Boolean)
-      : [];
+    const fromModifierLinks = normalizeArray<RawModifierLink>(group?.modifierLinks)
+      .map((link) => link?.modifier)
+      .filter((modifier): modifier is Modifier => Boolean(modifier));
 
     const rawModifiers = [...directModifiers, ...fromModifierLinks];
     const deduped = new Map<string, Modifier>();
 
     for (const raw of rawModifiers) {
       if (!raw?.id) continue;
-      if (raw?.isActive === false) continue;
+      if ((raw as { isActive?: boolean }).isActive === false) continue;
 
       const id = String(raw.id);
 
       const normalized: Modifier = {
         id,
-        modifierGroupId: raw?.modifierGroupId,
-        restaurantId: raw?.restaurantId,
+        modifierGroupId: typeof raw?.modifierGroupId === "string" ? raw.modifierGroupId : undefined,
+        restaurantId: typeof raw?.restaurantId === "string" ? raw.restaurantId : undefined,
         name: String(raw?.name || ""),
-        displayText: raw?.displayText ?? raw?.label ?? null,
-        description: raw?.description || "",
-        priceDelta: raw?.priceDelta ?? 0,
+        displayText: typeof raw?.displayText === "string" ? raw.displayText : typeof (raw as ApiRecord).label === "string" ? (raw as ApiRecord).label as string : null,
+        description: typeof raw?.description === "string" ? raw.description : "",
+        priceDelta: typeof raw?.priceDelta === "string" || typeof raw?.priceDelta === "number" ? raw.priceDelta : 0,
         sortOrder: toNumber(raw?.sortOrder, 0),
         isActive: raw?.isActive !== false,
-        itemPriceOverrides: Array.isArray(raw?.itemPriceOverrides)
-          ? raw.itemPriceOverrides
-          : [],
-        variationPriceOverrides: Array.isArray(raw?.variationPriceOverrides)
-          ? raw.variationPriceOverrides
-          : [],
+        itemPriceOverrides: normalizeArray<ItemPriceOverride>(raw?.itemPriceOverrides),
+        variationPriceOverrides: normalizeArray<VariationPriceOverride>(raw?.variationPriceOverrides),
       };
 
       if (!deduped.has(id)) {
@@ -742,16 +620,16 @@ export default function RestaurantCard({ item }: any) {
     return sortBySortOrder(Array.from(deduped.values()));
   };
 
-  const normalizeGroup = (group: any): ModifierGroup | null => {
+  const normalizeGroup = (group: ModifierGroup | ApiRecord | null | undefined): ModifierGroup | null => {
     if (!group?.id) return null;
     if (group?.isActive === false) return null;
 
     return {
       id: String(group.id),
       name: String(group?.name || ""),
-      description: group?.description || "",
-      minSelect: group?.minSelect,
-      maxSelect: group?.maxSelect,
+      description: typeof group?.description === "string" ? group.description : "",
+      minSelect: typeof group?.minSelect === "number" ? group.minSelect : undefined,
+      maxSelect: typeof group?.maxSelect === "number" ? group.maxSelect : undefined,
       isRequired: Boolean(group?.isRequired),
       sortOrder: toNumber(group?.sortOrder, 0),
       isActive: group?.isActive !== false,
@@ -762,31 +640,27 @@ export default function RestaurantCard({ item }: any) {
     };
   };
 
-  const normalizeStandaloneModifier = (raw: any): Modifier | null => {
+  const normalizeStandaloneModifier = (raw: Modifier | ApiRecord | null | undefined): Modifier | null => {
     if (!raw?.id) return null;
     if (raw?.isActive === false) return null;
 
     return {
       id: String(raw.id),
-      modifierGroupId: raw?.modifierGroupId,
-      restaurantId: raw?.restaurantId,
+      modifierGroupId: typeof raw?.modifierGroupId === "string" ? raw.modifierGroupId : undefined,
+      restaurantId: typeof raw?.restaurantId === "string" ? raw.restaurantId : undefined,
       name: String(raw?.name || ""),
-      displayText: raw?.displayText ?? raw?.label ?? null,
-      description: raw?.description || "",
-      priceDelta: raw?.priceDelta ?? 0,
+      displayText: typeof raw?.displayText === "string" ? raw.displayText : typeof (raw as ApiRecord).label === "string" ? (raw as ApiRecord).label as string : null,
+      description: typeof raw?.description === "string" ? raw.description : "",
+      priceDelta: typeof raw?.priceDelta === "string" || typeof raw?.priceDelta === "number" ? raw.priceDelta : 0,
       sortOrder: toNumber(raw?.sortOrder, 0),
       isActive: raw?.isActive !== false,
-      itemPriceOverrides: Array.isArray(raw?.itemPriceOverrides)
-        ? raw.itemPriceOverrides
-        : [],
-      variationPriceOverrides: Array.isArray(raw?.variationPriceOverrides)
-        ? raw.variationPriceOverrides
-        : [],
+      itemPriceOverrides: normalizeArray<ItemPriceOverride>(raw?.itemPriceOverrides),
+      variationPriceOverrides: normalizeArray<VariationPriceOverride>(raw?.variationPriceOverrides),
     };
   };
 
   const getStandaloneItemModifiers = (
-    menuItem: any,
+    menuItem: MenuItem | null,
     linkedModifierIds: Set<string>,
   ): Modifier[] => {
     const deduped = new Map<string, Modifier>();
@@ -826,16 +700,17 @@ export default function RestaurantCard({ item }: any) {
     };
 
     if (Array.isArray(menuItem?.modifiers)) {
-      menuItem.modifiers.forEach((modifier: any) => {
+      menuItem.modifiers.forEach((modifier: Modifier) => {
         addModifier(normalizeStandaloneModifier(modifier));
       });
     }
 
     if (Array.isArray(menuItem?.modifierPriceOverrides)) {
-      menuItem.modifierPriceOverrides.forEach((override: any) => {
-        const rawModifier = override?.modifier || {
-          id: override?.modifierId,
-          name: override?.name || "Modifier",
+      menuItem.modifierPriceOverrides.forEach((override: VariationPriceOverride) => {
+        const overrideRecord = override as ApiRecord;
+        const rawModifier: Modifier = override?.modifier || {
+          id: String(override?.modifierId ?? ""),
+          name: String(overrideRecord.name ?? "Modifier"),
           priceDelta: override?.priceDelta ?? 0,
         };
 
@@ -867,7 +742,7 @@ export default function RestaurantCard({ item }: any) {
     return sortBySortOrder(Array.from(deduped.values()));
   };
 
-  const getItemModifierLinks = (menuItem: any): ModifierLink[] => {
+  const getItemModifierLinks = (menuItem: MenuItem | null): ModifierLink[] => {
     const rawItemLinks = Array.isArray(menuItem?.modifierLinks)
       ? menuItem.modifierLinks
       : [];
@@ -890,7 +765,7 @@ export default function RestaurantCard({ item }: any) {
       ...rawModifierGroups,
       ...rawCategoryModifierGroups,
     ]
-      .map((group: any, index: number) => {
+      .map((group: ModifierGroup | ApiRecord, index: number) => {
         const normalizedGroup = normalizeGroup(group);
         if (!normalizedGroup) return null;
 
@@ -906,8 +781,8 @@ export default function RestaurantCard({ item }: any) {
     const combinedRawLinks = [...rawItemLinks, ...rawCategoryLinks];
 
     const normalizedDirectLinks: ModifierLink[] = combinedRawLinks
-      .map((link: any, index: number) => {
-        const normalizedGroup = normalizeGroup(link?.modifierGroup);
+      .map((link: ModifierLink | ApiRecord, index: number) => {
+        const normalizedGroup = normalizeGroup((link as ModifierLink | ApiRecord).modifierGroup as ModifierGroup | ApiRecord | undefined);
         if (!normalizedGroup) return null;
 
         return {
@@ -977,7 +852,7 @@ export default function RestaurantCard({ item }: any) {
     return sortBySortOrder(Array.from(deduped.values()));
   };
 
-  const getDefaultVariation = (menuItem: any) => {
+  const getDefaultVariation = (menuItem: MenuItem | null) => {
     const variations = getItemVariations(menuItem);
     if (!variations.length) return null;
 
@@ -1003,7 +878,7 @@ export default function RestaurantCard({ item }: any) {
   };
 
   const getVisibleModifierLinks = (
-    menuItem: any,
+    menuItem: MenuItem | null,
     variation?: MenuVariation | null,
   ) => {
     const links = getItemModifierLinks(menuItem);
@@ -1026,7 +901,7 @@ export default function RestaurantCard({ item }: any) {
     });
   };
 
-  const getOverridePrice = (override?: any | null) => {
+  const getOverridePrice = (override?: VariationPriceOverride | ItemPriceOverride | ApiRecord | null) => {
     if (!override) return null;
 
     if (override?.priceDelta !== undefined && override.priceDelta !== null) {
@@ -1057,7 +932,7 @@ export default function RestaurantCard({ item }: any) {
         ...(Array.isArray(modifier?.variationPriceOverrides)
           ? modifier.variationPriceOverrides
           : []),
-      ].filter((override: any) => {
+      ].filter((override: VariationPriceOverride | ItemPriceOverride | ApiRecord) => {
         const overrideModifierId = String(override?.modifierId || "");
         const overrideVariationId = String(override?.variationId || "");
 
@@ -1067,14 +942,14 @@ export default function RestaurantCard({ item }: any) {
         );
       });
 
-      const itemSpecificOverride = variationOverrides.find((override: any) => {
+      const itemSpecificOverride = variationOverrides.find((override: VariationPriceOverride | ItemPriceOverride | ApiRecord) => {
         return String(override?.menuItemId || "") === normalizedMenuItemId;
       });
 
       const itemSpecificPrice = getOverridePrice(itemSpecificOverride);
       if (itemSpecificPrice !== null) return itemSpecificPrice;
 
-      const genericOverride = variationOverrides.find((override: any) => {
+      const genericOverride = variationOverrides.find((override: VariationPriceOverride | ItemPriceOverride | ApiRecord) => {
         return (
           override?.menuItemId === null ||
           override?.menuItemId === undefined ||
@@ -1129,7 +1004,7 @@ export default function RestaurantCard({ item }: any) {
     };
   }, [item]);
 
-  const selectedAddons = selectedModifiers[ADDONS_GROUP_ID] || [];
+  const selectedAddons: SelectedModifier[] = selectedModifiers[ADDONS_GROUP_ID] || [];
 
   const addonSelectionLabel = useMemo(() => {
     const { minSelect, maxSelect } = addonSelectionRules;
@@ -1170,42 +1045,51 @@ export default function RestaurantCard({ item }: any) {
     itemSupportsSplitPizza;
 
   useEffect(() => {
-    setSelectedVariation(getDefaultVariation(item));
-    setQty(Math.max(1, toNumber(item?.minQuantity, 1)));
-  }, [item]);
+    queueMicrotask(() => {
+      setSelectedVariation(getDefaultVariation(item));
+      setQty(Math.max(1, toNumber(item?.minQuantity, 1)));
+    });
+  }, [getDefaultVariation, item]);
 
   useEffect(() => {
     if (itemSupportsSplitPizza) return;
 
-    setSplitPizzaEnabled(false);
-    setSplitPizzaItem(null);
+    queueMicrotask(() => {
+      setSplitPizzaEnabled(false);
+      setSplitPizzaItem(null);
+    });
   }, [itemSupportsSplitPizza]);
 
   useEffect(() => {
     if (!open) {
-      setQty(Math.max(1, toNumber(item?.minQuantity, 1)));
-      setNote("");
-      setSelectedModifiers({});
-      setSelectedVariation(getDefaultVariation(item));
-      setSplitPizzaEnabled(false);
-      setSplitPizzaItem(null);
+      queueMicrotask(() => {
+        setQty(Math.max(1, toNumber(item?.minQuantity, 1)));
+        setNote("");
+        setSelectedModifiers({});
+        setSelectedVariation(getDefaultVariation(item));
+        setSplitPizzaEnabled(false);
+        setSplitPizzaItem(null);
+      });
     }
-  }, [open, item]);
+  }, [getDefaultVariation, open, item]);
 
   useEffect(() => {
-    setQty((prev) => {
+    queueMicrotask(() => {
+      setQty((prev) => {
       const minQuantity = itemQuantityRules.minQuantity;
       const maxQuantity = itemQuantityRules.maxQuantity;
       const nextQuantity = Math.max(minQuantity, prev);
 
-      return maxQuantity ? Math.min(maxQuantity, nextQuantity) : nextQuantity;
+        return maxQuantity ? Math.min(maxQuantity, nextQuantity) : nextQuantity;
+      });
     });
   }, [itemQuantityRules]);
 
   useEffect(() => {
     const validAddonIds = new Set(itemAddons.map((addon) => String(addon.id)));
 
-    setSelectedModifiers((prev): SelectedModifiersMap => {
+    queueMicrotask(() => {
+      setSelectedModifiers((prev): SelectedModifiersMap => {
       const existingAddons = prev[ADDONS_GROUP_ID] || [];
       const nextAddons = existingAddons.filter((addon) =>
         validAddonIds.has(String(addon.id)),
@@ -1217,7 +1101,8 @@ export default function RestaurantCard({ item }: any) {
         next[ADDONS_GROUP_ID] = nextAddons;
       }
 
-      return next;
+        return next;
+      });
     });
   }, [itemAddons]);
 
@@ -1287,7 +1172,7 @@ export default function RestaurantCard({ item }: any) {
   const buildModifiersPayload = (selectionMap: SelectedModifiersMap) => {
     return Object.values(selectionMap)
       .flat()
-      .map((modifier) => ({
+      .map((modifier: SelectedModifier) => ({
         modifierId: modifier.id,
         quantity: 1,
       }));
@@ -1300,9 +1185,9 @@ export default function RestaurantCard({ item }: any) {
   ) => {
     return Object.values(selectionMap)
       .flat()
-      .reduce((acc, modifier) => {
+      .reduce((acc: number, modifier: SelectedModifier) => {
         const modifierPrice = getModifierEffectivePrice(
-          modifier,
+          modifier as Modifier,
           menuItemId,
           variation,
         );
@@ -1311,7 +1196,7 @@ export default function RestaurantCard({ item }: any) {
       }, 0);
   };
 
-  const getMenuItemBasePrice = (menuItem: any) => {
+  const getMenuItemBasePrice = (menuItem: MenuItem | null) => {
     return toNumber(
       menuItem?.basePrice ?? menuItem?.unitPrice ?? menuItem?.price,
       0,
@@ -1319,7 +1204,7 @@ export default function RestaurantCard({ item }: any) {
   };
 
   const getMenuItemResolvedPrice = (
-    menuItem: any,
+    menuItem: MenuItem | null,
     variation?: MenuVariation | null,
   ) => {
     if (!menuItem) return 0;
@@ -1351,11 +1236,11 @@ export default function RestaurantCard({ item }: any) {
     originalPrice: splitPizzaResolvedItemPrice,
   });
 
-  const modifiersTotal = getModifiersTotal(
+  const modifiersTotal = Number(getModifiersTotal(
     selectedModifiers,
-    item?.id,
+    item?.id ? String(item.id) : undefined,
     selectedVariation,
-  );
+  ));
 
   const splitPizzaBasePrice =
     splitPizzaEnabled && splitPizzaItem
@@ -1400,15 +1285,15 @@ export default function RestaurantCard({ item }: any) {
       queryParams.set("search", resolvedSearch);
     }
 
-    const res: any = await get(`/v1/menu/items?${queryParams.toString()}`);
+    const res = await get(`/v1/menu/items?${queryParams.toString()}`);
 
-    const data = normalizeApiList(res).filter((menuItem: any) => {
+    const data = normalizeApiArray<MenuItem>(res).filter((menuItem) => {
       return Boolean(menuItem?.id);
     });
 
     return {
       data,
-      meta: res?.data?.meta || res?.meta,
+      meta: normalizeApiArray<ApiRecord>([]).length ? {} : (typeof res?.data === "object" && res.data !== null && !Array.isArray(res.data) ? (res.data as ApiRecord).meta : undefined) || res?.meta,
     };
   };
 
@@ -1422,7 +1307,7 @@ export default function RestaurantCard({ item }: any) {
     }
   };
 
-  const handleSplitPizzaItemChange = (selectedItem: any) => {
+  const handleSplitPizzaItemChange = (selectedItem: MenuItem | null) => {
     setSplitPizzaItem(selectedItem || null);
   };
 
@@ -1464,7 +1349,7 @@ export default function RestaurantCard({ item }: any) {
 
             const effectivePrice = getModifierEffectivePrice(
               modifier,
-              item?.id,
+              item?.id ? String(item.id) : undefined,
               selectedVariation,
             );
 
@@ -1514,7 +1399,7 @@ export default function RestaurantCard({ item }: any) {
     );
   };
 
-  const addCartItemWithBranchRetry = async (payload: any) => {
+  const addCartItemWithBranchRetry = async (payload: CartPayload) => {
     if (!customerId) {
       return {
         success: false,
@@ -1602,10 +1487,10 @@ export default function RestaurantCard({ item }: any) {
             ]
           : undefined;
 
-      const basePayload: any = {
+      const basePayload: CartPayload = {
         menuItemId: item?.id,
         quantity: qty,
-        variationId: selectedVariation?.id || null,
+        variationId: selectedVariation?.id || undefined,
         modifiers: buildModifiersPayload(selectedModifiers),
         note: note.trim() || "",
       };
@@ -1614,19 +1499,15 @@ export default function RestaurantCard({ item }: any) {
         basePayload.sections = splitSections;
       }
 
-      let res: any;
+      let res: ApiRecord | null = null;
 
       if (groupCode) {
-        const groupOrdersRes: any = await get("/v1/group-orders");
+        const groupOrdersRes = await get("/v1/group-orders");
 
-        const groupOrders = Array.isArray(groupOrdersRes?.data)
-          ? groupOrdersRes.data
-          : Array.isArray(groupOrdersRes?.data?.data)
-            ? groupOrdersRes.data.data
-            : [];
+        const groupOrders = normalizeApiArray<ApiRecord>(groupOrdersRes);
 
         const groupOrder = groupOrders.find(
-          (order: any) => order?.inviteCode === groupCode,
+          (order: ApiRecord) => order?.inviteCode === groupCode,
         );
 
         if (!groupOrder) {

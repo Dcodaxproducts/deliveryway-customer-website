@@ -6,220 +6,23 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import useCustomer from "@/hooks/useCustomer";
 import { useAuth } from "@/hooks/useAuth";
+import type { AuthRestaurantUser, ItemsCategory, StoredAuthState } from "@/components/pages/Items/types";
+import { getImageUrl, getOperatingHours, getRatingInfo, getRestaurantAddress, getRestaurantName, hasText, normalizeApiArray, normalizeApiMeta, resolveHasNext } from "@/components/pages/Items/utils/restaurant-card-utils";
 
 const CATEGORY_PAGE_LIMIT = 50;
-const FALLBACK_BANNER = "/categories/background_banner.png";
 
-const normalizeApiArray = (res: any) => {
-  if (Array.isArray(res?.data)) return res.data;
-  if (Array.isArray(res?.data?.data)) return res.data.data;
-  if (Array.isArray(res?.data?.items)) return res.data.items;
-  if (Array.isArray(res?.items)) return res.items;
-  return [];
-};
-
-const normalizeApiMeta = (res: any) => {
-  return (
-    res?.data?.pagination ||
-    res?.data?.meta ||
-    res?.data?.data?.pagination ||
-    res?.data?.data?.meta ||
-    res?.pagination ||
-    res?.meta ||
-    {}
-  );
-};
-
-const hasNextPage = ({
-  meta,
-  page,
-  limit,
-  receivedCount,
-  totalLoaded,
-}: {
-  meta: any;
-  page: number;
-  limit: number;
-  receivedCount: number;
-  totalLoaded: number;
-}) => {
-  if (typeof meta?.hasNext === "boolean") return meta.hasNext;
-  if (typeof meta?.hasMore === "boolean") return meta.hasMore;
-
-  const currentPage = Number(meta?.page ?? page);
-  const totalPages = Number(meta?.totalPages ?? meta?.pages ?? 0);
-  const total = Number(meta?.total ?? 0);
-
-  if (totalPages > 0) return currentPage < totalPages;
-  if (total > 0) return totalLoaded < total;
-
-  return receivedCount >= limit;
-};
-
-const getStoredAuth = () => {
+const getStoredAuth = (): StoredAuthState | null => {
   if (typeof window === "undefined") return null;
 
   try {
     const stored = browserStorage.getItem("auth");
-    return stored ? JSON.parse(stored) : null;
+    return stored ? (JSON.parse(stored) as StoredAuthState) : null;
   } catch {
     return null;
   }
 };
 
-const hasText = (value: any) => {
-  const text = String(value ?? "").trim();
-  return text !== "" && text.toLowerCase() !== "null";
-};
-
-const getImageUrl = (category: any, restaurant: any) => {
-  const candidates = [
-    category?.imageUrl,
-    category?.coverImage,
-    category?.bannerUrl,
-    restaurant?.coverImage,
-    restaurant?.coverImageUrl,
-    restaurant?.bannerUrl,
-    restaurant?.imageUrl,
-  ];
-
-  return candidates.find((value) => hasText(value)) || FALLBACK_BANNER;
-};
-
-const formatAddress = (value: any) => {
-  if (!value) return "";
-
-  if (typeof value === "string") {
-    return value.trim();
-  }
-
-  if (typeof value === "object") {
-    return [
-      value.street,
-      value.area,
-      value.city,
-      value.state,
-      value.country,
-    ]
-      .filter(hasText)
-      .join(", ");
-  }
-
-  return "";
-};
-
-const getRestaurantName = (authUser: any, storedAuth: any) => {
-  const candidates = [
-    authUser?.restaurant?.name,
-    authUser?.restaurantName,
-    authUser?.profile?.restaurantName,
-    authUser?.tenant?.restaurant?.name,
-    storedAuth?.user?.restaurant?.name,
-    storedAuth?.user?.restaurantName,
-    storedAuth?.user?.profile?.restaurantName,
-  ];
-
-  return candidates.find(hasText) || "Restaurant";
-};
-
-const getRestaurantAddress = (authUser: any, storedAuth: any) => {
-  const candidates = [
-    authUser?.restaurant?.address,
-    authUser?.branch?.address,
-    authUser?.address,
-    authUser?.profile?.address,
-    storedAuth?.user?.restaurant?.address,
-    storedAuth?.user?.branch?.address,
-    storedAuth?.user?.address,
-    storedAuth?.user?.profile?.address,
-  ];
-
-  for (const candidate of candidates) {
-    const address = formatAddress(candidate);
-    if (hasText(address)) return address;
-  }
-
-  return "Address not available";
-};
-
-const getOperatingHours = (authUser: any, storedAuth: any) => {
-  const restaurant =
-    authUser?.restaurant ||
-    authUser?.profile?.restaurant ||
-    storedAuth?.user?.restaurant ||
-    storedAuth?.user?.profile?.restaurant ||
-    {};
-
-  const branch =
-    authUser?.branch ||
-    authUser?.profile?.branch ||
-    storedAuth?.user?.branch ||
-    storedAuth?.user?.profile?.branch ||
-    {};
-
-  const directCandidates = [
-    restaurant?.operatingHours,
-    restaurant?.openingHours,
-    restaurant?.businessHours,
-    branch?.operatingHours,
-    branch?.openingHours,
-    branch?.businessHours,
-  ];
-
-  const direct = directCandidates.find(hasText);
-
-  if (direct) return String(direct);
-
-  const openingTime =
-    restaurant?.openingTime ||
-    restaurant?.opensAt ||
-    branch?.openingTime ||
-    branch?.opensAt;
-
-  const closingTime =
-    restaurant?.closingTime ||
-    restaurant?.closesAt ||
-    branch?.closingTime ||
-    branch?.closesAt;
-
-  if (hasText(openingTime) && hasText(closingTime)) {
-    return `${openingTime} - ${closingTime}`;
-  }
-
-  return "Operating hours not specified";
-};
-
-const getRatingInfo = (authUser: any, storedAuth: any) => {
-  const restaurant =
-    authUser?.restaurant ||
-    authUser?.profile?.restaurant ||
-    storedAuth?.user?.restaurant ||
-    storedAuth?.user?.profile?.restaurant ||
-    {};
-
-  const rating = Number(
-    restaurant?.rating ??
-      restaurant?.averageRating ??
-      restaurant?.stats?.averageRating
-  );
-
-  const reviews = Number(
-    restaurant?.reviewCount ??
-      restaurant?.reviewsCount ??
-      restaurant?.stats?.reviewCount
-  );
-
-  if (!Number.isFinite(rating) || rating <= 0) {
-    return null;
-  }
-
-  return {
-    rating,
-    reviews: Number.isFinite(reviews) && reviews > 0 ? reviews : null,
-  };
-};
-
-const getCategoryItemCount = (category: any) => {
+const getCategoryItemCount = (category: ItemsCategory) => {
   const count = Number(
     category?._count?.items ??
       category?.itemsCount ??
@@ -238,11 +41,11 @@ export default function RestaurantHeader() {
   const { token, restaurantId: authRestaurantId, user } = useAuth();
   const { get } = useCustomer(token);
 
-  const [category, setCategory] = useState<any>(null);
-  const [restaurant, setRestaurant] = useState<any>(null);
+  const [category, setCategory] = useState<ItemsCategory | null>(null);
+  const [restaurant, setRestaurant] = useState<{ name: string; address: string; operatingHours: string; ratingInfo: ReturnType<typeof getRatingInfo>; coverImage?: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const storedAuth = useMemo(() => getStoredAuth(), []);
+  const storedAuth = useMemo<StoredAuthState | null>(() => getStoredAuth(), []);
 
   const restaurantId = useMemo(() => {
     return (
@@ -266,10 +69,10 @@ export default function RestaurantHeader() {
         setLoading(true);
 
         const resolvedRestaurant = {
-          name: getRestaurantName(user, storedAuth),
-          address: getRestaurantAddress(user, storedAuth),
-          operatingHours: getOperatingHours(user, storedAuth),
-          ratingInfo: getRatingInfo(user, storedAuth),
+          name: getRestaurantName(user as AuthRestaurantUser | null, storedAuth),
+          address: getRestaurantAddress(user as AuthRestaurantUser | null, storedAuth),
+          operatingHours: getOperatingHours(user as AuthRestaurantUser | null, storedAuth),
+          ratingInfo: getRatingInfo(user as AuthRestaurantUser | null, storedAuth),
           coverImage:
             storedAuth?.user?.restaurant?.coverImage ||
             storedAuth?.user?.restaurant?.coverImageUrl ||
@@ -279,8 +82,8 @@ export default function RestaurantHeader() {
 
         let page = 1;
         let totalLoaded = 0;
-        let selectedCategory: any = null;
-        let firstCategory: any = null;
+        let selectedCategory: ItemsCategory | null = null;
+        let firstCategory: ItemsCategory | null = null;
         let shouldContinue = true;
 
         while (shouldContinue) {
@@ -292,18 +95,18 @@ export default function RestaurantHeader() {
             sortOrder: "ASC",
           });
 
-          const res: any = await get(`/v1/menu/categories?${params.toString()}`);
-          const fetchedCategories = normalizeApiArray(res);
+          const res = await get(`/v1/menu/categories?${params.toString()}`);
+          const fetchedCategories = normalizeApiArray<ItemsCategory>(res);
           const meta = normalizeApiMeta(res);
 
           if (!firstCategory && fetchedCategories.length > 0) {
-            firstCategory = fetchedCategories[0];
+            firstCategory = fetchedCategories[0] ?? null;
           }
 
           if (categoryId) {
             selectedCategory = fetchedCategories.find(
-              (item: any) => String(item?.id) === String(categoryId)
-            );
+              ({ id }) => String(id) === String(categoryId)
+            ) ?? null;
           }
 
           totalLoaded += fetchedCategories.length;
@@ -311,7 +114,7 @@ export default function RestaurantHeader() {
           if (selectedCategory || !categoryId) {
             shouldContinue = false;
           } else {
-            shouldContinue = hasNextPage({
+            shouldContinue = resolveHasNext({
               meta,
               page,
               limit: CATEGORY_PAGE_LIMIT,
@@ -336,10 +139,10 @@ export default function RestaurantHeader() {
 
         if (!cancelled) {
           setRestaurant({
-            name: getRestaurantName(user, storedAuth),
-            address: getRestaurantAddress(user, storedAuth),
-            operatingHours: getOperatingHours(user, storedAuth),
-            ratingInfo: getRatingInfo(user, storedAuth),
+            name: getRestaurantName(user as AuthRestaurantUser | null, storedAuth),
+            address: getRestaurantAddress(user as AuthRestaurantUser | null, storedAuth),
+            operatingHours: getOperatingHours(user as AuthRestaurantUser | null, storedAuth),
+            ratingInfo: getRatingInfo(user as AuthRestaurantUser | null, storedAuth),
           });
           setCategory(null);
         }
@@ -358,14 +161,14 @@ export default function RestaurantHeader() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoryId, token, restaurantId]);
 
-  const categoryItemCount = getCategoryItemCount(category);
+  const categoryItemCount = category ? getCategoryItemCount(category) : null;
   const ratingInfo = restaurant?.ratingInfo;
   const bannerImage = getImageUrl(category, restaurant);
 
   const title = category?.name ? category.name : "Full Menu";
 
   const description = hasText(category?.description)
-    ? category.description
+    ? String(category?.description)
     : category?.name
     ? "Explore freshly prepared items in this category."
     : "Browse all available categories and menu items from this restaurant.";
