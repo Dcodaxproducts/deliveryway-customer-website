@@ -3,7 +3,8 @@
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { API_BASE_URL } from "@/lib/constants";
+import { getAuthErrorMessage } from "@/lib/auth";
+import { resendResetOtp, resetPassword } from "@/services/auth";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "../ui/input";
 
@@ -53,28 +54,16 @@ const ResetPassword = () => {
     try {
       setIsResending(true);
 
-      const res = await fetch(`${API_BASE_URL}/v1/auth/resend-otp`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          restaurantId,
-        }),
+      await resendResetOtp({
+        email,
+        restaurantId,
       });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data?.message || "Failed to resend OTP");
-      }
 
       toast.success("OTP resent successfully");
 
       setCountdown(60);
-    } catch (error: any) {
-      toast.error(error.message || "Something went wrong");
+    } catch (error) {
+      toast.error(getAuthErrorMessage(error));
     } finally {
       setIsResending(false);
     }
@@ -108,32 +97,20 @@ const ResetPassword = () => {
     try {
       setIsLoading(true);
 
-      const res = await fetch(`${API_BASE_URL}/v1/auth/reset-password`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          otp,
-          newPassword,
-          restaurantId,
-        }),
+      await resetPassword({
+        email,
+        otp,
+        newPassword,
+        restaurantId,
       });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data?.message || "Password reset failed");
-      }
 
       toast.success("Password reset successfully!");
 
       setTimeout(() => {
         router.push("/auth/login");
       }, 1200);
-    } catch (error: any) {
-      toast.error(error.message || "Something went wrong");
+    } catch (error) {
+      toast.error(getAuthErrorMessage(error));
     } finally {
       setIsLoading(false);
     }

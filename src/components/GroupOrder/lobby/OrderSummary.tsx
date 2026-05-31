@@ -70,7 +70,7 @@ const { canCheckout, isHost } = useGroupOrder();
     toast.success("Order placed successfully");
     setCheckoutOpen(false);
 onSuccess(res?.data);
-localStorage.removeItem("groupOrderCode");
+browserStorage.removeItem("groupOrderCode");
   } catch (err) {
     // ❌ this will only catch unexpected runtime errors
     console.error(err);

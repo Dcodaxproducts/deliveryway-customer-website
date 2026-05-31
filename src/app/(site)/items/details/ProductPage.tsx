@@ -2163,7 +2163,7 @@ export default function ProductPage() {
 
       const groupCode =
         typeof window !== "undefined"
-          ? localStorage.getItem("groupOrderCode")
+          ? browserStorage.getItem("groupOrderCode")
           : null;
 
       let res: any;

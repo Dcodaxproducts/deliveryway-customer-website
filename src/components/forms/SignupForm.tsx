@@ -11,7 +11,8 @@ import { FcGoogle } from "react-icons/fc"
 import { FaFacebook } from "react-icons/fa"
 import { roboto } from "@/lib/fonts"
 import { useRouter } from "next/navigation"
-import { API_BASE_URL } from "@/lib/constants"
+import { getAuthErrorMessage } from "@/lib/auth"
+import { signupCustomer, verifySignupOtp } from "@/services/auth"
 
 export default function SignUpForm() {
   const router = useRouter()
@@ -61,28 +62,16 @@ export default function SignUpForm() {
     try {
       setIsLoading(true)
 
-      const res = await fetch(`${API_BASE_URL}/v1/auth/register-customer`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          phone: formData.phone,
-          restaurantId: formData.restaurantId,
-        }),
+      const data = await signupCustomer({
+        email: formData.email,
+        password: formData.password,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phone: formData.phone,
+        restaurantId: formData.restaurantId,
       })
 
-      const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data?.message || "Registration failed")
-      }
-
-      const token = data?.data?.accessToken
+      const token = data.accessToken
 
       if (!token) {
         throw new Error("Access token not received")
@@ -91,7 +80,7 @@ export default function SignUpForm() {
       /* ===== SAVE TOKEN ===== */
 
       setAccessToken(token)
-      localStorage.setItem("signupAccessToken", token)
+      browserStorage.setItem("signupAccessToken", token)
 
       toast.success("Account created! Please verify your email")
 
@@ -99,8 +88,8 @@ export default function SignUpForm() {
 
       setShowOtpField(true)
 
-    } catch (error: any) {
-      toast.error(error.message || "Something went wrong")
+    } catch (error) {
+      toast.error(getAuthErrorMessage(error))
     } finally {
       setIsLoading(false)
     }
@@ -111,7 +100,7 @@ export default function SignUpForm() {
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const token = accessToken || localStorage.getItem("signupAccessToken")
+    const token = accessToken || browserStorage.getItem("signupAccessToken")
 
     if (!otp) {
       toast.error("Please enter OTP")
@@ -126,33 +115,20 @@ export default function SignUpForm() {
     try {
       setIsVerifying(true)
 
-      const res = await fetch(`${API_BASE_URL}/v1/auth/verify-email`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          otp: otp,
-        }),
-      })
-
-      const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data?.message || "OTP verification failed")
-      }
+      await verifySignupOtp({
+        otp: otp,
+      }, token)
 
       toast.success("Email verified successfully!")
 
-      localStorage.removeItem("signupAccessToken")
+      browserStorage.removeItem("signupAccessToken")
 
       setTimeout(() => {
         router.push("/auth/login")
       }, 1200)
 
-    } catch (error: any) {
-      toast.error(error.message || "Verification failed")
+    } catch (error) {
+      toast.error(getAuthErrorMessage(error, "Verification failed"))
     } finally {
       setIsVerifying(false)
     }

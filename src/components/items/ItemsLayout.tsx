@@ -79,7 +79,7 @@ export default function ItemsLayout({ categoryId }: any) {
   const [viewMode, setViewMode] = useState<MenuViewMode>(() => {
     if (typeof window === "undefined") return "multiple";
 
-    const stored = localStorage.getItem("menuViewMode");
+    const stored = browserStorage.getItem("menuViewMode");
 
     return stored === "onePage" || stored === "multiple"
       ? stored
@@ -92,7 +92,7 @@ export default function ItemsLayout({ categoryId }: any) {
     if (typeof window === "undefined") return null;
 
     try {
-      const auth = JSON.parse(localStorage.getItem("auth") || "{}");
+      const auth = JSON.parse(browserStorage.getItem("auth") || "{}");
       return auth?.user?.restaurantId || null;
     } catch {
       return null;
@@ -110,7 +110,7 @@ export default function ItemsLayout({ categoryId }: any) {
   }, [authRestaurantId, user?.restaurantId]);
 
   useEffect(() => {
-    localStorage.setItem("menuViewMode", viewMode);
+    browserStorage.setItem("menuViewMode", viewMode);
   }, [viewMode]);
 
   useEffect(() => {

@@ -6,7 +6,8 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
-import { API_BASE_URL } from "@/lib/constants";
+import { getAuthErrorMessage } from "@/lib/auth";
+import { forgotPassword } from "@/services/auth";
 import { Input } from "@/components/ui/input";
 
 const ForgotPassword = () => {
@@ -25,21 +26,7 @@ const handleForgotPassword = async (e: React.FormEvent) => {
   try {
     setIsLoading(true);
 
-    const res = await fetch(
-      `${API_BASE_URL}/v1/auth/forgot-password`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email , restaurantId}),
-      }
-    );
-const data = await res.json();
-
-if (!res.ok) {
-  throw new Error(data?.message || "Failed to send reset link");
-}
+    await forgotPassword({ email , restaurantId});
 
 // const resetToken = data?.data?.resetToken;
 
@@ -60,8 +47,8 @@ window.location.href = `/auth/reset-password?email=${encodeURIComponent(
   email
 )}&restaurantId=${restaurantId}`;
 
-  } catch (error: any) {
-    toast.error(error.message || "Something went wrong");
+  } catch (error) {
+    toast.error(getAuthErrorMessage(error));
   } finally {
     setIsLoading(false);
   }

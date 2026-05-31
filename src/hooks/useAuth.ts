@@ -1,11 +1,15 @@
 "use client";
 
-import { useAuthContext } from "@/context/AuthContext";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
+import { useAuthContext } from "@/components/providers/auth-provider";
+
+export { useAuthContext } from "@/components/providers/auth-provider";
+
 export const useAuth = () => {
-  const { user, token, loading } = useAuthContext();
+  const auth = useAuthContext();
+  const { user, token, loading } = auth;
   const router = useRouter();
   const pathname = usePathname();
 
@@ -16,17 +20,16 @@ export const useAuth = () => {
     "/reset-password",
   ];
 
-  const isPublicRoute = publicRoutes.some((route) =>
-    pathname.startsWith(route)
-  );
+  const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route));
 
   useEffect(() => {
     if (!loading && !user && !isPublicRoute) {
       router.push("/auth/login");
     }
-  }, [loading, user, pathname]);
+  }, [isPublicRoute, loading, router, user]);
 
   return {
+    ...auth,
     user,
     token,
     restaurantId: user?.restaurantId,

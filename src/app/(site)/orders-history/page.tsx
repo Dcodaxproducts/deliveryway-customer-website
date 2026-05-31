@@ -36,7 +36,7 @@ const {
 
     setReorderingId(order.id);
 
-    const authRaw = localStorage.getItem("auth");
+    const authRaw = browserStorage.getItem("auth");
     const auth = authRaw ? JSON.parse(authRaw) : null;
 
     const customerId = auth?.user?.id;

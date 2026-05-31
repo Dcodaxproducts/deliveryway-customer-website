@@ -78,7 +78,7 @@ export default function ItemsPage() {
     if (typeof window === "undefined") return;
 
     if (codeFromUrl) {
-      localStorage.setItem(GROUP_ORDER_CODE_KEY, codeFromUrl);
+      browserStorage.setItem(GROUP_ORDER_CODE_KEY, codeFromUrl);
     }
   }, [codeFromUrl]);
 
@@ -89,7 +89,7 @@ export default function ItemsPage() {
       const inviteCode =
         codeFromUrl ||
         (typeof window !== "undefined"
-          ? localStorage.getItem(GROUP_ORDER_CODE_KEY)
+          ? browserStorage.getItem(GROUP_ORDER_CODE_KEY)
           : "");
 
       if (!inviteCode) return;
@@ -101,7 +101,7 @@ export default function ItemsPage() {
       try {
         setJoiningGroupOrder(true);
 
-        localStorage.setItem(GROUP_ORDER_CODE_KEY, inviteCode);
+        browserStorage.setItem(GROUP_ORDER_CODE_KEY, inviteCode);
 
         const alreadyIn = await isUserAlreadyInOrder(inviteCode);
 
@@ -109,7 +109,7 @@ export default function ItemsPage() {
           const joined = await handleJoinGroupOrder(inviteCode);
 
           if (!joined) {
-            localStorage.removeItem(GROUP_ORDER_CODE_KEY);
+            browserStorage.removeItem(GROUP_ORDER_CODE_KEY);
             return;
           }
 

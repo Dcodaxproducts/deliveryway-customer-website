@@ -10,8 +10,9 @@ import { FcGoogle } from "react-icons/fc"
 import { FaFacebook } from "react-icons/fa"
 import { roboto } from "@/lib/fonts"
 import { toast } from "sonner"
-import { API_BASE_URL } from "@/lib/constants"
 import { Checkbox } from "../ui/checkbox"
+import { getAuthErrorMessage } from "@/lib/auth"
+import { guestLoginCustomer, loginCustomer } from "@/services/auth"
 import { useAuthContext } from "@/context/AuthContext"
 
 export default function LoginForm() {
@@ -37,7 +38,7 @@ export default function LoginForm() {
   })
 const getGroupOrderCode = () => {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem("groupOrderCode");
+  return browserStorage.getItem("groupOrderCode");
 };
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -67,21 +68,9 @@ const getGroupOrderCode = () => {
     try {
       setIsLoading(true)
 
-      const res = await fetch(`${API_BASE_URL}/v1/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      })
+      const data = await loginCustomer(formData)
 
-      const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data?.message || "Login failed")
-      }
-
-      login(data.data)
+      login(data)
 
       toast.success("Login successful")
 const code = getGroupOrderCode();
@@ -93,8 +82,8 @@ setTimeout(() => {
     router.push("/");
   }
 }, 1000);
-    } catch (error: any) {
-      toast.error(error.message || "Something went wrong")
+    } catch (error) {
+      toast.error(getAuthErrorMessage(error))
     } finally {
       setIsLoading(false)
     }
@@ -115,21 +104,9 @@ setTimeout(() => {
     try {
       setIsLoading(true)
 
-      const res = await fetch(`${API_BASE_URL}/v1/auth/register-guest`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(guestData),
-      })
+      const data = await guestLoginCustomer(guestData)
 
-      const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data?.message || "Guest login failed")
-      }
-
-      login(data.data)
+      login(data)
 
       toast.success("Guest session started")
 
@@ -142,8 +119,8 @@ setTimeout(() => {
     router.push("/");
   }
 }, 1000);
-    } catch (error: any) {
-      toast.error(error.message || "Something went wrong")
+    } catch (error) {
+      toast.error(getAuthErrorMessage(error))
     } finally {
       setIsLoading(false)
     }

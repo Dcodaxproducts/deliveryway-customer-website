@@ -26,7 +26,7 @@ const { token, user, loading: authLoading } = useAuth();
   const [hasNext, setHasNext] = useState(false);
 
   const getStoredAuth = () => {
-    const stored = localStorage.getItem("auth");
+    const stored = browserStorage.getItem("auth");
     return stored ? JSON.parse(stored) : null;
   };
 
@@ -112,7 +112,7 @@ useEffect(() => {
   const code = params.get("code");
 
   if (code) {
-    localStorage.setItem("groupOrderCode", code);
+    browserStorage.setItem("groupOrderCode", code);
   }
 }, []);
 
@@ -163,7 +163,7 @@ useEffect(() => {
                 <div
                   key={item.id}
               onClick={async () => {
-  const code = localStorage.getItem("groupOrderCode");
+  const code = browserStorage.getItem("groupOrderCode");
 
   if (code) {
     // ✅ check first

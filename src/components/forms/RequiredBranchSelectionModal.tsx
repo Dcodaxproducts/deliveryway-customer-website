@@ -187,13 +187,13 @@ const fetchBranches = useCallback(async () => {
     try {
       setSelectingId(branch.id);
 
-      const authRaw = localStorage.getItem("auth");
+      const authRaw = browserStorage.getItem("auth");
       const auth = authRaw ? JSON.parse(authRaw) : null;
 
       if (auth?.user) {
         auth.user.branchId = branch.id;
         auth.user.branch = branch;
-        localStorage.setItem("auth", JSON.stringify(auth));
+        browserStorage.setItem("auth", JSON.stringify(auth));
       }
 
       setUser((prev: any) => {

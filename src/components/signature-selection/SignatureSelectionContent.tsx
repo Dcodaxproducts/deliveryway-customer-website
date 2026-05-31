@@ -687,7 +687,7 @@ export default function SignatureSelectionContent({
   const [viewMode, setViewMode] = useState<MenuViewMode>(() => {
     if (typeof window === "undefined") return "multiple";
 
-    const stored = localStorage.getItem("signatureMenuViewMode");
+    const stored = browserStorage.getItem("signatureMenuViewMode");
 
     return stored === "onePage" || stored === "multiple"
       ? stored
@@ -736,7 +736,7 @@ export default function SignatureSelectionContent({
   }, [menus]);
 
   useEffect(() => {
-    localStorage.setItem("signatureMenuViewMode", viewMode);
+    browserStorage.setItem("signatureMenuViewMode", viewMode);
   }, [viewMode]);
 
   const normalizeMenuRecords = (items: any[]): MenuRecord[] => {

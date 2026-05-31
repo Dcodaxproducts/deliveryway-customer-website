@@ -51,7 +51,7 @@ if (!inviteCode) {
 }
 
 // ✅ SAVE IN LOCAL STORAGE
-localStorage.setItem("groupOrderCode", inviteCode);
+browserStorage.setItem("groupOrderCode", inviteCode);
 
 toast.success("Group order created 🎉");
 

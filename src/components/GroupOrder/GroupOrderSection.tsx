@@ -21,7 +21,7 @@ export default function GroupOrderSection() {
     const syncGroupOrderCode = () => {
       if (typeof window === "undefined") return;
 
-      const storedCode = localStorage.getItem(GROUP_ORDER_CODE_KEY);
+      const storedCode = browserStorage.getItem(GROUP_ORDER_CODE_KEY);
       setGroupOrderCode(storedCode);
     };
 

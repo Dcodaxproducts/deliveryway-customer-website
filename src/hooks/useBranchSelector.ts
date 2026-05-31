@@ -35,12 +35,12 @@ export default function useBranchSelector(onSelect?: () => void) {
   const selectBranch = async (branch: any) => {
     try {
       // ---------------- UPDATE LOCAL STORAGE ----------------
-      const authRaw = localStorage.getItem("auth");
+      const authRaw = browserStorage.getItem("auth");
       const auth = authRaw ? JSON.parse(authRaw) : null;
 
       if (auth?.user) {
         auth.user.branchId = branch.id;
-        localStorage.setItem("auth", JSON.stringify(auth));
+        browserStorage.setItem("auth", JSON.stringify(auth));
       }
 
       // ---------------- UPDATE CONTEXT (IMPORTANT FIX) ----------------

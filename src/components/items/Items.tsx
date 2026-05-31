@@ -121,7 +121,7 @@ export default function ItemsListing({
     if (typeof window === "undefined") return null;
 
     try {
-      const auth = JSON.parse(localStorage.getItem("auth") || "{}");
+      const auth = JSON.parse(browserStorage.getItem("auth") || "{}");
       return auth?.user?.restaurantId || null;
     } catch {
       return null;

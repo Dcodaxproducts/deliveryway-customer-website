@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { poppins } from "@/lib/fonts";
 import { Toaster } from "sonner";
-import { AuthProvider } from "@/context/AuthContext";
 import Providers from "@/app/providers";
 
 export const metadata: Metadata = {
@@ -22,11 +21,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={poppins.className}>
   <Providers>
-    <AuthProvider>
-      <Toaster position="top-right" richColors />
+    <Toaster position="top-right" richColors />
 
-      {children}
-    </AuthProvider>
+    {children}
   </Providers>
 </body>
     </html>

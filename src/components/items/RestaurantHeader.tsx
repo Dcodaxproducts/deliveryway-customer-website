@@ -60,7 +60,7 @@ const getStoredAuth = () => {
   if (typeof window === "undefined") return null;
 
   try {
-    const stored = localStorage.getItem("auth");
+    const stored = browserStorage.getItem("auth");
     return stored ? JSON.parse(stored) : null;
   } catch {
     return null;

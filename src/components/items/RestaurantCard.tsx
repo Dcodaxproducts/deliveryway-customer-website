@@ -1575,7 +1575,7 @@ export default function RestaurantCard({ item }: any) {
 
       const groupCode =
         typeof window !== "undefined"
-          ? localStorage.getItem("groupOrderCode")
+          ? browserStorage.getItem("groupOrderCode")
           : null;
 
       if (!groupCode && !customerId) {
@@ -1672,7 +1672,7 @@ export default function RestaurantCard({ item }: any) {
 
     const groupCode =
       typeof window !== "undefined"
-        ? localStorage.getItem("groupOrderCode")
+        ? browserStorage.getItem("groupOrderCode")
         : null;
 
     if (!hasOptions) {

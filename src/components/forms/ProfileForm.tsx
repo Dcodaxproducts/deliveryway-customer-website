@@ -165,7 +165,7 @@ const [walletTxns, setWalletTxns] = useState(0);
 
       await patch("/v1/auth/me/profile", payload);
 
-      const authRaw = localStorage.getItem("auth");
+      const authRaw = browserStorage.getItem("auth");
 
       if (authRaw) {
         const auth = JSON.parse(authRaw);
@@ -187,7 +187,7 @@ const [walletTxns, setWalletTxns] = useState(0);
           user: updatedUser,
         };
 
-        localStorage.setItem("auth", JSON.stringify(updatedAuth));
+        browserStorage.setItem("auth", JSON.stringify(updatedAuth));
         login(updatedAuth);
       }
 

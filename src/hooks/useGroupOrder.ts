@@ -18,13 +18,13 @@ const normalizeApiArray = (res: any) => {
 const getStoredGroupOrderCode = () => {
   if (typeof window === "undefined") return "";
 
-  return localStorage.getItem(GROUP_ORDER_CODE_KEY) || "";
+  return browserStorage.getItem(GROUP_ORDER_CODE_KEY) || "";
 };
 
 const clearStoredGroupOrderCode = () => {
   if (typeof window === "undefined") return;
 
-  localStorage.removeItem(GROUP_ORDER_CODE_KEY);
+  browserStorage.removeItem(GROUP_ORDER_CODE_KEY);
 };
 
 const isClosedGroupOrder = (order: any) => {
