@@ -1445,7 +1445,6 @@ function ProductDetailsPageContent() {
         setSplitPizzaItem(null);
       } catch (error) {
         if (!isMounted) return;
-        console.error("Failed to fetch item:", error);
         toast.error("Failed to fetch item");
         setItem(null);
       } finally {
@@ -2155,7 +2154,6 @@ function ProductDetailsPageContent() {
         router.push(`/checkout?type=${checkoutType}`);
       }
     } catch (error) {
-      console.error("Cart item save failed:", error);
       toast.error("Something went wrong");
     } finally {
       setLoading(false);

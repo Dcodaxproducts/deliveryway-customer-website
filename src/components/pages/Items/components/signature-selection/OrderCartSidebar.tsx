@@ -78,7 +78,6 @@ export default function OrderCartSidebar({
 
       setCartItems(formatted);
     } catch (err) {
-      console.error(err);
       setCartItems([]);
     } finally {
       setLoadingCart(false);
@@ -132,7 +131,6 @@ export default function OrderCartSidebar({
 
       onCartRefresh?.();
     } catch (err) {
-      console.error(err);
       toast.error("Failed to update quantity");
     } finally {
       setActionId(null);
@@ -156,7 +154,6 @@ export default function OrderCartSidebar({
       setCartItems((prev) => prev.filter((i) => i.id !== id));
       onCartRefresh?.();
     } catch (err) {
-      console.error(err);
       toast.error("Failed to remove item");
     } finally {
       setActionId(null);

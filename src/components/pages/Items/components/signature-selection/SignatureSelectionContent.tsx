@@ -640,7 +640,6 @@ export default function SignatureSelectionContent({
         setActiveOnePageMenuId("");
       }
     } catch (error) {
-      console.error("Failed to fetch menus:", error);
       toast.error("Failed to fetch menus");
     } finally {
       setLoadingMenus(false);
@@ -649,7 +648,6 @@ export default function SignatureSelectionContent({
 
   useEffect(() => {
     fetchMenus();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [restaurantId, token]);
 
   const activeMenu = useMemo(
@@ -1464,7 +1462,6 @@ export default function SignatureSelectionContent({
 
   const products = useMemo(() => {
     return buildProductsForMenu(activeMenu);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeMenu]);
 
   const onePageMenuSections = useMemo(() => {
@@ -1472,7 +1469,6 @@ export default function SignatureSelectionContent({
       menu,
       products: buildProductsForMenu(menu),
     }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [menus]);
 
   const filteredModifierLinks = useMemo(() => {
@@ -1728,7 +1724,6 @@ export default function SignatureSelectionContent({
       setModalOpen(false);
       onCartRefresh?.();
     } catch (error) {
-      console.error("Add to cart failed:", error);
       toast.error("Something went wrong");
     } finally {
       setAddingId(null);

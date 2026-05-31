@@ -5,7 +5,6 @@ import OurStorySection from '@/components/pages/About/components/OurStorySection
 import TeamSection from '@/components/pages/About/components/TeamSection'
 import TestimonialsSection from '@/components/pages/About/components/TestimonialsSection'
 import WhyChooseUsSection from '@/components/pages/About/components/WhyChooseUsSection'
-import React from 'react'
 
 const AboutPage = () => {
   return (

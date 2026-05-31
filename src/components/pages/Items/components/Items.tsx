@@ -170,7 +170,6 @@ export default function ItemsListing({
         });
       });
     } catch (err) {
-      console.error("Failed to fetch category items:", err);
 
       queueMicrotask(() => {
         setCategoryItemsMap((prev) => {

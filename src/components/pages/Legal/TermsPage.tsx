@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { ShieldCheck, FileWarning } from "lucide-react";
 
 const TermsPage = () => {

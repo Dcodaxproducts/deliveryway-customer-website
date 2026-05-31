@@ -2,9 +2,8 @@
 
 import Image from "next/image";
 import { MapPin } from "lucide-react";
-import React from "react";
 
-const FoodBanner: React.FC = () => {
+const FoodBanner = () => {
   return (
     <section className="relative w-full h-[320px] md:h-[430px] flex items-center justify-center overflow-hidden">
       

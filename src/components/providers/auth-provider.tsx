@@ -75,7 +75,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           const isUnauthorized = error instanceof Error && error.message === "Request failed";
 
           if (!isUnauthorized) {
-            console.error("Non-auth error during fetchMe:", error);
             setLoading(false);
             return;
           }
@@ -105,7 +104,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           setToken(refreshedToken.accessToken);
         }
       } catch (error) {
-        console.error("Auth init failed", error);
       } finally {
         setLoading(false);
       }

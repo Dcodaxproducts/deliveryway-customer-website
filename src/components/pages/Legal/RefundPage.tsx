@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { UploadCloud, Lock } from "lucide-react";
 
 const RefundPage = () => {

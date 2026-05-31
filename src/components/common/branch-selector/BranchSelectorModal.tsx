@@ -121,7 +121,6 @@ export default function BranchSelectorModal({
       setHasNextPage(nextHasNextPage);
       setHasPrevPage(nextHasPrevPage);
     } catch (error) {
-      console.error("Failed to fetch restaurant branches:", error);
       toast.error("Failed to load branches");
       setBranches([]);
       setTotalPages(1);
@@ -172,7 +171,6 @@ export default function BranchSelectorModal({
       onSelected?.(branch);
       onClose();
     } catch (error) {
-      console.error("Failed to select branch:", error);
       toast.error("Failed to set branch");
     } finally {
       setSelectingId(null);

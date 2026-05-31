@@ -133,7 +133,6 @@ export default function AddressModal({
 
       toast.success("Current location fetched successfully");
     } catch (error) {
-      console.error("Location error:", error);
 
       const geolocationError = error instanceof GeolocationPositionError ? error : null;
 
@@ -178,7 +177,6 @@ export default function AddressModal({
       onSuccess?.();
       onOpenChange(false);
     } catch (err) {
-      console.error(err);
       toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);

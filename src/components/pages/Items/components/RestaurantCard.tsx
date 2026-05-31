@@ -1541,7 +1541,6 @@ export default function RestaurantCard({ item }: { item: MenuItem }) {
         router.push("/checkout");
       }
     } catch (error) {
-      console.error("Add to cart failed:", error);
       toast.error("Something went wrong");
     } finally {
       setLoading(false);

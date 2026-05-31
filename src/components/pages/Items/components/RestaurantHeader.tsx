@@ -135,7 +135,6 @@ export default function RestaurantHeader() {
         setRestaurant(resolvedRestaurant);
         setCategory(categoryId ? selectedCategory : null);
       } catch (err) {
-        console.error("Failed to fetch restaurant header data:", err);
 
         if (!cancelled) {
           setRestaurant({
@@ -158,7 +157,6 @@ export default function RestaurantHeader() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoryId, token, restaurantId]);
 
   const categoryItemCount = category ? getCategoryItemCount(category) : null;

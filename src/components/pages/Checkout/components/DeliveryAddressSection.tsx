@@ -36,7 +36,6 @@ export default function DeliveryAddressSection({
 
       setAddresses(Array.isArray(res.data) ? res.data as AddressRecord[] : []);
     } catch (err) {
-      console.error(err);
     } finally {
       setLoading(false);
     }

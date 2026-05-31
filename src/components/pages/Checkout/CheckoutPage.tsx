@@ -165,7 +165,6 @@ function CheckoutPageContent() {
       setCartQuote(quote);
       clearBackendError();
     } catch (err) {
-      console.error(err);
       reportBackendError(
         "Backend error while fetching cart",
         err,
@@ -249,7 +248,6 @@ function CheckoutPageContent() {
 
       await fetchCart();
     } catch (err) {
-      console.error(err);
       setCartItems(previousCartItems);
       reportBackendError(
         "Backend error while updating cart quantity",
@@ -280,7 +278,6 @@ function CheckoutPageContent() {
       await fetchCart();
       toast.success("Item removed");
     } catch (err) {
-      console.error(err);
       setCartItems(previousCartItems);
       reportBackendError(
         "Backend error while removing cart item",
@@ -314,7 +311,6 @@ function CheckoutPageContent() {
       clearBackendError();
       return true;
     } catch (err) {
-      console.error(err);
       setCartItems(previousCartItems);
       setCartQuote(previousCartQuote);
       reportBackendError(
@@ -344,7 +340,6 @@ function CheckoutPageContent() {
       clearBackendError();
       return true;
     } catch (err) {
-      console.error(err);
       reportBackendError(
         "Backend error while setting order type",
         err,
@@ -374,7 +369,6 @@ function CheckoutPageContent() {
       clearBackendError();
       return true;
     } catch (err) {
-      console.error(err);
       reportBackendError(
         "Backend error while setting delivery address",
         err,
@@ -416,7 +410,6 @@ function CheckoutPageContent() {
 
       return date.toISOString();
     } catch (err) {
-      console.error("Invalid pickup date/time", err);
       return null;
     }
   };
@@ -530,7 +523,6 @@ function CheckoutPageContent() {
       await clearCart();
       router.push(`/order?success=true&orderId=${orderId}`);
     } catch (err) {
-      console.error(err);
       reportBackendError(
         "Backend error while placing order",
         err,
@@ -586,7 +578,6 @@ function CheckoutPageContent() {
       clearBackendError();
       toast.success("Coupon applied");
     } catch (err) {
-      console.error(err);
       setCouponDiscount(0);
       reportBackendError(
         "Backend error while validating coupon",
@@ -746,7 +737,6 @@ const OrderStripeCheckout = ({
 
       toast.error("Payment was not completed");
     } catch (err) {
-      console.error(err);
       toast.error("Payment failed");
       onFail();
     } finally {
