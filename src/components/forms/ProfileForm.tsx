@@ -1,8 +1,7 @@
-// @ts-nocheck
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ChangeEvent } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import {
   Camera,
@@ -21,21 +20,13 @@ import { toast } from "sonner";
 import AddressModal from "./AddressModal";
 import useProfileApi from "@/hooks/useProfile";
 import { useAuth } from "@/hooks/useAuth";
-import { useAuthContext } from "@/context/AuthContext";
 import Link from "next/link";
-import { readAuthSession, saveAuthSession } from "@/lib/auth";
 import {
-  deleteAddress as deleteProfileAddress,
-  fetchAddresses as fetchProfileAddresses,
-  fetchWalletSummary,
   getFullName,
   getProfileDefaults,
   getProfileUpdatePayload,
-  mergeUpdatedProfileAuth,
-  requestPresignedAvatarUpload,
-  updateProfile as updateProfileRequest,
-  uploadAvatarFile,
   type AddressRecord,
+  type WalletSummary,
 } from "@/services/profile";
 import {
   profileSchema,
@@ -44,20 +35,7 @@ import {
 
 export default function ProfileForm() {
   const { token, user } = useAuth();
-  const { login } = useAuthContext();
-
-  const api = useProfileApi(token);
-  const profileApi = useMemo(() => ({
-    fetchWallet: () => fetchWalletSummary(api),
-    fetchAddresses: () => fetchProfileAddresses(api),
-    deleteAddress: (id: string) => deleteProfileAddress(api, id),
-    uploadAvatar: async (file: File) => {
-      const upload = await requestPresignedAvatarUpload(api, file);
-      await uploadAvatarFile(upload, file);
-      return upload.fileUrl;
-    },
-    updateProfile: (payload: ReturnType<typeof getProfileUpdatePayload>) => updateProfileRequest(api, payload),
-  }), [api]);
+  const profileApi = useProfileApi(token);
 
   const fileRef = useRef<HTMLInputElement | null>(null);
 
@@ -74,38 +52,39 @@ export default function ProfileForm() {
   const [isEditing, setIsEditing] = useState(false);
   const [addressOpen, setAddressOpen] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState<AddressRecord | null>(null);
-const [walletBalance, setWalletBalance] = useState(0);
-const [walletCurrency, setWalletCurrency] = useState("USD");
-const [walletTxns, setWalletTxns] = useState(0);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [walletCurrency, setWalletCurrency] = useState("USD");
+  const [walletTxns, setWalletTxns] = useState(0);
   const [updating, setUpdating] = useState(false);
   const [addresses, setAddresses] = useState<AddressRecord[]>([]);
   const [loadingAddresses, setLoadingAddresses] = useState(false);
 
-  const fetchWallet = useCallback(async (skipStateUpdate = false) => {
-  try {
-    const res: unknown = await profileApi.fetchWallet();
+  const fetchWallet = useCallback(async (skipStateUpdate = false): Promise<WalletSummary | null> => {
+    try {
+      const summary = await profileApi.fetchWallet();
 
-    if (skipStateUpdate) {
-      return;
+      if (!skipStateUpdate) {
+        setWalletBalance(summary.balance);
+        setWalletCurrency(summary.currency);
+        setWalletTxns(summary.transactionCount);
+      }
+
+      return summary;
+    } catch {
+      toast.error("Failed to load wallet");
+      return null;
     }
-
-    setWalletBalance(res.balance);
-    setWalletCurrency(res.currency);
-    setWalletTxns(res.transactionCount);
-  } catch (error) {
-    toast.error("Failed to load wallet");
-  }
-}, [profileApi]);
+  }, [profileApi]);
 
   const fetchAddresses = useCallback(async (skipStateUpdate = false) => {
     try {
       if (!skipStateUpdate) {
         setLoadingAddresses(true);
       }
-      const res: unknown = await profileApi.fetchAddresses();
+      const addressList = await profileApi.fetchAddresses();
 
       if (!skipStateUpdate) {
-        setAddresses(res);
+        setAddresses(addressList);
       }
     } catch (error) {
     } finally {
@@ -160,19 +139,9 @@ const [walletTxns, setWalletTxns] = useState(0);
     try {
       setUpdating(true);
 
-      // ✅ EMAIL NOT SENT
       const payload = getProfileUpdatePayload(values);
 
       await profileApi.updateProfile(payload);
-
-      const auth = readAuthSession();
-
-      if (auth) {
-        const updatedAuth = mergeUpdatedProfileAuth(auth, payload);
-
-        saveAuthSession(updatedAuth);
-        login(updatedAuth);
-      }
 
       toast.success("Profile updated successfully");
       setIsEditing(false);
