@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
@@ -11,7 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 const GROUP_ORDER_CODE_KEY = "groupOrderCode";
 
-export default function ItemsPage() {
+function ItemsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -135,5 +135,13 @@ export default function ItemsPage() {
       <RestaurantHeader />
       <ItemsLayout categoryId={categoryId} />
     </div>
+  );
+}
+
+export function ItemsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen" />}>
+      <ItemsPageContent />
+    </Suspense>
   );
 }

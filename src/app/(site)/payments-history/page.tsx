@@ -1,12 +1,5 @@
-import PaymentsHistory from '@/components/pages/Profile/components/PaymentsHistory'
-import React from 'react'
+import { PaymentsHistoryPage } from "@/components/pages/Payments/PaymentsHistoryPage";
 
-const page = () => {
-  return (
-    <>
-        <PaymentsHistory />
-    </>
-  )
+export default function Page() {
+  return <PaymentsHistoryPage />;
 }
-
-export default page

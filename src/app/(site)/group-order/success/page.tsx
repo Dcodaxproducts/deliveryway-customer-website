@@ -1,12 +1,5 @@
-import OrderSuccess from '@/components/pages/GroupOrder/components/Success/OrderSuccess'
-import React from 'react'
+import { GroupOrderSuccessPage } from "@/components/pages/GroupOrder/GroupOrderSuccessPage";
 
-const page = () => {
-  return (
-    <div>
-      <OrderSuccess />
-    </div>
-  )
+export default function Page() {
+  return <GroupOrderSuccessPage />;
 }
-
-export default page

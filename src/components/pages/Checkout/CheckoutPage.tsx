@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Tabs from "@/components/pages/Checkout/components/Tabs";
 import DeliverySection from "@/components/pages/Checkout/components/DeliverySection";
 import PickupSection from "@/components/pages/Checkout/components/PickupSection";
@@ -387,7 +387,7 @@ const normalizeCartResponse = (res: any) => {
   };
 };
 
-export default function CheckoutPage() {
+function CheckoutPageContent() {
   const searchParams = useSearchParams();
   const type = searchParams.get("type");
   const activeTab = type === "pickup" ? "pickup" : "delivery";
@@ -1068,3 +1068,11 @@ const OrderStripeCheckout = ({
     </div>
   );
 };
+
+export function CheckoutPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#F8F8F8]" />}>
+      <CheckoutPageContent />
+    </Suspense>
+  );
+}

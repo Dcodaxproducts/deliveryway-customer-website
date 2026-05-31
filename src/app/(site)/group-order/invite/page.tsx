@@ -1,12 +1,5 @@
-import InviteFriends from '@/components/pages/GroupOrder/components/Invite/InviteFriends'
-import React from 'react'
+import { GroupOrderInvitePage } from "@/components/pages/GroupOrder/GroupOrderInvitePage";
 
-const page = () => {
-  return (
-    <>
-        <InviteFriends />
-    </>
-  )
+export default function Page() {
+  return <GroupOrderInvitePage />;
 }
-
-export default page

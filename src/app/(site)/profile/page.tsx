@@ -1,9 +1,5 @@
-import ProfileForm from "@/components/forms/ProfileForm";
+import { ProfilePage } from "@/components/pages/Profile/ProfilePage";
 
-export default function ProfilePage() {
-  return (
-    <main className=" mx-auto px-8 pt-6 pb-24 min-h-screen">
-      <ProfileForm />
-    </main>
-  );
+export default function Page() {
+  return <ProfilePage />;
 }

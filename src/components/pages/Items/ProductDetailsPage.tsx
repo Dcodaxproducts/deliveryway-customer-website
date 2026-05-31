@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import TestimonialsSection from "@/components/pages/Items/components/Testimonials";
 import useApi from "@/hooks/useApi";
@@ -899,7 +899,7 @@ const getModifierSideVariationOverrides = (menuItem: any, modifier: Modifier) =>
   return overrides;
 };
 
-export default function ProductPage() {
+function ProductDetailsPageContent() {
   const params = useSearchParams();
   const slug = params.get("slug");
   const itemIdParam = params.get("itemId") || "";
@@ -2670,5 +2670,13 @@ export default function ProductPage() {
 
       <TestimonialsSection />
     </>
+  );
+}
+
+export function ProductDetailsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen" />}>
+      <ProductDetailsPageContent />
+    </Suspense>
   );
 }

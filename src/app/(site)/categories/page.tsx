@@ -1,3 +1,5 @@
-import CategoriesPage from "@/components/pages/Categories/CategoriesPage";
+import { CategoriesPage } from "@/components/pages/Categories/CategoriesPage";
 
-export default CategoriesPage;
+export default function Page() {
+  return <CategoriesPage />;
+}

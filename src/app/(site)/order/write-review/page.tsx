@@ -1,23 +1,5 @@
-import React, { Suspense } from "react";
-import WriteReview from "./WriteReview";
+import { OrderWriteReviewPage } from "@/components/pages/Order/OrderWriteReviewPage";
 
-const Page = () => {
-  return (
-    <div>
-      <Suspense fallback={<Loading />}>
-       <WriteReview />
-      </Suspense>
-    </div>
-  );
-};
-
-export default Page;
-
-/* 🔥 CLEAN LOADING COMPONENT */
-function Loading() {
-  return (
-    <div className="flex items-center justify-center py-20">
-      <div className="text-gray-400 text-sm">Loading reviews page...</div>
-    </div>
-  );
+export default function Page() {
+  return <OrderWriteReviewPage />;
 }

@@ -1,14 +1,13 @@
 "use client";
 
-import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import useApi from "@/hooks/useApi";
 import { useAuthContext } from "@/context/AuthContext";
 import OrderSummary from "@/components/pages/Order/components/OrderSummary";
 
-export default function OrderStatusPage() {
+function OrderStatusContent() {
   const { token } = useAuthContext();
   const { get } = useApi(token);
 
@@ -50,7 +49,7 @@ export default function OrderStatusPage() {
     };
 
     fetchOrder();
-  }, [orderId, token]);
+  }, [get, orderId, token]);
 
   // ✅ STATUS MAP
   const statusMap: Record<string, number> = {
@@ -199,5 +198,13 @@ export default function OrderStatusPage() {
       )}
       
     </div>
+  );
+}
+
+export function OrderStatusPage() {
+  return (
+    <Suspense fallback={<div className="max-w-[1400px] mx-auto mt-[36px] mb-[113px] px-6 md:px-30 pt-5" />}>
+      <OrderStatusContent />
+    </Suspense>
   );
 }
