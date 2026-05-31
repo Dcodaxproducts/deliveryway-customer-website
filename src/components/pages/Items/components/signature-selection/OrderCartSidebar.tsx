@@ -5,6 +5,8 @@ import { Minus, Plus, Tag, X, ArrowRight, Loader2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useCustomer from "@/hooks/useCustomer";
+import type { CartItemRecord } from "./types";
+import { getCartItemUnitPrice, getSelectedModifierTotal, normalizeArray, toNumber } from "./signature-selection-utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 
@@ -26,52 +28,6 @@ type OrderCartSidebarProps = {
   onCartRefresh?: () => void;
 };
 
-const toNumber = (value: unknown, fallback = 0) => {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : fallback;
-};
-
-const getSelectedModifierTotal = (cartItem: any) => {
-  const selectedModifiers = Array.isArray(cartItem?.modifiers)
-    ? cartItem.modifiers
-    : [];
-
-  const modifierGroups = Array.isArray(cartItem?.menuItem?.modifierGroups)
-    ? cartItem.menuItem.modifierGroups
-    : [];
-
-  const modifierPriceMap = new Map<string, number>();
-
-  modifierGroups.forEach((group: any) => {
-    const modifiers = Array.isArray(group?.modifiers) ? group.modifiers : [];
-
-    modifiers.forEach((modifier: any) => {
-      if (!modifier?.id) return;
-      modifierPriceMap.set(String(modifier.id), toNumber(modifier.priceDelta, 0));
-    });
-  });
-
-  return selectedModifiers.reduce((acc: number, selected: any) => {
-    const modifierId = String(selected?.modifierId || "");
-    const quantity = toNumber(selected?.quantity, 1);
-
-    return acc + toNumber(modifierPriceMap.get(modifierId), 0) * quantity;
-  }, 0);
-};
-
-const getCartItemUnitPrice = (cartItem: any) => {
-  const resolvedItemPrice = toNumber(
-    cartItem?.unitPrice ??
-      cartItem?.price ??
-      cartItem?.menuItem?.unitPrice ??
-      cartItem?.menuItem?.selectedVariation?.price ??
-      0,
-    0
-  );
-
-  return resolvedItemPrice + getSelectedModifierTotal(cartItem);
-};
-
 export default function OrderCartSidebar({
   customerId,
   cartRefreshKey,
@@ -91,22 +47,25 @@ export default function OrderCartSidebar({
     try {
       setLoadingCart(true);
 
-      const res: any = await get(`/v1/cart?customerId=${customerId}`);
+      const res = await get(`/v1/cart?customerId=${customerId}`);
 
       if (!res || res.error) {
         setCartItems([]);
         return;
       }
 
-      const items = Array.isArray(res?.data?.items) ? res.data.items : [];
+      const resData = typeof res?.data === "object" && res.data !== null && !Array.isArray(res.data) ? res.data as CartItemRecord : null;
+      const nestedData = typeof resData?.data === "object" && resData.data !== null && !Array.isArray(resData.data) ? resData.data as CartItemRecord : null;
+      const cart = resData?.items ? resData : nestedData ?? resData;
+      const items = normalizeArray<CartItemRecord>(cart?.items);
 
-      const formatted: CartItem[] = items.map((item: any) => {
+      const formatted: CartItem[] = items.map((item) => {
         const quantity = toNumber(item.quantity, 1);
         const unitPrice = getCartItemUnitPrice(item);
 
         return {
-          id: item.id,
-          menuItemId: item.menuItemId,
+          id: String(item.id ?? ""),
+          menuItemId: item.menuItemId ? String(item.menuItemId) : undefined,
           quantity,
           name: item.menuItem?.name || "Untitled Item",
           unitPrice,
@@ -150,7 +109,7 @@ export default function OrderCartSidebar({
     try {
       setActionId(id);
 
-      const res: any = await patch(`/v1/cart/items/${id}?customerId=${customerId}`, {
+      const res = await patch(`/v1/cart/items/${id}?customerId=${customerId}`, {
         quantity: newQty,
       });
 
@@ -186,7 +145,7 @@ export default function OrderCartSidebar({
     try {
       setActionId(id);
 
-      const res: any = await del(`/v1/cart/items/${id}?customerId=${customerId}`);
+      const res = await del(`/v1/cart/items/${id}?customerId=${customerId}`);
 
       if (!res || res.error) {
         toast.error(res?.error || "Failed to remove item");

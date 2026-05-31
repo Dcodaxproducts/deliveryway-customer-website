@@ -19,6 +19,8 @@ import useCustomer from "@/hooks/useCustomer";
 import { useAuth } from "@/hooks/useAuth";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import AsyncSelect from "@/components/ui/AsyncSelect";
+import type { ApiRecord, CartPayload, ItemPriceOverride, MenuItem, MenuRecord, MenuVariation, Modifier, ModifierGroup, ModifierLink, ProductCardData, RawModifierLink, SelectedModifier, SelectedModifiersMap, SplitPizzaSelection, VariationPriceOverride } from "./types";
+import { groupMenuRecords, normalizeApiList, normalizeApiMeta, normalizeArray, normalizeSelectedModifiers, sortBySortOrder, toNumber } from "./signature-selection-utils";
 
 type SignatureSelectionContentProps = {
   restaurantId?: string | null;
@@ -29,202 +31,12 @@ type SignatureSelectionContentProps = {
 
 type MenuViewMode = "multiple" | "onePage";
 
-type ItemPriceOverride = {
-  id?: string;
-  menuItemId?: string;
-  modifierId?: string;
-  price?: string | number;
-  priceDelta?: string | number;
-};
-
-type VariationPriceOverride = {
-  id?: string;
-  menuItemId?: string | null;
-  variationId?: string;
-  modifierId?: string;
-  price?: string | number;
-  pickupPrice?: string | number | null;
-  displayText?: string | null;
-  priceDelta?: string | number;
-  variation?: any;
-  modifierPriceOverrides?: VariationPriceOverride[];
-};
-
-type MenuVariation = {
-  id: string;
-  categoryId?: string;
-  name: string;
-  description?: string;
-  price?: string | number;
-  pickupPrice?: string | number | null;
-  displayText?: string | null;
-  sortOrder?: number;
-  isDefault?: boolean;
-  isActive?: boolean;
-  modifierPriceOverrides?: VariationPriceOverride[];
-  itemPriceOverrides?: VariationPriceOverride[];
-};
-
-type Modifier = {
-  id: string;
-  modifierGroupId?: string;
-  restaurantId?: string;
-  name: string;
-  displayText?: string | null;
-  description?: string | null;
-  priceDelta?: string | number;
-  sortOrder?: number;
-  isActive?: boolean;
-  itemPriceOverrides?: ItemPriceOverride[];
-  variationPriceOverrides?: VariationPriceOverride[];
-};
-
-type SelectedModifier = Modifier & {
-  selectedQuantity: number;
-};
-
-type RawModifierLink = {
-  id?: string;
-  modifierGroupId?: string;
-  modifierId?: string;
-  sortOrder?: number;
-  modifier?: Modifier;
-};
-
-type ModifierGroup = {
-  id: string;
-  name: string;
-  description?: string;
-  minSelect?: number;
-  maxSelect?: number;
-  isRequired?: boolean;
-  sortOrder?: number;
-  isActive?: boolean;
-  modifiers?: Modifier[];
-  modifierLinks?: RawModifierLink[];
-};
-
-type ModifierLink = {
-  id: string;
-  variationId?: string | null;
-  sortOrder?: number;
-  modifierGroup: ModifierGroup;
-};
-
-type MenuItem = {
-  id: string;
-  restaurantId?: string;
-  restaurantMenuId?: string;
-  menuLinks?: any[];
-  name: string;
-  slug?: string;
-  description?: string;
-  imageUrl?: string;
-  basePrice?: string | number;
-  unitPrice?: string | number;
-  price?: string | number;
-  isActive?: boolean;
-  supportsSplitPizza?: boolean;
-  isRequired?: boolean;
-  minSelect?: number;
-  maxSelect?: number;
-  minQuantity?: number;
-  maxQuantity?: number;
-  categoryId?: string;
-  ingredients?: string | null;
-  nutritionalInformation?: string | null;
-  allergenFlags?: string[];
-  dietaryFlags?: string[];
-  allergenPdfUrl?: string | null;
-  category?: {
-    id: string;
-    name?: string;
-    variations?: MenuVariation[];
-    variationLinks?: any[];
-    modifierLinks?: ModifierLink[];
-    modifierGroups?: ModifierGroup[];
-    categoryModifierGroups?: any[];
-  };
-  variations?: MenuVariation[];
-  variationPriceOverrides?: VariationPriceOverride[];
-  modifierLinks?: ModifierLink[];
-  modifierGroups?: ModifierGroup[];
-  categoryModifierGroups?: ModifierGroup[] | any[];
-  modifierPriceOverrides?: any[];
-  modifiers?: Modifier[];
-  splitPizza?: {
-    enabled?: boolean;
-    slots?: string[];
-    pricingRule?: string;
-    allowedFlavors?: any[];
-  };
-};
-
-type MenuRecord = {
-  id: string;
-  name: string;
-  slug?: string;
-  description?: string;
-  isActive?: boolean;
-  sortOrder?: number;
-  items?: {
-    id: string;
-    sortOrder?: number;
-    menuItem?: MenuItem;
-  }[];
-};
-
-type ProductCardData = {
-  id: string;
-  name: string;
-  slug?: string;
-  price: number;
-  image: string;
-  description: string;
-  variations: MenuVariation[];
-  modifierLinks: ModifierLink[];
-  raw: MenuItem;
-};
-
-type SelectedModifiersMap = Record<string, SelectedModifier[]>;
-
 const ADDONS_GROUP_ID = "__item_addons__";
 const MENU_PAGE_LIMIT = 20;
-
-const toNumber = (value: unknown, fallback = 0) => {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : fallback;
-};
-
-const sortBySortOrder = <T extends { sortOrder?: number }>(items: T[]) => {
-  return [...items].sort(
-    (a, b) => toNumber(a?.sortOrder, 0) - toNumber(b?.sortOrder, 0)
-  );
-};
 
 const hasText = (value: unknown) => {
   const text = String(value ?? "").trim();
   return text !== "" && text.toLowerCase() !== "null";
-};
-
-const normalizeApiList = (res: any) => {
-  if (Array.isArray(res?.data)) return res.data;
-  if (Array.isArray(res?.data?.data)) return res.data.data;
-  if (Array.isArray(res?.data?.items)) return res.data.items;
-  if (Array.isArray(res?.items)) return res.items;
-  return [];
-};
-
-const normalizeApiMeta = (res: any) => {
-  return (
-    res?.data?.pagination ||
-    res?.data?.meta ||
-    res?.data?.data?.pagination ||
-    res?.data?.data?.meta ||
-    res?.pagination ||
-    res?.meta ||
-    {}
-  );
 };
 
 const resolveHasNext = ({
@@ -234,7 +46,7 @@ const resolveHasNext = ({
   receivedCount,
   totalLoaded,
 }: {
-  meta: any;
+  meta: ApiRecord;
   page: number;
   limit: number;
   receivedCount: number;
@@ -253,14 +65,7 @@ const resolveHasNext = ({
   return receivedCount >= limit;
 };
 
-const normalizeArray = (value: any): any[] => {
-  if (!value) return [];
-  return Array.isArray(value) ? value : [];
-};
-
-/* ================= PRODUCT INFO HELPERS ================= */
-
-const titleizeConstant = (value: any) => {
+const titleizeConstant = (value: unknown) => {
   return String(value || "")
     .trim()
     .replace(/_/g, " ")
@@ -268,22 +73,22 @@ const titleizeConstant = (value: any) => {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 };
 
-const getTenantSettings = (item: any) => {
+const getTenantSettings = (item: MenuItem | null) => {
   return (
-    item?.restaurant?.tenant?.settings ||
-    item?.tenant?.settings ||
+    (item?.restaurant?.tenant as ApiRecord | undefined)?.settings ||
+    (item?.tenant as ApiRecord | undefined)?.settings ||
     item?.restaurant?.settings ||
     {}
   );
 };
 
-const getProductLabelMap = (item: any) => {
-  const settings = getTenantSettings(item);
-  const labels = normalizeArray(settings?.productLabels);
+const getProductLabelMap = (item: MenuItem | null) => {
+  const settings = getTenantSettings(item) as ApiRecord;
+  const labels = normalizeArray<ApiRecord>(settings?.productLabels);
 
   const map = new Map<string, string>();
 
-  labels.forEach((entry: any) => {
+  labels.forEach((entry: ApiRecord) => {
     const value = String(entry?.value || entry?.code || "").trim();
     const label = String(entry?.label || entry?.name || "").trim();
 
@@ -295,7 +100,7 @@ const getProductLabelMap = (item: any) => {
   return map;
 };
 
-const getProductLabels = (item: any) => {
+const getProductLabels = (item: MenuItem | null) => {
   const labelMap = getProductLabelMap(item);
 
   const rawLabels = [
@@ -319,20 +124,17 @@ const getProductLabels = (item: any) => {
     }));
 };
 
-const getAllergenTemplateMap = (item: any) => {
-  const settings = getTenantSettings(item);
+const getAllergenTemplateMap = (item: MenuItem | null) => {
+  const settings = getTenantSettings(item) as ApiRecord;
+  const customerApp = typeof settings.customerApp === "object" && settings.customerApp !== null ? settings.customerApp as ApiRecord : {};
+  const templates = (customerApp.allergenAdditiveTemplates || settings.allergenAdditiveTemplates || {}) as ApiRecord;
 
-  const templates =
-    settings?.customerApp?.allergenAdditiveTemplates ||
-    settings?.allergenAdditiveTemplates ||
-    {};
-
-  const allergens = normalizeArray(templates?.allergens);
-  const additives = normalizeArray(templates?.additives);
+  const allergens = normalizeArray<ApiRecord>(templates?.allergens);
+  const additives = normalizeArray<ApiRecord>(templates?.additives);
 
   const map = new Map<string, string>();
 
-  [...allergens, ...additives].forEach((entry: any) => {
+  [...allergens, ...additives].forEach((entry: ApiRecord) => {
     const code = String(entry?.code || entry?.value || "").trim();
     const label = String(entry?.label || entry?.name || "").trim();
 
@@ -344,12 +146,12 @@ const getAllergenTemplateMap = (item: any) => {
   return map;
 };
 
-const getAllergenAdditives = (item: any) => {
+const getAllergenAdditives = (item: MenuItem | null) => {
   const templateMap = getAllergenTemplateMap(item);
   const seen = new Set<string>();
 
-  const directEntries = normalizeArray(item?.allergenAdditives)
-    .map((entry: any) => {
+  const directEntries = normalizeArray<ApiRecord>(item?.allergenAdditives)
+    .map((entry: ApiRecord) => {
       const code = String(entry?.code || entry?.value || "").trim();
       const directLabel = String(entry?.label || entry?.name || "").trim();
       const mappedLabel = code ? templateMap.get(code) : "";
@@ -390,7 +192,7 @@ const getAllergenAdditives = (item: any) => {
     });
 };
 
-const hasProductInfoContent = (item: any) => {
+const hasProductInfoContent = (item: MenuItem | null) => {
   return Boolean(
     hasText(item?.ingredients) ||
       hasText(item?.nutritionalInformation) ||
@@ -400,7 +202,7 @@ const hasProductInfoContent = (item: any) => {
   );
 };
 
-function ProductInfoContent({ item }: { item: any }) {
+function ProductInfoContent({ item }: { item: MenuItem | null }) {
   const productLabels = getProductLabels(item);
   const allergenAdditives = getAllergenAdditives(item);
 
@@ -475,7 +277,7 @@ function ProductInfoContent({ item }: { item: any }) {
             Ingredients
           </h3>
           <p className="text-sm leading-relaxed text-gray-600">
-            {item.ingredients}
+            {String(item?.ingredients ?? "")}
           </p>
         </div>
       ) : null}
@@ -486,14 +288,14 @@ function ProductInfoContent({ item }: { item: any }) {
             Nutritional Information
           </h3>
           <p className="text-sm leading-relaxed text-gray-600">
-            {item.nutritionalInformation}
+            {String(item?.nutritionalInformation ?? "")}
           </p>
         </div>
       ) : null}
 
       {hasAllergenPdf ? (
         <a
-          href={String(item.allergenPdfUrl)}
+          href={String(item?.allergenPdfUrl)}
           download
           target="_blank"
           rel="noreferrer"
@@ -507,12 +309,12 @@ function ProductInfoContent({ item }: { item: any }) {
   );
 }
 
-const getId = (value: any) => {
+const getId = (value: unknown) => {
   if (value === undefined || value === null) return "";
   return String(value);
 };
 
-const getOverrideAmount = (override?: any | null) => {
+const getOverrideAmount = (override?: VariationPriceOverride | ItemPriceOverride | ApiRecord | null) => {
   if (!override) return null;
 
   if (override.priceDelta !== undefined && override.priceDelta !== null) {
@@ -526,16 +328,22 @@ const getOverrideAmount = (override?: any | null) => {
   return null;
 };
 
-const getOverrideMenuItemId = (override: any) =>
-  getId(override?.menuItemId || override?.menuItem?.id);
+const getOverrideMenuItemId = (override: VariationPriceOverride | ItemPriceOverride | ApiRecord | null | undefined) => {
+  if (!override) return "";
+  return getId(override.menuItemId || ("menuItem" in override ? (override.menuItem as ApiRecord | undefined)?.id : undefined));
+};
 
-const getOverrideVariationId = (override: any) =>
-  getId(override?.variationId || override?.variation?.id);
+const getOverrideVariationId = (override: VariationPriceOverride | ApiRecord | null | undefined) => {
+  if (!override) return "";
+  return getId(override.variationId || ("variation" in override ? (override.variation as ApiRecord | undefined)?.id : undefined));
+};
 
-const getOverrideModifierId = (override: any) =>
-  getId(override?.modifierId || override?.modifier?.id);
+const getOverrideModifierId = (override: VariationPriceOverride | ItemPriceOverride | ApiRecord | null | undefined) => {
+  if (!override) return "";
+  return getId(override.modifierId || ("modifier" in override ? (override.modifier as ApiRecord | undefined)?.id : undefined));
+};
 
-const isGenericMenuItemOverride = (override: any) => {
+const isGenericMenuItemOverride = (override: VariationPriceOverride | ItemPriceOverride | ApiRecord | null | undefined) => {
   const value = override?.menuItemId;
   return value === null || value === undefined || value === "";
 };
@@ -545,7 +353,7 @@ const findBestItemPriceOverride = ({
   menuItemId,
   variationId,
 }: {
-  overrides?: any[];
+  overrides?: Array<VariationPriceOverride | ItemPriceOverride | ApiRecord>;
   menuItemId?: string;
   variationId?: string;
 }) => {
@@ -574,7 +382,7 @@ const findBestModifierOverride = ({
   menuItemId,
   variationId,
 }: {
-  overrides?: any[];
+  overrides?: Array<VariationPriceOverride | ItemPriceOverride | ApiRecord>;
   modifierId?: string;
   menuItemId?: string;
   variationId?: string;
@@ -591,17 +399,17 @@ const findBestModifierOverride = ({
 
   if (!matching.length) return null;
 
-  const isItemSpecific = (override: any) => {
+  const isItemSpecific = (override: VariationPriceOverride | ItemPriceOverride | ApiRecord) => {
     if (!normalizedMenuItemId) return false;
     return getOverrideMenuItemId(override) === normalizedMenuItemId;
   };
 
-  const isExactVariation = (override: any) => {
+  const isExactVariation = (override: VariationPriceOverride | ItemPriceOverride | ApiRecord) => {
     if (!normalizedVariationId) return false;
     return getOverrideVariationId(override) === normalizedVariationId;
   };
 
-  const hasNoVariation = (override: any) => !getOverrideVariationId(override);
+  const hasNoVariation = (override: VariationPriceOverride | ItemPriceOverride | ApiRecord) => !getOverrideVariationId(override);
 
   if (normalizedVariationId) {
     const exactVariationMatches = matching.filter(isExactVariation);
@@ -643,22 +451,28 @@ const findBestModifierOverride = ({
 
 /* ================= CART API HELPERS ================= */
 
-const getApiErrorMessage = (res: any, fallback = "Something went wrong") => {
+const getApiErrorMessage = (res: ApiRecord | null | undefined, fallback = "Something went wrong") => {
   if (!res) return fallback;
 
   if (typeof res?.error === "string") return res.error;
-  if (typeof res?.error?.message === "string") return res.error.message;
+  const errorValue = res.error;
+  const errorRecord = typeof errorValue === "object" && errorValue !== null && !Array.isArray(errorValue) ? errorValue as ApiRecord : null;
+  if (typeof errorRecord?.message === "string") return errorRecord.message;
   if (typeof res?.message === "string") return res.message;
-  if (typeof res?.data?.message === "string") return res.data.message;
-  if (typeof res?.data?.error === "string") return res.data.error;
-  if (typeof res?.data?.error?.message === "string") {
-    return res.data.error.message;
+  const dataValue = res.data;
+  const dataRecord = typeof dataValue === "object" && dataValue !== null && !Array.isArray(dataValue) ? dataValue as ApiRecord : null;
+  if (typeof dataRecord?.message === "string") return dataRecord.message;
+  if (typeof dataRecord?.error === "string") return dataRecord.error;
+  const dataErrorValue = dataRecord?.error;
+  const dataErrorRecord = typeof dataErrorValue === "object" && dataErrorValue !== null && !Array.isArray(dataErrorValue) ? dataErrorValue as ApiRecord : null;
+  if (typeof dataErrorRecord?.message === "string") {
+    return dataErrorRecord.message;
   }
 
   return fallback;
 };
 
-const isBranchCartConflictResponse = (res: any) => {
+const isBranchCartConflictResponse = (res: ApiRecord | null | undefined) => {
   const message = getApiErrorMessage(res, "")
     .toLowerCase()
     .replace(/\s+/g, " ");
@@ -721,7 +535,7 @@ export default function SignatureSelectionContent({
   const [infoItem, setInfoItem] = useState<MenuItem | null>(null);
 
   const [splitPizzaEnabled, setSplitPizzaEnabled] = useState(false);
-  const [splitPizzaItem, setSplitPizzaItem] = useState<any>(null);
+  const [splitPizzaItem, setSplitPizzaItem] = useState<MenuItem | null>(null);
   const [splitPizzaVariation, setSplitPizzaVariation] =
     useState<MenuVariation | null>(null);
   const [splitPizzaModifiers, setSplitPizzaModifiers] =
@@ -739,10 +553,10 @@ export default function SignatureSelectionContent({
     browserStorage.setItem("signatureMenuViewMode", viewMode);
   }, [viewMode]);
 
-  const normalizeMenuRecords = (items: any[]): MenuRecord[] => {
+  const normalizeMenuRecords = (items: MenuRecord[]): MenuRecord[] => {
     const deduped = new Map<string, MenuRecord>();
 
-    items.forEach((menu: any) => {
+    items.forEach((menu) => {
       if (!menu?.id) return;
       if (menu?.isActive === false) return;
 
@@ -765,7 +579,7 @@ export default function SignatureSelectionContent({
 
       let page = 1;
       let totalLoaded = 0;
-      let collected: any[] = [];
+      let collected: MenuRecord[] = [];
       let shouldContinue = true;
 
       while (shouldContinue) {
@@ -777,14 +591,14 @@ export default function SignatureSelectionContent({
           sortOrder: "ASC",
         });
 
-        const res: any = await get(`/v1/menus?${params.toString()}`);
+        const res = await get(`/v1/menus?${params.toString()}`);
 
         if (!res || res.error) {
           toast.error(res?.error || "Failed to fetch menus");
           break;
         }
 
-        const fetchedMenus = normalizeApiList(res);
+        const fetchedMenus = normalizeApiList<MenuRecord>(res);
         const meta = normalizeApiMeta(res);
 
         collected = [...collected, ...fetchedMenus];
@@ -992,32 +806,28 @@ export default function SignatureSelectionContent({
     };
   }, [viewMode, menuIdsKey, menus]);
 
-  const normalizeVariation = (raw: any): MenuVariation | null => {
+  const normalizeVariation = (raw: MenuVariation | ApiRecord | null | undefined): MenuVariation | null => {
     if (!raw?.id) return null;
     if (raw?.isActive === false) return null;
 
     return {
       id: String(raw.id),
-      categoryId: raw?.categoryId,
+      categoryId: typeof raw?.categoryId === "string" ? raw.categoryId : undefined,
       name: String(raw?.name || ""),
-      description: raw?.description || "",
-      price: raw?.price ?? 0,
-      pickupPrice: raw?.pickupPrice ?? null,
-      displayText: raw?.displayText ?? null,
+      description: typeof raw?.description === "string" ? raw.description : "",
+      price: typeof raw?.price === "string" || typeof raw?.price === "number" ? raw.price : 0,
+      pickupPrice: typeof raw?.pickupPrice === "string" || typeof raw?.pickupPrice === "number" ? raw.pickupPrice : null,
+      displayText: typeof raw?.displayText === "string" ? raw.displayText : null,
       sortOrder: toNumber(raw?.sortOrder, 0),
       isDefault: Boolean(raw?.isDefault),
       isActive: raw?.isActive !== false,
-      modifierPriceOverrides: Array.isArray(raw?.modifierPriceOverrides)
-        ? raw.modifierPriceOverrides
-        : [],
-      itemPriceOverrides: Array.isArray(raw?.itemPriceOverrides)
-        ? raw.itemPriceOverrides
-        : [],
+      modifierPriceOverrides: normalizeArray<VariationPriceOverride>(raw?.modifierPriceOverrides),
+      itemPriceOverrides: normalizeArray<ItemPriceOverride>(raw?.itemPriceOverrides),
     };
   };
 
   const normalizeModifier = (
-    raw: any,
+    raw: Modifier | ApiRecord | null | undefined,
     extra?: Partial<Modifier>
   ): Modifier | null => {
     if (!raw?.id) return null;
@@ -1026,17 +836,13 @@ export default function SignatureSelectionContent({
     return {
       id: String(raw.id),
       name: String(raw?.name || ""),
-      displayText: raw?.displayText ?? raw?.label ?? null,
-      description: raw?.description ?? null,
-      priceDelta: raw?.priceDelta ?? 0,
+      displayText: typeof raw?.displayText === "string" ? raw.displayText : typeof (raw as ApiRecord).label === "string" ? (raw as ApiRecord).label as string : null,
+      description: typeof raw?.description === "string" ? raw.description : null,
+      priceDelta: typeof raw?.priceDelta === "string" || typeof raw?.priceDelta === "number" ? raw.priceDelta : 0,
       sortOrder: toNumber(raw?.sortOrder, 0),
       isActive: raw?.isActive !== false,
-      itemPriceOverrides: Array.isArray(raw?.itemPriceOverrides)
-        ? raw.itemPriceOverrides
-        : [],
-      variationPriceOverrides: Array.isArray(raw?.variationPriceOverrides)
-        ? raw.variationPriceOverrides
-        : [],
+      itemPriceOverrides: normalizeArray<ItemPriceOverride>(raw?.itemPriceOverrides),
+      variationPriceOverrides: normalizeArray<VariationPriceOverride>(raw?.variationPriceOverrides),
       ...extra,
     };
   };
@@ -1044,7 +850,7 @@ export default function SignatureSelectionContent({
   const getAllRawVariationSources = (item?: MenuItem | null) => {
     if (!item) return [];
 
-    const fromVariationPriceOverrides = normalizeArray(
+    const fromVariationPriceOverrides = normalizeArray<VariationPriceOverride>(
       item?.variationPriceOverrides
     )
       .map((override) => ({
@@ -1054,26 +860,26 @@ export default function SignatureSelectionContent({
         pickupPrice: override?.pickupPrice ?? override?.variation?.pickupPrice,
         displayText: override?.displayText ?? override?.variation?.displayText,
         itemPriceOverrides: [
-          ...normalizeArray(override?.variation?.itemPriceOverrides),
+          ...normalizeArray<VariationPriceOverride>(override?.variation?.itemPriceOverrides),
           override,
         ],
         modifierPriceOverrides: [
-          ...normalizeArray(override?.variation?.modifierPriceOverrides),
-          ...normalizeArray(override?.modifierPriceOverrides),
+          ...normalizeArray<VariationPriceOverride>(override?.variation?.modifierPriceOverrides),
+          ...normalizeArray<VariationPriceOverride>(override?.modifierPriceOverrides),
         ],
       }))
       .filter((variation) => variation?.id);
 
-    const fromCategoryVariationLinks = normalizeArray(
+    const fromCategoryVariationLinks = normalizeArray<{ variation?: MenuVariation | null }>(
       item?.category?.variationLinks
     )
       .map((link) => link?.variation)
       .filter(Boolean);
 
     return [
-      ...normalizeArray(item?.variations),
+      ...normalizeArray<MenuVariation>(item?.variations),
       ...fromVariationPriceOverrides,
-      ...normalizeArray(item?.category?.variations),
+      ...normalizeArray<MenuVariation>(item?.category?.variations),
       ...fromCategoryVariationLinks,
     ];
   };
@@ -1097,13 +903,13 @@ export default function SignatureSelectionContent({
     return sortBySortOrder(Array.from(deduped.values()));
   };
 
-  const getNormalizedModifiersFromGroup = (group: any): Modifier[] => {
+  const getNormalizedModifiersFromGroup = (group: ModifierGroup | ApiRecord | null | undefined): Modifier[] => {
     const directModifiers = Array.isArray(group?.modifiers)
       ? group.modifiers
       : [];
 
     const fromModifierLinks = Array.isArray(group?.modifierLinks)
-      ? group.modifierLinks.map((link: any) => link?.modifier).filter(Boolean)
+      ? group.modifierLinks.map((link: RawModifierLink) => link?.modifier).filter(Boolean)
       : [];
 
     const rawModifiers = [...directModifiers, ...fromModifierLinks];
@@ -1121,16 +927,16 @@ export default function SignatureSelectionContent({
     return sortBySortOrder(Array.from(deduped.values()));
   };
 
-  const normalizeGroup = (group: any): ModifierGroup | null => {
+  const normalizeGroup = (group: ModifierGroup | ApiRecord | null | undefined): ModifierGroup | null => {
     if (!group?.id) return null;
     if (group?.isActive === false) return null;
 
     return {
       id: String(group.id),
       name: String(group?.name || ""),
-      description: group?.description || "",
-      minSelect: group?.minSelect,
-      maxSelect: group?.maxSelect,
+      description: typeof group?.description === "string" ? group.description : "",
+      minSelect: typeof group?.minSelect === "number" ? group.minSelect : undefined,
+      maxSelect: typeof group?.maxSelect === "number" ? group.maxSelect : undefined,
       isRequired: Boolean(group?.isRequired),
       sortOrder: toNumber(group?.sortOrder, 0),
       isActive: group?.isActive !== false,
@@ -1145,11 +951,12 @@ export default function SignatureSelectionContent({
     item: MenuItem,
     linkedModifierIds: Set<string>
   ) => {
-    const modifiersFromOverrides = normalizeArray(item?.modifierPriceOverrides)
+    const modifiersFromOverrides = normalizeArray<VariationPriceOverride>(item?.modifierPriceOverrides)
       .map((override) => {
-        const rawModifier = override?.modifier || {
-          id: override?.modifierId,
-          name: override?.name || "Modifier",
+        const overrideRecord = override as ApiRecord;
+        const rawModifier: Modifier = override?.modifier || {
+          id: String(override?.modifierId ?? ""),
+          name: String(overrideRecord.name ?? "Modifier"),
           priceDelta: override?.priceDelta ?? 0,
         };
 
@@ -1178,7 +985,7 @@ export default function SignatureSelectionContent({
       })
       .filter(Boolean) as Modifier[];
 
-    const directModifiers = normalizeArray(item?.modifiers)
+    const directModifiers = normalizeArray<Modifier>(item?.modifiers)
       .map((modifier) => normalizeModifier(modifier))
       .filter(Boolean) as Modifier[];
 
@@ -1194,12 +1001,12 @@ export default function SignatureSelectionContent({
         ...(existing || {}),
         ...modifier,
         itemPriceOverrides: [
-          ...normalizeArray(existing?.itemPriceOverrides),
-          ...normalizeArray(modifier?.itemPriceOverrides),
+          ...normalizeArray<ItemPriceOverride>(existing?.itemPriceOverrides),
+          ...normalizeArray<ItemPriceOverride>(modifier?.itemPriceOverrides),
         ],
         variationPriceOverrides: [
-          ...normalizeArray(existing?.variationPriceOverrides),
-          ...normalizeArray(modifier?.variationPriceOverrides),
+          ...normalizeArray<VariationPriceOverride>(existing?.variationPriceOverrides),
+          ...normalizeArray<VariationPriceOverride>(modifier?.variationPriceOverrides),
         ],
       });
     });
@@ -1213,8 +1020,9 @@ export default function SignatureSelectionContent({
     const normalizedFromItemModifierLinks: ModifierLink[] = (
       Array.isArray(item?.modifierLinks) ? item.modifierLinks : []
     )
-      .map((link: any, index: number) => {
-        const normalizedGroup = normalizeGroup(link?.modifierGroup);
+      .map((link: ModifierLink | ApiRecord, index: number) => {
+        const linkGroup = "modifierGroup" in link ? link.modifierGroup : undefined;
+        const normalizedGroup = normalizeGroup(linkGroup as ModifierGroup | ApiRecord | undefined);
         if (!normalizedGroup) return null;
 
         return {
@@ -1234,8 +1042,9 @@ export default function SignatureSelectionContent({
         ? item.category.modifierLinks
         : []
     )
-      .map((link: any, index: number) => {
-        const normalizedGroup = normalizeGroup(link?.modifierGroup);
+      .map((link: ModifierLink | ApiRecord, index: number) => {
+        const linkGroup = "modifierGroup" in link ? link.modifierGroup : undefined;
+        const normalizedGroup = normalizeGroup(linkGroup as ModifierGroup | ApiRecord | undefined);
         if (!normalizedGroup) return null;
 
         return {
@@ -1253,11 +1062,12 @@ export default function SignatureSelectionContent({
       .filter(Boolean) as ModifierLink[];
 
     const normalizedFromModifierGroups: ModifierLink[] = [
-      ...normalizeArray(item?.modifierGroups),
-      ...normalizeArray(item?.category?.modifierGroups),
+      ...normalizeArray<ModifierGroup | ApiRecord>(item?.modifierGroups),
+      ...normalizeArray<ModifierGroup | ApiRecord>(item?.category?.modifierGroups),
     ]
-      .map((group: any, index: number) => {
-        const normalizedGroup = normalizeGroup(group?.modifierGroup || group);
+      .map((group: ModifierGroup | ApiRecord, index: number) => {
+        const groupRecord = group as ModifierGroup | ApiRecord;
+        const normalizedGroup = normalizeGroup((("modifierGroup" in groupRecord ? groupRecord.modifierGroup : undefined) || group) as ModifierGroup | ApiRecord);
         if (!normalizedGroup) return null;
 
         return {
@@ -1270,11 +1080,12 @@ export default function SignatureSelectionContent({
       .filter(Boolean) as ModifierLink[];
 
     const normalizedFromCategoryModifierGroups: ModifierLink[] = [
-      ...normalizeArray(item?.categoryModifierGroups),
-      ...normalizeArray(item?.category?.categoryModifierGroups),
+      ...normalizeArray<ModifierGroup | ApiRecord>(item?.categoryModifierGroups),
+      ...normalizeArray<ModifierGroup | ApiRecord>(item?.category?.categoryModifierGroups),
     ]
-      .map((group: any, index: number) => {
-        const normalizedGroup = normalizeGroup(group?.modifierGroup || group);
+      .map((group: ModifierGroup | ApiRecord, index: number) => {
+        const groupRecord = group as ModifierGroup | ApiRecord;
+        const normalizedGroup = normalizeGroup((("modifierGroup" in groupRecord ? groupRecord.modifierGroup : undefined) || group) as ModifierGroup | ApiRecord);
         if (!normalizedGroup) return null;
 
         return {
@@ -1307,7 +1118,7 @@ export default function SignatureSelectionContent({
     const linkedModifierIds = new Set<string>();
 
     Array.from(deduped.values()).forEach((link) => {
-      normalizeArray(link?.modifierGroup?.modifiers).forEach((modifier) => {
+      normalizeArray<Modifier>(link?.modifierGroup?.modifiers).forEach((modifier) => {
         if (modifier?.id) linkedModifierIds.add(String(modifier.id));
       });
     });
@@ -1787,12 +1598,13 @@ export default function SignatureSelectionContent({
       queryParams.set("search", resolvedSearch);
     }
 
-    const res: any = await get(`/v1/menu/items?${queryParams.toString()}`);
-    const data = normalizeApiList(res);
+    const res = await get(`/v1/menu/items?${queryParams.toString()}`);
+    const data = normalizeApiList<MenuItem>(res);
+    const meta = normalizeApiMeta(res);
 
     return {
       data,
-      meta: res?.data?.meta || res?.meta,
+      meta,
     };
   };
 
@@ -1823,7 +1635,7 @@ export default function SignatureSelectionContent({
     }
   };
 
-  const handleSplitPizzaItemChange = (item: any) => {
+  const handleSplitPizzaItemChange = (item: MenuItem | null) => {
     setSplitPizzaItem(item || null);
     setSplitPizzaVariation(item ? getDefaultVariation(item) : null);
     setSplitPizzaModifiers({});
@@ -1873,10 +1685,10 @@ export default function SignatureSelectionContent({
             ]
           : undefined;
 
-      const payload: any = {
+      const payload: CartPayload = {
         menuItemId: item.id,
         quantity,
-        variationId: variation?.id || null,
+        variationId: variation?.id ?? null,
         branchId,
         note: note.trim() || "",
         modifiers: buildModifiersPayload(safeModifiersMap),
@@ -1951,7 +1763,7 @@ export default function SignatureSelectionContent({
   };
 
   const hasInfoContent = (item?: MenuItem | null) => {
-    return hasProductInfoContent(item);
+    return hasProductInfoContent(item ?? null);
   };
 
   const startDragging = (pageX: number) => {
@@ -2130,7 +1942,7 @@ export default function SignatureSelectionContent({
 
                   <span className="min-w-0">
                     <span className="block truncate font-medium text-gray-900">
-                      {(modifier as any).displayText || modifier.name}
+                      {modifier.displayText || modifier.name}
                     </span>
 
                     {modifier.description ? (
