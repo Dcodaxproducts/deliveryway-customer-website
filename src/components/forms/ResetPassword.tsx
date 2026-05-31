@@ -1,21 +1,32 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { getAuthErrorMessage } from "@/lib/auth";
 import { resendResetOtp, resetPassword } from "@/services/auth";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "../ui/input";
+import {
+  resetPasswordSchema,
+  type ResetPasswordFormValues,
+} from "@/validations/auth";
 
 const ResetPassword = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [restaurantId, setRestaurantId] = useState("");
+  const form = useForm<ResetPasswordFormValues>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: {
+      email: "",
+      otp: "",
+      newPassword: "",
+      restaurantId: "",
+    },
+  });
 
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
@@ -27,9 +38,9 @@ const ResetPassword = () => {
     const emailFromUrl = searchParams.get("email");
     const restaurantIdFromUrl = searchParams.get("restaurantId");
 
-    if (emailFromUrl) setEmail(emailFromUrl);
-    if (restaurantIdFromUrl) setRestaurantId(restaurantIdFromUrl);
-  }, [searchParams]);
+    if (emailFromUrl) form.setValue("email", emailFromUrl);
+    if (restaurantIdFromUrl) form.setValue("restaurantId", restaurantIdFromUrl);
+  }, [form, searchParams]);
 
   /* ================= COUNTDOWN TIMER ================= */
 
@@ -46,6 +57,9 @@ const ResetPassword = () => {
   /* ================= RESEND OTP ================= */
 
   const handleResendOtp = async () => {
+    const email = form.getValues("email");
+    const restaurantId = form.getValues("restaurantId");
+
     if (!email || !restaurantId) {
       toast.error("Missing email or restaurant id");
       return;
@@ -71,37 +85,15 @@ const ResetPassword = () => {
 
   /* ================= RESET PASSWORD ================= */
 
-  const handleResetPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!email) {
-      toast.error("Please enter your email");
-      return;
-    }
-
-    if (!otp) {
-      toast.error("Please enter the OTP");
-      return;
-    }
-
-    if (!newPassword) {
-      toast.error("Please enter a new password");
-      return;
-    }
-
-    if (!restaurantId) {
-      toast.error("Invalid or missing restaurantId");
-      return;
-    }
-
+  const handleResetPassword = async (values: ResetPasswordFormValues) => {
     try {
       setIsLoading(true);
 
       await resetPassword({
-        email,
-        otp,
-        newPassword,
-        restaurantId,
+        email: values.email,
+        otp: values.otp,
+        newPassword: values.newPassword,
+        restaurantId: values.restaurantId,
       });
 
       toast.success("Password reset successfully!");
@@ -131,26 +123,27 @@ const ResetPassword = () => {
 
       {/* Form */}
       <form
-        onSubmit={handleResetPassword}
+        onSubmit={form.handleSubmit(handleResetPassword)}
         className="space-y-[16px] mt-[35px] mb-[19px]"
+        noValidate
       >
 
         {/* Email */}
         <Input
+          id="email"
           type="email"
           placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
           required
+          {...form.register("email")}
         />
 
         {/* OTP */}
         <Input
+          id="otp"
           type="text"
           placeholder="Enter OTP"
-          value={otp}
-          onChange={(e) => setOtp(e.target.value)}
           required
+          {...form.register("otp")}
         />
 
         {/* RESEND OTP */}
@@ -175,20 +168,20 @@ const ResetPassword = () => {
 
         {/* New Password */}
         <Input
+          id="newPassword"
           type="password"
           placeholder="Enter new password"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
           required
+          {...form.register("newPassword")}
         />
 
         {/* Restaurant ID */}
         <Input
+          id="restaurantId"
           type="text"
           placeholder="Restaurant ID"
-          value={restaurantId}
-          onChange={(e) => setRestaurantId(e.target.value)}
           required
+          {...form.register("restaurantId")}
         />
 
         {/* Submit */}

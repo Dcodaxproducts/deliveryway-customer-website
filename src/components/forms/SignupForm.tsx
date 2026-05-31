@@ -1,18 +1,24 @@
 "use client"
 
-import type React from "react"
-import { toast } from "sonner"
-import { useState } from "react"
+import { zodResolver } from "@hookform/resolvers/zod"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Checkbox } from "@/components/ui/checkbox"
-import { FcGoogle } from "react-icons/fc"
-import { FaFacebook } from "react-icons/fa"
-import { roboto } from "@/lib/fonts"
 import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { FaFacebook } from "react-icons/fa"
+import { FcGoogle } from "react-icons/fc"
+import { toast } from "sonner"
+
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Input } from "@/components/ui/input"
 import { getAuthErrorMessage } from "@/lib/auth"
+import { roboto } from "@/lib/fonts"
 import { signupCustomer, verifySignupOtp } from "@/services/auth"
+import {
+  signupSchema,
+  type SignupFormValues,
+} from "@/validations/auth"
 
 export default function SignUpForm() {
   const router = useRouter()
@@ -23,52 +29,34 @@ export default function SignUpForm() {
   const [otp, setOtp] = useState("")
   const [showOtpField, setShowOtpField] = useState(false)
 
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    password: "",
-    confirmPassword: "",
-    restaurantId: "",
-    tenantId: "",
-    acceptTerms: false,
+  const form = useForm<SignupFormValues>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      password: "",
+      confirmPassword: "",
+      restaurantId: "",
+      tenantId: "",
+      acceptTerms: false,
+    },
   })
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }))
-  }
 
   /* ================= REGISTER ================= */
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (formData.password !== formData.confirmPassword) {
-      toast.error("Passwords do not match")
-      return
-    }
-
-    if (!formData.acceptTerms) {
-      toast.error("Please accept the terms and privacy policy")
-      return
-    }
-
+  const handleSubmit = async (values: SignupFormValues) => {
     try {
       setIsLoading(true)
 
       const data = await signupCustomer({
-        email: formData.email,
-        password: formData.password,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        phone: formData.phone,
-        restaurantId: formData.restaurantId,
+        email: values.email,
+        password: values.password,
+        firstName: values.firstName,
+        lastName: values.lastName,
+        phone: values.phone,
+        restaurantId: values.restaurantId,
       })
 
       const token = data.accessToken
@@ -156,6 +144,7 @@ export default function SignUpForm() {
         <form onSubmit={handleVerifyOtp} className="space-y-6 my-6">
 
           <Input
+            id="otp"
             type="text"
             placeholder="Enter OTP"
             value={otp}
@@ -176,80 +165,73 @@ export default function SignUpForm() {
 
       /* ================= SIGNUP VIEW ================= */
 
-      <form onSubmit={handleSubmit} className="space-y-4 my-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 my-6" noValidate>
 
         {/* Name Row */}
         <div className="grid grid-cols-2 gap-4">
           <Input
-            name="firstName"
+            id="firstName"
             placeholder="First name"
-            value={formData.firstName}
-            onChange={handleChange}
             required
+            {...form.register("firstName")}
           />
           <Input
-            name="lastName"
+            id="lastName"
             placeholder="Last name"
-            value={formData.lastName}
-            onChange={handleChange}
             required
+            {...form.register("lastName")}
           />
         </div>
 
         {/* Email */}
         <Input
-          name="email"
+          id="email"
           type="email"
           placeholder="Email"
-          value={formData.email}
-          onChange={handleChange}
           required
+          {...form.register("email")}
         />
 
         {/* Phone */}
         <Input
-          name="phone"
+          id="phone"
           placeholder="Phone"
-          value={formData.phone}
-          onChange={handleChange}
+          {...form.register("phone")}
         />
 
         {/* Restaurant */}
         <Input
-          name="restaurantId"
+          id="restaurantId"
           placeholder="Restaurant ID"
-          value={formData.restaurantId}
-          onChange={handleChange}
           required
+          {...form.register("restaurantId")}
         />
 
         {/* Password */}
         <Input
-          name="password"
+          id="password"
           type="password"
           placeholder="Password"
-          value={formData.password}
-          onChange={handleChange}
           required
+          {...form.register("password")}
         />
 
         {/* Confirm Password */}
         <Input
-          name="confirmPassword"
+          id="confirmPassword"
           type="password"
           placeholder="Confirm Password"
-          value={formData.confirmPassword}
-          onChange={handleChange}
           required
+          {...form.register("confirmPassword")}
         />
 
         {/* Terms */}
         <div className="flex items-center gap-2 py-[9.5px]">
           <Checkbox
-            checked={formData.acceptTerms}
+            checked={form.watch("acceptTerms")}
             className="border-gray-400 border-2 rounded-none"
             onCheckedChange={(checked) =>
-              setFormData((prev) => ({ ...prev, acceptTerms: checked as boolean }))
+              form.setValue("acceptTerms", checked === true, { shouldValidate: true })
             }
           />
           <label className="text-sm text-gray-500">

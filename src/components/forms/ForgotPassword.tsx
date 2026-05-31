@@ -1,32 +1,38 @@
 "use client";
 
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { getSafeRedirectPath } from "@/lib/auth-routes";
 import { getAuthErrorMessage } from "@/lib/auth";
 import { forgotPassword } from "@/services/auth";
-import { Input } from "@/components/ui/input";
+import {
+  forgotPasswordSchema,
+  type ForgotPasswordFormValues,
+} from "@/validations/auth";
 
 const ForgotPassword = () => {
-  const [email, setEmail] = useState("");
-  const [restaurantId, setRestaurantId] = useState("");
+  const router = useRouter();
+  const form = useForm<ForgotPasswordFormValues>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: {
+      email: "",
+      restaurantId: "",
+    },
+  });
 const [isLoading, setIsLoading] = useState(false);
 const [resetUrl, setResetUrl] = useState("");
 // ✅ Forgot Password Function
-const handleForgotPassword = async (e: React.FormEvent) => {
-     e.preventDefault()
-  if (!email) {
-    toast.error("Please enter your email");
-    return;
-  }
-
+const handleForgotPassword = async (values: ForgotPasswordFormValues) => {
   try {
     setIsLoading(true);
 
-    await forgotPassword({ email , restaurantId});
+    await forgotPassword({ email: values.email , restaurantId: values.restaurantId});
 
 // const resetToken = data?.data?.resetToken;
 
@@ -43,9 +49,9 @@ const handleForgotPassword = async (e: React.FormEvent) => {
 
 toast.success("If the account exists, you can now reset your password");
 
-window.location.href = `/auth/reset-password?email=${encodeURIComponent(
-  email
-)}&restaurantId=${restaurantId}`;
+router.push(getSafeRedirectPath(`/auth/reset-password?email=${encodeURIComponent(
+  values.email
+)}&restaurantId=${values.restaurantId}`));
 
   } catch (error) {
     toast.error(getAuthErrorMessage(error));
@@ -62,17 +68,15 @@ window.location.href = `/auth/reset-password?email=${encodeURIComponent(
             </div>
 
             {/* Form */}
-            <form onSubmit={handleForgotPassword} className="space-y-[16px] mt-[35px] mb-[19px]">
+            <form onSubmit={form.handleSubmit(handleForgotPassword)} className="space-y-[16px] mt-[35px] mb-[19px]" noValidate>
                 {/* Email */}
                 <div className="relative">
                     <Input
                         id="email"
-                        name="email"
                         type="email"
                         placeholder="Email"
-                        value={email}
-                        onChange={(e)=>setEmail(e.target.value)}
                         required
+                        {...form.register("email")}
                     />
                 </div>
 
@@ -80,13 +84,10 @@ window.location.href = `/auth/reset-password?email=${encodeURIComponent(
                 <div className="relative">
                     <Input
                         id="restaurantId"
-                        name="restaurantId"
                         type="text"
                         placeholder="restaurantId"
-                        value={restaurantId}
-                           onChange={(e)=>setRestaurantId(e.target.value)}
-                     
                         required
+                        {...form.register("restaurantId")}
                     />
                 </div>
 

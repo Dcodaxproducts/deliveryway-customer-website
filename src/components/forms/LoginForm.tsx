@@ -1,19 +1,27 @@
 "use client"
 
-import type React from "react"
-import { useState } from "react"
+import { zodResolver } from "@hookform/resolvers/zod"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { FaFacebook } from "react-icons/fa"
+import { FcGoogle } from "react-icons/fc"
+import { toast } from "sonner"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { FcGoogle } from "react-icons/fc"
-import { FaFacebook } from "react-icons/fa"
-import { roboto } from "@/lib/fonts"
-import { toast } from "sonner"
 import { Checkbox } from "../ui/checkbox"
-import { getAuthErrorMessage } from "@/lib/auth"
-import { guestLoginCustomer, loginCustomer } from "@/services/auth"
 import { useAuthContext } from "@/context/AuthContext"
+import { getAuthErrorMessage } from "@/lib/auth"
+import { roboto } from "@/lib/fonts"
+import { guestLoginCustomer, loginCustomer } from "@/services/auth"
+import {
+  guestLoginSchema,
+  loginSchema,
+  type GuestLoginFormValues,
+  type LoginFormValues,
+} from "@/validations/auth"
 
 export default function LoginForm() {
   const router = useRouter()
@@ -22,53 +30,36 @@ export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [isGuestMode, setIsGuestMode] = useState(false)
 
-  // Normal Login State
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    restaurantId: "",
+  const loginForm = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      restaurantId: "",
+    },
   })
 
-  // Guest State
-  const [guestData, setGuestData] = useState({
-    firstName: "",
-    lastName: "",
-    phone: "",
-    restaurantId: "",
+  const guestForm = useForm<GuestLoginFormValues>({
+    resolver: zodResolver(guestLoginSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      phone: "",
+      restaurantId: "",
+    },
   })
+
 const getGroupOrderCode = () => {
   if (typeof window === "undefined") return null;
   return browserStorage.getItem("groupOrderCode");
 };
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-
-    if (isGuestMode) {
-      setGuestData((prev) => ({
-        ...prev,
-        [name]: value,
-      }))
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }))
-    }
-  }
 
   // ================= NORMAL LOGIN =================
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!formData.email || !formData.password || !formData.restaurantId) {
-      toast.error("Please fill all fields")
-      return
-    }
-
+  const onSubmit = async (values: LoginFormValues) => {
     try {
       setIsLoading(true)
 
-      const data = await loginCustomer(formData)
+      const data = await loginCustomer(values)
 
       login(data)
 
@@ -90,21 +81,11 @@ setTimeout(() => {
   }
 
   // ================= GUEST LOGIN =================
-  const handleGuestLogin = async () => {
-    if (
-      !guestData.firstName ||
-      !guestData.lastName ||
-      !guestData.phone ||
-      !guestData.restaurantId
-    ) {
-      toast.error("Please fill all guest fields")
-      return
-    }
-
+  const onGuestSubmit = async (values: GuestLoginFormValues) => {
     try {
       setIsLoading(true)
 
-      const data = await guestLoginCustomer(guestData)
+      const data = await guestLoginCustomer(values)
 
       login(data)
 
@@ -142,39 +123,35 @@ setTimeout(() => {
 
       {/* FORM */}
       <form
-        onSubmit={handleSubmit}
+        onSubmit={isGuestMode ? guestForm.handleSubmit(onGuestSubmit) : loginForm.handleSubmit(onSubmit)}
         className="space-y-[16px] mt-[35px] mb-[19px]"
+        noValidate
       >
         {isGuestMode ? (
           <>
             <Input
-              name="firstName"
+              id="guestFirstName"
               placeholder="First Name"
-              value={guestData.firstName}
-              onChange={handleChange}
+              {...guestForm.register("firstName")}
             />
             <Input
-              name="lastName"
+              id="guestLastName"
               placeholder="Last Name"
-              value={guestData.lastName}
-              onChange={handleChange}
+              {...guestForm.register("lastName")}
             />
             <Input
-              name="phone"
+              id="guestPhone"
               placeholder="Phone"
-              value={guestData.phone}
-              onChange={handleChange}
+              {...guestForm.register("phone")}
             />
             <Input
-              name="restaurantId"
+              id="guestRestaurantId"
               placeholder="Restaurant Id"
-              value={guestData.restaurantId}
-              onChange={handleChange}
+              {...guestForm.register("restaurantId")}
             />
 
             <Button
-              type="button"
-              onClick={handleGuestLogin}
+              type="submit"
               disabled={isLoading}
               className="w-full h-[50px] text-lg font-semibold bg-primary text-white"
             >
@@ -184,24 +161,21 @@ setTimeout(() => {
         ) : (
           <>
             <Input
-              name="email"
+              id="email"
               type="email"
               placeholder="Email"
-              value={formData.email}
-              onChange={handleChange}
+              {...loginForm.register("email")}
             />
             <Input
-              name="password"
+              id="password"
               type="password"
               placeholder="Password"
-              value={formData.password}
-              onChange={handleChange}
+              {...loginForm.register("password")}
             />
             <Input
-              name="restaurantId"
+              id="restaurantId"
               placeholder="Restaurant Id"
-              value={formData.restaurantId}
-              onChange={handleChange}
+              {...loginForm.register("restaurantId")}
             />
 
             <div className="flex items-center justify-between text-sm my-7">
