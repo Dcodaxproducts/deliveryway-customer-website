@@ -119,6 +119,7 @@ function CheckoutPageContent() {
       timestamp: typeof meta?.timestamp === "string" ? meta.timestamp : undefined,
     });
 
+    toast.error(message);
   };
 
   const clearBackendError = () => {
