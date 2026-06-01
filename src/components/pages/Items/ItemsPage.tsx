@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
 import RestaurantHeader from "@/components/pages/Items/components/RestaurantHeader";
-import ItemsLayout from "@/components/pages/Items/components/ItemsLayout";
+import { ItemsLayout } from "@/components/pages/Items/components/ItemsLayout";
 import useGroupOrder, { useGroupOrderApi } from "@/hooks/useGroupOrder";
 import { useAuth } from "@/hooks/useAuth";
 import { clearStoredGroupOrderCode, getStoredGroupOrderCode, setStoredGroupOrderCode } from "@/lib/group-order";

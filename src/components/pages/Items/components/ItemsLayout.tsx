@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import CategorySidebar from "./CategorySidebar";
-import ItemsListing from "./Items";
+import { ItemsListing } from "./Items";
 import useItems from "@/hooks/useItems";
 import { useAuth } from "@/hooks/useAuth";
 import { getStoredRestaurantId } from "@/lib/auth";
@@ -18,7 +18,7 @@ type ItemsLayoutProps = {
   categoryId?: string;
 };
 
-export default function ItemsLayout({ categoryId }: ItemsLayoutProps) {
+export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
   const { token, restaurantId: authRestaurantId, user } = useAuth();
   const { fetchMenuCategoriesPage } = useItems(token);
 

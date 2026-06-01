@@ -23,6 +23,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import AsyncSelect from "@/components/ui/AsyncSelect";
 import type { ApiRecord, CartPayload, ItemPriceOverride, MenuItem, MenuRecord, MenuVariation, Modifier, ModifierGroup, ModifierLink, ProductCardData, RawModifierLink, SelectedModifier, SelectedModifiersMap, SplitPizzaSelection, VariationPriceOverride } from "./types";
 import { normalizeArray, sortBySortOrder, toNumber } from "./signature-selection-utils";
+import { getSplitPizzaPricingVariation } from "@/components/pages/Items/utils/restaurant-card-utils";
 
 type SignatureSelectionContentProps = {
   restaurantId?: string | null;
@@ -459,7 +460,7 @@ const isBranchCartConflictResponse = (res: ApiRecord | null | undefined) => {
 };
 
 
-export default function SignatureSelectionContent({
+export function SignatureSelectionContent({
   restaurantId,
   customerId,
   branchId,
@@ -1587,10 +1588,12 @@ export default function SignatureSelectionContent({
               {
                 slot: "LEFT",
                 menuItemId: item.id,
+                variationId: variation?.id ?? null,
               },
               {
                 slot: "RIGHT",
                 menuItemId: splitPizzaItem.id,
+                variationId: splitPizzaPricingVariation?.id ?? null,
               },
             ]
           : undefined;
@@ -1875,13 +1878,21 @@ export default function SignatureSelectionContent({
     );
   };
 
+  const splitPizzaPricingVariation = splitPizzaItem
+    ? getSplitPizzaPricingVariation({
+        variations: getItemVariations(splitPizzaItem),
+        selectedVariation,
+        fallbackVariation: splitPizzaVariation || getDefaultVariation(splitPizzaItem),
+      })
+    : null;
+
   const totalModalPrice = selectedItem
     ? getCalculatedPrice(
         selectedItem,
         selectedVariation,
         selectedModifiers,
         splitPizzaEnabled ? splitPizzaItem : null,
-        splitPizzaVariation
+        splitPizzaPricingVariation
       ) * qty
     : 0;
 
@@ -2431,15 +2442,13 @@ export default function SignatureSelectionContent({
 
                             {getMenuItemResolvedPrice(
                               splitPizzaItem,
-                              splitPizzaVariation ||
-                                getDefaultVariation(splitPizzaItem)
+                              splitPizzaPricingVariation
                             ) > 0 ? (
                               <span className="shrink-0 font-medium text-primary">
                                 $
                                 {getMenuItemResolvedPrice(
                                   splitPizzaItem,
-                                  splitPizzaVariation ||
-                                    getDefaultVariation(splitPizzaItem)
+                                  splitPizzaPricingVariation
                                 ).toFixed(2)}
                               </span>
                             ) : null}

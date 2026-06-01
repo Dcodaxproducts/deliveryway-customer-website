@@ -35,6 +35,61 @@ export const hasText = (value: unknown) => {
 
 export const formatPrice = (value: unknown) => toNumber(value, 0).toFixed(2);
 
+type VariationOption = {
+  id?: string | number | null;
+  name?: string | null;
+  displayText?: string | null;
+};
+
+const normalizeVariationText = (value: unknown) =>
+  String(value ?? "")
+    .trim()
+    .toLowerCase();
+
+const variationMatches = (
+  candidate: VariationOption,
+  reference: VariationOption
+) => {
+  const candidateId = String(candidate?.id ?? "");
+  const referenceId = String(reference?.id ?? "");
+
+  if (candidateId && referenceId && candidateId === referenceId) {
+    return true;
+  }
+
+  const candidateLabels = [
+    normalizeVariationText(candidate?.displayText),
+    normalizeVariationText(candidate?.name),
+  ].filter(Boolean);
+
+  const referenceLabels = [
+    normalizeVariationText(reference?.displayText),
+    normalizeVariationText(reference?.name),
+  ].filter(Boolean);
+
+  return candidateLabels.some((label) => referenceLabels.includes(label));
+};
+
+export const getSplitPizzaPricingVariation = <TVariation extends VariationOption>({
+  variations,
+  selectedVariation,
+  fallbackVariation,
+}: {
+  variations: TVariation[];
+  selectedVariation?: VariationOption | null;
+  fallbackVariation?: TVariation | null;
+}) => {
+  if (!selectedVariation) {
+    return fallbackVariation ?? null;
+  }
+
+  return (
+    variations.find((variation) => variationMatches(variation, selectedVariation)) ??
+    fallbackVariation ??
+    null
+  );
+};
+
 export const getImageUrl = (category: ItemsCategory | null | undefined, restaurant: RestaurantInfo | null | undefined) => {
   const candidates = [
     category?.imageUrl,

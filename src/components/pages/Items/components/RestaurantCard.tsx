@@ -13,7 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { getStoredGroupOrderCode } from "@/lib/group-order";
 import AsyncSelect from "@/components/ui/AsyncSelect";
 import type { ApiRecord, CartPayload, ItemPriceOverride, MenuItem, MenuVariation, Modifier, ModifierGroup, ModifierLink, SelectedModifiersMap, PromotionInfo, PromotionPricing, RawModifierLink, SelectedModifier, VariationPriceOverride } from "@/components/pages/Items/types";
-import { hasText, formatPrice, toNumber } from "@/components/pages/Items/utils/restaurant-card-utils";
+import { hasText, formatPrice, getSplitPizzaPricingVariation, toNumber } from "@/components/pages/Items/utils/restaurant-card-utils";
 
 
 const getApiResponseMessage = (res: ApiRecord | null | undefined) => {
@@ -510,7 +510,7 @@ function ProductInfoContent({ item }: { item: MenuItem | null }) {
   );
 }
 
-export default function RestaurantCard({ item }: { item: MenuItem }) {
+export function RestaurantCard({ item }: { item: MenuItem }) {
   const router = useRouter();
   const { token } = useAuthContext();
   const { fetchSplitPizzaMenuItems } = useItems(token);
@@ -1037,9 +1037,14 @@ export default function RestaurantCard({ item }: { item: MenuItem }) {
     return `Min ${minQuantity}`;
   }, [itemQuantityRules]);
 
-  const splitPizzaDefaultVariation = useMemo(
-    () => getDefaultVariation(splitPizzaItem),
-    [splitPizzaItem],
+  const splitPizzaPricingVariation = useMemo(
+    () =>
+      getSplitPizzaPricingVariation({
+        variations: getItemVariations(splitPizzaItem),
+        selectedVariation,
+        fallbackVariation: getDefaultVariation(splitPizzaItem),
+      }),
+    [getDefaultVariation, getItemVariations, selectedVariation, splitPizzaItem],
   );
 
   const hasOptions =
@@ -1228,13 +1233,13 @@ export default function RestaurantCard({ item }: { item: MenuItem }) {
 
   const splitPizzaResolvedItemPrice = getMenuItemResolvedPrice(
     splitPizzaItem,
-    splitPizzaDefaultVariation,
+    splitPizzaPricingVariation,
   );
 
   const splitPizzaPromotionPricing = getPromotionPricing({
     source: getPromotionSourceForPrice(
       splitPizzaItem,
-      splitPizzaDefaultVariation,
+      splitPizzaPricingVariation,
     ),
     originalPrice: splitPizzaResolvedItemPrice,
   });
@@ -1452,10 +1457,12 @@ export default function RestaurantCard({ item }: { item: MenuItem }) {
               {
                 slot: "LEFT",
                 menuItemId: item.id,
+                variationId: selectedVariation?.id || null,
               },
               {
                 slot: "RIGHT",
                 menuItemId: splitPizzaItem.id,
+                variationId: splitPizzaPricingVariation?.id || null,
               },
             ]
           : undefined;

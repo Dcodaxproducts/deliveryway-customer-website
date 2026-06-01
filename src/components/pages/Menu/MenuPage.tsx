@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useCallback, useState } from "react";
-import SignatureSelectionContent from "@/components/pages/Items/components/signature-selection/SignatureSelectionContent";
+import { SignatureSelectionContent } from "@/components/pages/Items/components/signature-selection/SignatureSelectionContent";
 import OrderCartSidebar from "@/components/pages/Items/components/signature-selection/OrderCartSidebar";
 import { useAuth } from "@/hooks/useAuth";
 

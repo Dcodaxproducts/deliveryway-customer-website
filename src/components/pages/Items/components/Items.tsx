@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import RestaurantCard from "./RestaurantCard";
+import { RestaurantCard } from "./RestaurantCard";
 import useItems from "@/hooks/useItems";
 import { useAuth } from "@/hooks/useAuth";
 import { getStoredRestaurantId } from "@/lib/auth";
@@ -44,7 +44,7 @@ const createEmptyCategoryState = (): CategoryItemsState => ({
   loadedOnce: false,
 });
 
-export default function ItemsListing({
+export function ItemsListing({
   categoryId,
   categories = [],
   viewMode = "multiple",

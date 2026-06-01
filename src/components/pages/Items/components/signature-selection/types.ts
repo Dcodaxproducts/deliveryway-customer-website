@@ -192,7 +192,7 @@ export type CartPayload = {
   note?: string;
   branchId?: string | null;
   variationId?: string | null;
-  sections?: Array<{ slot: string; menuItemId: string }>;
+  sections?: Array<{ slot: string; menuItemId: string; variationId?: string | number | null }>;
   splitPizza?: unknown;
 };
 
