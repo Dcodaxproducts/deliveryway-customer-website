@@ -1518,7 +1518,9 @@ export default function RestaurantCard({ item }: { item: MenuItem }) {
     }
   }
 
-  const handlePlusClick = () => {
+  const handlePlusClick = (event?: React.MouseEvent<HTMLElement>) => {
+    event?.stopPropagation();
+
     if (loading) return;
 
     const groupCode = getStoredGroupOrderCode();
@@ -1648,8 +1650,7 @@ export default function RestaurantCard({ item }: { item: MenuItem }) {
             <button
               type="button"
               onClick={(event) => {
-                event.stopPropagation();
-                handlePlusClick();
+                handlePlusClick(event);
               }}
               disabled={loading}
               className="absolute bottom-2 right-2 rounded-full bg-primary p-2 text-white shadow-sm transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-70"
