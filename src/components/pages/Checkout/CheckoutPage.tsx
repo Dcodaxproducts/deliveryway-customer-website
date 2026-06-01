@@ -3,10 +3,11 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Tabs from "@/components/pages/Checkout/components/Tabs";
 import DeliverySection from "@/components/pages/Checkout/components/DeliverySection";
-import PickupSection from "@/components/pages/Checkout/components/PickupSection";
+import { PickupSection } from "@/components/pages/Checkout/components/PickupSection";
 import { CartSummarySection } from "@/components/pages/Checkout/components/CartSummarySection";
 import { useRouter, useSearchParams } from "next/navigation";
 import useCheckout from "@/hooks/useCheckout";
+import useReservations from "@/hooks/useReservations";
 import { toast } from "sonner";
 import { useAuthContext } from "@/hooks/useAuth";
 import {
@@ -19,6 +20,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import { useAuth } from "@/hooks/useAuth";
 import type { ApiRecord, BackendErrorState, CartItem } from "@/components/pages/Checkout/utils/checkout-normalizers";
 import { asRecord, getBackendErrorCode, getBackendErrorMessage, getBackendErrorMeta, hasBackendError, normalizeCartItem, normalizeCartResponse, recalculateCartItemQuantity, toNumber } from "@/components/pages/Checkout/utils/checkout-normalizers";
+import type { BranchRecord } from "@/types/branch-selector";
 
 function CheckoutPageContent() {
   const searchParams = useSearchParams();
@@ -31,6 +33,7 @@ function CheckoutPageContent() {
 
   const { user, token } = useAuthContext();
   const { get, patch, del, post } = useCheckout(token);
+  const { fetchReservationBranch } = useReservations(token);
 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cartQuote, setCartQuote] = useState<ApiRecord | null>(null);
@@ -130,6 +133,7 @@ function CheckoutPageContent() {
   const [placingOrder, setPlacingOrder] = useState(false);
   const [pickupDate, setPickupDate] = useState<Date | null>(null);
   const [pickupTime, setPickupTime] = useState<string | null>(null);
+  const [pickupBranch, setPickupBranch] = useState<BranchRecord | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -143,6 +147,29 @@ function CheckoutPageContent() {
       email: user.email || "",
     }));
   }, [user]);
+
+  useEffect(() => {
+    const loadPickupBranch = async () => {
+      if (activeTab !== "pickup") return;
+
+      const branchId = user?.branchId || user?.branch?.id;
+
+      if (!branchId) {
+        setPickupBranch(null);
+        return;
+      }
+
+      try {
+        const { branch } = await fetchReservationBranch({ branchId: String(branchId) });
+
+        setPickupBranch(branch);
+      } catch (error) {
+        setPickupBranch((user?.branch || null) as BranchRecord | null);
+      }
+    };
+
+    void loadPickupBranch();
+  }, [activeTab, fetchReservationBranch, user?.branch, user?.branchId]);
 
   const updateQuantity = async (id: string, type: "inc" | "dec") => {
     const currentItem = cartItems.find((item) => item.id === id);
@@ -326,7 +353,9 @@ function CheckoutPageContent() {
         return new Date().toISOString();
       }
 
-      const [time, modifier] = pickupTime.split(" ");
+      const [time, modifier] = pickupTime.includes(" ")
+        ? pickupTime.split(" ")
+        : [pickupTime, ""];
       let [hours, minutes] = time.split(":").map(Number);
 
       if (modifier === "PM" && hours !== 12) {
@@ -552,6 +581,7 @@ function CheckoutPageContent() {
               setPickupDate={setPickupDate}
               pickupTime={pickupTime}
               setPickupTime={setPickupTime}
+              selectedBranch={pickupBranch}
             />
           )}
         </div>

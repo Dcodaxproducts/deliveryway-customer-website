@@ -1,7 +1,8 @@
 import AddressSection from "@/components/pages/Checkout/components/AddressSection"
-import TimeSection from "@/components/pages/Checkout/components/TimeSection"
+import { SelectPickupTimeSection } from "@/components/pages/Checkout/components/TimeSection"
 import NotesSection from "@/components/pages/Checkout/components/NotesSection"
 import PaymentMethodSection from "@/components/pages/Checkout/components/PaymentMethodSection"
+import type { BranchRecord } from "@/types/branch-selector";
 
 type PickupSectionProps = {
   selectedAddress: string | null;
@@ -14,14 +15,15 @@ type PickupSectionProps = {
   setPickupDate: (value: Date | null) => void;
   pickupTime: string | null;
   setPickupTime: (value: string | null) => void;
+  selectedBranch?: BranchRecord | null;
 };
 
-export default function PickupSection(props: PickupSectionProps) {
+export function PickupSection(props: PickupSectionProps) {
   return (
     <div className="space-y-[38px]">
       <AddressSection {...props} />
       <NotesSection {...props} />
-      <TimeSection {...props} />
+      <SelectPickupTimeSection {...props} />
       <PaymentMethodSection {...props} />
     </div>
   );

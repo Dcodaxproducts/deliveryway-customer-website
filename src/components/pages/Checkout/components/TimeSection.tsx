@@ -1,44 +1,79 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useMemo } from "react";
+import { Clock } from "lucide-react";
+import {
+  buildPickupTimeSlots,
+  formatPickupTimeLabel,
+  getDateFromValue,
+  getDateValue,
+  getPickupScheduleForDate,
+  getTodayDateValue,
+  isPastDateValue,
+} from "@/components/pages/Checkout/utils/pickup-schedule";
+import type { BranchRecord } from "@/types/branch-selector";
 
 interface Props {
   pickupDate: Date | null;
-  setPickupDate: (value: Date) => void;
+  setPickupDate: (value: Date | null) => void;
   pickupTime: string | null;
-  setPickupTime: (value: string) => void;
+  setPickupTime: (value: string | null) => void;
+  selectedBranch?: BranchRecord | null;
 }
 
-export default function SelectPickupTimeSection({
+const buildUpcomingDates = () => {
+  const today = new Date();
+
+  today.setHours(0, 0, 0, 0);
+
+  return Array.from({ length: 14 }, (_, index) => {
+    const date = new Date(today);
+
+    date.setDate(today.getDate() + index);
+
+    return date;
+  });
+};
+
+export function SelectPickupTimeSection({
   pickupDate,
   setPickupDate,
   pickupTime,
   setPickupTime,
+  selectedBranch,
 }: Props) {
-  const timeSlots = [
-    { time: "ASAP", available: true },
-    { time: "7:00 AM", available: true },
-    { time: "8:00 AM", available: false },
-    { time: "9:00 AM", available: false },
-    { time: "10:00 AM", available: false },
-    { time: "11:00 AM", available: false },
-    { time: "12:00 PM", available: false },
-    { time: "1:00 PM", available: true },
-  ];
+  const dateValue = pickupDate ? getDateValue(pickupDate) : "";
+  const dates = useMemo(() => buildUpcomingDates(), []);
+  const timeSlots = useMemo(
+    () => buildPickupTimeSlots({ branch: selectedBranch, dateValue }),
+    [dateValue, selectedBranch]
+  );
+  const scheduleState = useMemo(
+    () => getPickupScheduleForDate({ branch: selectedBranch, dateValue }),
+    [dateValue, selectedBranch]
+  );
 
-  const weekDays = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
+  const openingHoursLabel = useMemo(() => {
+    const schedule = scheduleState.schedule;
 
-  //  Dynamic current month/year
-  const today = new Date();
-  const currentYear = today.getFullYear();
-  const currentMonth = today.getMonth();
+    if (!dateValue || !schedule) return "";
+    if (schedule.isClosed) return "Closed";
 
-  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    return `${formatPickupTimeLabel(schedule.openTime || "")} - ${formatPickupTimeLabel(
+      schedule.closeTime || ""
+    )}`;
+  }, [dateValue, scheduleState.schedule]);
 
-  const dates = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+  const selectedTimeAvailable = timeSlots.some((slot) => slot.value === pickupTime);
+
+  useEffect(() => {
+    if (pickupTime && !selectedTimeAvailable) {
+      setPickupTime(null);
+    }
+  }, [pickupTime, selectedTimeAvailable, setPickupTime]);
 
   return (
-    <section className="space-y-[22px] max-w-[420px]">
+    <section className="max-w-[520px] space-y-[22px]">
       <h2 className="text-[24px] font-semibold text-gray-900">
         Select Pickup Time
       </h2>
@@ -49,61 +84,62 @@ export default function SelectPickupTimeSection({
           Choose date
         </h3>
 
-        <div className="bg-white px-[29px] py-4 rounded-xl shadow-sm">
-
-          <div className="flex items-center justify-between border-b-2 border-gray-200 pb-[21px] mb-[16px]">
-            <span className="text-sm text-gray-600">
-              {today.toLocaleString("default", {
-                month: "long",
-                year: "numeric",
-              })}
-            </span>
-
-            <div className="flex gap-6">
-              <button className="text-gray-600 hover:text-gray-900">
-                <ChevronLeft size={16} />
-              </button>
-              <button className="text-gray-600 hover:text-gray-900">
-                <ChevronRight size={16} />
-              </button>
-            </div>
-          </div>
-
-          {/* Weekdays */}
-          <div className="grid grid-cols-7 gap-1 mb-4">
-            {weekDays.map((day) => (
-              <div
-                key={day}
-                className="text-center text-[10px] font-semibold text-gray-400"
-              >
-                {day}
-              </div>
-            ))}
-          </div>
-
-          {/* Dates */}
-          <div className="grid grid-cols-7 gap-y-4">
+        <div className="rounded-xl bg-white px-5 py-4 shadow-sm">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {dates.map((date) => {
-              const fullDate = new Date(currentYear, currentMonth, date);
+              const nextDateValue = getDateValue(date);
+              const dateScheduleState = getPickupScheduleForDate({
+                branch: selectedBranch,
+                dateValue: nextDateValue,
+              });
+              const availableSlots = buildPickupTimeSlots({
+                branch: selectedBranch,
+                dateValue: nextDateValue,
+              });
+              const disabled =
+                isPastDateValue(nextDateValue) ||
+                Boolean(dateScheduleState.schedule?.isClosed) ||
+                availableSlots.length === 0;
+              const isSelected = dateValue === nextDateValue;
 
               return (
-                <div key={date} className="flex justify-center items-center">
-                  <button
-                    onClick={() => setPickupDate(fullDate)}
-                    className={`w-9 h-9 rounded-full text-sm font-medium transition-all ${
-                      pickupDate?.getDate() === date &&
-                      pickupDate?.getMonth() === currentMonth &&
-                      pickupDate?.getFullYear() === currentYear
-                        ? "bg-orange-500 text-white shadow-md"
-                        : "text-gray-600 hover:bg-gray-100"
-                    }`}
-                  >
-                    {date}
-                  </button>
-                </div>
+                <button
+                  key={nextDateValue}
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => {
+                    setPickupDate(getDateFromValue(nextDateValue));
+                    setPickupTime(null);
+                  }}
+                  className={`rounded-xl border px-3 py-3 text-left transition-all ${
+                    isSelected
+                      ? "border-orange-500 bg-orange-500 text-white shadow-md"
+                      : disabled
+                        ? "cursor-not-allowed border-gray-100 bg-gray-100 text-gray-400"
+                        : "border-gray-200 bg-white text-gray-700 hover:border-orange-400 hover:text-orange-500"
+                  }`}
+                >
+                  <span className="block text-xs font-semibold uppercase">
+                    {date.toLocaleDateString("en-US", { weekday: "short" })}
+                  </span>
+                  <span className="mt-1 block text-lg font-semibold">
+                    {date.getDate()}
+                  </span>
+                  <span className="block text-xs">
+                    {date.toLocaleDateString("en-US", { month: "short" })}
+                  </span>
+                </button>
               );
             })}
           </div>
+
+          {dateValue && openingHoursLabel ? (
+            <p className="mt-3 flex items-center gap-2 text-xs text-gray-500">
+              <Clock size={14} />
+              Pickup hours: {openingHoursLabel}
+              {scheduleState.usesFallback ? " (default)" : ""}
+            </p>
+          ) : null}
         </div>
       </div>
 
@@ -113,25 +149,27 @@ export default function SelectPickupTimeSection({
           Choose Pickup Time
         </h3>
 
-        <div className="grid grid-cols-4 gap-3">
-          {timeSlots.map((slot) => (
-            <button
-              key={slot.time}
-              onClick={() => {
-                if (!slot.available) return;
-                setPickupTime(slot.time);
-              }}
-              className={`h-[48px] rounded-[10px] text-sm font-medium transition-all border-2 ${
-                slot.available
-                  ? pickupTime === slot.time
+        <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+          {timeSlots.length > 0 ? (
+            timeSlots.map((slot) => (
+              <button
+                key={slot.value}
+                type="button"
+                onClick={() => setPickupTime(slot.value)}
+                className={`h-[48px] rounded-[10px] border-2 text-sm font-medium transition-all ${
+                  pickupTime === slot.value
                     ? "border-orange-500 bg-orange-500 text-white shadow-md"
-                    : "border-gray-200 text-gray-700 bg-white hover:border-orange-400 hover:text-orange-500"
-                  : "border-gray-200 text-gray-400 bg-gray-100 cursor-not-allowed"
-              }`}
-            >
-              {slot.time}
-            </button>
-          ))}
+                    : "border-gray-200 bg-white text-gray-700 hover:border-orange-400 hover:text-orange-500"
+                }`}
+              >
+                {slot.label}
+              </button>
+            ))
+          ) : (
+            <p className="col-span-full rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-500">
+              Select another pickup date. No available pickup slots for this day.
+            </p>
+          )}
         </div>
       </div>
     </section>

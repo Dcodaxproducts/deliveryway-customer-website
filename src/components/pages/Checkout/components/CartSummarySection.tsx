@@ -1125,12 +1125,7 @@ export function CartSummarySection({
               </div>
               <span>{formatCurrency(deliveryFee)}</span>
             </div>
-          ) : (
-            <div className="flex items-center justify-between text-primary">
-              <span>Pickup selected</span>
-              <span>No delivery fee</span>
-            </div>
-          )}
+          ) : null}
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1">
