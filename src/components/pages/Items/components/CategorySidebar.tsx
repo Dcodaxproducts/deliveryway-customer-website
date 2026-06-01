@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import { useEffect, useRef } from "react";
@@ -7,9 +6,14 @@ import { List, Loader2, Menu, Search } from "lucide-react";
 
 type MenuViewMode = "multiple" | "onePage";
 
+type CategorySidebarItem = {
+  id?: string | number | null;
+  name?: string | null;
+};
+
 type CategorySidebarProps = {
   activeCategoryId?: string;
-  categories?: unknown[];
+  categories?: CategorySidebarItem[];
   loading?: boolean;
   loadingMore?: boolean;
   hasMore?: boolean;
@@ -154,7 +158,7 @@ export default function CategorySidebar({
           </p>
         ) : (
           <>
-            {categories.map((cat: unknown) => {
+            {categories.map((cat) => {
               const id = String(cat?.id || "");
               const isActive = String(activeCategoryId || "") === id;
 

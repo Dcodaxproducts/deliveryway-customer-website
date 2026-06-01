@@ -4,9 +4,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import RestaurantCard from "./RestaurantCard";
 import useItems from "@/hooks/useItems";
 import { useAuth } from "@/hooks/useAuth";
+import { getStoredRestaurantId } from "@/lib/storage";
 import { Loader2 } from "lucide-react";
 import type { ItemsCategory, MenuItem } from "@/components/pages/Items/types";
-import { mergeUniqueById, normalizeApiArray, normalizeApiMeta, resolveHasNext } from "@/components/pages/Items/utils/restaurant-card-utils";
+import { mergeUniqueById, resolveHasNext } from "@/components/pages/Items/utils/restaurant-card-utils";
 
 type MenuViewMode = "multiple" | "onePage";
 
@@ -51,7 +52,7 @@ export default function ItemsListing({
   onActiveCategoryChange,
 }: ItemsListingProps) {
   const { token, restaurantId: authRestaurantId, user } = useAuth();
-  const { get } = useItems(token);
+  const { fetchMenuItemsPage } = useItems(token);
 
   const [categoryItemsMap, setCategoryItemsMap] = useState<
     Record<string, CategoryItemsState>
@@ -59,17 +60,6 @@ export default function ItemsListing({
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const inFlightRequestsRef = useRef<Set<string>>(new Set());
-
-  const getStoredRestaurantId = () => {
-    if (typeof window === "undefined") return null;
-
-    try {
-      const auth = JSON.parse(browserStorage.getItem("auth") || "{}");
-      return auth?.user?.restaurantId || null;
-    } catch {
-      return null;
-    }
-  };
 
   const restaurantId = useMemo(() => {
     return (
@@ -128,19 +118,12 @@ export default function ItemsListing({
         });
       });
 
-      const params = new URLSearchParams({
+      const { items: fetchedItems, meta } = await fetchMenuItemsPage({
         restaurantId: String(restaurantId),
         categoryId: String(categoryId),
-        page: String(page),
-        limit: String(ITEMS_PAGE_LIMIT),
-        sortBy: "sortOrder",
-        sortOrder: "ASC",
+        page,
+        limit: ITEMS_PAGE_LIMIT,
       });
-
-      const res = await get(`/v1/menu/items?${params.toString()}`);
-
-      const fetchedItems = normalizeApiArray<MenuItem>(res);
-      const meta = normalizeApiMeta(res);
 
       queueMicrotask(() => {
         setCategoryItemsMap((prev) => {

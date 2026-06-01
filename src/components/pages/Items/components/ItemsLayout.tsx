@@ -1,67 +1,27 @@
-// @ts-nocheck
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import CategorySidebar from "./CategorySidebar";
 import ItemsListing from "./Items";
-import useMenu from "@/hooks/useMenu";
+import useItems from "@/hooks/useItems";
 import { useAuth } from "@/hooks/useAuth";
+import { getItemsMenuViewMode, getStoredRestaurantId, setItemsMenuViewMode } from "@/lib/storage";
+import type { ApiMeta, ItemsCategory } from "@/components/pages/Items/types";
+import { resolveHasNext } from "@/components/pages/Items/utils/restaurant-card-utils";
 
 type MenuViewMode = "multiple" | "onePage";
 
 const CATEGORY_PAGE_LIMIT = 20;
 
-const normalizeApiArray = (res: unknown) => {
-  if (Array.isArray(res?.data)) return res.data;
-  if (Array.isArray(res?.data?.data)) return res.data.data;
-  if (Array.isArray(res?.data?.items)) return res.data.items;
-  if (Array.isArray(res?.items)) return res.items;
-  return [];
+type ItemsLayoutProps = {
+  categoryId?: string;
 };
 
-const normalizeApiMeta = (res: unknown) => {
-  return (
-    res?.data?.pagination ||
-    res?.data?.meta ||
-    res?.data?.data?.pagination ||
-    res?.data?.data?.meta ||
-    res?.pagination ||
-    res?.meta ||
-    {}
-  );
-};
-
-const resolveHasNext = ({
-  meta,
-  page,
-  limit,
-  receivedCount,
-  totalLoaded,
-}: {
-  meta: unknown;
-  page: number;
-  limit: number;
-  receivedCount: number;
-  totalLoaded: number;
-}) => {
-  if (typeof meta?.hasNext === "boolean") return meta.hasNext;
-  if (typeof meta?.hasMore === "boolean") return meta.hasMore;
-
-  const total = Number(meta?.total ?? 0);
-  const totalPages = Number(meta?.totalPages ?? meta?.pages ?? 0);
-  const currentPage = Number(meta?.page ?? page);
-
-  if (totalPages > 0) return currentPage < totalPages;
-  if (total > 0) return totalLoaded < total;
-
-  return receivedCount >= limit;
-};
-
-export default function ItemsLayout({ categoryId }: unknown) {
+export default function ItemsLayout({ categoryId }: ItemsLayoutProps) {
   const { token, restaurantId: authRestaurantId, user } = useAuth();
-  const { get } = useMenu(token);
+  const { fetchMenuCategoriesPage } = useItems(token);
 
-  const [categories, setCategories] = useState<unknown[]>([]);
+  const [categories, setCategories] = useState<ItemsCategory[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [loadingMoreCategories, setLoadingMoreCategories] = useState(false);
 
@@ -78,27 +38,10 @@ export default function ItemsLayout({ categoryId }: unknown) {
   } | null>(null);
 
   const [viewMode, setViewMode] = useState<MenuViewMode>(() => {
-    if (typeof window === "undefined") return "multiple";
-
-    const stored = browserStorage.getItem("menuViewMode");
-
-    return stored === "onePage" || stored === "multiple"
-      ? stored
-      : "multiple";
+    return getItemsMenuViewMode();
   });
 
   const requestInFlightRef = useRef(false);
-
-  const getStoredRestaurantId = () => {
-    if (typeof window === "undefined") return null;
-
-    try {
-      const auth = JSON.parse(browserStorage.getItem("auth") || "{}");
-      return auth?.user?.restaurantId || null;
-    } catch {
-      return null;
-    }
-  };
 
   const restaurantId = useMemo(() => {
     return (
@@ -110,7 +53,7 @@ export default function ItemsLayout({ categoryId }: unknown) {
   }, [authRestaurantId, user?.restaurantId]);
 
   useEffect(() => {
-    browserStorage.setItem("menuViewMode", viewMode);
+    setItemsMenuViewMode(viewMode);
   }, [viewMode]);
 
   useEffect(() => {
@@ -142,29 +85,19 @@ export default function ItemsLayout({ categoryId }: unknown) {
         setLoadingCategories(true);
       }
 
-      const params = new URLSearchParams({
+      const { categories: fetchedCategories, meta } = await fetchMenuCategoriesPage({
         restaurantId: String(restaurantId),
-        page: String(page),
-        limit: String(CATEGORY_PAGE_LIMIT),
-        sortBy: "sortOrder",
-        sortOrder: "ASC",
+        page,
+        limit: CATEGORY_PAGE_LIMIT,
+        search: searchValue,
       });
-
-      if (searchValue) {
-        params.set("search", searchValue);
-      }
-
-      const res: unknown = await get(`/v1/menu/categories?${params.toString()}`);
-
-      const fetchedCategories = normalizeApiArray(res);
-      const meta = normalizeApiMeta(res);
 
       setCategories((prev) => {
         if (!append) return fetchedCategories;
 
-        const existingIds = new Set(prev.map((item: unknown) => String(item.id)));
+        const existingIds = new Set(prev.map((item) => String(item.id)));
 
-        const newItems = fetchedCategories.filter((item: unknown) => {
+        const newItems = fetchedCategories.filter((item) => {
           return item?.id && !existingIds.has(String(item.id));
         });
 
@@ -175,7 +108,7 @@ export default function ItemsLayout({ categoryId }: unknown) {
         ? categories.length + fetchedCategories.length
         : fetchedCategories.length;
 
-      setCurrentPage(Number(meta?.page ?? page));
+      setCurrentPage(Number((meta as ApiMeta)?.page ?? page));
       setHasMoreCategories(
         resolveHasNext({
           meta,

@@ -4,23 +4,13 @@ import Image from "next/image";
 import { Star, MapPin, Clock, Utensils, Loader2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import useMenu from "@/hooks/useMenu";
+import useItems from "@/hooks/useItems";
 import { useAuth } from "@/hooks/useAuth";
+import { getStoredAuthState } from "@/lib/storage";
 import type { AuthRestaurantUser, ItemsCategory, StoredAuthState } from "@/components/pages/Items/types";
-import { getImageUrl, getOperatingHours, getRatingInfo, getRestaurantAddress, getRestaurantName, hasText, normalizeApiArray, normalizeApiMeta, resolveHasNext } from "@/components/pages/Items/utils/restaurant-card-utils";
+import { getImageUrl, getOperatingHours, getRatingInfo, getRestaurantAddress, getRestaurantName, hasText, resolveHasNext } from "@/components/pages/Items/utils/restaurant-card-utils";
 
 const CATEGORY_PAGE_LIMIT = 50;
-
-const getStoredAuth = (): StoredAuthState | null => {
-  if (typeof window === "undefined") return null;
-
-  try {
-    const stored = browserStorage.getItem("auth");
-    return stored ? (JSON.parse(stored) as StoredAuthState) : null;
-  } catch {
-    return null;
-  }
-};
 
 const getCategoryItemCount = (category: ItemsCategory) => {
   const count = Number(
@@ -39,13 +29,13 @@ export default function RestaurantHeader() {
   const router = useRouter();
 
   const { token, restaurantId: authRestaurantId, user } = useAuth();
-  const { get } = useMenu(token);
+  const { fetchMenuCategoriesPage } = useItems(token);
 
   const [category, setCategory] = useState<ItemsCategory | null>(null);
   const [restaurant, setRestaurant] = useState<{ name: string; address: string; operatingHours: string; ratingInfo: ReturnType<typeof getRatingInfo>; coverImage?: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const storedAuth = useMemo<StoredAuthState | null>(() => getStoredAuth(), []);
+  const storedAuth = useMemo<StoredAuthState | null>(() => getStoredAuthState() as StoredAuthState | null, []);
 
   const restaurantId = useMemo(() => {
     return (
@@ -87,17 +77,11 @@ export default function RestaurantHeader() {
         let shouldContinue = true;
 
         while (shouldContinue) {
-          const params = new URLSearchParams({
+          const { categories: fetchedCategories, meta } = await fetchMenuCategoriesPage({
             restaurantId: String(restaurantId),
-            page: String(page),
-            limit: String(CATEGORY_PAGE_LIMIT),
-            sortBy: "sortOrder",
-            sortOrder: "ASC",
+            page,
+            limit: CATEGORY_PAGE_LIMIT,
           });
-
-          const res = await get(`/v1/menu/categories?${params.toString()}`);
-          const fetchedCategories = normalizeApiArray<ItemsCategory>(res);
-          const meta = normalizeApiMeta(res);
 
           if (!firstCategory && fetchedCategories.length > 0) {
             firstCategory = fetchedCategories[0] ?? null;

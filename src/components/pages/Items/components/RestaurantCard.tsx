@@ -5,13 +5,15 @@ import { Plus, Info, Loader2, Eye, Minus, Download, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import useItems from "@/hooks/useItems";
+import useCart from "@/hooks/useCart";
 import { useAuthContext } from "@/context/AuthContext";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { getStoredGroupOrderCode } from "@/lib/storage";
 import AsyncSelect from "@/components/ui/AsyncSelect";
 import type { ApiRecord, CartPayload, ItemPriceOverride, MenuItem, MenuVariation, Modifier, ModifierGroup, ModifierLink, SelectedModifiersMap, PromotionInfo, PromotionPricing, RawModifierLink, SelectedModifier, VariationPriceOverride } from "@/components/pages/Items/types";
-import { normalizeApiArray, hasText, formatPrice, toNumber } from "@/components/pages/Items/utils/restaurant-card-utils";
+import { hasText, formatPrice, toNumber } from "@/components/pages/Items/utils/restaurant-card-utils";
 
 
 const getApiResponseMessage = (res: ApiRecord | null | undefined) => {
@@ -511,7 +513,8 @@ function ProductInfoContent({ item }: { item: MenuItem | null }) {
 export default function RestaurantCard({ item }: { item: MenuItem }) {
   const router = useRouter();
   const { token } = useAuthContext();
-  const { post, get, del } = useItems(token);
+  const { fetchSplitPizzaMenuItems } = useItems(token);
+  const { addCustomerCartItem, addGroupOrderItem, clearCustomerCart, fetchGroupOrders } = useCart(token);
   const { user } = useAuth();
 
   const [infoOpen, setInfoOpen] = useState(false);
@@ -1270,31 +1273,7 @@ export default function RestaurantCard({ item }: { item: MenuItem }) {
     search: string;
     page: number;
   }) => {
-    const queryParams = new URLSearchParams();
-
-    queryParams.set("page", String(page));
-    queryParams.set("supportsSplitPizza", "true");
-
-    if (restaurantId) {
-      queryParams.set("restaurantId", String(restaurantId));
-    }
-
-    const resolvedSearch = search?.trim();
-
-    if (resolvedSearch) {
-      queryParams.set("search", resolvedSearch);
-    }
-
-    const res = await get(`/v1/menu/items?${queryParams.toString()}`);
-
-    const data = normalizeApiArray<MenuItem>(res).filter((menuItem) => {
-      return Boolean(menuItem?.id);
-    });
-
-    return {
-      data,
-      meta: normalizeApiArray<ApiRecord>([]).length ? {} : (typeof res?.data === "object" && res.data !== null && !Array.isArray(res.data) ? (res.data as ApiRecord).meta : undefined) || res?.meta,
-    };
+    return fetchSplitPizzaMenuItems({ restaurantId, search, page });
   };
 
   const handleSplitPizzaToggle = (checked: boolean) => {
@@ -1399,7 +1378,7 @@ export default function RestaurantCard({ item }: { item: MenuItem }) {
     );
   };
 
-  const addCartItemWithBranchRetry = async (payload: CartPayload) => {
+  const addCartItemWithBranchRetry = async (payload: CartPayload & Record<string, unknown>) => {
     if (!customerId) {
       return {
         success: false,
@@ -1412,16 +1391,13 @@ export default function RestaurantCard({ item }: { item: MenuItem }) {
       branchId,
     };
 
-    const addUrl = `/v1/cart/items?customerId=${customerId}`;
-    const clearCartUrl = `/v1/cart?customerId=${customerId}`;
-
-    const firstRes = await post(addUrl, cartPayload);
+    const firstRes = await addCustomerCartItem({ customerId, payload: cartPayload });
 
     if (!isCartBranchConflictResponse(firstRes)) {
       return firstRes;
     }
 
-    const clearRes = await del(clearCartUrl);
+    const clearRes = await clearCustomerCart({ customerId });
 
     if (isApiErrorResponse(clearRes)) {
       return {
@@ -1435,7 +1411,7 @@ export default function RestaurantCard({ item }: { item: MenuItem }) {
 
     toast.info("Previous branch cart cleared. Adding selected item again.");
 
-    return post(addUrl, cartPayload);
+    return addCustomerCartItem({ customerId, payload: cartPayload });
   };
 
   async function handleAddToCart() {
@@ -1458,10 +1434,7 @@ export default function RestaurantCard({ item }: { item: MenuItem }) {
         }
       }
 
-      const groupCode =
-        typeof window !== "undefined"
-          ? browserStorage.getItem("groupOrderCode")
-          : null;
+      const groupCode = getStoredGroupOrderCode();
 
       if (!groupCode && !customerId) {
         toast.error("Customer not found");
@@ -1502,9 +1475,7 @@ export default function RestaurantCard({ item }: { item: MenuItem }) {
       let res: ApiRecord | null = null;
 
       if (groupCode) {
-        const groupOrdersRes = await get("/v1/group-orders");
-
-        const groupOrders = normalizeApiArray<ApiRecord>(groupOrdersRes);
+        const { response: groupOrdersRes, groupOrders } = await fetchGroupOrders();
 
         const groupOrder = groupOrders.find(
           (order: ApiRecord) => order?.inviteCode === groupCode,
@@ -1515,10 +1486,10 @@ export default function RestaurantCard({ item }: { item: MenuItem }) {
           return;
         }
 
-        res = await post(
-          `/v1/group-orders/${groupOrder.id}/items`,
-          basePayload,
-        );
+        res = await addGroupOrderItem({
+          groupOrderId: String(groupOrder.id),
+          payload: basePayload,
+        });
       } else {
         res = await addCartItemWithBranchRetry(basePayload);
       }
@@ -1550,10 +1521,7 @@ export default function RestaurantCard({ item }: { item: MenuItem }) {
   const handlePlusClick = () => {
     if (loading) return;
 
-    const groupCode =
-      typeof window !== "undefined"
-        ? browserStorage.getItem("groupOrderCode")
-        : null;
+    const groupCode = getStoredGroupOrderCode();
 
     if (!hasOptions) {
       if (!groupCode && !branchId) {
