@@ -33,9 +33,15 @@ import {
   type ProfileFormValues,
 } from "@/validations/profile";
 
-export default function ProfileForm() {
+export function ProfileForm() {
   const { token, user } = useAuth();
-  const profileApi = useProfileApi(token);
+  const {
+    deleteAddress,
+    fetchAddresses: fetchProfileAddresses,
+    fetchWallet: fetchProfileWallet,
+    updateProfile,
+    uploadAvatar,
+  } = useProfileApi(token);
 
   const fileRef = useRef<HTMLInputElement | null>(null);
 
@@ -58,10 +64,12 @@ export default function ProfileForm() {
   const [updating, setUpdating] = useState(false);
   const [addresses, setAddresses] = useState<AddressRecord[]>([]);
   const [loadingAddresses, setLoadingAddresses] = useState(false);
+  const [addressesLoaded, setAddressesLoaded] = useState(false);
+  const addressesLoadedRef = useRef(false);
 
   const fetchWallet = useCallback(async (skipStateUpdate = false): Promise<WalletSummary | null> => {
     try {
-      const summary = await profileApi.fetchWallet();
+      const summary = await fetchProfileWallet();
 
       if (!skipStateUpdate) {
         setWalletBalance(summary.balance);
@@ -74,25 +82,29 @@ export default function ProfileForm() {
       toast.error("Failed to load wallet");
       return null;
     }
-  }, [profileApi]);
+  }, [fetchProfileWallet]);
 
   const fetchAddresses = useCallback(async (skipStateUpdate = false) => {
+    const shouldShowLoading = !skipStateUpdate && !addressesLoadedRef.current;
+
     try {
-      if (!skipStateUpdate) {
+      if (shouldShowLoading) {
         setLoadingAddresses(true);
       }
-      const addressList = await profileApi.fetchAddresses();
+      const addressList = await fetchProfileAddresses();
 
       if (!skipStateUpdate) {
         setAddresses(addressList);
+        addressesLoadedRef.current = true;
+        setAddressesLoaded(true);
       }
     } catch (error) {
     } finally {
-      if (!skipStateUpdate) {
+      if (shouldShowLoading) {
         setLoadingAddresses(false);
       }
     }
-  }, [profileApi]);
+  }, [fetchProfileAddresses]);
 
   useEffect(() => {
     if (!user) return;
@@ -108,7 +120,7 @@ export default function ProfileForm() {
 
   const handleDelete = async (id: string) => {
     try {
-      await profileApi.deleteAddress(id);
+      await deleteAddress(id);
       toast.success("Address deleted");
       fetchAddresses();
     } catch {
@@ -123,7 +135,7 @@ export default function ProfileForm() {
     try {
       setUpdating(true);
 
-      const fileUrl = await profileApi.uploadAvatar(file);
+      const fileUrl = await uploadAvatar(file);
 
       form.setValue("avatarUrl", fileUrl, { shouldDirty: true, shouldValidate: true });
 
@@ -141,7 +153,7 @@ export default function ProfileForm() {
 
       const payload = getProfileUpdatePayload(values);
 
-      await profileApi.updateProfile(payload);
+      await updateProfile(payload);
 
       toast.success("Profile updated successfully");
       setIsEditing(false);
@@ -398,7 +410,7 @@ export default function ProfileForm() {
         </Button>
       </div>
 
-      {loadingAddresses ? (
+      {loadingAddresses && !addressesLoaded ? (
         <p>Loading...</p>
       ) : (
         <div className="grid md:grid-cols-3 gap-4">
