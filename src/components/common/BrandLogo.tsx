@@ -3,6 +3,7 @@
 import Image from "next/image";
 
 import { useBranding } from "@/hooks/useBranding";
+import { resolveHttpsImageUrl } from "@/lib/image-fallback";
 
 type BrandLogoProps = {
   restaurantLogoUrl?: string | null;
@@ -27,7 +28,10 @@ export const BrandLogo = ({
 }: BrandLogoProps) => {
   const { branding } = useBranding();
   const variantLogo = variant === "dark" ? branding.logo.dark : branding.logo.light;
-  const src = variantLogo ?? restaurantLogoUrl ?? branding.logo.default ?? "/logo.png";
+  const src = resolveHttpsImageUrl(
+    variantLogo ?? restaurantLogoUrl ?? branding.logo.default,
+    "/logo.png"
+  );
 
   if (fill) {
     return <Image src={src} alt={alt} fill className={className} priority={priority} />;

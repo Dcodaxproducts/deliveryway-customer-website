@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { Search, ShoppingBag, Bike, MapPin } from "lucide-react";
+import { resolveHttpsImageUrl } from "@/lib/image-fallback";
 
 type HeroSectionProps = {
     restaurantName?: string;
@@ -12,7 +13,7 @@ const HeroSection = ({
     tagline = "Within a few clicks, find meals that are accessible near you",
     heroImage = "/hero.png",
 }: HeroSectionProps) => {
-    const resolvedHeroImage = heroImage?.startsWith("https") ? heroImage : "/hero.png";
+    const resolvedHeroImage = resolveHttpsImageUrl(heroImage, "/hero.png");
 
     return (
         <main className="relative h-[630px] w-full flex items-center justify-center">
