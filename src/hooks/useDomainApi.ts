@@ -57,29 +57,31 @@ export const useDomainApi = (
     [queryClient, requestKey, service, token]
   );
 
+  const loading = queryLoading || postMutation.isPending || patchMutation.isPending || deleteMutation.isPending;
+
   const post = useCallback(
     (endpoint: string, body: unknown) => postMutation.mutateAsync({ endpoint, body }),
-    [postMutation]
+    [postMutation.mutateAsync]
   );
 
   const patch = useCallback(
     (endpoint: string, body: unknown) => patchMutation.mutateAsync({ endpoint, body }),
-    [patchMutation]
+    [patchMutation.mutateAsync]
   );
 
   const del = useCallback(
     (endpoint: string) => deleteMutation.mutateAsync({ endpoint }),
-    [deleteMutation]
+    [deleteMutation.mutateAsync]
   );
 
   return useMemo(
     () => ({
-      loading: queryLoading || postMutation.isPending || patchMutation.isPending || deleteMutation.isPending,
+      loading,
       get,
       post,
       patch,
       del,
     }),
-    [del, deleteMutation.isPending, get, patch, patchMutation.isPending, post, postMutation.isPending, queryLoading]
+    [del, get, loading, patch, post]
   );
 };
