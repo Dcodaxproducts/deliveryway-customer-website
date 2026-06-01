@@ -751,19 +751,11 @@ export function CartSummarySection({
                   {backendError.message}
                 </p>
 
-                {backendError.path || backendError.timestamp ? (
+                {backendError.timestamp ? (
                   <div className="mt-2 flex flex-wrap justify-center gap-2 text-[11px] text-red-700/80">
-                    {backendError.path ? (
-                      <span className="rounded-full bg-white/70 px-2 py-1">
-                        {backendError.path}
-                      </span>
-                    ) : null}
-
-                    {backendError.timestamp ? (
-                      <span className="rounded-full bg-white/70 px-2 py-1">
-                        {new Date(backendError.timestamp).toLocaleString()}
-                      </span>
-                    ) : null}
+                    <span className="rounded-full bg-white/70 px-2 py-1">
+                      {new Date(backendError.timestamp).toLocaleString()}
+                    </span>
                   </div>
                 ) : null}
               </div>

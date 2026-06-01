@@ -50,7 +50,6 @@ function CheckoutPageContent() {
       context,
       message,
       code: getBackendErrorCode(res),
-      path: typeof meta?.path === "string" ? meta.path : undefined,
       timestamp: typeof meta?.timestamp === "string" ? meta.timestamp : undefined,
     });
 
