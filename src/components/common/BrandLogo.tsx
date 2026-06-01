@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 
 import { useBranding } from "@/hooks/useBranding";
@@ -27,15 +28,35 @@ export const BrandLogo = ({
   priority = false,
 }: BrandLogoProps) => {
   const { branding } = useBranding();
+  const [hasImageError, setHasImageError] = useState(false);
   const variantLogo = variant === "dark" ? branding.logo.dark : branding.logo.light;
-  const src = resolveHttpsImageUrl(
-    variantLogo ?? restaurantLogoUrl ?? branding.logo.default,
-    "/logo.png"
+  const src = useMemo(
+    () => resolveHttpsImageUrl(variantLogo ?? restaurantLogoUrl ?? branding.logo.default, "/logo.png"),
+    [branding.logo.default, restaurantLogoUrl, variantLogo]
   );
+  useEffect(() => {
+    setHasImageError(false);
+  }, [src]);
 
-  if (fill) {
-    return <Image src={src} alt={alt} fill className={className} priority={priority} />;
+  const fallbackText = branding.restaurantName?.trim() || alt;
+  const shouldShowTextFallback = hasImageError && src !== "/logo.png";
+
+  if (shouldShowTextFallback) {
+    return (
+      <span aria-label={alt} className={className}>
+        {fallbackText}
+      </span>
+    );
   }
 
-  return <Image src={src} alt={alt} width={width} height={height} className={className} priority={priority} />;
+  const handleImageError = () => {
+    if (src === "/logo.png") return;
+    setHasImageError(true);
+  };
+
+  if (fill) {
+    return <Image src={src} alt={alt} fill className={className} priority={priority} onError={handleImageError} />;
+  }
+
+  return <Image src={src} alt={alt} width={width} height={height} className={className} priority={priority} onError={handleImageError} />;
 };
