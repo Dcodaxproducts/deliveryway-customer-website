@@ -1,31 +1,29 @@
-// @ts-nocheck
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import { Send, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import useChat from "@/hooks/useChat";
+import type { ChatMessage, ChatMessageCreatedEvent, ChatThread } from "@/services/chat";
 import { io, Socket } from "socket.io-client";
 import { useSearchParams } from "next/navigation";
 
 export default function ChatUI() {
   const { token, user } = useAuth();
-  const api = useChat(token);
+  const { createChatThread, fetchChatThreads, fetchChatThreadMessages, sendChatMessage } = useChat(token);
 const searchParams = useSearchParams();
 
 const orderId = searchParams.get("orderId");
 const [creatingThread, setCreatingThread] = useState(false);
   const [message, setMessage] = useState("");
-  const [threads, setThreads] = useState<unknown[]>([]);
-  const [activeThread, setActiveThread] = useState<unknown>(null);
-  const [messages, setMessages] = useState<unknown[]>([]);
+  const [threads, setThreads] = useState<ChatThread[]>([]);
+  const [activeThread, setActiveThread] = useState<ChatThread | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [sending, setSending] = useState(false);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
-  const activeThreadRef = useRef<unknown>(null); // ✅ FIX
-
-  // keep ref updated
+  const activeThreadRef = useRef<ChatThread | null>(null);
   useEffect(() => {
     activeThreadRef.current = activeThread;
   }, [activeThread]);
@@ -36,13 +34,14 @@ const [creatingThread, setCreatingThread] = useState(false);
 
   setCreatingThread(true);
 
-  const res: unknown = await api.post("/v1/chat/threads", {
-    message: "Hi, I need support.",
-    subject: "General Support",
+  const { response: res, thread: newThread } = await createChatThread({
+    payload: {
+      message: "Hi, I need support.",
+      subject: "General Support",
+    },
   });
 
-  if (res?.success) {
-    const newThread = res.data;
+  if (res?.success && newThread) {
 
     setThreads([newThread]);
     setActiveThread(newThread);
@@ -53,7 +52,7 @@ const [creatingThread, setCreatingThread] = useState(false);
 
 
   const ensureOrderThread = async (orderId: string) => {
-  if (!orderId || creatingThread) return; // ✅ prevent duplicate calls
+  if (!orderId || creatingThread) return;
 
   setCreatingThread(true);
 
@@ -68,14 +67,15 @@ const [creatingThread, setCreatingThread] = useState(false);
   const shortId = orderId.slice(-6).toUpperCase();
   const subject = `Order #${shortId}`;
 
-  const res: unknown = await api.post("/v1/chat/threads", {
-    message: "Hi, I need help regarding this order.",
-    orderId,
-    subject,
+  const { response: res, thread: newThread } = await createChatThread({
+    payload: {
+      message: "Hi, I need help regarding this order.",
+      orderId,
+      subject,
+    },
   });
 
-  if (res?.success) {
-    const newThread = res.data;
+  if (res?.success && newThread) {
     setThreads((prev) => [newThread, ...prev]);
     setActiveThread(newThread);
   }
@@ -88,12 +88,10 @@ useEffect(() => {
 
   if (!token) return;
 
-  // ✅ CASE 1: Order-based thread
   if (orderId) {
     ensureOrderThread(orderId);
   }
 
-  // ✅ CASE 2: General support thread
   else if (threads.length === 0 && !creatingThread) {
     createGeneralThread();
   }
@@ -112,52 +110,45 @@ useEffect(() => {
       year: "numeric",
     });
 
-  // 🔹 Fetch Threads
   const fetchThreads = async () => {
-    const res: unknown = await api.get("/v1/chat/threads");
+    const { response: res, threads: nextThreads } = await fetchChatThreads();
     if (res?.success) {
-      setThreads(res.data);
-     if (res.data.length > 0 && !activeThread && !orderId) {
-  setActiveThread(res.data[0]);
+      setThreads(nextThreads);
+     if (nextThreads.length > 0 && !activeThread && !orderId) {
+  setActiveThread(nextThreads[0]);
 }
     }
   };
 
 const fetchMessages = async (id: string) => {
-  const res: unknown = await api.get(`/v1/chat/threads/${id}`);
+  const { response: res, messages: nextMessages } = await fetchChatThreadMessages({ threadId: id });
   if (res?.success) {
-    setMessages(res.data.messages || []);
+    setMessages(nextMessages);
   }
 };
-  // 🔹 Send Message
   const handleSend = async () => {
     if (!message.trim() || !activeThread) return;
 
     setSending(true);
 
-    await api.post(`/v1/chat/threads/${activeThread.id}/messages`, {
-      message,
-    });
+    await sendChatMessage({ threadId: activeThread.id, message });
 
     setMessage("");
 
-    // ❌ DO NOT FETCH AGAIN (socket handles it)
     setSending(false);
   };
 
-  const handleKeyDown = (e: unknown) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
       handleSend();
     }
   };
 
-  // scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // initial load
   useEffect(() => {
     if (token) fetchThreads();
   }, [token]);
@@ -168,7 +159,6 @@ const fetchMessages = async (id: string) => {
     }
   }, [activeThread]);
 
-  // 🔥 SOCKET (FINAL FIXED)
   useEffect(() => {
     if (!token) return;
 
@@ -182,7 +172,7 @@ const fetchMessages = async (id: string) => {
     socket.on("connect", () => {
     });
 
-    socket.on("chat.message.created", (data: unknown) => {
+    socket.on("chat.message.created", (data: ChatMessageCreatedEvent) => {
       const incomingMessage = data.message;
       const threadId = data.threadId;
 
@@ -205,7 +195,7 @@ const fetchMessages = async (id: string) => {
       );
     });
 
-    socket.on("chat.thread.updated", (data: unknown) => {
+    socket.on("chat.thread.updated", (data: ChatThread) => {
       setThreads((prev) =>
         prev.map((t) => (t.id === data.id ? { ...t, ...data } : t))
       );
