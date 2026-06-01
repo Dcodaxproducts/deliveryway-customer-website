@@ -221,7 +221,10 @@ const Navbar = () => {
         setSearchResults([])
         setSearchMeta(null)
       }
-    } catch (error) {
+    } catch {
+      setSearchResults([])
+      setSearchMeta(null)
+    } finally {
       setSearchLoading(false)
     }
   }

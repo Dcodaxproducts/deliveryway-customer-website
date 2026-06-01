@@ -40,21 +40,30 @@ export const useProfile = (token: string | null): ProfileActions => {
   const api = useDomainApi(token, { service, requestKey: queryKeys.profile.request });
   const { uploadAvatarFile } = useFileUpload();
   const { login } = useAuthContext();
+  const apiClient = useMemo(
+    () => ({
+      get: api.get,
+      post: api.post,
+      patch: api.patch,
+      del: api.del,
+    }),
+    [api.del, api.get, api.patch, api.post]
+  );
 
-  const fetchWallet = useCallback(() => fetchWalletSummary(api), [api]);
+  const fetchWallet = useCallback(() => fetchWalletSummary(apiClient), [apiClient]);
 
-  const fetchAddresses = useCallback(() => fetchProfileAddresses(api), [api]);
+  const fetchAddresses = useCallback(() => fetchProfileAddresses(apiClient), [apiClient]);
 
   const deleteAddress = useCallback(
     async (id: string) => {
-      await deleteProfileAddress(api, id);
+      await deleteProfileAddress(apiClient, id);
     },
-    [api]
+    [apiClient]
   );
 
   const updateProfile = useCallback(
     async (payload: ProfileUpdatePayload) => {
-      await updateProfileRequest(api, payload);
+      await updateProfileRequest(apiClient, payload);
 
       const auth = readAuthSession();
 
@@ -64,16 +73,16 @@ export const useProfile = (token: string | null): ProfileActions => {
         login(updatedAuth);
       }
     },
-    [api, login]
+    [apiClient, login]
   );
 
   const uploadAvatar = useCallback(
     async (file: File) => {
-      const upload = await requestPresignedAvatarUpload(api, file);
+      const upload = await requestPresignedAvatarUpload(apiClient, file);
       await uploadAvatarFile(upload, file);
       return upload.fileUrl;
     },
-    [api, uploadAvatarFile]
+    [apiClient, uploadAvatarFile]
   );
 
   return useMemo(
