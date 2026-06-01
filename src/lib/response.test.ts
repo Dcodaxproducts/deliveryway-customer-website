@@ -19,4 +19,8 @@ describe("response helpers", () => {
   it("extracts meta from wrapped responses", () => {
     expect(getMeta({ data: { items: [], meta: { page: 2 } } })).toEqual({ page: 2 });
   });
+
+  it("extracts pagination from wrapped responses", () => {
+    expect(getMeta({ data: { items: [], pagination: { totalPages: 3 } } })).toEqual({ totalPages: 3 });
+  });
 });

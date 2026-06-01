@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { getHome } from "./home";
+import { getHome, getHomeCategories } from "./home";
 
 const getRequestMock = vi.hoisted(() => vi.fn());
 
@@ -52,5 +52,61 @@ describe("getHome", () => {
 
     expect(getRequestMock).toHaveBeenCalledWith("/customer-app/home");
     expect(getRequestMock.mock.calls[0][0]).not.toContain("/api/v1");
+  });
+});
+
+describe("getHomeCategories", () => {
+  beforeEach(() => {
+    getRequestMock.mockReset();
+  });
+
+  it("fetches all paginated category pages", async () => {
+    getRequestMock
+      .mockResolvedValueOnce({
+        data: {
+          data: [
+            { id: "c1", name: "Pizza", imageUrl: "pizza.png" },
+            { id: "c2", name: "Pasta", imageUrl: "pasta.png" },
+          ],
+          pagination: { page: 1, totalPages: 2 },
+        },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          data: [
+            { id: "c3", name: "Dessert", imageUrl: "dessert.png" },
+          ],
+          pagination: { page: 2, totalPages: 2 },
+        },
+      });
+
+    const categories = await getHomeCategories("restaurant-1");
+
+    expect(categories.map((category) => category.id)).toEqual(["c1", "c2", "c3"]);
+    expect(getRequestMock).toHaveBeenNthCalledWith(
+      1,
+      "/v1/menu/categories?restaurantId=restaurant-1&page=1&limit=50&sortBy=sortOrder&sortOrder=ASC"
+    );
+    expect(getRequestMock).toHaveBeenNthCalledWith(
+      2,
+      "/v1/menu/categories?restaurantId=restaurant-1&page=2&limit=50&sortBy=sortOrder&sortOrder=ASC"
+    );
+  });
+
+  it("deduplicates categories across pages", async () => {
+    getRequestMock.mockResolvedValue({
+      data: {
+        data: [
+          { id: "c1", name: "Pizza" },
+          { id: "c1", name: "Pizza" },
+        ],
+        pagination: { page: 1, totalPages: 1 },
+      },
+    });
+
+    const categories = await getHomeCategories("restaurant-1");
+
+    expect(categories).toHaveLength(1);
+    expect(categories[0].id).toBe("c1");
   });
 });

@@ -37,7 +37,7 @@ export const getMeta = (response: unknown): Record<string, unknown> => {
       continue;
     }
 
-    const meta = candidate.meta;
+    const meta = candidate.meta ?? candidate.pagination;
     if (isRecord(meta)) {
       return meta;
     }
