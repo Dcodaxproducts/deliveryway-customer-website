@@ -8,7 +8,6 @@ import {
   getDateFromValue,
   getDateValue,
   getPickupScheduleForDate,
-  getTodayDateValue,
   isPastDateValue,
 } from "@/components/pages/Checkout/utils/pickup-schedule";
 import type { BranchRecord } from "@/types/branch-selector";
@@ -52,6 +51,7 @@ export function SelectPickupTimeSection({
     () => getPickupScheduleForDate({ branch: selectedBranch, dateValue }),
     [dateValue, selectedBranch]
   );
+  const hasOpeningHours = scheduleState.hasOpeningHours;
 
   const openingHoursLabel = useMemo(() => {
     const schedule = scheduleState.schedule;
@@ -64,13 +64,14 @@ export function SelectPickupTimeSection({
     )}`;
   }, [dateValue, scheduleState.schedule]);
 
-  const selectedTimeAvailable = timeSlots.some((slot) => slot.value === pickupTime);
+  const selectedTimeAvailable =
+    !hasOpeningHours || timeSlots.some((slot) => slot.value === pickupTime);
 
   useEffect(() => {
-    if (pickupTime && !selectedTimeAvailable) {
+    if (hasOpeningHours && pickupTime && !selectedTimeAvailable) {
       setPickupTime(null);
     }
-  }, [pickupTime, selectedTimeAvailable, setPickupTime]);
+  }, [hasOpeningHours, pickupTime, selectedTimeAvailable, setPickupTime]);
 
   return (
     <section className="max-w-[520px] space-y-[22px]">
@@ -98,8 +99,9 @@ export function SelectPickupTimeSection({
               });
               const disabled =
                 isPastDateValue(nextDateValue) ||
-                Boolean(dateScheduleState.schedule?.isClosed) ||
-                availableSlots.length === 0;
+                (dateScheduleState.hasOpeningHours &&
+                  (Boolean(dateScheduleState.schedule?.isClosed) ||
+                    availableSlots.length === 0));
               const isSelected = dateValue === nextDateValue;
 
               return (
@@ -137,7 +139,11 @@ export function SelectPickupTimeSection({
             <p className="mt-3 flex items-center gap-2 text-xs text-gray-500">
               <Clock size={14} />
               Pickup hours: {openingHoursLabel}
-              {scheduleState.usesFallback ? " (default)" : ""}
+            </p>
+          ) : dateValue && !hasOpeningHours ? (
+            <p className="mt-3 flex items-center gap-2 text-xs text-gray-500">
+              <Clock size={14} />
+              Branch pickup hours are not configured, so any pickup time is allowed.
             </p>
           ) : null}
         </div>
@@ -149,28 +155,40 @@ export function SelectPickupTimeSection({
           Choose Pickup Time
         </h3>
 
-        <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
-          {timeSlots.length > 0 ? (
-            timeSlots.map((slot) => (
-              <button
-                key={slot.value}
-                type="button"
-                onClick={() => setPickupTime(slot.value)}
-                className={`h-[48px] rounded-[10px] border-2 text-sm font-medium transition-all ${
-                  pickupTime === slot.value
-                    ? "border-orange-500 bg-orange-500 text-white shadow-md"
-                    : "border-gray-200 bg-white text-gray-700 hover:border-orange-400 hover:text-orange-500"
-                }`}
-              >
-                {slot.label}
-              </button>
-            ))
-          ) : (
-            <p className="col-span-full rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-500">
-              Select another pickup date. No available pickup slots for this day.
-            </p>
-          )}
-        </div>
+        {hasOpeningHours ? (
+          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+            {timeSlots.length > 0 ? (
+              timeSlots.map((slot) => (
+                <button
+                  key={slot.value}
+                  type="button"
+                  onClick={() => setPickupTime(slot.value)}
+                  className={`h-[48px] rounded-[10px] border-2 text-sm font-medium transition-all ${
+                    pickupTime === slot.value
+                      ? "border-orange-500 bg-orange-500 text-white shadow-md"
+                      : "border-gray-200 bg-white text-gray-700 hover:border-orange-400 hover:text-orange-500"
+                  }`}
+                >
+                  {slot.label}
+                </button>
+              ))
+            ) : (
+              <p className="col-span-full rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-500">
+                Select another pickup date. No available pickup slots for this day.
+              </p>
+            )}
+          </div>
+        ) : (
+          <label className="block max-w-[220px]">
+            <span className="sr-only">Pickup time</span>
+            <input
+              type="time"
+              value={pickupTime || ""}
+              onChange={(event) => setPickupTime(event.target.value || null)}
+              className="h-[48px] w-full rounded-[10px] border-2 border-gray-200 bg-white px-4 text-sm font-medium text-gray-700 outline-none transition-all focus:border-orange-500"
+            />
+          </label>
+        )}
       </div>
     </section>
   );

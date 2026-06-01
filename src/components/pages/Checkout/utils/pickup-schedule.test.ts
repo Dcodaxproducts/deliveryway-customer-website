@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import {
   buildPickupTimeSlots,
@@ -59,34 +59,21 @@ describe("pickup schedule helpers", () => {
     ).toEqual([]);
   });
 
-  it("uses a default schedule when branch opening hours are not configured", () => {
+  it("does not create fallback slots when branch opening hours are not configured", () => {
     expect(
       getPickupScheduleForDate({
         branch: null,
         dateValue: "2026-06-08",
       })
     ).toMatchObject({
-      usesFallback: true,
-      schedule: {
-        openTime: "09:00",
-        closeTime: "22:00",
-      },
+      hasOpeningHours: false,
+      schedule: null,
     });
-  });
-
-  it("only returns future slots for today", () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-06-08T10:10:00"));
-
-    try {
-      expect(
-        buildPickupTimeSlots({
-          branch: null,
-          dateValue: "2026-06-08",
-        })[0]
-      ).toEqual({ value: "10:30", label: "10:30 AM" });
-    } finally {
-      vi.useRealTimers();
-    }
+    expect(
+      buildPickupTimeSlots({
+        branch: null,
+        dateValue: "2026-06-08",
+      })
+    ).toEqual([]);
   });
 });

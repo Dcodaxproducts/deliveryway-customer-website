@@ -1,8 +1,6 @@
 import type { BranchRecord } from "@/types/branch-selector";
 
 const SLOT_INTERVAL_MINUTES = 30;
-const FALLBACK_OPEN_TIME = "09:00";
-const FALLBACK_CLOSE_TIME = "22:00";
 
 type OpeningHours = {
   dayOfWeek?: string;
@@ -17,7 +15,7 @@ type OpeningHours = {
 
 type PickupSchedule = {
   schedule: OpeningHours | null;
-  usesFallback: boolean;
+  hasOpeningHours: boolean;
 };
 
 export type PickupTimeSlot = {
@@ -138,14 +136,8 @@ export const getPickupScheduleForDate = ({
 
   if (!openingHours.length) {
     return {
-      schedule: {
-        dayOfWeek: getDayOfWeek(dateValue),
-        isClosed: false,
-        openTime: FALLBACK_OPEN_TIME,
-        closeTime: FALLBACK_CLOSE_TIME,
-        breakTimes: [],
-      },
-      usesFallback: true,
+      schedule: null,
+      hasOpeningHours: false,
     };
   }
 
@@ -157,7 +149,7 @@ export const getPickupScheduleForDate = ({
 
   return {
     schedule,
-    usesFallback: false,
+    hasOpeningHours: true,
   };
 };
 
@@ -170,9 +162,9 @@ export const buildPickupTimeSlots = ({
 }): PickupTimeSlot[] => {
   if (!dateValue || isPastDateValue(dateValue)) return [];
 
-  const { schedule } = getPickupScheduleForDate({ branch, dateValue });
+  const { hasOpeningHours, schedule } = getPickupScheduleForDate({ branch, dateValue });
 
-  if (!schedule || schedule?.isClosed) return [];
+  if (!hasOpeningHours || !schedule || schedule?.isClosed) return [];
 
   const open = timeToMinutes(schedule?.openTime);
   const close = timeToMinutes(schedule?.closeTime);
