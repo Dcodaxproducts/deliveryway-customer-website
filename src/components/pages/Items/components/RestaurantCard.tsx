@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { Plus, Info, Loader2, Eye, Minus, Download, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import useItems from "@/hooks/useItems";
 import useCart from "@/hooks/useCart";
@@ -855,12 +855,12 @@ export default function RestaurantCard({ item }: { item: MenuItem }) {
     return sortBySortOrder(Array.from(deduped.values()));
   };
 
-  const getDefaultVariation = (menuItem: MenuItem | null) => {
+  const getDefaultVariation = useCallback((menuItem: MenuItem | null) => {
     const variations = getItemVariations(menuItem);
     if (!variations.length) return null;
 
     return variations.find((v) => v.isDefault) || variations[0];
-  };
+  }, []);
 
   const getGroupValidation = (group: ModifierGroup) => {
     const rawMin = toNumber(group?.minSelect, 0);
