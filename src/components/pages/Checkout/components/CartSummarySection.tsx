@@ -10,10 +10,11 @@ import {
   Pencil,
   Layers2,
   BadgeDollarSign,
+  AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useRouter, useSearchParams } from "next/navigation";
-import type { ApiRecord } from "@/components/pages/Checkout/utils/checkout-normalizers";
+import { useRouter } from "next/navigation";
+import type { ApiRecord, BackendErrorState } from "@/components/pages/Checkout/utils/checkout-normalizers";
 
 interface CartAddon {
   id?: string;
@@ -110,6 +111,8 @@ interface Props {
   updateQuantity: (id: string, type: "inc" | "dec") => void;
   deleteItem: (id: string) => void;
   clearCart: () => void;
+  backendError?: BackendErrorState | null;
+  checkoutType: CheckoutType;
   onPlaceOrder: () => void;
   placingOrder?: boolean;
   couponCode?: string;
@@ -151,16 +154,6 @@ const slugify = (value: string) => {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
-};
-
-const getCheckoutType = (type?: string | null): CheckoutType => {
-  const normalized = String(type || "").toLowerCase();
-
-  if (normalized === "pickup" || normalized === "takeaway") {
-    return "pickup";
-  }
-
-  return "delivery";
 };
 
 const getSelectedAddons = (item: CartItem) => {
@@ -573,7 +566,7 @@ const getItemPricing = (item: CartItem, checkoutType: CheckoutType) => {
     selectedSections,
   };
 };
-export default function CartSummarySection({
+export function CartSummarySection({
   title = "Cart Summary",
   cartItems,
   quote,
@@ -581,6 +574,8 @@ export default function CartSummarySection({
   updateQuantity,
   deleteItem,
   clearCart,
+  backendError,
+  checkoutType,
   onPlaceOrder,
   placingOrder,
   couponCode,
@@ -590,9 +585,6 @@ export default function CartSummarySection({
   validatingCoupon,
 }: Props) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const checkoutType = getCheckoutType(searchParams.get("type"));
   const canEditCart = title !== "Order Details";
 
   const handleAddMoreItems = () => {
@@ -729,13 +721,71 @@ export default function CartSummarySection({
         </div>
 
         {cartItems.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50/70 p-5 text-center">
-            <p className="text-sm font-medium text-gray-700">Your cart is empty</p>
-            <p className="mt-1 text-xs text-gray-400">
-              Add items from the menu to start building the order.
-            </p>
+          <div
+            className={`rounded-2xl border border-dashed p-5 text-center ${
+              backendError
+                ? "border-red-200 bg-red-50/80"
+                : "border-gray-200 bg-gray-50/70"
+            }`}
+          >
+            {backendError ? (
+              <div className="mx-auto max-w-sm">
+                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-red-100 text-red-600">
+                  <AlertTriangle size={20} />
+                </div>
 
-            {canEditCart ? (
+                <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+                  <p className="text-sm font-semibold text-red-900">
+                    Backend Error
+                  </p>
+
+                  {backendError.code ? (
+                    <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-red-700 ring-1 ring-red-100">
+                      {backendError.code}
+                    </span>
+                  ) : null}
+                </div>
+
+                <p className="mt-1 text-sm leading-6 text-red-800">
+                  <span className="font-medium">{backendError.context}:</span>{" "}
+                  {backendError.message}
+                </p>
+
+                {backendError.path || backendError.timestamp ? (
+                  <div className="mt-2 flex flex-wrap justify-center gap-2 text-[11px] text-red-700/80">
+                    {backendError.path ? (
+                      <span className="rounded-full bg-white/70 px-2 py-1">
+                        {backendError.path}
+                      </span>
+                    ) : null}
+
+                    {backendError.timestamp ? (
+                      <span className="rounded-full bg-white/70 px-2 py-1">
+                        {new Date(backendError.timestamp).toLocaleString()}
+                      </span>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <>
+                <p className="text-sm font-medium text-gray-700">Your cart is empty</p>
+                <p className="mt-1 text-xs text-gray-400">
+                  Add items from the menu to start building the order.
+                </p>
+              </>
+            )}
+
+            {backendError ? (
+              <button
+                type="button"
+                onClick={clearCart}
+                className="mt-4 inline-flex h-10 items-center justify-center gap-2 rounded-full border border-red-200 bg-white px-4 text-sm font-medium text-red-600 shadow-sm transition hover:border-red-300 hover:bg-red-50"
+              >
+                <Trash2 size={14} strokeWidth={2.5} />
+                Clear Cart
+              </button>
+            ) : canEditCart ? (
               <button
                 type="button"
                 onClick={handleAddMoreItems}

@@ -4,7 +4,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import Tabs from "@/components/pages/Checkout/components/Tabs";
 import DeliverySection from "@/components/pages/Checkout/components/DeliverySection";
 import PickupSection from "@/components/pages/Checkout/components/PickupSection";
-import CartSummarySection from "@/components/pages/Checkout/components/CartSummarySection";
+import { CartSummarySection } from "@/components/pages/Checkout/components/CartSummarySection";
 import { useRouter, useSearchParams } from "next/navigation";
 import useCheckout from "@/hooks/useCheckout";
 import { toast } from "sonner";
@@ -17,73 +17,8 @@ import {
 } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { useAuth } from "@/hooks/useAuth";
-import { AlertTriangle, X } from "lucide-react";
 import type { ApiRecord, BackendErrorState, CartItem } from "@/components/pages/Checkout/utils/checkout-normalizers";
 import { asRecord, getBackendErrorCode, getBackendErrorMessage, getBackendErrorMeta, hasBackendError, normalizeCartItem, normalizeCartResponse, recalculateCartItemQuantity, toNumber } from "@/components/pages/Checkout/utils/checkout-normalizers";
-
-function BackendErrorBanner({
-  error,
-  onDismiss,
-}: {
-  error: BackendErrorState | null;
-  onDismiss: () => void;
-}) {
-  if (!error) return null;
-
-  return (
-    <div className="mb-6 overflow-hidden rounded-2xl border border-red-100 bg-red-50 shadow-sm -mt-10">
-      <div className="flex items-start gap-3 p-4 sm:p-5">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600">
-          <AlertTriangle size={20} />
-        </div>
-
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="text-sm font-semibold text-red-900">
-              Backend Error
-            </p>
-
-            {error.code ? (
-              <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-red-700 ring-1 ring-red-100">
-                {error.code}
-              </span>
-            ) : null}
-          </div>
-
-          <p className="mt-1 text-sm leading-6 text-red-800">
-            <span className="font-medium">{error.context}:</span>{" "}
-            {error.message}
-          </p>
-
-          {error.path || error.timestamp ? (
-            <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-red-700/80">
-              {error.path ? (
-                <span className="rounded-full bg-white/70 px-2 py-1">
-                  {error.path}
-                </span>
-              ) : null}
-
-              {error.timestamp ? (
-                <span className="rounded-full bg-white/70 px-2 py-1">
-                  {new Date(error.timestamp).toLocaleString()}
-                </span>
-              ) : null}
-            </div>
-          ) : null}
-        </div>
-
-        <button
-          type="button"
-          onClick={onDismiss}
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-red-700 transition hover:bg-red-100"
-          aria-label="Dismiss backend error"
-        >
-          <X size={16} />
-        </button>
-      </div>
-    </div>
-  );
-}
 
 function CheckoutPageContent() {
   const searchParams = useSearchParams();
@@ -591,11 +526,6 @@ function CheckoutPageContent() {
 
   return (
     <div className="mx-auto mb-[113px] mt-[63px] max-w-[1400px] px-4 md:px-30">
-      <BackendErrorBanner
-        error={backendError}
-        onDismiss={() => setBackendError(null)}
-      />
-
       <div className="grid grid-cols-1 gap-16 lg:grid-cols-12">
         <div className="space-y-[38px] lg:col-span-7">
           <Tabs activeTab={activeTab} />
@@ -634,6 +564,8 @@ function CheckoutPageContent() {
             updateQuantity={updateQuantity}
             deleteItem={deleteItem}
             clearCart={clearCart}
+            backendError={backendError}
+            checkoutType={activeTab}
             onPlaceOrder={handlePlaceOrder}
             placingOrder={placingOrder || loadingCart}
             couponCode={couponCode}
