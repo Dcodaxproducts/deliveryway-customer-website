@@ -1,7 +1,12 @@
-// @ts-nocheck
-export default function HeaderSection({ order }: unknown) {
+import type { GroupOrder } from "@/types/group-order";
+
+type HeaderSectionProps = {
+  order: GroupOrder;
+};
+
+export default function HeaderSection({ order }: HeaderSectionProps) {
   const total = order?.participantCount || 0;
-  const ready = order?.participants?.filter((p: unknown) => p.items?.length > 0)?.length || 0;
+  const ready = order?.participants?.filter((p) => (p.items?.length || 0) > 0)?.length || 0;
 
   const percent = total ? (ready / total) * 100 : 0;
 

@@ -1,11 +1,9 @@
-// @ts-nocheck
 "use client";
 
 import { Info, Loader2, LogOut } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import useOrders from "@/hooks/useOrders";
-import { useAuth } from "@/hooks/useAuth";
+
 import { toast } from "sonner";
 
 import {
@@ -14,28 +12,33 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import useGroupOrder from "@/hooks/useGroupOrder";
+import useGroupOrder, { useGroupOrderApi } from "@/hooks/useGroupOrder";
+import { clearStoredGroupOrderCode } from "@/lib/group-order";
+import type { CheckoutGroupOrderPayload, GroupOrder, GroupOrderPaymentMethod, GroupOrderSuccessData } from "@/types/group-order";
 
-export default function OrderSummary({ order, onSuccess }: unknown) {
+type OrderSummaryProps = {
+  order: GroupOrder;
+  onSuccess: (data: GroupOrderSuccessData) => void;
+};
+
+export default function OrderSummary({ order, onSuccess }: OrderSummaryProps) {
   const summary = order?.summary;
 const { canCheckout, isHost } = useGroupOrder();
-  const { token } = useAuth();
-  const { post } = useOrders(token);
+  const { checkoutGroupOrder, leaveGroupOrder } = useGroupOrderApi(null);
 
   const [noteOpen, setNoteOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [note, setNote] = useState("");
   const [coupon, setCoupon] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("COD");
+  const [paymentMethod, setPaymentMethod] = useState<GroupOrderPaymentMethod>("COD");
 
   const [loadingCheckout, setLoadingCheckout] = useState(false);
   const [loadingLeave, setLoadingLeave] = useState(false);
 
-  // ✅ LEAVE GROUP
   const handleLeave = async () => {
     try {
       setLoadingLeave(true);
-      await post(`/v1/group-orders/${order?.id}/leave`, {});
+      await leaveGroupOrder({ orderId: order.id });
       toast.success("Left group successfully");
       window.location.href = "/";
     } catch (err) {
@@ -45,34 +48,30 @@ const { canCheckout, isHost } = useGroupOrder();
     }
   };
 
-  // ✅ CHECKOUT
  const handleCheckout = async () => {
   try {
     setLoadingCheckout(true);
 
-    const res: unknown = await post(`/v1/group-orders/${order?.id}/checkout`, {
+    const payload: CheckoutGroupOrderPayload = {
       paymentMethod,
       orderTime: order?.orderTime,
       customerNote: note || "",
       couponCode: coupon || "",
-    });
+    };
 
-    // ✅ HANDLE API ERROR PROPERLY
+    const res = await checkoutGroupOrder({ orderId: order.id, payload });
+
     if (!res || res.error) {
       toast.error(res?.error || res?.message || "Checkout failed");
-
-      // optional debug
 
       return;
     }
 
-    // ✅ SUCCESS
     toast.success("Order placed successfully");
     setCheckoutOpen(false);
-onSuccess(res?.data);
-browserStorage.removeItem("groupOrderCode");
-  } catch (err) {
-    // ❌ this will only catch unexpected runtime errors
+onSuccess((res?.data || {}) as GroupOrderSuccessData);
+clearStoredGroupOrderCode();
+  } catch {
     toast.error("Something went wrong");
   } finally {
     setLoadingCheckout(false);
@@ -83,7 +82,7 @@ browserStorage.removeItem("groupOrderCode");
   return (
     <div className="space-y-6">
 
-      {/* ✅ SUMMARY */}
+      {/* SUMMARY */}
       <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-100">
 
         {/* TOP ROW */}
@@ -188,9 +187,7 @@ browserStorage.removeItem("groupOrderCode");
         </div>
       </div>
 
-      {/* ========================= */}
-      {/* ✅ NOTE MODAL */}
-      {/* ========================= */}
+      {/* NOTE MODAL */}
    <Dialog open={noteOpen} onOpenChange={setNoteOpen}>
   <DialogContent className="rounded-3xl bg-[#f7f7f7] p-6 max-w-md border-none">
 
@@ -221,9 +218,7 @@ browserStorage.removeItem("groupOrderCode");
   </DialogContent>
 </Dialog>
 
-      {/* ========================= */}
-      {/* ✅ CHECKOUT MODAL */}
-      {/* ========================= */}
+      {/* CHECKOUT MODAL */}
     <Dialog open={checkoutOpen} onOpenChange={setCheckoutOpen}>
   <DialogContent className="rounded-3xl bg-[#f7f7f7] p-6 max-w-md border-none">
 
@@ -246,7 +241,7 @@ browserStorage.removeItem("groupOrderCode");
         {["COD", "BANK_TRANSFER", "EASYPESA", "JAZZCASH"].map((method) => (
           <button
             key={method}
-            onClick={() => setPaymentMethod(method)}
+            onClick={() => setPaymentMethod(method as GroupOrderPaymentMethod)}
             className={`rounded-full py-2 text-sm font-medium transition border ${
               paymentMethod === method
                 ? "bg-primary text-white border-primary"

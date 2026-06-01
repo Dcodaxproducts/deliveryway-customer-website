@@ -1,30 +1,31 @@
-// @ts-nocheck
 "use client";
 
 import Image from "next/image";
 import { Trash2, Plus, Minus } from "lucide-react";
-import useOrders from "@/hooks/useOrders";
-import { useAuth } from "@/hooks/useAuth";
-import useGroupOrder from "@/hooks/useGroupOrder";
+import useGroupOrder, { useGroupOrderApi } from "@/hooks/useGroupOrder";
+import type { GroupOrderItem, GroupOrderParticipant } from "@/types/group-order";
 
-export default function UserCard({ participant, orderId, isHost }: unknown) {
-  const { token } = useAuth();
-  const { del, patch } = useOrders(token);
+type UserCardProps = {
+  participant: GroupOrderParticipant;
+  orderId: string | number;
+  isHost?: boolean;
+};
+
+export default function UserCard({ participant, orderId, isHost }: UserCardProps) {
+  const { deleteGroupOrderItem, updateGroupOrderItemQuantity } = useGroupOrderApi(null);
 
   const user = participant?.user;
   const items = participant?.items || [];
 
-  const handleDelete = async (itemId: string) => {
-    await del(`/v1/group-orders/${orderId}/items/${itemId}`);
+  const handleDelete = async (itemId: string | number) => {
+    await deleteGroupOrderItem({ orderId, itemId });
     location.reload();
   };
 
-  const updateQty = async (item: unknown, qty: number) => {
+  const updateQty = async (item: GroupOrderItem, qty: number) => {
     if (qty < 1) return;
 
-    await patch(`/v1/group-orders/${orderId}/items/${item.id}`, {
-      quantity: qty,
-    });
+    await updateGroupOrderItemQuantity({ orderId, itemId: item.id, quantity: qty });
 
     location.reload();
   };
@@ -42,7 +43,7 @@ const canEdit = canEditItems && isCurrentUser;
           <div className="w-12 h-12 rounded-full overflow-hidden relative border border-gray-200">
             <Image
               src={user?.avatarUrl || "https://i.pravatar.cc/150"}
-              alt={user?.firstName}
+              alt={user?.firstName || ""}
               fill
               className="object-cover"
             />
@@ -70,13 +71,13 @@ const canEdit = canEditItems && isCurrentUser;
 
       {!picking && (
         <div className="mt-5 space-y-3">
-          {items.map((item: unknown) => (
+          {items.map((item) => (
             <div key={item.id} className="flex items-center justify-between">
 
               <div className="flex items-center gap-3">
                 <div className="w-11 h-11 rounded-md overflow-hidden relative border border-gray-200">
                   <Image
-                    src={item.menuItem?.imageUrl}
+                    src={item.menuItem?.imageUrl || "/items/table.png"}
                     alt=""
                     fill
                     className="object-cover"

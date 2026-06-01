@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import HeaderSection from "@/components/pages/GroupOrder/components/lobby/HeaderSection";
@@ -9,9 +8,10 @@ import OrderSuccess from "@/components/pages/GroupOrder/components/Success/Order
 import useGroupOrder from "@/hooks/useGroupOrder";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
+import type { GroupOrderParticipant, GroupOrderSuccessData } from "@/types/group-order";
 
 export function GroupOrderLobbyPage() {
-  const [successData, setSuccessData] = useState<unknown>(null);
+  const [successData, setSuccessData] = useState<GroupOrderSuccessData | null>(null);
 
   const { order, loading, redirecting } = useGroupOrder();
 
@@ -72,7 +72,7 @@ export function GroupOrderLobbyPage() {
       <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* LEFT */}
         <div className="space-y-5 lg:col-span-2">
-          {order?.participants?.map((participant: unknown) => (
+          {order?.participants?.map((participant: GroupOrderParticipant) => (
             <UserCard
               key={participant.id}
               participant={participant}

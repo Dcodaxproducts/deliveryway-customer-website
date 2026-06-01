@@ -1,46 +1,100 @@
-// @ts-nocheck
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import useOrders from "@/hooks/useOrders";
+
+import { queryKeys } from "@/config/query-keys";
 import { useAuth } from "@/hooks/useAuth";
+import { useDomainApi } from "@/hooks/useDomainApi";
+import { clearStoredGroupOrderCode, getStoredGroupOrderCode, isClosedGroupOrder } from "@/lib/group-order";
+import {
+  checkoutGroupOrder,
+  createGroupOrder,
+  deleteGroupOrderItem,
+  deleteGroupOrders,
+  fetchGroupOrders,
+  getGroupOrders,
+  leaveGroupOrder,
+  patchGroupOrders,
+  postGroupOrders,
+  searchGroupOrdersByInviteCode,
+  updateGroupOrderItemQuantity,
+} from "@/services/group-orders";
+import type { ApiResult } from "@/services/http";
+import type {
+  CheckoutGroupOrderPayload,
+  CreateGroupOrderPayload,
+  GroupOrder,
+  UseGroupOrderResult,
+} from "@/types/group-order";
 
-const GROUP_ORDER_CODE_KEY = "groupOrderCode";
-const GROUP_ORDER_CLOSED_STATUSES = ["CHECKED_OUT", "CANCELLED", "EXPIRED"];
-
-const normalizeApiArray = (res: unknown) => {
-  if (Array.isArray(res?.data)) return res.data;
-  if (Array.isArray(res?.data?.data)) return res.data.data;
-  if (Array.isArray(res?.items)) return res.items;
-  return [];
+const service = {
+  get: getGroupOrders,
+  post: postGroupOrders,
+  patch: patchGroupOrders,
+  del: deleteGroupOrders,
 };
 
-const getStoredGroupOrderCode = () => {
-  if (typeof window === "undefined") return "";
+export const useGroupOrderApi = (token: string | null) => {
+  const api = useDomainApi(token, { service, requestKey: queryKeys.orders.request });
 
-  return browserStorage.getItem(GROUP_ORDER_CODE_KEY) || "";
+  const listGroupOrders = useCallback(() => fetchGroupOrders(token), [token]);
+
+  const findGroupOrderByInviteCode = useCallback(
+    ({ inviteCode }: { inviteCode: string }) => searchGroupOrdersByInviteCode({ inviteCode, token }),
+    [token]
+  );
+
+  const addGroupOrder = useCallback(
+    ({ payload }: { payload: CreateGroupOrderPayload }) => createGroupOrder({ payload, token }),
+    [token]
+  );
+
+  const leaveOrder = useCallback(
+    ({ orderId }: { orderId: string | number }) => leaveGroupOrder({ orderId, token }),
+    [token]
+  );
+
+  const checkoutOrder = useCallback(
+    ({ orderId, payload }: { orderId: string | number; payload: CheckoutGroupOrderPayload }) =>
+      checkoutGroupOrder({ orderId, payload, token }),
+    [token]
+  );
+
+  const updateItemQuantity = useCallback(
+    ({ orderId, itemId, quantity }: { orderId: string | number; itemId: string | number; quantity: number }) =>
+      updateGroupOrderItemQuantity({ orderId, itemId, quantity, token }),
+    [token]
+  );
+
+  const deleteItem = useCallback(
+    ({ orderId, itemId }: { orderId: string | number; itemId: string | number }) =>
+      deleteGroupOrderItem({ orderId, itemId, token }),
+    [token]
+  );
+
+  return useMemo(
+    () => ({
+      ...api,
+      fetchGroupOrders: listGroupOrders,
+      searchGroupOrdersByInviteCode: findGroupOrderByInviteCode,
+      createGroupOrder: addGroupOrder,
+      leaveGroupOrder: leaveOrder,
+      checkoutGroupOrder: checkoutOrder,
+      updateGroupOrderItemQuantity: updateItemQuantity,
+      deleteGroupOrderItem: deleteItem,
+    }),
+    [api, addGroupOrder, checkoutOrder, deleteItem, findGroupOrderByInviteCode, leaveOrder, listGroupOrders, updateItemQuantity]
+  );
 };
 
-const clearStoredGroupOrderCode = () => {
-  if (typeof window === "undefined") return;
-
-  browserStorage.removeItem(GROUP_ORDER_CODE_KEY);
-};
-
-const isClosedGroupOrder = (order: unknown) => {
-  const status = String(order?.status || "").toUpperCase();
-
-  return GROUP_ORDER_CLOSED_STATUSES.includes(status);
-};
-
-export default function useGroupOrder() {
+export default function useGroupOrder(): UseGroupOrderResult {
   const router = useRouter();
 
   const { token, user } = useAuth();
-  const { get } = useOrders(token);
+  const { searchGroupOrdersByInviteCode: findGroupOrderByInviteCode } = useGroupOrderApi(token);
 
-  const [order, setOrder] = useState<unknown>(null);
+  const [order, setOrder] = useState<GroupOrder | null>(null);
   const [loading, setLoading] = useState(true);
   const [redirecting, setRedirecting] = useState(false);
 
@@ -55,26 +109,20 @@ export default function useGroupOrder() {
         return;
       }
 
-      const res: unknown = await get(`/v1/group-orders?search=${encodeURIComponent(code)}`);
+      const { response, groupOrder } = await findGroupOrderByInviteCode({ inviteCode: code });
 
-      if (!res || res?.error) {
+      if (!response || response.error) {
         setOrder(null);
         return;
       }
 
-      const orders = normalizeApiArray(res);
-
-      const found = orders.find((item: unknown) => {
-        return String(item?.inviteCode || "") === String(code);
-      });
-
-      if (!found) {
+      if (!groupOrder) {
         clearStoredGroupOrderCode();
         setOrder(null);
         return;
       }
 
-      if (isClosedGroupOrder(found)) {
+      if (isClosedGroupOrder(groupOrder)) {
         clearStoredGroupOrderCode();
         setOrder(null);
         setRedirecting(true);
@@ -82,13 +130,13 @@ export default function useGroupOrder() {
         return;
       }
 
-      setOrder(found);
-    } catch (err) {
+      setOrder(groupOrder);
+    } catch {
       setOrder(null);
     } finally {
       setLoading(false);
     }
-  }, [get, router]);
+  }, [findGroupOrderByInviteCode, router]);
 
   useEffect(() => {
     if (!token) {
@@ -101,8 +149,8 @@ export default function useGroupOrder() {
 
   const isHost = order?.hostUserId === user?.id;
 
-  const participant = order?.participants?.find((p: unknown) => {
-    return p.userId === user?.id;
+  const participant = order?.participants?.find((item) => {
+    return item.userId === user?.id;
   });
 
   const isParticipant = Boolean(participant);
@@ -115,14 +163,13 @@ export default function useGroupOrder() {
     loading,
     redirecting,
     refetch: fetchOrder,
-
-    // roles
     isHost,
     isParticipant,
     participant,
-
-    // permissions
     canEditItems,
     canCheckout,
   };
 }
+
+export type GroupOrderApi = ReturnType<typeof useGroupOrderApi>;
+export type GroupOrderApiResult = Promise<ApiResult>;

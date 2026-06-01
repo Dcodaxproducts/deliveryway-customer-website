@@ -1,17 +1,21 @@
-// @ts-nocheck
 "use client";
 
 import Image from "next/image";
 import { Check, MapPin, Clock, Power } from "lucide-react";
+import type { GroupOrderParticipant, GroupOrderSuccessData } from "@/types/group-order";
 
-const OrderSuccess = ({ data }: unknown) => {
+type OrderSuccessProps = {
+  data?: GroupOrderSuccessData | null;
+};
+
+const OrderSuccess = ({ data }: OrderSuccessProps) => {
   const order = data?.order;
   const session = data?.session;
 
   const total = order?.totalAmount || session?.finalOrder?.totalAmount || 0;
 
   const participants =
-    session?.participants?.filter((p: unknown) => p.status === "ACTIVE") || [];
+    session?.participants?.filter((p) => p.status === "ACTIVE") || [];
 
   return (
     <section className="w-full min-h-screen py-17 px-6 flex flex-col items-center">
@@ -108,14 +112,14 @@ const OrderSuccess = ({ data }: unknown) => {
 
             {/* MEMBERS */}
             <div className="space-y-4">
-              {participants.map((p: unknown, i: number) => (
+              {participants.map((p: GroupOrderParticipant, i: number) => (
                 <div key={i} className="flex items-center gap-3">
 
                   <div className="w-9 h-9 rounded-full overflow-hidden relative bg-gray-200">
                     {p?.user?.avatarUrl ? (
                       <Image
                         src={p.user.avatarUrl}
-                        alt={p.user.firstName}
+                        alt={p.user.firstName || ""}
                         fill
                         className="object-cover"
                       />

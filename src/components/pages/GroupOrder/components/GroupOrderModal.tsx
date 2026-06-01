@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import { useState } from "react";
@@ -6,23 +5,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import useOrders from "@/hooks/useOrders";
+import { useGroupOrderApi } from "@/hooks/useGroupOrder";
 import { useAuth } from "@/hooks/useAuth";
 import BranchSelect from "@/components/ui/BranchSelect";
 import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { setStoredGroupOrderCode } from "@/lib/group-order";
+import type { CreateGroupOrderPayload, GroupOrderType } from "@/types/group-order";
+import type { BranchRecord } from "@/types/branch-selector";
 
 type GroupOrderModalProps = { open: boolean; onClose: () => void };
 
 export default function GroupOrderModal({ open, onClose }: GroupOrderModalProps) {
   const { user, token } = useAuth();
-  const { post, loading } = useOrders(token);
+  const { createGroupOrder, loading } = useGroupOrderApi(token);
 const router = useRouter();
-  const [selectedBranch, setSelectedBranch] = useState<unknown>(null);
+  const [selectedBranch, setSelectedBranch] = useState<BranchRecord | null>(null);
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [note, setNote] = useState("");
-  const [orderType, setOrderType] = useState("DINE_IN");
+  const [orderType, setOrderType] = useState<GroupOrderType>("DINE_IN");
 
   if (!open) return null;
 
@@ -35,33 +37,32 @@ const router = useRouter();
 
     const orderTime = new Date(`${date}T${time}`).toISOString();
 
-    const res: unknown = await post("/v1/group-orders", {
+    const payload: CreateGroupOrderPayload = {
       branchId,
       orderType,
       deliveryAddressId: null,
       orderTime,
       hostNote: note || null,
-    });
+    };
+
+    const res = await createGroupOrder({ payload });
 
     if (!res || res.error) {
       return toast.error(res?.error || "Failed to create group order");
     }
 
-const inviteCode = res?.data?.inviteCode;
+const dataRecord = typeof res?.data === "object" && res.data !== null ? res.data as Record<string, unknown> : null;
+const inviteCode = String(dataRecord?.inviteCode || "");
 
 if (!inviteCode) {
   return toast.error("Invite code missing");
 }
 
-// ✅ SAVE IN LOCAL STORAGE
-browserStorage.setItem("groupOrderCode", inviteCode);
+setStoredGroupOrderCode(inviteCode);
 
 toast.success("Group order created 🎉");
 
-// ✅ CLOSE MODAL
 onClose();
-
-    // ✅ REDIRECT WITH CODE
     router.push(`/group-order/invite?code=${inviteCode}`);
 
   } catch (err) {
@@ -111,7 +112,7 @@ onClose();
                 <button
                   key={type}
                   type="button"
-                  onClick={() => setOrderType(type)}
+                  onClick={() => setOrderType(type as GroupOrderType)}
                   className={`h-11 rounded-full text-sm font-medium transition ${
                     orderType === type
                       ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md"

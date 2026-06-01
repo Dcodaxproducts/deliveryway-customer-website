@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import Image from "next/image";
@@ -7,32 +6,31 @@ import FeaturesSection from "./FeaturesSection";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import useOrders from "@/hooks/useOrders";
 import { useAuth } from "@/hooks/useAuth";
+import { buildGroupOrderInviteLink } from "@/lib/group-order";
+import { useGroupOrderApi } from "@/hooks/useGroupOrder";
+import type { GroupOrder } from "@/types/group-order";
 
 export default function InviteFriends() {
   const { token } = useAuth();
-  const { get } = useOrders(token);
+  const { fetchGroupOrders } = useGroupOrderApi(token);
   const router = useRouter();
 
-  const [order, setOrder] = useState<unknown>(null);
+  const [order, setOrder] = useState<GroupOrder | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // 🔥 FETCH FUNCTION (reusable)
   const fetchOrder = async (isRefresh = false) => {
     try {
       if (isRefresh) setRefreshing(true);
       else setLoading(true);
 
-      const res: unknown = await get("/v1/group-orders");
+      const { response: res, groupOrders: orders } = await fetchGroupOrders();
 
       if (!res || res.error) {
         toast.error("Failed to fetch group orders");
         return;
       }
-
-      const orders = res?.data || [];
 
       if (!orders.length) {
         setOrder(null);
@@ -40,7 +38,7 @@ export default function InviteFriends() {
       }
 
       const latestOrder =
-        orders.find((o: unknown) => o.status === "OPEN") || orders[0];
+        orders.find((o) => o.status === "OPEN") || orders[0];
 
       setOrder(latestOrder);
     } catch (err) {
@@ -56,19 +54,16 @@ export default function InviteFriends() {
     fetchOrder();
   }, [token]);
 
-  // 🔁 REFRESH HANDLER
   const handleRefresh = () => {
     fetchOrder(true);
   };
 
-  // 🔥 COPY LINK
   const handleCopy = async () => {
-    const link = `${window.location.origin}/items?code=${order?.inviteCode}`;
+    const link = buildGroupOrderInviteLink({ origin: window.location.origin, inviteCode: order?.inviteCode });
     await navigator.clipboard.writeText(link);
     toast.success("Link copied");
   };
 
-  // 🔹 SKELETON UI
   const Skeleton = () => (
     <div className="animate-pulse space-y-4 mt-4">
       {[1, 2, 3].map((i) => (
@@ -132,7 +127,7 @@ export default function InviteFriends() {
 
           <div className="flex items-center bg-gray-100 rounded-full px-4 py-2 gap-3">
             <span className="text-gray-700 text-sm flex-1 truncate">
-              {`${window.location.origin}/items?code=${order.inviteCode}`}
+              {buildGroupOrderInviteLink({ origin: window.location.origin, inviteCode: order.inviteCode })}
             </span>
 
             <button
@@ -177,7 +172,7 @@ export default function InviteFriends() {
             <Skeleton />
           ) : (
             <div className="space-y-4">
-              {order.participants.map((p: unknown) => (
+              {(order.participants || []).map((p) => (
                 <div
                   key={p.id}
                   className="flex justify-between items-center bg-gray-50 rounded-xl p-4 border border-gray-100"

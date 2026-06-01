@@ -1,15 +1,20 @@
-// @ts-nocheck
 "use client";
 
 import { Users, Copy, Check } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { buildGroupOrderInviteLink } from "@/lib/group-order";
+import type { GroupOrder } from "@/types/group-order";
 
-export default function InviteSection({ order }: unknown) {
+type InviteSectionProps = {
+  order: GroupOrder;
+};
+
+export default function InviteSection({ order }: InviteSectionProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
-    const link = `${window.location.origin}/items?code=${order?.inviteCode}`;
+    const link = buildGroupOrderInviteLink({ origin: window.location.origin, inviteCode: order?.inviteCode });
     await navigator.clipboard.writeText(link);
     setCopied(true);
     toast.success("Link copied");
@@ -35,7 +40,7 @@ export default function InviteSection({ order }: unknown) {
         <div className="max-w-xl mt-5 flex items-center bg-white rounded-full px-4 py-2 justify-between text-sm border border-gray-200 shadow-sm">
 
           <span className="text-gray-500 truncate pr-3">
-            {order?.inviteCode ? `${window.location.origin}/items?code=${order?.inviteCode}` : "Generating..."}
+            {order?.inviteCode ? buildGroupOrderInviteLink({ origin: window.location.origin, inviteCode: order?.inviteCode }) : "Generating..."}
           </span>
 
           <button
