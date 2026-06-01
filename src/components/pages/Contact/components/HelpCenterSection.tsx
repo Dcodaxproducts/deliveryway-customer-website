@@ -58,7 +58,7 @@ export default function HelpCenterSection() {
   );
 }
 
-/* 🔥 REUSABLE CARD */
+/*  REUSABLE CARD */
 type HelpCardProps = {
   icon: ReactNode;
   title: string;
@@ -73,13 +73,9 @@ function HelpCard({ icon, title, description }: HelpCardProps) {
       <div className="text-primary text-[18px] mb-4">
         {icon}
       </div>
-
-      {/* TITLE */}
       <h3 className="text-[13px] font-semibold text-gray-900 tracking-wide mb-3">
         {title}
       </h3>
-
-      {/* DESCRIPTION */}
       <p className="text-gray-500 text-[13px] leading-relaxed mb-6">
         {description}
       </p>

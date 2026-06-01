@@ -1,5 +1,5 @@
 import ChatUI from "@/components/pages/Contact/components/LiveChat";
-import React, { Suspense } from "react";
+import { Suspense } from "react";
 
 export function ChatPage() {
   return (

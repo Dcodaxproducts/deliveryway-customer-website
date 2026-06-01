@@ -90,7 +90,7 @@ export default function WriteReview() {
     );
   }
 
-  // ❌ NOT FOUND
+  //  NOT FOUND
   if (notFound || !order) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center text-center px-4">
@@ -176,8 +176,6 @@ export default function WriteReview() {
               />
             ))}
           </div>
-
-          {/* TEXTAREA */}
           <p className="text-sm mb-2">Your Review</p>
           <textarea
             value={review}
@@ -185,8 +183,6 @@ export default function WriteReview() {
             placeholder="Tell us about your experience... Was the food hot? How was the presentation?"
             className="w-full border border-[#ACACAC] rounded-lg p-3 text-sm outline-none min-h-[120px]"
           />
-
-          {/* IMAGE UPLOAD */}
           <p className="text-sm mt-4 mb-2">Add Photos</p>
 
           <div className="flex gap-3 items-center">

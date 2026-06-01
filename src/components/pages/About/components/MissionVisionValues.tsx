@@ -3,7 +3,7 @@
 import { Rocket, Eye, Heart } from "lucide-react";
 
 export default function MissionVisionValues() {
- 
+
     const items = [
   {
     title: "Our Mission",
@@ -34,7 +34,7 @@ export default function MissionVisionValues() {
   return (
     <section className="w-full bg-[#f5f5f5] py-16 md:py-20">
       <div className="mx-auto px-4 md:px-30 grid md:grid-cols-3 gap-6">
-        
+
         {items.map((item, index) => {
           const Icon = item.icon;
 

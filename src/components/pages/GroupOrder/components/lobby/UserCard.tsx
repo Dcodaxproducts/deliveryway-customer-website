@@ -109,7 +109,7 @@ const canEdit = canEditItems && isCurrentUser;
   onClick={() => handleDelete(item.id)}
   className={`text-red-500 ${!canEdit && "opacity-40 cursor-not-allowed"}`}
 >
-                
+
                   <Trash2 className="w-4 h-4" />
                 </button>
 

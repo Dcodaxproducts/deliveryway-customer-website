@@ -64,7 +64,7 @@
   --primary: var(--brand-primary);
   --blue: #1877F2;
   --yellow: var(--brand-accent);
-  
+
   /* Standard UI Colors (Removed the duplicate --secondary) */
   --background: var(--brand-background);
   --foreground: var(--brand-text);
@@ -73,11 +73,10 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
   --primary-foreground: oklch(0.985 0 0);
-  
-  /* Fixed: Use only one secondary definition */
-  --secondary: oklch(0.97 0 0); 
+
+  --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
-  
+
   /* ... rest of your variables ... */
 }
 

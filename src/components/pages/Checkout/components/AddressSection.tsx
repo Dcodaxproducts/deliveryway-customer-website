@@ -31,7 +31,7 @@ export default function PickupAddressSection({
 
       {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-[30px]">
         <Card
-          onClick={() => setSelectedAddress(addressId)} // ✅ click
+          onClick={() => setSelectedAddress(addressId)} //  click
           className={`rounded-[10px] p-6 cursor-pointer transition-transform hover:scale-[1.02]
             ${
               isSelected

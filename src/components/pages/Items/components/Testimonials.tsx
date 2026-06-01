@@ -51,7 +51,7 @@ const Testimonials = () => {
   return (
     <section className="py-12 px-6 md:px-12 lg:px-20">
 
-      {/* Header */}
+
       <div className="max-w-[1200px] mx-auto mb-10">
         <h2 className="text-[28px] font-semibold text-gray-900">
           Guest Experiences
@@ -79,7 +79,7 @@ const Testimonials = () => {
 
       {/* Testimonials Grid */}
       <div className="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-3 gap-10">
-        
+
         {testimonials.map((item, index) => (
           <div key={index} className="flex flex-col">
 
@@ -93,7 +93,7 @@ const Testimonials = () => {
 
             {/* User */}
             <div className="flex items-center gap-3">
-              
+
               <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-xs font-semibold text-gray-700">
                 {item.initials}
               </div>

@@ -49,7 +49,7 @@ const PaymentMethodSection = ({
         ))}
       </div>
 
-   
+
     </section>
   );
 };

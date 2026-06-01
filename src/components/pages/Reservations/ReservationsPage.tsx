@@ -26,7 +26,7 @@ export function ReservationsPage() {
   const [sort, setSort] = useState("nearest");
 
   const [error, setError] = useState<string | null>(null);
-  const [isInitialLoading, setIsInitialLoading] = useState(true); // ✅ FIX
+  const [isInitialLoading, setIsInitialLoading] = useState(true); //  FIX
 
   const fetchReservations = async () => {
     setError(null);
@@ -40,14 +40,14 @@ export function ReservationsPage() {
       setMeta(nextMeta);
     }
 
-    setIsInitialLoading(false); // ✅ mark fetch done
+    setIsInitialLoading(false); //  mark fetch done
   };
 
   useEffect(() => {
     if (token) fetchReservations();
   }, [token, page]);
 
-  // 🔥 FILTER
+  //  FILTER
   const filtered = reservations.filter((r) => {
     if (filter === "all") return true;
     if (filter === "cancelled") return r.status === "CANCELLED";
@@ -60,7 +60,7 @@ export function ReservationsPage() {
     );
   });
 
-  // 🔥 SORT
+  //  SORT
   const sorted = [...filtered].sort((a, b) => {
     const d1 = new Date(a.reservationDate).getTime();
     const d2 = new Date(b.reservationDate).getTime();
@@ -110,7 +110,7 @@ export function ReservationsPage() {
       </div>
 
       {/* ========================= */}
-      {/* 🔥 INITIAL LOADING (SKELETON) */}
+      {/*  INITIAL LOADING (SKELETON) */}
       {/* ========================= */}
       {isInitialLoading && (
       <div className="grid md:grid-cols-2 gap-x-6 gap-y-10 mt-6">
@@ -131,7 +131,7 @@ export function ReservationsPage() {
       )}
 
       {/* ========================= */}
-      {/* 🔥 ERROR STATE */}
+      {/*  ERROR STATE */}
       {/* ========================= */}
       {!isInitialLoading && error && (
         <div className="mt-12 flex flex-col items-center text-center">
@@ -146,7 +146,7 @@ export function ReservationsPage() {
       )}
 
       {/* ========================= */}
-      {/* 🔥 EMPTY STATE */}
+      {/*  EMPTY STATE */}
       {/* ========================= */}
       {!isInitialLoading && !error && sorted.length === 0 && (
         <div className="mt-16 text-center">
@@ -160,7 +160,7 @@ export function ReservationsPage() {
       )}
 
       {/* ========================= */}
-      {/* 🔥 DATA */}
+      {/*  DATA */}
       {/* ========================= */}
       {!isInitialLoading && !error && sorted.length > 0 && (
 <div className="grid md:grid-cols-2 gap-x-6 gap-y-10 mt-6">
@@ -178,7 +178,7 @@ export function ReservationsPage() {
       )}
 
       {/* ========================= */}
-      {/* 🔥 PAGINATION */}
+      {/*  PAGINATION */}
       {/* ========================= */}
       {!isInitialLoading &&
         !error &&

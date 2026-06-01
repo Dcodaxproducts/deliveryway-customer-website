@@ -180,20 +180,20 @@ function OrderStatusContent() {
                   ))}
                 </div>
               )}
-            
+
             </div>
-         
+
           </div>
 
           {/* RIGHT */}
           <div className="lg:col-span-5">
             <OrderSummary order={order} />
-          
+
           </div>
-          
+
         </div>
       )}
-      
+
     </div>
   );
 }

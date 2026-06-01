@@ -153,7 +153,6 @@ export default function ReservationSuccess({ data }: { data: Reservation | null 
 
         {/* CARD */}
         <div className="overflow-hidden rounded-[22px] bg-white shadow-md">
-          {/* IMAGE */}
           <div className="relative h-[230px] w-full">
             <Image
               src="/items/table.png"

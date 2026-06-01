@@ -17,8 +17,6 @@ const RefundPage = () => {
           standards. If your order fell short, please document the discrepancy below
           for our reconciliation team.
         </p>
-
-        {/* INFO CARDS */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
 
           <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
@@ -48,7 +46,7 @@ const RefundPage = () => {
 
           {/* ROW */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
+
             <div>
               <label className="text-xs uppercase tracking-wide text-gray-400">
                 Order Number

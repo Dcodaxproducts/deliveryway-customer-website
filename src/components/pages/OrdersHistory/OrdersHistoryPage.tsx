@@ -56,7 +56,7 @@ const {
   return;
 }
 
-    // ✅ Add each item via API
+
     for (const item of order.itemsPreview) {
       await addCartItemForReorder({ customerId, payload: {
         menuItemId: item.menuItemId,
@@ -68,7 +68,7 @@ const {
 
     toast.success("Reorder successful!");
 
-    // ✅ redirect to checkout
+    //  redirect to checkout
     router.push("/checkout");
 
   } catch (err) {
@@ -175,8 +175,6 @@ const {
                   className="bg-white rounded-2xl shadow-sm overflow-hidden border border-[#F2F2F2]"
                 >
                   <div className="flex flex-col sm:flex-row gap-4 p-4">
-
-                    {/* IMAGE */}
                     <div className="relative w-full sm:w-[110px] h-[180px] sm:h-[90px] rounded-xl overflow-hidden shrink-0">
                       <Image
                         src={firstItem?.imageUrl || "/placeholder.png"}
@@ -257,7 +255,7 @@ const {
   {order.status === "PLACED" ? (
     order.review ? (
       <>
-        {/* ✅ Already reviewed */}
+        {/*  Already reviewed */}
         <span className="text-[12px] text-gray-400">
           You rated this order
         </span>
@@ -278,7 +276,7 @@ const {
       </>
     ) : (
       <>
-        {/* ❌ No review */}
+        {/*  No review */}
         <span className="text-[12px] text-gray-400">
           How was your food?
         </span>

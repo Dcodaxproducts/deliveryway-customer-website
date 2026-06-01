@@ -19,15 +19,11 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
 
   return (
     <section className="w-full min-h-screen py-17 px-6 flex flex-col items-center">
-
-      {/* ✅ SUCCESS ICON */}
       <div className="w-24 h-24 rounded-full bg-white shadow-[0px_8px_10px_-6px_rgba(0,0,0,0.10)] shadow-xl flex items-center justify-center mb-6">
         <div className="w-14 h-14 rounded-full bg-green-500 flex items-center justify-center">
           <Check className="text-white w-7 h-7" strokeWidth={5} />
         </div>
       </div>
-
-      {/* ✅ TITLE */}
       <h1 className="text-3xl md:text-4xl font-semibold text-gray-900">
         Success!
       </h1>
@@ -35,8 +31,6 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
       <p className="text-gray-500 mt-2 text-sm md:text-base">
         Your group order has been placed successfully.
       </p>
-
-      {/* ✅ MAIN CARD */}
       <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-lg shadow-[0_12px_32px_rgba(26,28,28,0.06)] mt-12 p-6 md:p-8 overflow-hidden">
 
         {/* 🔶 TOP RIGHT ABSTRACT IMAGE */}
@@ -141,8 +135,6 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
 
         </div>
       </div>
-
-      {/* ✅ BUTTONS */}
       <div className="mt-10 flex gap-4 flex-col sm:flex-row">
         <button className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-full font-medium shadow-md hover:opacity-90 transition">
           <Power className="w-4 h-4" />

@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import { Suspense } from "react";
 import WriteReview from "@/components/pages/Order/components/WriteReview";
 
 export function OrderWriteReviewPage() {
@@ -11,7 +11,7 @@ export function OrderWriteReviewPage() {
   );
 }
 
-/* 🔥 CLEAN LOADING COMPONENT */
+/*  CLEAN LOADING COMPONENT */
 function Loading() {
   return (
     <div className="flex items-center justify-center py-20">

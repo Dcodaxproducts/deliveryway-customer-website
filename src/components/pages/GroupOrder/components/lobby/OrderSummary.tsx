@@ -157,8 +157,6 @@ clearStoredGroupOrderCode();
           Orders will only be processed once the host clicks finalize.
         </p>
       </div>
-
-      {/* ✅ INFO */}
       <div className="flex items-start gap-3 bg-sky-100/40 text-sky-900 rounded-xl px-4 py-4">
         <Info className="w-5 h-5 mt-0.5 text-sky-700" strokeWidth={2.5} />
         <p className="text-xs leading-relaxed">

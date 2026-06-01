@@ -424,7 +424,7 @@ const findBestModifierOverride = ({
   return matching.find(isGenericMenuItemOverride) || matching[0];
 };
 
-/* ================= CART API HELPERS ================= */
+
 
 const getApiErrorMessage = (res: ApiRecord | null | undefined, fallback = "Something went wrong") => {
   if (!res) return fallback;

@@ -127,7 +127,7 @@ export default function SignUpForm() {
   return (
     <div className="w-full lg:mr-[79px]">
 
-      {/* Header */}
+
       <div className="space-y-1">
         <h1 className="text-headline-sm font-bold font-roboto text-primary">
           {showOtpField ? "Verify Email" : "Sign Up"}

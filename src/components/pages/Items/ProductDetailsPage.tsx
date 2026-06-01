@@ -837,7 +837,7 @@ function ProductDetailsPageContent() {
     item?.restaurantId ||
     item?.restaurant?.id ||
     user?.restaurantId ||
-    
+
     "";
 
 

@@ -12,10 +12,10 @@ const PrivacyPage = () => {
   return (
     <div className="min-h-screen py-12 px-6 md:px-12 lg:px-20">
       <div className="md:px-28 mx-auto grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-10">
-        
+
         {/* LEFT CONTENT */}
         <div>
-          {/* Header */}
+
           <h1 className="text-[32px] md:text-[36px] font-semibold text-gray-900">
             Privacy Policy
           </h1>

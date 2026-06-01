@@ -28,7 +28,7 @@ const ForgotPassword = () => {
   });
 const [isLoading, setIsLoading] = useState(false);
 const [resetUrl, setResetUrl] = useState("");
-// ✅ Forgot Password Function
+//  Forgot Password Function
 const handleForgotPassword = async (values: ForgotPasswordFormValues) => {
   try {
     setIsLoading(true);
@@ -62,13 +62,13 @@ router.push(getSafeRedirectPath(`/auth/reset-password?email=${encodeURIComponent
 };
    return (
         <div className="w-full lg:mr-[79px]">
-            {/* Header */}
+
             <div className="space-y-1">
                 <h1 className="text-headline-sm font-bold font-roboto text-primary">Forgot password?</h1>
                 <p className={MUTED_TEXT_CLASS}>Please, fill in email to reset password</p>
             </div>
 
-            {/* Form */}
+
             <form onSubmit={form.handleSubmit(handleForgotPassword)} className="space-y-[16px] mt-[35px] mb-[19px]" noValidate>
                 {/* Email */}
                 <div className="relative">
@@ -117,8 +117,8 @@ router.push(getSafeRedirectPath(`/auth/reset-password?email=${encodeURIComponent
   </div>
 )}
 
-            
-           
+
+
         </div>
     )
 };

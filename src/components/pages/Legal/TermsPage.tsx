@@ -8,7 +8,7 @@ const TermsPage = () => {
 
       <div className="max-w-[1000px]">
 
-        {/* Header */}
+
         <h1 className="text-[32px] md:text-[36px] font-semibold text-gray-900">
           Terms & Conditions
         </h1>

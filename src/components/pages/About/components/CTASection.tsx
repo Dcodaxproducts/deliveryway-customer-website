@@ -9,10 +9,10 @@ export default function CTASection() {
   return (
     <section className="w-full py-16 md:py-20 bg-white">
       <div className="max-w-6xl mx-auto px-4">
-        
+
         {/* TOP CTA CARD */}
         <div className="bg-gradient-to-r from-[#E94E2F] to-[#FF5A2C] rounded-2xl p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-10">
-          
+
           {/* LEFT CONTENT */}
           <div className="text-white max-w-lg">
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-[1.2]">
@@ -64,9 +64,9 @@ export default function CTASection() {
             Join our mailing list for curated weekly menus and secret discount codes.
           </p>
 
-          {/* Input + Button (FIXED HEIGHT + ALIGNMENT) */}
+
           <div className="mt-6 flex flex-col md:flex-row gap-3 justify-center items-center max-w-2xl mx-auto">
-            
+
             <Input
               placeholder="Enter your email address"
               className="h-12 w-full bg-[#f9f9f9] border border-gray-200 focus-visible:ring-0 focus-visible:border-[#FF5A2C]"

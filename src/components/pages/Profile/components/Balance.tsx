@@ -1,9 +1,8 @@
-// @ts-nocheck
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { Wallet, Sparkles, ShieldCheck, CreditCard } from "lucide-react";
-import { loadStripe } from "@stripe/stripe-js";
+import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import {
   Elements,
   PaymentElement,
@@ -109,7 +108,7 @@ const Balance = ({
   const [note, setNote] = useState("Wallet top-up from app checkout flow");
 
   const [clientSecret, setClientSecret] = useState("");
-  const [stripePromise, setStripePromise] = useState<unknown>(null);
+  const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
 
   const appearance = useMemo(
     () => ({
@@ -142,18 +141,24 @@ const Balance = ({
       return;
     }
 
-    const res: unknown = await api.post("/customer-app/wallet/top-up", {
+    const res = await api.post("/customer-app/wallet/top-up", {
       amount: numericAmount,
       currency: "PKR",
       note,
     });
 
     if (!res?.success) {
-      toast.error(res?.error || "Failed to create payment");
+      toast.error(res?.error ?? "Failed to create payment");
       return;
     }
 
-    const payment = res?.data?.paymentSession;
+    const data = typeof res?.data === "object" && res.data !== null ? res.data as { paymentSession?: { publishableKey?: string; clientSecret?: string } } : null;
+    const payment = data?.paymentSession;
+
+    if (!payment?.publishableKey || !payment?.clientSecret) {
+      toast.error("Failed to create payment");
+      return;
+    }
 
     setStripePromise(loadStripe(payment.publishableKey));
     setClientSecret(payment.clientSecret);

@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import Image from "next/image";
@@ -36,9 +35,22 @@ interface CartSection {
   pickupPrice?: number | string;
   pickupUnitPrice?: number | string;
   selectedVariation?: ApiRecord;
-  menuItem?: ApiRecord;
+  menuItem?: ApiRecord & { selectedVariation?: ApiRecord; pickupPrice?: number | string; unitPrice?: number | string; name?: string; slug?: string; imageUrl?: string; category?: ApiRecord; variationPriceOverrides?: unknown[]; variations?: unknown[]; depositAmount?: number | string; takeawayPriceAdjustment?: number | string; deliveryPriceAdjustment?: number | string };
   name?: string;
 }
+
+type CartSectionRecord = ApiRecord & {
+  slot?: string;
+  menuItemId?: string | number;
+  menuItemName?: string;
+  unitPrice?: number | string;
+  price?: number | string;
+  pickupPrice?: number | string;
+  pickupUnitPrice?: number | string;
+  selectedVariation?: ApiRecord;
+  menuItem?: ApiRecord & { selectedVariation?: ApiRecord; unitPrice?: number | string; pickupPrice?: number | string; name?: string };
+  name?: string;
+};
 
 interface CartItem {
   id?: string | number;
@@ -59,17 +71,17 @@ interface CartItem {
   selectedModifiers?: CartAddon[];
   note?: string;
 
-  menuItem?: ApiRecord;
+  menuItem?: ApiRecord & { selectedVariation?: ApiRecord; pickupPrice?: number | string; unitPrice?: number | string; name?: string; slug?: string; imageUrl?: string; category?: ApiRecord; variationPriceOverrides?: unknown[]; variations?: unknown[]; depositAmount?: number | string; takeawayPriceAdjustment?: number | string; deliveryPriceAdjustment?: number | string };
   variationId?: string | number;
   selectedSections?: CartSection[];
   sections?: CartSection[];
 
-  depositAmount?: number | string;
-  depositTotal?: number | string;
-  pickupPrice?: number | string;
-  pickupUnitPrice?: number | string;
-  takeawayPriceAdjustment?: number | string;
-  deliveryPriceAdjustment?: number | string;
+  depositAmount?: unknown;
+  depositTotal?: unknown;
+  pickupPrice?: unknown;
+  pickupUnitPrice?: unknown;
+  takeawayPriceAdjustment?: unknown;
+  deliveryPriceAdjustment?: unknown;
 }
 
 interface CartQuote {
@@ -174,7 +186,7 @@ const getAddonTotal = (addon: CartAddon) => {
   return toNumber(addon.total, unitPrice * quantity);
 };
 
-const getMenuItem = (item: CartItem) => {
+const getMenuItem = (item: CartItem): ApiRecord => {
   return item?.menuItem || {};
 };
 
@@ -210,36 +222,38 @@ const getVariationId = (item: CartItem) => {
   return (
     item?.variationId ||
     item?.selectedVariation?.id ||
-    item?.menuItem?.selectedVariation?.id ||
+    String(item?.menuItem?.selectedVariation?.id ?? "") ||
     ""
   );
 };
 
-const findSelectedVariationOverride = (item: CartItem) => {
+const findSelectedVariationOverride = (item: CartItem): CartSectionRecord | null => {
   const variationId = getVariationId(item);
   const menuItem = getMenuItem(item);
 
   if (!variationId) return null;
 
-  const overrides = normalizeArray(menuItem?.variationPriceOverrides);
+  const overrides = normalizeArray<ApiRecord>(menuItem?.variationPriceOverrides);
 
   return (
     overrides.find((override: ApiRecord) => {
-      return String(override?.variationId || override?.variation?.id || "") ===
+      const variation = typeof override?.variation === "object" && override.variation !== null ? override.variation as ApiRecord : null;
+
+      return String(override?.variationId || variation?.id || "") ===
         String(variationId);
     }) || null
   );
 };
 
-const findSelectedVariation = (item: CartItem) => {
+const findSelectedVariation = (item: CartItem): CartSectionRecord | null => {
   const variationId = getVariationId(item);
   const menuItem = getMenuItem(item);
 
   if (!variationId) return null;
 
   const variations = [
-    ...normalizeArray(menuItem?.variations),
-    ...normalizeArray(menuItem?.category?.variations),
+    ...normalizeArray<ApiRecord>(menuItem?.variations),
+    ...normalizeArray<ApiRecord>(typeof menuItem?.category === "object" && menuItem.category !== null && "variations" in menuItem.category ? menuItem.category.variations : undefined),
   ];
 
   return (
@@ -325,12 +339,12 @@ const getDepositUnitAmount = (item: CartItem) => {
 };
 
 const getSelectedSections = (item: CartItem): CartSection[] => {
-  const sections = normalizeArray(item.selectedSections).length
-    ? normalizeArray(item.selectedSections)
-    : normalizeArray(item.sections);
+  const sections = normalizeArray<CartSectionRecord>(item.selectedSections).length
+    ? normalizeArray<CartSectionRecord>(item.selectedSections)
+    : normalizeArray<CartSectionRecord>(item.sections);
 
   return sections
-    .map((section: ApiRecord) => ({
+    .map((section: CartSectionRecord) => ({
       slot: String(section?.slot || "").toUpperCase(),
       menuItemId: section?.menuItemId,
       menuItemName:
@@ -341,29 +355,29 @@ const getSelectedSections = (item: CartItem): CartSection[] => {
       unitPrice:
         section?.unitPrice ??
         section?.price ??
-        section?.selectedVariation?.price ??
-        section?.menuItem?.selectedVariation?.price ??
-        section?.menuItem?.unitPrice ??
-        0,
+        (toNumber(section?.selectedVariation?.price, 0) ||
+          toNumber(section?.menuItem?.selectedVariation?.price, 0) ||
+          toNumber(section?.menuItem?.unitPrice, 0) ||
+          0),
       price:
         section?.price ??
         section?.unitPrice ??
-        section?.selectedVariation?.price ??
-        section?.menuItem?.selectedVariation?.price ??
-        section?.menuItem?.unitPrice ??
-        0,
+        (toNumber(section?.selectedVariation?.price, 0) ||
+          toNumber(section?.menuItem?.selectedVariation?.price, 0) ||
+          toNumber(section?.menuItem?.unitPrice, 0) ||
+          0),
       pickupPrice:
         section?.pickupPrice ??
         section?.pickupUnitPrice ??
-        section?.selectedVariation?.pickupPrice ??
-        section?.menuItem?.selectedVariation?.pickupPrice ??
-        section?.menuItem?.pickupPrice,
+        (toNumber(section?.selectedVariation?.pickupPrice, 0) ||
+          toNumber(section?.menuItem?.selectedVariation?.pickupPrice, 0) ||
+          section?.menuItem?.pickupPrice),
       pickupUnitPrice:
         section?.pickupUnitPrice ??
         section?.pickupPrice ??
-        section?.selectedVariation?.pickupPrice ??
-        section?.menuItem?.selectedVariation?.pickupPrice ??
-        section?.menuItem?.pickupPrice,
+        (toNumber(section?.selectedVariation?.pickupPrice, 0) ||
+          toNumber(section?.menuItem?.selectedVariation?.pickupPrice, 0) ||
+          section?.menuItem?.pickupPrice),
       selectedVariation: section?.selectedVariation,
       menuItem: section?.menuItem,
       name: section?.name,
@@ -773,7 +787,7 @@ export default function CartSummarySection({
 
                     <button
                       type="button"
-                      onClick={() => deleteItem(item.id)}
+                      onClick={() => deleteItem(String(item.id))}
                       className="rounded-md bg-red-100 p-1 transition hover:bg-red-200"
                       aria-label={`Remove ${item.name}`}
                     >
@@ -784,7 +798,7 @@ export default function CartSummarySection({
                   <div className="flex items-start gap-4">
                     <div className="relative h-[76px] w-[76px] shrink-0 overflow-hidden rounded-[12px]">
                       <Image
-                        src={getItemImage(item)}
+                        src={String(getItemImage(item) || "/placeholder.png")}
                         alt={item.name}
                         fill
                         className="object-cover"
@@ -800,7 +814,7 @@ export default function CartSummarySection({
 
                         {selectedVariationName ? (
                           <p className="mt-1 text-xs text-gray-500">
-                            Size: {selectedVariationName}
+                            Size: {String(selectedVariationName)}
                           </p>
                         ) : null}
 
@@ -1002,7 +1016,7 @@ export default function CartSummarySection({
                         <div className="flex items-center gap-[12px]">
                           <button
                             type="button"
-                            onClick={() => updateQuantity(item.id, "dec")}
+                            onClick={() => updateQuantity(String(item.id), "dec")}
                             className="flex h-[20px] w-[20px] items-center justify-center rounded-sm border border-gray-900 text-gray-900 transition-colors hover:border-primary hover:text-primary"
                           >
                             <Minus size={13} strokeWidth={3} />
@@ -1014,7 +1028,7 @@ export default function CartSummarySection({
 
                           <button
                             type="button"
-                            onClick={() => updateQuantity(item.id, "inc")}
+                            onClick={() => updateQuantity(String(item.id), "inc")}
                             className="flex h-[20px] w-[20px] items-center justify-center rounded-sm border border-gray-900 text-gray-900 transition-colors hover:border-primary hover:text-primary"
                           >
                             <Plus size={13} strokeWidth={3} />

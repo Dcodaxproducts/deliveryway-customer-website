@@ -34,7 +34,7 @@ export default function TestimonialsSection() {
   return (
     <section className="w-full bg-[#f5f5f5] py-16 md:py-20">
       <div className="max-w-6xl mx-auto px-4">
-        
+
         {/* Heading */}
         <h2 className="text-center text-2xl md:text-3xl font-semibold text-gray-900">
           What Our Users Say

@@ -177,7 +177,7 @@ const fetchMessages = async (id: string) => {
       const threadId = data.threadId;
 
 
-      // ✅ only update if active thread
+      //  only update if active thread
       if (threadId === activeThreadRef.current?.id) {
         setMessages((prev) => {
           if (prev.some((m) => m.id === incomingMessage.id)) return prev;
@@ -269,7 +269,7 @@ const fetchMessages = async (id: string) => {
                     : "bg-[#ecebea]"
                 }`}
               >
-               
+
                 <div className="flex justify-between items-center"><p className="text-[12px] font-medium">
                   {t.subject}
                 </p>

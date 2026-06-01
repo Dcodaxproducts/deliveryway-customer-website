@@ -20,7 +20,7 @@ interface Category {
 
 export default function ExploreCategories() {
   const router = useRouter();
-  
+
 const { token, user, loading: authLoading } = useAuth();
   const { get } = useItems(token);
   const { joinGroupOrder, searchGroupOrdersByInviteCode } = useGroupOrderApi(token);
@@ -70,10 +70,10 @@ const isUserAlreadyInOrder = async (code: string) => {
 
     if (!order) return false;
 
-    // ✅ if user is host
+    //  if user is host
     if (order.hostUserId === user?.id) return true;
 
-    // ✅ if user already participant
+    //  if user already participant
     const exists = order.participants?.some(
       (p: GroupOrderParticipant) => p.userId === user?.id
     );
@@ -120,7 +120,7 @@ useEffect(() => {
   return (
     <section className="w-full bg-[#FFF4F3] py-[60px] px-6">
       <div className="max-w-[1200px] mx-auto">
-        
+
         {/* HEADER */}
         <div className="mb-10">
           <h2 className="text-[32px] md:text-[36px] font-semibold text-[#4A1F1A]">
@@ -158,7 +158,7 @@ useEffect(() => {
   const code = getStoredGroupOrderCode();
 
   if (code) {
-    // ✅ check first
+    //  check first
     const alreadyIn = await isUserAlreadyInOrder(code);
 
     if (!alreadyIn) {

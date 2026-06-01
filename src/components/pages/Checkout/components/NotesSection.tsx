@@ -13,8 +13,8 @@ export default function NotesSection({ note, setNote }: Props) {
       </h3>
 
       <Textarea
-        value={note} // ✅ controlled value
-        onChange={(e) => setNote(e.target.value)} // ✅ update parent state
+        value={note} //  controlled value
+        onChange={(e) => setNote(e.target.value)} //  update parent state
         placeholder="Type you note here"
         className="min-h-[120px] placeholder:text-gray-400 bg-white border-3 border-gray-400 rounded-[12px] pl-[25px] p-4 text-sm"
       />

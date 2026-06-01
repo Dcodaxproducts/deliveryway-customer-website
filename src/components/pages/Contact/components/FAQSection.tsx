@@ -113,7 +113,7 @@ export default function FAQSection() {
   );
 }
 
-/* 🔥 FAQ ITEM (Accordion) */
+/*  FAQ ITEM (Accordion) */
 type FAQItemProps = {
   question: string;
   answer: string;

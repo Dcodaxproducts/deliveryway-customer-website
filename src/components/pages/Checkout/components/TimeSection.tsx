@@ -28,7 +28,7 @@ export default function SelectPickupTimeSection({
 
   const weekDays = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
-  // ✅ Dynamic current month/year
+  //  Dynamic current month/year
   const today = new Date();
   const currentYear = today.getFullYear();
   const currentMonth = today.getMonth();
@@ -50,7 +50,7 @@ export default function SelectPickupTimeSection({
         </h3>
 
         <div className="bg-white px-[29px] py-4 rounded-xl shadow-sm">
-          {/* Header */}
+
           <div className="flex items-center justify-between border-b-2 border-gray-200 pb-[21px] mb-[16px]">
             <span className="text-sm text-gray-600">
               {today.toLocaleString("default", {

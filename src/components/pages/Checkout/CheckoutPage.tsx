@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import { Suspense, useEffect, useMemo, useState } from "react";
@@ -99,7 +98,7 @@ function CheckoutPageContent() {
   const { get, patch, del, post } = useCheckout(token);
 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [cartQuote, setCartQuote] = useState<unknown | null>(null);
+  const [cartQuote, setCartQuote] = useState<ApiRecord | null>(null);
   const [loadingCart, setLoadingCart] = useState(false);
   const [backendError, setBackendError] = useState<BackendErrorState | null>(
     null

@@ -25,7 +25,7 @@ const NewsletterSection = () => {
                     Lorem ipsum dolor sit amet consectetur. Urna eu amet laoreet nisl. Amet pellentesque
                 </p>
 
-                {/* Subscription Form */}
+
                 <form className="flex flex-col sm:flex-row justify-center items-center gap-4 w-full max-w-[708px] mx-auto">
                     <input
                         type="email"

@@ -33,7 +33,7 @@ export default function WhyChooseUsSection() {
 
   return (
     <section className="w-full">
-      
+
       {/* TOP: WHY CHOOSE US */}
       <div className="py-25 md:py-20 text-center">
         <h2 className="text-2xl md:text-3xl font-semibold text-gray-900">
@@ -68,7 +68,7 @@ export default function WhyChooseUsSection() {
       {/* BOTTOM: STATS BAR */}
       <div className="bg-[#2b2b2b] py-12">
         <div className="max-w-6xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          
+
           {stats.map((item, index) => (
             <div key={index}>
               <h3 className="text-[#FF5A2C] text-2xl md:text-3xl font-semibold">

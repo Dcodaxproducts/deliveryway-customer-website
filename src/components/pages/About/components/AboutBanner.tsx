@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 export default function AboutBanner() {
-    
+
   return (
     <section className="relative w-full h-[450px] md:h-[550px] overflow-hidden">
       {/* Background Image */}
@@ -22,7 +22,7 @@ export default function AboutBanner() {
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-4">
-        
+
         <h1 className="text-white text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight">
           About Us
         </h1>

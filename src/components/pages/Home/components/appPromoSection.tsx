@@ -48,7 +48,7 @@ return (
             </h2>
 
             <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8 justify-center md:justify-start">
-              
+
               <div className="flex justify-center md:justify-start -space-x-2">
                 {[1, 2, 3, 4, 5].map((i) => (
                   <div

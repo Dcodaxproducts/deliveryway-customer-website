@@ -81,7 +81,7 @@ const disableMarkAll = !hasNotifications || !hasUnread;
     <div className="bg-slate-50 min-h-screen px-4 py-4 sm:px-6 sm:py-6">
       <div className="max-w-6xl mx-auto">
 
-        {/* Header */}
+
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
             <h1 className="text-2xl font-semibold text-gray-900">

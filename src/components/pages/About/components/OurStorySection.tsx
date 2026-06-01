@@ -6,7 +6,7 @@ export default function OurStorySection() {
   return (
     <section className="w-full py-16 md:py-20">
       <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-2 gap-10 items-center">
-        
+
         {/* LEFT: Image Card */}
         <div className="relative">
           <div className="relative rounded-xl overflow-hidden">

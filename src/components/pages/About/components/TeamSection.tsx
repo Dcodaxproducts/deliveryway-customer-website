@@ -33,7 +33,7 @@ export default function TeamSection() {
   return (
     <section className="w-full py-16 md:py-20">
       <div className="max-w-6xl mx-auto px-4">
-        
+
         {/* Heading */}
         <div className="mb-10">
           <h2 className="text-2xl md:text-3xl font-semibold text-gray-900">
@@ -48,7 +48,7 @@ export default function TeamSection() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {team.map((member, index) => (
             <div key={index}>
-              
+
               {/* Image */}
               <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-gray-200">
                 <Image

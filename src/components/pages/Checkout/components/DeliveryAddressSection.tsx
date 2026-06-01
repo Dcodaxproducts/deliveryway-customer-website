@@ -43,7 +43,7 @@ export default function DeliveryAddressSection({
 
   return (
     <section className="space-y-6">
-      
+
       {/* HEADER */}
       <div className="flex items-center gap-3">
         <MapPin className="text-primary" size={28} />
@@ -59,7 +59,7 @@ export default function DeliveryAddressSection({
         <p className="text-gray-400">No addresses found</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-[20px] md:gap-[30px]">
-          
+
           {addresses.map((addr) => {
             const fullAddress = `${addr.street}, ${addr.area}, ${addr.city}, ${addr.state}, ${addr.country}`;
 

@@ -108,7 +108,7 @@ setTimeout(() => {
 
   return (
     <div className="w-full lg:mr-[79px]">
-      {/* Header */}
+
       <div className="space-y-1">
         <h1 className="text-headline-sm font-bold font-roboto text-primary">
           {isGuestMode ? "Guest Login" : "Login"}
@@ -224,7 +224,7 @@ setTimeout(() => {
           </span>
         </button>
 
-        {/* ✅ GUEST BUTTON */}
+        {/*  GUEST BUTTON */}
         <button
           type="button"
           onClick={() => setIsGuestMode(true)}

@@ -6,7 +6,7 @@ import { MapPin } from "lucide-react";
 const FoodBanner = () => {
   return (
     <section className="relative w-full h-[320px] md:h-[430px] flex items-center justify-center overflow-hidden">
-      
+
       {/* Background Image */}
       <Image
         src="/categories/background_banner.png"
@@ -27,7 +27,7 @@ const FoodBanner = () => {
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center text-center px-4 w-full">
-        
+
         {/* Heading */}
         <h1 className="text-[32px] md:text-[48px] font-semibold text-[#5A1E14] mb-6">
           Are you starving?
@@ -35,7 +35,7 @@ const FoodBanner = () => {
 
         {/* Search Bar */}
         <div className="flex items-center bg-white rounded-full shadow-md p-1 w-full max-w-xl">
-          
+
           {/* Input with Icon */}
           <div className="flex items-center flex-1 px-4">
             <MapPin className="w-5 h-5 text-[#AD2A08] mr-2" />

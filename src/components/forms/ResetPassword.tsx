@@ -112,7 +112,7 @@ const ResetPassword = () => {
   return (
     <div className="w-full lg:mr-[79px]">
 
-      {/* Header */}
+
       <div className="space-y-1">
         <h1 className="text-headline-sm font-bold font-roboto text-primary">
           Reset password
@@ -122,7 +122,7 @@ const ResetPassword = () => {
         </p>
       </div>
 
-      {/* Form */}
+
       <form
         onSubmit={form.handleSubmit(handleResetPassword)}
         className="space-y-[16px] mt-[35px] mb-[19px]"
@@ -185,7 +185,7 @@ const ResetPassword = () => {
           {...form.register("restaurantId")}
         />
 
-        {/* Submit */}
+
         <Button
           type="submit"
           disabled={isLoading}

@@ -41,7 +41,7 @@ const BlogSection = () => {
     const router = useRouter();
     return (
         <section className="pt-[110px] pb-[65px] px-4 max-w-[1400px] mx-auto">
-            {/* Header Section */}
+
             <div className="text-center mb-12 relative">
                 <div className="relative inline-block">
                     {/* Background Decorative Image */}
@@ -66,8 +66,8 @@ const BlogSection = () => {
             {/* Blog Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {blogPosts.map((post) => (
-                    <Card 
-                    key={post.id} 
+                    <Card
+                    key={post.id}
                     onClick={()=> router.push("/details")}
                     className="border-none shadow-lg rounded-md p-[16px]">
                         <CardHeader className="p-0">
