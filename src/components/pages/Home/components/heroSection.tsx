@@ -12,11 +12,13 @@ const HeroSection = ({
     tagline = "Within a few clicks, find meals that are accessible near you",
     heroImage = "/hero.png",
 }: HeroSectionProps) => {
+    const resolvedHeroImage = heroImage?.startsWith("https") ? heroImage : "/hero.png";
+
     return (
         <main className="relative h-[630px] w-full flex items-center justify-center">
             <div className="absolute inset-0 z-0">
                 <Image
-                    src={heroImage || "/hero.png"}
+                    src={resolvedHeroImage}
                     alt="Hero Pizza Background"
                     fill
                     className="object-cover brightness-75"
