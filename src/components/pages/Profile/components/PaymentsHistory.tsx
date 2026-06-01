@@ -1,9 +1,9 @@
-// @ts-nocheck
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import usePayments from "@/hooks/usePayments";
+import type { PaymentItem, PaymentMeta, WalletItem } from "@/services/payments";
 import { Button } from "@/components/ui/button";
 import PaginationSection from "@/components/ui/PaginationComponent";
 import { Input } from "@/components/ui/input";
@@ -22,29 +22,9 @@ import {
 } from "lucide-react";
 import Balance from "./Balance";
 
-type PaymentItem = {
-  id: string;
-  orderId: string;
-  amount: string;
-  status: string;
-  paymentMethod: string;
-  type: string;
-  createdAt: string;
-  order?: { status?: string };
-};
-
-type WalletItem = {
-  id: string;
-  type: string;
-  amount: number;
-  balanceAfter: number;
-  note: string;
-  createdAt: string;
-};
-
 export default function PaymentsHistory() {
   const { token, restaurantId } = useAuth();
-  const api = usePayments(token);
+  const { fetchPaymentsPage, fetchWallet: fetchWalletData } = usePayments(token);
 
   const [tab, setTab] = useState<"payments" | "wallet">("wallet");
 
@@ -56,7 +36,7 @@ export default function PaymentsHistory() {
   const [walletBalance, setWalletBalance] = useState(0);
   const [walletCurrency, setWalletCurrency] = useState("USD");
 
-  const [meta, setMeta] = useState<unknown>({});
+  const [meta, setMeta] = useState<PaymentMeta>({});
   const [loading, setLoading] = useState(false);
 
   const [search, setSearch] = useState("");
@@ -84,11 +64,17 @@ export default function PaymentsHistory() {
     if (status) params.set("status", status);
     if (restaurantId) params.set("restaurantId", restaurantId);
 
-    const res: unknown = await api.get(`/v1/payments?${params.toString()}`);
+    const { response: res, payments: nextPayments, meta: nextMeta } = await fetchPaymentsPage({
+      page,
+      limit,
+      search: debouncedSearch,
+      status,
+      restaurantId,
+    });
 
     if (!res?.error) {
-      setPayments(res?.data || []);
-      setMeta(res?.meta || {});
+      setPayments(nextPayments);
+      setMeta(nextMeta || {});
     }
 
     setLoading(false);
@@ -97,12 +83,12 @@ export default function PaymentsHistory() {
   const fetchWallet = async () => {
     setLoading(true);
 
-    const res: unknown = await api.get(`/customer-app/wallet`);
+    const { response: res, wallet: nextWallet, balance, currency } = await fetchWalletData();
 
     if (!res?.error) {
-      setWallet(res?.data?.history || []);
-      setWalletBalance(res?.data?.balance || 0);
-      setWalletCurrency(res?.data?.currency || "USD");
+      setWallet(nextWallet);
+      setWalletBalance(balance);
+      setWalletCurrency(currency);
     }
 
     setLoading(false);
@@ -441,8 +427,8 @@ export default function PaymentsHistory() {
               totalPages={meta?.totalPages || 1}
               total={meta?.total || 0}
               limit={limit}
-              hasNext={meta?.hasNext}
-              hasPrevious={meta?.hasPrevious}
+              hasNext={Boolean(meta?.hasNext)}
+              hasPrevious={Boolean(meta?.hasPrevious)}
               onPageChange={setPage}
             />
           </div>

@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import Image from "next/image";
@@ -11,17 +10,19 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import useBranchSelector from "@/hooks/useBranchSelector";
 import BranchPopup from "@/components/common/popups/BranchPopup";
+import { getStoredAuthState } from "@/lib/storage";
+import type { Order, OrderItem, OrderMeta } from "@/services/orders";
 export function OrdersHistoryPage() {
   const { token } = useAuthContext();
-  const { get, post } = useOrders(token);
+  const { addCartItemForReorder, fetchOrdersPage } = useOrders(token);
 const router = useRouter();
-  const [orders, setOrders] = useState<unknown[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
  const [reorderingId, setReorderingId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const [meta, setMeta] = useState<unknown>(null);
-  const [pendingOrder, setPendingOrder] = useState<unknown>(null);
+  const [meta, setMeta] = useState<OrderMeta | null>(null);
+  const [pendingOrder, setPendingOrder] = useState<Order | null>(null);
 const {
   showBranchPopup,
   setShowBranchPopup,
@@ -31,17 +32,17 @@ const {
   selectBranch,
 } = useBranchSelector(() => handleReorder(pendingOrder));
   // ================= REORDER FUNCTION =================
-  const handleReorder = async (order: unknown) => {
+  const handleReorder = async (order: Order | null) => {
   try {
     if (!order?.itemsPreview?.length) return;
 
     setReorderingId(order.id);
 
-    const authRaw = browserStorage.getItem("auth");
-    const auth = authRaw ? JSON.parse(authRaw) : null;
+    const auth = getStoredAuthState();
+    const user = typeof auth?.user === "object" && auth.user !== null ? auth.user as Record<string, unknown> : null;
 
-    const customerId = auth?.user?.id;
-    let branchId = auth?.user?.branchId;
+    const customerId = user?.id ? String(user.id) : "";
+    let branchId = user?.branchId ? String(user.branchId) : "";
 
     if (!customerId) {
       toast.error("User not found");
@@ -57,12 +58,12 @@ const {
 
     // ✅ Add each item via API
     for (const item of order.itemsPreview) {
-      await post(`/v1/cart/items?customerId=${customerId}`, {
+      await addCartItemForReorder({ customerId, payload: {
         menuItemId: item.menuItemId,
         quantity: item.quantity,
         branchId,
         note: "",
-      });
+      } });
     }
 
     toast.success("Reorder successful!");
@@ -86,7 +87,7 @@ const {
         setLoading(true);
         setError(null);
 
-        const res: unknown = await get(`/v1/orders?page=${page}&limit=10`);
+        const { response: res, orders: nextOrders, meta: nextMeta } = await fetchOrdersPage({ page, limit: 10 });
 
         if (!res || res.success === false) {
           setError(res?.message || "Failed to fetch orders");
@@ -94,9 +95,9 @@ const {
           return;
         }
 
-        setOrders(res.data || []);
-        setMeta(res.meta);
-      } catch (err) {
+        setOrders(nextOrders);
+        setMeta(nextMeta || null);
+      } catch {
         setError("Something went wrong");
       } finally {
         setLoading(false);
@@ -104,7 +105,7 @@ const {
     };
 
     fetchOrders();
-  }, [page, token]);
+  }, [fetchOrdersPage, page, token]);
 
   // ================= FORMAT DATE =================
   const formatDate = (date: string) => {
@@ -200,8 +201,8 @@ const {
                           </h2>
 
                           <p className="text-[11px] text-gray-400 mt-[2px]">
-                            Order #{order.id.slice(-6)} ·{" "}
-                            {formatDate(order.createdAt)}
+                            Order #{String(order.id).slice(-6)} ·{" "}
+                            {formatDate(order.createdAt || "")}
                           </p>
                         </div>
 
@@ -217,7 +218,7 @@ const {
                         </span>{" "}
                         {order.itemsPreview
                           ?.map(
-                            (item: unknown) =>
+                            (item: OrderItem) =>
                               `${item.menuItemName} (x${item.quantity})`
                           )
                           .join(", ")}
@@ -267,7 +268,7 @@ const {
               key={star}
               size={14}
               className={
-                star <= order.review.rating
+                star <= (order.review?.rating || 0)
                   ? "text-[#EC5834] fill-[#EC5834]"
                   : "text-gray-300"
               }
@@ -305,7 +306,7 @@ const {
         )}
 
         {/* ================= PAGINATION ================= */}
-        {!loading && meta && meta.totalPages > 1 && (
+        {!loading && meta && (meta.totalPages || 0) > 1 && (
           <div className="flex justify-center mt-6 gap-2 flex-wrap">
 
             <button
@@ -316,7 +317,7 @@ const {
               {"<"}
             </button>
 
-            {[...Array(meta.totalPages)].map((_, i) => (
+            {[...Array(meta.totalPages || 0)].map((_, i) => (
               <button
                 key={i}
                 onClick={() => setPage(i + 1)}

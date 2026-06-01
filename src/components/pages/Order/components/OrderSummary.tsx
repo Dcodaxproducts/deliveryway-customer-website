@@ -1,16 +1,16 @@
-// @ts-nocheck
 "use client";
 
 import Image from "next/image";
 import { Info, MessageCircle, TicketPercent } from "lucide-react";
 import Link from "next/link";
+import type { Order, OrderItem } from "@/services/orders";
 
 export default function OrderSummary({
   title = "Order Details",
   order,
 }: {
   title?: string;
-  order?: unknown;
+  order?: Order | null;
 }) {
   const orderItems = order?.items || [];
 
@@ -23,12 +23,12 @@ export default function OrderSummary({
         </h2>
 
         <div className="space-y-[19px]">
-          {orderItems.map((item: unknown) => (
+          {orderItems.map((item: OrderItem) => (
             <div key={item.id} className="flex items-center gap-4">
               <div className="relative w-[76px] h-[76px] rounded-[12px] overflow-hidden">
                 <Image
                   src={item.menuItem?.imageUrl || "/placeholder.png"}
-                  alt={item.menuItemName}
+                  alt={item.menuItemName || "item"}
                   fill
                   className="object-cover"
                 />
@@ -87,7 +87,7 @@ export default function OrderSummary({
           </div>
         </div>
 
-        {order?.discountAmount > 0 && (
+        {Number(order?.discountAmount || 0) > 0 && (
           <div className="bg-primary/20 text-primary p-3 rounded-md flex items-center gap-2 text-sm">
             <TicketPercent size={16} />
             Discount Applied

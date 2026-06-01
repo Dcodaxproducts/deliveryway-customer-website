@@ -1,8 +1,16 @@
 "use client";
 
+import { useCallback, useMemo } from "react";
+
 import { queryKeys } from "@/config/query-keys";
 import { useDomainApi } from "@/hooks/useDomainApi";
-import { deleteNotifications, getNotifications, patchNotifications, postNotifications } from "@/services/notifications";
+import {
+  deleteNotifications,
+  fetchNotificationsPage,
+  getNotifications,
+  patchNotifications,
+  postNotifications,
+} from "@/services/notifications";
 
 const service = {
   get: getNotifications,
@@ -11,7 +19,21 @@ const service = {
   del: deleteNotifications,
 };
 
-export const useNotifications = (token: string | null) =>
-  useDomainApi(token, { service, requestKey: queryKeys.notifications.request });
+export const useNotifications = (token: string | null) => {
+  const api = useDomainApi(token, { service, requestKey: queryKeys.notifications.request });
+
+  const getNotificationsPage = useCallback(
+    ({ page, limit }: { page: number; limit: number }) => fetchNotificationsPage({ page, limit, token }),
+    [token]
+  );
+
+  return useMemo(
+    () => ({
+      ...api,
+      fetchNotificationsPage: getNotificationsPage,
+    }),
+    [api, getNotificationsPage]
+  );
+};
 
 export default useNotifications;

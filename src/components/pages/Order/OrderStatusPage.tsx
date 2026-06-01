@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import Link from "next/link";
@@ -10,14 +9,14 @@ import OrderSummary from "@/components/pages/Order/components/OrderSummary";
 
 function OrderStatusContent() {
   const { token } = useAuthContext();
-  const { get } = useOrders(token);
+  const { fetchOrderById } = useOrders(token);
 
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
 
-  const [order, setOrder] = useState<unknown>(null);
+  const [order, setOrder] = useState<import("@/services/orders").Order | null>(null);
   const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false); // ✅ NEW
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -31,27 +30,25 @@ function OrderStatusContent() {
         setLoading(true);
         setNotFound(false);
 
-        const res: unknown = await get(`/v1/orders/${orderId}`);
+        const { response: res, order: nextOrder } = await fetchOrderById({ orderId });
 
-        // ✅ handle backend "success: false" OR no data
-        if (!res || res.success === false || !res?.data) {
+        if (!res || res.success === false || !nextOrder) {
           setNotFound(true);
           setOrder(null);
           return;
         }
 
-        setOrder(res.data);
-      } catch (err) {
-        setNotFound(true); // ✅ fallback on error
+        setOrder(nextOrder);
+      } catch {
+        setNotFound(true);
       } finally {
         setLoading(false);
       }
     };
 
     fetchOrder();
-  }, [get, orderId, token]);
+  }, [fetchOrderById, orderId, token]);
 
-  // ✅ STATUS MAP
   const statusMap: Record<string, number> = {
     PLACED: 1,
     CONFIRMED: 2,
@@ -60,7 +57,7 @@ function OrderStatusContent() {
     DELIVERED: 5,
   };
 
-  const currentStep = statusMap[order?.status] || 1;
+  const currentStep = statusMap[order?.status || ""] || 1;
 
   const orderSteps = [
     { id: 1, title: "Order Placed", desc: "Your order has been placed successfully." },

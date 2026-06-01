@@ -1,24 +1,23 @@
-// @ts-nocheck
 "use client";
 
 import { useEffect, useState } from "react";
 import { Calendar, Wallet, Check } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import useNotifications from "@/hooks/useNotifications";
+import type { NotificationItem, NotificationMeta } from "@/services/notifications";
 
 export function NotificationsPage() {
   const { token } = useAuth();
-  const { get } = useNotifications(token);
+  const { fetchNotificationsPage } = useNotifications(token);
 
-  const [notifications, setNotifications] = useState<unknown[]>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
 
   const [page, setPage] = useState(1);
-  const [meta, setMeta] = useState<unknown>(null);
+  const [meta, setMeta] = useState<NotificationMeta | null>(null);
 
-  // -------- ICON MAPPER (fallback if API doesn't provide type)
-  const getIcon = (item: unknown) => {
+  const getIcon = (item: NotificationItem) => {
     const type = item?.type || "";
 
     if (type.includes("reservation")) {
@@ -49,16 +48,14 @@ export function NotificationsPage() {
     try {
       pageNumber === 1 ? setLoading(true) : setLoadingMore(true);
 
-      const res: unknown = await get(`/v1/notifications?page=${pageNumber}&limit=10`);
-
-      const newData = res.data || [];
+      const { notifications: newData, meta: nextMeta } = await fetchNotificationsPage({ page: pageNumber, limit: 10 });
 
       setNotifications((prev) =>
         append ? [...prev, ...newData] : newData
       );
 
-      setMeta(res.meta);
-    } catch (err) {
+      setMeta(nextMeta || null);
+    } catch {
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -72,7 +69,6 @@ export function NotificationsPage() {
 const hasNotifications = notifications.length > 0;
 const hasUnread = notifications.some((n) => !n.is_read);
 const disableMarkAll = !hasNotifications || !hasUnread;
-  // -------- LOAD MORE
   const handleLoadMore = () => {
     if (!meta?.hasNext) return;
 

@@ -1,12 +1,15 @@
-// @ts-nocheck
 "use client";
 
 import Image from "next/image";
 import { Star, Loader2, Camera } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { useSearchParams, useRouter } from "next/navigation";
 import useOrders from "@/hooks/useOrders";
 import { useAuthContext } from "@/context/AuthContext";
+import { reviewSchema, type ReviewFormValues } from "@/validations/reviews";
+import type { Order } from "@/services/orders";
 
 export default function WriteReview() {
   const params = useSearchParams();
@@ -14,15 +17,19 @@ export default function WriteReview() {
   const orderId = params.get("orderId");
 
   const { token } = useAuthContext();
-  const { get } = useOrders(token);
+  const { fetchOrderById } = useOrders(token);
 
-  const [order, setOrder] = useState<unknown>(null);
+  const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
-  const [rating, setRating] = useState(4);
+  const { setValue, watch, handleSubmit } = useForm<ReviewFormValues>({
+    resolver: zodResolver(reviewSchema),
+    defaultValues: { rating: 4, review: "" },
+  });
+  const rating = watch("rating");
+  const review = watch("review") || "";
   const [hover, setHover] = useState(0);
-  const [review, setReview] = useState("");
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
@@ -35,15 +42,15 @@ export default function WriteReview() {
       try {
         setLoading(true);
 
-        const res: unknown = await get(`/v1/orders/${orderId}`);
+        const { response: res, order: nextOrder } = await fetchOrderById({ orderId });
 
-        if (!res || res.success === false || !res.data) {
+        if (!res || res.success === false || !nextOrder) {
           setNotFound(true);
           return;
         }
 
-        setOrder(res.data);
-      } catch (err) {
+        setOrder(nextOrder);
+      } catch {
         setNotFound(true);
       } finally {
         setLoading(false);
@@ -51,7 +58,7 @@ export default function WriteReview() {
     };
 
     fetchOrder();
-  }, [orderId, token]);
+  }, [fetchOrderById, orderId, token]);
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString();
@@ -69,6 +76,7 @@ export default function WriteReview() {
 
     const preview = URL.createObjectURL(file);
     setImagePreview(preview);
+    setValue("image", file, { shouldValidate: true });
   };
 
   // ================= STATES =================
@@ -138,7 +146,7 @@ export default function WriteReview() {
             </h2>
 
             <p className="text-xs text-gray-400">
-              {formatDate(order.createdAt)} · Rs{" "}
+              {formatDate(order.createdAt || "")} · Rs{" "}
               {order.totalAmount}
             </p>
           </div>
@@ -159,7 +167,7 @@ export default function WriteReview() {
                 size={22}
                 onMouseEnter={() => setHover(i)}
                 onMouseLeave={() => setHover(0)}
-                onClick={() => setRating(i)}
+                onClick={() => setValue("rating", i, { shouldValidate: true })}
                 className={`cursor-pointer ${
                   (hover || rating) >= i
                     ? "text-[#EC5834] fill-[#EC5834]"
@@ -173,7 +181,7 @@ export default function WriteReview() {
           <p className="text-sm mb-2">Your Review</p>
           <textarea
             value={review}
-            onChange={(e) => setReview(e.target.value)}
+            onChange={(e) => setValue("review", e.target.value, { shouldValidate: true })}
             placeholder="Tell us about your experience... Was the food hot? How was the presentation?"
             className="w-full border border-[#ACACAC] rounded-lg p-3 text-sm outline-none min-h-[120px]"
           />
@@ -214,7 +222,7 @@ export default function WriteReview() {
         {/* ACTION BUTTONS */}
         <div className="flex gap-3 mt-6">
           <button
-            onClick={() => undefined}
+            onClick={handleSubmit(() => undefined)}
             className="flex-1 bg-[#EC5834] text-white py-3 rounded-lg text-sm font-medium"
           >
             Submit Review
