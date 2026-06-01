@@ -1588,12 +1588,10 @@ export function SignatureSelectionContent({
               {
                 slot: "LEFT",
                 menuItemId: item.id,
-                variationId: variation?.id ?? null,
               },
               {
                 slot: "RIGHT",
                 menuItemId: splitPizzaItem.id,
-                variationId: splitPizzaPricingVariation?.id ?? null,
               },
             ]
           : undefined;

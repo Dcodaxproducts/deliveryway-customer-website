@@ -16,21 +16,21 @@ describe("product cart helpers", () => {
   });
 
   it("builds create cart payload with split sections", () => {
-    expect(
-      buildCartPayload({
-        item: { id: "left", menuLinks: [{ restaurantMenuId: "menu-1" }] },
-        branchId: "branch-1",
-        selectedVariation: { id: "large", name: "Large" },
-        qty: 2,
-        selectedModifiers: {},
-        instructions: "  no onion ",
-        splitPizzaEnabled: true,
-        splitPizzaItem: { id: "right" },
-        includeMenuItem: true,
-        includeBranch: true,
-        clearSectionsWhenEmpty: false,
-      })
-    ).toMatchObject({
+    const payload = buildCartPayload({
+      item: { id: "left", menuLinks: [{ restaurantMenuId: "menu-1" }] },
+      branchId: "branch-1",
+      selectedVariation: { id: "large", name: "Large" },
+      qty: 2,
+      selectedModifiers: {},
+      instructions: "  no onion ",
+      splitPizzaEnabled: true,
+      splitPizzaItem: { id: "right" },
+      includeMenuItem: true,
+      includeBranch: true,
+      clearSectionsWhenEmpty: false,
+    });
+
+    expect(payload).toMatchObject({
       branchId: "branch-1",
       menuItemId: "left",
       restaurantMenuId: "menu-1",
@@ -42,6 +42,11 @@ describe("product cart helpers", () => {
         { slot: "RIGHT", menuItemId: "right" },
       ],
     });
+
+    expect(payload.sections).toEqual([
+      { slot: "LEFT", menuItemId: "left" },
+      { slot: "RIGHT", menuItemId: "right" },
+    ]);
   });
 
   it("clears patch sections when split pizza is off", () => {

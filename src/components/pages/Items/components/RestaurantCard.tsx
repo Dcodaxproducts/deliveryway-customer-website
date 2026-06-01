@@ -1457,12 +1457,10 @@ export function RestaurantCard({ item }: { item: MenuItem }) {
               {
                 slot: "LEFT",
                 menuItemId: item.id,
-                variationId: selectedVariation?.id || null,
               },
               {
                 slot: "RIGHT",
                 menuItemId: splitPizzaItem.id,
-                variationId: splitPizzaPricingVariation?.id || null,
               },
             ]
           : undefined;
