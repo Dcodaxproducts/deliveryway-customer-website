@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import Image from "next/image";
@@ -8,11 +7,16 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
 import { useEffect, useMemo, useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import useReservations from "@/hooks/useReservations";
 import { useAuth } from "@/hooks/useAuth";
 import ReservationSuccess from "@/components/pages/Reservations/components/ReservationSuccess";
 import AsyncSelect from "@/components/ui/AsyncSelect";
+import { reservationSchema, type ReservationFormValues } from "@/validations/reservations";
+import type { Reservation, ReservationPayload } from "@/services/reservations";
+import type { BranchRecord } from "@/types/branch-selector";
 
 const SLOT_INTERVAL_MINUTES = 30;
 
@@ -43,9 +47,14 @@ type DateRangeRule = {
   note?: string;
 };
 
-const normalizeArray = (value: unknown): unknown[] => {
-  return Array.isArray(value) ? value : [];
+const normalizeArray = <T = unknown,>(value: unknown): T[] => {
+  return Array.isArray(value) ? value as T[] : [];
 };
+
+const getRecord = (value: unknown): Record<string, unknown> | null =>
+  typeof value === "object" && value !== null && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
 
 const getTodayDateValue = () => {
   const now = new Date();
@@ -154,14 +163,14 @@ const isDateInsideRange = (dateValue: string, rule: DateRangeRule) => {
   return dateValue >= fromDate && dateValue <= toDate;
 };
 
-const getDateRangeRules = (branch: unknown): DateRangeRule[] => {
+const getDateRangeRules = (branch?: BranchRecord | null): DateRangeRule[] => {
   const settings = branch?.settings || {};
 
   return [
-    ...normalizeArray(settings?.holidayRanges),
-    ...normalizeArray(settings?.reservationDateRanges),
-    ...normalizeArray(settings?.tableReservationDateRanges),
-    ...normalizeArray(settings?.reservationBlackoutRanges),
+    ...normalizeArray<DateRangeRule>(settings?.holidayRanges),
+    ...normalizeArray<DateRangeRule>(settings?.reservationDateRanges),
+    ...normalizeArray<DateRangeRule>(settings?.tableReservationDateRanges),
+    ...normalizeArray<DateRangeRule>(settings?.reservationBlackoutRanges),
   ];
 };
 
@@ -174,8 +183,9 @@ const isSlotInsideBreak = ({
   slotEnd: number;
   breakTime: unknown;
 }) => {
-  const breakStart = timeToMinutes(breakTime?.startTime);
-  const breakEnd = timeToMinutes(breakTime?.endTime);
+  const breakRecord = getRecord(breakTime);
+  const breakStart = timeToMinutes(typeof breakRecord?.startTime === "string" ? breakRecord.startTime : null);
+  const breakEnd = timeToMinutes(typeof breakRecord?.endTime === "string" ? breakRecord.endTime : null);
 
   if (breakStart === null || breakEnd === null) return false;
 
@@ -186,7 +196,7 @@ const getOpeningHoursForDate = ({
   branch,
   dateValue,
 }: {
-  branch: unknown;
+  branch?: BranchRecord | null;
   dateValue: string;
 }) => {
   if (!branch || !dateValue) {
@@ -218,11 +228,11 @@ const getOpeningHoursForDate = ({
     };
   }
 
-  const openingHours = normalizeArray(branch?.settings?.openingHours);
+  const openingHours = normalizeArray<OpeningHours>(branch?.settings?.openingHours);
   const selectedDay = getDayOfWeek(dateValue);
 
   const weeklySchedule =
-    openingHours.find((hour: unknown) => {
+    openingHours.find((hour) => {
       return String(hour?.dayOfWeek || "").trim().toUpperCase() === selectedDay;
     }) || null;
 
@@ -237,7 +247,7 @@ const buildAvailableTimeSlots = ({
   branch,
   dateValue,
 }: {
-  branch: unknown;
+  branch?: BranchRecord | null;
   dateValue: string;
 }) => {
   if (!branch || !dateValue || isPastDateValue(dateValue)) return [];
@@ -288,17 +298,29 @@ const buildAvailableTimeSlots = ({
 
 export function ReserveTablePage() {
   const { token, user } = useAuth();
-  const { post, get, loading } = useReservations(token);
+  const { createReservation, fetchReservationBranch, fetchReservationBranches, loading } = useReservations(token);
 
   const [success, setSuccess] = useState(false);
-  const [reservationData, setReservationData] = useState<unknown>(null);
+  const [reservationData, setReservationData] = useState<Reservation | null>(null);
 
-  const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
-  const [guestCount, setGuestCount] = useState(2);
-  const [note, setNote] = useState("");
+  const form = useForm<ReservationFormValues>({
+    resolver: zodResolver(reservationSchema),
+    defaultValues: {
+      branchId: "",
+      date: "",
+      time: "",
+      guestCount: 2,
+      note: "",
+    },
+  });
 
-  const [selectedBranch, setSelectedBranch] = useState<unknown>(null);
+  const { handleSubmit: handleFormSubmit, setValue, watch, reset } = form;
+  const date = watch("date");
+  const time = watch("time");
+  const guestCount = watch("guestCount");
+  const note = watch("note") || "";
+
+  const [selectedBranch, setSelectedBranch] = useState<BranchRecord | null>(null);
 
   const customerId = user?.id;
   const todayDate = useMemo(() => getTodayDateValue(), []);
@@ -308,30 +330,33 @@ export function ReserveTablePage() {
       if (!user?.branchId) return;
 
       try {
-        const res: unknown = await get(`/v1/branches/${user.branchId}`);
-        const branch = res?.data?.data || res?.data;
+        const { branch } = await fetchReservationBranch({ branchId: String(user.branchId) });
 
         if (branch) {
           setSelectedBranch(branch);
+          setValue("branchId", String(branch.id), { shouldValidate: true });
         }
       } catch (error) {
       }
     };
 
     prefillSelectedBranch();
-  }, [user?.branchId]);
+  }, [fetchReservationBranch, setValue, user?.branchId]);
 
   /* ---------------- FETCH ---------------- */
   const fetchBranches = async ({ search = "", page = 1 }) => {
-    return await get(
-      `/v1/branches?restaurantId=${user?.restaurantId}&search=${search}&page=${page}`
-    );
+    return await fetchReservationBranches({
+      restaurantId: user?.restaurantId,
+      search,
+      page,
+    });
   };
 
-  const handleBranchSelect = (branch: unknown) => {
+  const handleBranchSelect = (branch: BranchRecord | null) => {
     setSelectedBranch(branch);
-    setDate("");
-    setTime("");
+    setValue("branchId", branch?.id ? String(branch.id) : "", { shouldValidate: true });
+    setValue("date", "", { shouldValidate: true });
+    setValue("time", "", { shouldValidate: true });
   };
 
   /* ---------------- DAY + OPENING HOURS ---------------- */
@@ -361,7 +386,7 @@ export function ReserveTablePage() {
     if (!time) return;
 
     if (!availableTimeSlots.includes(time)) {
-      setTime("");
+      setValue("time", "", { shouldValidate: true });
     }
   }, [availableTimeSlots, time]);
 
@@ -424,7 +449,7 @@ export function ReserveTablePage() {
   }, [date, todaysHours]);
 
   /* ---------------- SUBMIT ---------------- */
-  async function handleSubmit() {
+  async function handleSubmit(values: ReservationFormValues) {
     try {
       if (!customerId) return toast.error("User not found");
 
@@ -448,17 +473,16 @@ export function ReserveTablePage() {
         return toast.error("Selected time is no longer available");
       }
 
-      const reservationDate = new Date(`${date}T${time}:00`).toISOString();
+      const reservationDate = new Date(`${values.date}T${values.time}:00`).toISOString();
 
-      const res: unknown = await post(
-        `/customer-app/table-reservations?customerId=${customerId}`,
-        {
-          branchId: selectedBranch.id,
-          reservationDate,
-          guestCount,
-          note,
-        }
-      );
+      const payload: ReservationPayload = {
+        branchId: selectedBranch.id,
+        reservationDate,
+        guestCount: values.guestCount,
+        note: values.note || "",
+      };
+
+      const res = await createReservation({ customerId, payload });
 
       if (!res || res.error) {
         return toast.error(res?.error || "Failed");
@@ -467,12 +491,9 @@ export function ReserveTablePage() {
       toast.success("Reservation confirmed 🎉");
 
       setSuccess(true);
-      setReservationData(res.data);
+      setReservationData(res.data as Reservation);
 
-      setDate("");
-      setTime("");
-      setGuestCount(2);
-      setNote("");
+      reset({ branchId: "", date: "", time: "", guestCount: 2, note: "" });
       setSelectedBranch(null);
     } catch {
       toast.error("Something went wrong");
@@ -531,11 +552,9 @@ export function ReserveTablePage() {
           </div>
 
           <form
+            noValidate
             className="space-y-6"
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSubmit();
-            }}
+            onSubmit={handleFormSubmit(handleSubmit)}
           >
             {/* BRANCH */}
             <div>
@@ -559,7 +578,7 @@ export function ReserveTablePage() {
 
                       {hasOpeningHours ? (
                         <div className="space-y-1">
-                          {selectedBranch.settings.openingHours.map((h: unknown) => (
+                          {normalizeArray<OpeningHours>(selectedBranch.settings.openingHours).map((h) => (
                             <div
                               key={h.dayOfWeek}
                               className="flex justify-between gap-3"
@@ -628,8 +647,8 @@ export function ReserveTablePage() {
                   onChange={(e) => {
                     const nextDate = e.target.value;
 
-                    setDate(nextDate);
-                    setTime("");
+                    setValue("date", nextDate, { shouldValidate: true });
+                    setValue("time", "", { shouldValidate: true });
 
                     if (nextDate && isPastDateValue(nextDate)) {
                       toast.error("Past dates are not available for reservation.");
@@ -655,7 +674,7 @@ export function ReserveTablePage() {
                 <select
                   value={time}
                   disabled={!selectedBranch?.id || !date || Boolean(dateError)}
-                  onChange={(e) => setTime(e.target.value)}
+                  onChange={(e) => setValue("time", e.target.value, { shouldValidate: true })}
                   className="mt-2 h-10 w-full rounded-full border border-input bg-[#FAFAF9] px-4 text-sm outline-none transition focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <option value="">{timeSelectPlaceholder}</option>
@@ -686,7 +705,7 @@ export function ReserveTablePage() {
                   <button
                     key={g}
                     type="button"
-                    onClick={() => setGuestCount(g)}
+                    onClick={() => setValue("guestCount", g, { shouldValidate: true })}
                     className={`rounded-full py-2 ${
                       guestCount === g ? "bg-primary text-white" : "bg-gray-100"
                     }`}
@@ -703,7 +722,7 @@ export function ReserveTablePage() {
 
               <Textarea
   value={note}
-  onChange={(e) => setNote(e.target.value)}
+  onChange={(e) => setValue("note", e.target.value, { shouldValidate: true })}
   placeholder="Birthday, allergies, window seat..."
   className="mt-2 rounded-xl border border-gray-200 bg-[#FAFAF9] placeholder:text-gray-400 focus:border-primary focus:ring-1 focus:ring-primary"
 />

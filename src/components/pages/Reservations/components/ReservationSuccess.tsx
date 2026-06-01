@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import Image from "next/image";
@@ -11,19 +10,27 @@ import {
   FaMapMarkerAlt,
 } from "react-icons/fa";
 import { useAuth } from "@/hooks/useAuth";
+import type { Reservation, ReservationBranch } from "@/services/reservations";
 
 const toFiniteNumber = (value: unknown) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
 };
 
+const getRecord = (value: unknown): Record<string, unknown> | null =>
+  typeof value === "object" && value !== null && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+
 const buildAddressText = (address: unknown) => {
+  const record = getRecord(address);
+
   return [
-    address?.street,
-    address?.area,
-    address?.city,
-    address?.state,
-    address?.country,
+    record?.street,
+    record?.area,
+    record?.city,
+    record?.state,
+    record?.country,
   ]
     .filter(Boolean)
     .join(", ");
@@ -31,8 +38,9 @@ const buildAddressText = (address: unknown) => {
 
 const getCoordinatesFromCandidates = (candidates: unknown[]) => {
   for (const candidate of candidates) {
-    const lat = toFiniteNumber(candidate?.lat);
-    const lng = toFiniteNumber(candidate?.lng);
+    const record = getRecord(candidate);
+    const lat = toFiniteNumber(record?.lat);
+    const lng = toFiniteNumber(record?.lng);
 
     if (lat !== null && lng !== null) {
       return { lat, lng };
@@ -42,7 +50,7 @@ const getCoordinatesFromCandidates = (candidates: unknown[]) => {
   return null;
 };
 
-export default function ReservationSuccess({ data }: { data: unknown }) {
+export default function ReservationSuccess({ data }: { data: Reservation | null }) {
   const { user } = useAuth();
 
   const reservationDate = data?.reservationDate
@@ -64,39 +72,40 @@ export default function ReservationSuccess({ data }: { data: unknown }) {
       })
     : "-";
 
-  const branch = useMemo(() => {
+  const branch = useMemo<Partial<ReservationBranch> | Record<string, unknown>>(() => {
     return (
       data?.branch ||
-      data?.branchData ||
-      data?.reservationBranch ||
-      (user as unknown)?.branch ||
+      getRecord(data)?.branchData ||
+      getRecord(data)?.reservationBranch ||
+      user?.branch ||
       {}
     );
   }, [data, user]);
 
   const branchAddress = useMemo(() => {
     return (
-      (user as unknown)?.branch?.address ||
+      user?.branch?.address ||
       data?.branch?.address ||
-      data?.branchAddress ||
-      data?.address ||
+      getRecord(data)?.branchAddress ||
+      getRecord(data)?.address ||
       branch?.address ||
       branch ||
       {}
     );
   }, [branch, data, user]);
 
-  const branchName =
-    branch?.name || data?.branchName || data?.restaurant?.name || "Restaurant";
+  const branchName = String(
+    branch?.name || getRecord(data)?.branchName || getRecord(getRecord(data)?.restaurant)?.name || "Restaurant"
+  );
 
   const addressText = buildAddressText(branchAddress);
 
   const coordinates = useMemo(() => {
     return getCoordinatesFromCandidates([
-      (user as unknown)?.branch?.address,
+      user?.branch?.address,
       data?.branch?.address,
-      data?.branchAddress,
-      data?.address,
+      getRecord(data)?.branchAddress,
+      getRecord(data)?.address,
       data?.branch,
       branchAddress,
       data,
@@ -105,7 +114,7 @@ export default function ReservationSuccess({ data }: { data: unknown }) {
 
   const mapQuery = coordinates
     ? `${coordinates.lat},${coordinates.lng}`
-    : addressText || branchName;
+    : String(addressText || branchName);
 
   const iframeMapSrc = `https://maps.google.com/maps?q=${encodeURIComponent(
     mapQuery
@@ -186,7 +195,7 @@ export default function ReservationSuccess({ data }: { data: unknown }) {
             <Detail
               icon={<FaMapMarkerAlt />}
               label="Seating"
-              value={data?.note || "Standard Seating"}
+              value={String(data?.note || "Standard Seating")}
             />
           </div>
 
@@ -196,7 +205,7 @@ export default function ReservationSuccess({ data }: { data: unknown }) {
               <div>
                 <p className="text-xs text-gray-400">Confirmation ID</p>
                 <p className="mt-1 text-lg font-semibold text-orange-600">
-                  #{data?.id?.slice(0, 8)?.toUpperCase() || "N/A"}
+                  #{data?.id ? String(data.id).slice(0, 8).toUpperCase() : "N/A"}
                 </p>
               </div>
 

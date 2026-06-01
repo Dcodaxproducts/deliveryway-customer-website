@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import Image from "next/image";
@@ -9,12 +8,13 @@ import {
   Star,
   Sofa,
 } from "lucide-react";
+import type { Reservation } from "@/services/reservations";
 
 export default function ReservationCard({
   res,
   onCancel,
 }: {
-  res: unknown;
+  res: Reservation;
   onCancel: () => void;
 }) {
   const formattedDate = new Date(res.reservationDate).toLocaleString(
@@ -90,7 +90,7 @@ export default function ReservationCard({
               CONFIRMATION ID
             </p>
             <span className="bg-gray-100 px-2 py-1 rounded text-primary text-sm ">
-              {res.id.slice(0, 8)}
+              {String(res.id).slice(0, 8)}
             </span>
           </div>
         </div>

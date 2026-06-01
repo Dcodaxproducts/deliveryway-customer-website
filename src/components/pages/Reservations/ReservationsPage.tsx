@@ -1,10 +1,10 @@
-// @ts-nocheck
 "use client";
 
 import { useEffect, useState } from "react";
 import ReservationCard from "@/components/pages/Reservations/components/ReservationCard";
 import { useAuth } from "@/hooks/useAuth";
 import useReservations from "@/hooks/useReservations";
+import type { Reservation, ReservationMeta } from "@/services/reservations";
 
 import {
   Select,
@@ -16,11 +16,11 @@ import {
 
 export function ReservationsPage() {
   const { token } = useAuth();
-  const api = useReservations(token);
+  const { cancelReservation, fetchReservations: fetchReservationList } = useReservations(token);
 
-  const [reservations, setReservations] = useState<unknown[]>([]);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
   const [page, setPage] = useState(1);
-  const [meta, setMeta] = useState<unknown>(null);
+  const [meta, setMeta] = useState<ReservationMeta | null>(null);
 
   const [filter, setFilter] = useState("upcoming");
   const [sort, setSort] = useState("nearest");
@@ -31,13 +31,13 @@ export function ReservationsPage() {
   const fetchReservations = async () => {
     setError(null);
 
-    const res: unknown = await api.get(`/customer-app/table-reservations`);
+    const { response: res, reservations: nextReservations, meta: nextMeta } = await fetchReservationList();
 
     if (res?.error) {
-      setError(res.error);
-    } else if (res?.data) {
-      setReservations(res.data);
-      setMeta(res.meta);
+      setError(String(res.error));
+    } else {
+      setReservations(nextReservations);
+      setMeta(nextMeta);
     }
 
     setIsInitialLoading(false); // ✅ mark fetch done
@@ -169,10 +169,7 @@ export function ReservationsPage() {
               key={res.id}
               res={res}
               onCancel={async () => {
-                await api.post(
-                  `/customer-app/table-reservations/${res.id}/cancel`,
-                  {}
-                );
+                await cancelReservation({ reservationId: String(res.id) });
                 fetchReservations();
               }}
             />
@@ -187,7 +184,7 @@ export function ReservationsPage() {
         !error &&
         sorted.length > 0 &&
         meta &&
-        meta.totalPages > 1 && (
+        (meta.totalPages || 0) > 1 && (
           <div className="flex justify-center items-center gap-2 mt-10 flex-wrap">
             <button
               disabled={!meta.hasPrevious}
@@ -197,7 +194,7 @@ export function ReservationsPage() {
               ←
             </button>
 
-            {Array.from({ length: meta.totalPages }).map((_, i) => {
+            {Array.from({ length: meta.totalPages || 0 }).map((_, i) => {
               const pageNumber = i + 1;
               return (
                 <button

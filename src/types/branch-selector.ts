@@ -4,10 +4,13 @@ export type BranchRecord = {
   isActive?: boolean;
   restaurantId?: string | null;
   address?: {
+    street?: string;
     area?: string;
     city?: string;
     state?: string;
     country?: string;
+    lat?: string | number | null;
+    lng?: string | number | null;
   };
   settings?: {
     openingHours?: Array<{
@@ -15,8 +18,19 @@ export type BranchRecord = {
       isClosed?: boolean;
       openTime?: string;
       closeTime?: string;
+      breakTimes?: Array<{
+        startTime?: string;
+        endTime?: string;
+        note?: string;
+      }>;
     }>;
+    holidayRanges?: unknown[];
+    reservationDateRanges?: unknown[];
+    tableReservationDateRanges?: unknown[];
+    reservationBlackoutRanges?: unknown[];
   };
+  coverImage?: string | null;
+  description?: string | null;
 };
 
 export type BranchOption = BranchRecord;
