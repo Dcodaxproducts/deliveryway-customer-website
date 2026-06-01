@@ -1,3 +1,5 @@
+import axios from "axios";
+
 import { httpClient, normalizeApiEndpoint } from "@/lib/axios";
 
 export type ApiMethod = "GET" | "POST" | "PATCH" | "DELETE";
@@ -34,6 +36,31 @@ const normalizeResult = (value: unknown): ApiResult => {
   return { data: looseValue(value) } as ApiResult;
 };
 
+const normalizeErrorResult = (error: unknown): ApiResult => {
+  if (axios.isAxiosError(error)) {
+    const responseData = error.response?.data;
+
+    if (typeof responseData === "object" && responseData !== null && !Array.isArray(responseData)) {
+      const record = responseData as Record<string, unknown>;
+
+      return {
+        ...record,
+        data: looseValue(record.data ?? responseData),
+        error: looseValue(record.error ?? error.message),
+        status: error.response?.status,
+      } as unknown as ApiResult;
+    }
+
+    return {
+      data: looseValue(responseData),
+      error: toErrorMessage(error),
+      status: error.response?.status,
+    } as unknown as ApiResult;
+  }
+
+  return { error: toErrorMessage(error), data: looseValue(undefined) } as unknown as ApiResult;
+};
+
 export const request = async (
   method: ApiMethod,
   endpoint: string,
@@ -50,7 +77,7 @@ export const request = async (
 
     return normalizeResult(response.data);
   } catch (error) {
-    return { error: toErrorMessage(error), data: looseValue(undefined) } as ApiResult;
+    return normalizeErrorResult(error);
   }
 };
 

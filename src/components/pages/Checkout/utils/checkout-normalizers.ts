@@ -93,15 +93,15 @@ export const getBackendErrorMessage = (res: unknown, fallback = "Something went 
   const responseErrorRecord = asRecord(responseError);
 
   const candidates = [
-    record.message,
-    errorRecord.message,
-    typeof error === "string" ? error : "",
     data.message,
     dataErrorRecord.message,
     typeof dataError === "string" ? dataError : "",
     responseData.message,
     responseErrorRecord.message,
     responseError,
+    record.message,
+    errorRecord.message,
+    typeof error === "string" ? error : "",
   ];
 
   const message = candidates.find((entry) => typeof entry === "string" && entry.trim());

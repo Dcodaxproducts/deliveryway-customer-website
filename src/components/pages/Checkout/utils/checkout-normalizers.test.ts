@@ -7,6 +7,23 @@ describe("checkout normalizers", () => {
     expect(getBackendErrorMessage({ data: { error: { message: "No stock" } } })).toBe("No stock");
   });
 
+  it("prefers API error messages over generic request failures", () => {
+    expect(
+      getBackendErrorMessage({
+        error: "Request failed with status code 400",
+        status: 400,
+        data: {
+          success: false,
+          message: "deliveryAddressId is required for delivery orders",
+          error: {
+            code: "Bad Request",
+            message: "deliveryAddressId is required for delivery orders",
+          },
+        },
+      })
+    ).toBe("deliveryAddressId is required for delivery orders");
+  });
+
   it("normalizes selected modifiers", () => {
     expect(getSelectedModifiers({ selectedModifiers: [{ modifierId: "m1", name: "Cheese", quantity: 2, unitPrice: 1.5 }] })).toEqual([
       { modifierId: "m1", name: "Cheese", quantity: 2, unitPrice: 1.5, total: 3 },
