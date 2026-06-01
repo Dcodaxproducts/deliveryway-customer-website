@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useAuthContext } from "@/context/AuthContext";
+import { useAuthContext } from "@/hooks/useAuth";
 import BranchSelectorModal from "./BranchSelectorModal";
 import { Branch } from "@/types/branch-selector";
 

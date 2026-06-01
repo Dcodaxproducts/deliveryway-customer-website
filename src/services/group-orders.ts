@@ -73,6 +73,14 @@ export const createGroupOrder = ({
   token?: string | null;
 }) => postGroupOrders("/v1/group-orders", payload, token);
 
+export const joinGroupOrder = ({
+  inviteCode,
+  token,
+}: {
+  inviteCode: string;
+  token?: string | null;
+}) => postGroupOrders("/v1/group-orders/join", { inviteCode }, token);
+
 export const leaveGroupOrder = ({
   orderId,
   token,

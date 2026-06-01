@@ -10,7 +10,7 @@ import {
 } from "react-icons/fa";
 import { toast } from "sonner";
 import useBranches from "@/hooks/useBranches";
-import { useAuthContext } from "@/context/AuthContext";
+import { useAuthContext } from "@/hooks/useAuth";
 import { Branch, BranchApiResponse } from "@/types/branch-selector";
 import {
   getBranchAddressText,

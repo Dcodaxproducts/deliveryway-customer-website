@@ -1,7 +1,7 @@
 import axios, { type AxiosRequestHeaders } from "axios";
 
 import { normalizeApiEndpoint as normalizeEndpointForBase } from "@/lib/api-endpoint";
-import { getAuthToken } from "@/lib/storage";
+import { getAuthToken } from "@/lib/auth";
 
 const apiVersionPath = ["api", "v1"].join("/");
 const defaultApiBaseUrl = `https://deliveryway.dcodax.co/${apiVersionPath}`;

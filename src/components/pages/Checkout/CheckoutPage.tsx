@@ -9,7 +9,7 @@ import CartSummarySection from "@/components/pages/Checkout/components/CartSumma
 import { useRouter, useSearchParams } from "next/navigation";
 import useCheckout from "@/hooks/useCheckout";
 import { toast } from "sonner";
-import { useAuthContext } from "@/context/AuthContext";
+import { useAuthContext } from "@/hooks/useAuth";
 import {
   Elements,
   PaymentElement,

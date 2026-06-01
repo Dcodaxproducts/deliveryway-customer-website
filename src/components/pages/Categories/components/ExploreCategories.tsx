@@ -1,11 +1,14 @@
-// @ts-nocheck
 "use client";
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import useOrders from "@/hooks/useOrders";
+import useItems from "@/hooks/useItems";
+import { useGroupOrderApi } from "@/hooks/useGroupOrder";
 import { useAuth } from "@/hooks/useAuth";
+import { getStoredRestaurantId } from "@/lib/auth";
+import { getStoredGroupOrderCode, setStoredGroupOrderCode } from "@/lib/group-order";
+import type { GroupOrderParticipant } from "@/types/group-order";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -19,40 +22,37 @@ export default function ExploreCategories() {
   const router = useRouter();
   
 const { token, user, loading: authLoading } = useAuth();
-  const { get , post} = useOrders(token);
+  const { get } = useItems(token);
+  const { joinGroupOrder, searchGroupOrdersByInviteCode } = useGroupOrderApi(token);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [page, setPage] = useState(1);
   const [hasNext, setHasNext] = useState(false);
 
-  const getStoredAuth = () => {
-    const stored = browserStorage.getItem("auth");
-    return stored ? JSON.parse(stored) : null;
-  };
-
   /* ================= FETCH ================= */
   const fetchCategories = async (pageNumber = 1) => {
     try {
-      const stored = getStoredAuth();
-      const restaurantId = stored?.user?.restaurantId;
+      const restaurantId = getStoredRestaurantId();
       if (!restaurantId || !token) return;
 
       if (pageNumber === 1) setLoading(true);
 
-      const res: unknown = await get(
+      const res = await get(
         `/v1/menu/categories?restaurantId=${restaurantId}&page=${pageNumber}&limit=10`
       );
+      const data = Array.isArray(res.data) ? res.data as Category[] : [];
+      const meta = res.meta as { hasNext?: boolean; page?: number } | undefined;
 
-      if (res?.data) {
+      if (data.length > 0) {
         setCategories((prev) =>
-          pageNumber === 1 ? res.data : [...prev, ...res.data]
+          pageNumber === 1 ? data : [...prev, ...data]
         );
 
-        setHasNext(res.meta?.hasNext || false);
-        setPage(res.meta?.page || 1);
+        setHasNext(meta?.hasNext || false);
+        setPage(meta?.page || 1);
       }
-    } catch (err) {
+    } catch {
     } finally {
       setLoading(false);
     }
@@ -66,8 +66,7 @@ const { token, user, loading: authLoading } = useAuth();
 
 const isUserAlreadyInOrder = async (code: string) => {
   try {
-    const res: unknown = await get(`/v1/group-orders?search=${code}`);
-    const order = res?.data?.find((o: unknown) => o.inviteCode === code);
+    const { groupOrder: order } = await searchGroupOrdersByInviteCode({ inviteCode: code });
 
     if (!order) return false;
 
@@ -76,23 +75,20 @@ const isUserAlreadyInOrder = async (code: string) => {
 
     // ✅ if user already participant
     const exists = order.participants?.some(
-      (p: unknown) => p.userId === user?.id
+      (p: GroupOrderParticipant) => p.userId === user?.id
     );
 
     return exists;
-  } catch (err) {
+  } catch {
     return false;
   }
 };
 
 const handleJoinGroupOrder = async (inviteCode: string) => {
-  const res: unknown = await post("/v1/group-orders/join", { inviteCode });
+  const res = await joinGroupOrder({ inviteCode });
 
   if (!res || res.error) {
-    // ✅ show real backend message
     toast.error(res?.message || "Failed to join group order");
-
-    // optional debug (very useful in dev)
 
     return false;
   }
@@ -108,7 +104,7 @@ useEffect(() => {
   const code = params.get("code");
 
   if (code) {
-    browserStorage.setItem("groupOrderCode", code);
+    setStoredGroupOrderCode(code);
   }
 }, []);
 
@@ -159,7 +155,7 @@ useEffect(() => {
                 <div
                   key={item.id}
               onClick={async () => {
-  const code = browserStorage.getItem("groupOrderCode");
+  const code = getStoredGroupOrderCode();
 
   if (code) {
     // ✅ check first

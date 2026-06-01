@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useSearchParams, useRouter } from "next/navigation";
 import useOrders from "@/hooks/useOrders";
-import { useAuthContext } from "@/context/AuthContext";
+import { useAuthContext } from "@/hooks/useAuth";
 import { reviewSchema, type ReviewFormValues } from "@/validations/reviews";
 import type { Order } from "@/services/orders";
 

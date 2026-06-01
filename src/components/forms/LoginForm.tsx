@@ -13,8 +13,9 @@ import { MUTED_TEXT_CLASS } from "@/components/common/common-classes"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "../ui/checkbox"
-import { useAuthContext } from "@/context/AuthContext"
+import { useAuthContext } from "@/hooks/useAuth"
 import { getAuthErrorMessage } from "@/lib/auth"
+import { getStoredGroupOrderCode } from "@/lib/group-order"
 import { roboto } from "@/lib/fonts"
 import { guestLoginCustomer, loginCustomer } from "@/services/auth"
 import {
@@ -50,10 +51,7 @@ export default function LoginForm() {
     },
   })
 
-const getGroupOrderCode = () => {
-  if (typeof window === "undefined") return null;
-  return browserStorage.getItem("groupOrderCode");
-};
+const getGroupOrderCode = () => getStoredGroupOrderCode();
 
   // ================= NORMAL LOGIN =================
   const onSubmit = async (values: LoginFormValues) => {

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import "./globals.css";
 import { poppins } from "@/lib/fonts";
 import { Toaster } from "sonner";
@@ -20,9 +19,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <Script id="browser-storage-bridge" strategy="beforeInteractive">
-        {`try{window.browserStorage=window.localStorage}catch{window.browserStorage={getItem:function(){return null},setItem:function(){},removeItem:function(){},clear:function(){},key:function(){return null},length:0}}`}
-      </Script>
       <body className={poppins.className}>
   <Providers>
     <Toaster position="top-right" richColors />

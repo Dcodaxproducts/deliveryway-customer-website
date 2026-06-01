@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import useItems from "@/hooks/useItems";
 import { useAuth } from "@/hooks/useAuth";
-import { getStoredAuthState } from "@/lib/storage";
+import { getStoredAuthState } from "@/lib/auth";
 import type { AuthRestaurantUser, ItemsCategory, StoredAuthState } from "@/components/pages/Items/types";
 import { getImageUrl, getOperatingHours, getRatingInfo, getRestaurantAddress, getRestaurantName, hasText, resolveHasNext } from "@/components/pages/Items/utils/restaurant-card-utils";
 

@@ -3,7 +3,7 @@
 import { useCallback, useMemo } from "react";
 
 import { queryKeys } from "@/config/query-keys";
-import { useAuthContext } from "@/context/AuthContext";
+import { useAuthContext } from "@/hooks/useAuth";
 import { useDomainApi } from "@/hooks/useDomainApi";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { readAuthSession, saveAuthSession } from "@/lib/auth";

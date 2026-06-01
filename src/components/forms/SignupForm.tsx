@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { getAuthErrorMessage } from "@/lib/auth"
+import { clearSignupAccessToken, getSignupAccessToken, setSignupAccessToken } from "@/lib/cart"
 import { roboto } from "@/lib/fonts"
 import { signupCustomer, verifySignupOtp } from "@/services/auth"
 import {
@@ -69,7 +70,7 @@ export default function SignUpForm() {
       /* ===== SAVE TOKEN ===== */
 
       setAccessToken(token)
-      browserStorage.setItem("signupAccessToken", token)
+      setSignupAccessToken(token)
 
       toast.success("Account created! Please verify your email")
 
@@ -89,7 +90,7 @@ export default function SignUpForm() {
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const token = accessToken || browserStorage.getItem("signupAccessToken")
+    const token = accessToken || getSignupAccessToken()
 
     if (!otp) {
       toast.error("Please enter OTP")
@@ -110,7 +111,7 @@ export default function SignUpForm() {
 
       toast.success("Email verified successfully!")
 
-      browserStorage.removeItem("signupAccessToken")
+      clearSignupAccessToken()
 
       setTimeout(() => {
         router.push("/auth/login")

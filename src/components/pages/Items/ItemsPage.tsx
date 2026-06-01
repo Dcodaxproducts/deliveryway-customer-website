@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import { Suspense, useEffect, useRef, useState } from "react";
@@ -7,10 +6,10 @@ import { toast } from "sonner";
 
 import RestaurantHeader from "@/components/pages/Items/components/RestaurantHeader";
 import ItemsLayout from "@/components/pages/Items/components/ItemsLayout";
-import useOrders from "@/hooks/useOrders";
+import useGroupOrder, { useGroupOrderApi } from "@/hooks/useGroupOrder";
 import { useAuth } from "@/hooks/useAuth";
-
-const GROUP_ORDER_CODE_KEY = "groupOrderCode";
+import { clearStoredGroupOrderCode, getStoredGroupOrderCode, setStoredGroupOrderCode } from "@/lib/group-order";
+import type { GroupOrder, GroupOrderParticipant } from "@/types/group-order";
 
 function ItemsPageContent() {
   const router = useRouter();
@@ -20,7 +19,7 @@ function ItemsPageContent() {
   const codeFromUrl = searchParams.get("code") || "";
 
   const { token, user, loading: authLoading } = useAuth();
-  const { get, post } = useOrders(token);
+  const { joinGroupOrder, searchGroupOrdersByInviteCode } = useGroupOrderApi(token);
 
   const [joiningGroupOrder, setJoiningGroupOrder] = useState(false);
 
@@ -28,36 +27,28 @@ function ItemsPageContent() {
 
   const isUserAlreadyInOrder = async (code: string) => {
     try {
-      const res: unknown = await get(`/v1/group-orders?search=${code}`);
+      const { response: res, groupOrder: order } = await searchGroupOrdersByInviteCode({ inviteCode: code });
 
       if (!res || res.error) {
         return false;
       }
-
-      const groupOrders = Array.isArray(res?.data)
-        ? res.data
-        : Array.isArray(res?.data?.data)
-        ? res.data.data
-        : [];
-
-      const order = groupOrders.find((o: unknown) => o.inviteCode === code);
 
       if (!order) return false;
 
       if (order.hostUserId === user?.id) return true;
 
       const exists = order.participants?.some(
-        (participant: unknown) => participant.userId === user?.id
+        (participant: GroupOrderParticipant) => participant.userId === user?.id
       );
 
       return Boolean(exists);
-    } catch (err) {
+    } catch {
       return false;
     }
   };
 
   const handleJoinGroupOrder = async (inviteCode: string) => {
-    const res: unknown = await post("/v1/group-orders/join", { inviteCode });
+    const res = await joinGroupOrder({ inviteCode });
 
     if (!res || res.error) {
       toast.error(res?.message || res?.error || "Failed to join group order");
@@ -77,7 +68,7 @@ function ItemsPageContent() {
     if (typeof window === "undefined") return;
 
     if (codeFromUrl) {
-      browserStorage.setItem(GROUP_ORDER_CODE_KEY, codeFromUrl);
+      setStoredGroupOrderCode(codeFromUrl);
     }
   }, [codeFromUrl]);
 
@@ -87,9 +78,7 @@ function ItemsPageContent() {
 
       const inviteCode =
         codeFromUrl ||
-        (typeof window !== "undefined"
-          ? browserStorage.getItem(GROUP_ORDER_CODE_KEY)
-          : "");
+        getStoredGroupOrderCode();
 
       if (!inviteCode) return;
 
@@ -100,7 +89,7 @@ function ItemsPageContent() {
       try {
         setJoiningGroupOrder(true);
 
-        browserStorage.setItem(GROUP_ORDER_CODE_KEY, inviteCode);
+        setStoredGroupOrderCode(inviteCode);
 
         const alreadyIn = await isUserAlreadyInOrder(inviteCode);
 
@@ -108,7 +97,7 @@ function ItemsPageContent() {
           const joined = await handleJoinGroupOrder(inviteCode);
 
           if (!joined) {
-            browserStorage.removeItem(GROUP_ORDER_CODE_KEY);
+            clearStoredGroupOrderCode();
             return;
           }
 

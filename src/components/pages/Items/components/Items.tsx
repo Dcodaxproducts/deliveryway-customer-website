@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import RestaurantCard from "./RestaurantCard";
 import useItems from "@/hooks/useItems";
 import { useAuth } from "@/hooks/useAuth";
-import { getStoredRestaurantId } from "@/lib/storage";
+import { getStoredRestaurantId } from "@/lib/auth";
 import { Loader2 } from "lucide-react";
 import type { ItemsCategory, MenuItem } from "@/components/pages/Items/types";
 import { mergeUniqueById, resolveHasNext } from "@/components/pages/Items/utils/restaurant-card-utils";

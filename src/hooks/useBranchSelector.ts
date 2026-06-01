@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import useBranches from "@/hooks/useBranches";
-import { useAuthContext } from "@/context/AuthContext";
+import { useAuthContext } from "@/hooks/useAuth";
 import { persistSelectedBranch } from "@/lib/branch-selector";
 import type { BranchRecord } from "@/types/branch-selector";
 

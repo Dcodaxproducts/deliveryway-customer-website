@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import useCart from "@/hooks/useCart";
 import useMenu from "@/hooks/useMenu";
 import { useAuth } from "@/hooks/useAuth";
-import { getSignatureMenuViewMode, setSignatureMenuViewMode } from "@/lib/storage";
+import { getSignatureMenuViewMode, setSignatureMenuViewMode } from "@/lib/view-preferences";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import AsyncSelect from "@/components/ui/AsyncSelect";
 import type { ApiRecord, CartPayload, ItemPriceOverride, MenuItem, MenuRecord, MenuVariation, Modifier, ModifierGroup, ModifierLink, ProductCardData, RawModifierLink, SelectedModifier, SelectedModifiersMap, SplitPizzaSelection, VariationPriceOverride } from "./types";

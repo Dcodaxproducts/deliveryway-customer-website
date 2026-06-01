@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { FaChevronDown, FaMapMarkerAlt } from "react-icons/fa";
-import { useAuthContext } from "@/context/AuthContext";
+import { useAuthContext } from "@/hooks/useAuth";
 import BranchSelectorModal from "./BranchSelectorModal";
 
 type BranchSwitcherProps = {

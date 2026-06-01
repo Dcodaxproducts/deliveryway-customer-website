@@ -6,7 +6,8 @@ import { useSearchParams, useRouter } from "next/navigation";
 import TestimonialsSection from "@/components/pages/Items/components/Testimonials";
 import useItems from "@/hooks/useItems";
 import useCart from "@/hooks/useCart";
-import { useAuthContext } from "@/context/AuthContext";
+import { useAuthContext } from "@/hooks/useAuth";
+import { getStoredGroupOrderCode } from "@/lib/group-order";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { Download, Eye, Loader2, Minus, Plus, X } from "lucide-react";
@@ -1947,10 +1948,7 @@ function ProductDetailsPageContent() {
         return;
       }
 
-      const groupCode =
-        typeof window !== "undefined"
-          ? browserStorage.getItem("groupOrderCode")
-          : null;
+      const groupCode = getStoredGroupOrderCode();
 
       let res: ApiRecord | null = null;
 

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, type ReactNode } from "react";
 
 import { DEFAULT_BRANDING } from "@/config/default-branding";
-import { useAuthContext } from "@/context/AuthContext";
+import { useAuthContext } from "@/hooks/useAuth";
 import { BrandingContext } from "@/hooks/useBranding";
 import { useHome } from "@/hooks/useHome";
 import { getBrandingCssVariables } from "@/lib/branding";

@@ -14,6 +14,7 @@ import {
   deleteGroupOrders,
   fetchGroupOrders,
   getGroupOrders,
+  joinGroupOrder,
   leaveGroupOrder,
   patchGroupOrders,
   postGroupOrders,
@@ -55,6 +56,11 @@ export const useGroupOrderApi = (token: string | null) => {
     [token]
   );
 
+  const joinOrder = useCallback(
+    ({ inviteCode }: { inviteCode: string }) => joinGroupOrder({ inviteCode, token }),
+    [token]
+  );
+
   const checkoutOrder = useCallback(
     ({ orderId, payload }: { orderId: string | number; payload: CheckoutGroupOrderPayload }) =>
       checkoutGroupOrder({ orderId, payload, token }),
@@ -80,11 +86,12 @@ export const useGroupOrderApi = (token: string | null) => {
       searchGroupOrdersByInviteCode: findGroupOrderByInviteCode,
       createGroupOrder: addGroupOrder,
       leaveGroupOrder: leaveOrder,
+      joinGroupOrder: joinOrder,
       checkoutGroupOrder: checkoutOrder,
       updateGroupOrderItemQuantity: updateItemQuantity,
       deleteGroupOrderItem: deleteItem,
     }),
-    [api, addGroupOrder, checkoutOrder, deleteItem, findGroupOrderByInviteCode, leaveOrder, listGroupOrders, updateItemQuantity]
+    [api, addGroupOrder, checkoutOrder, deleteItem, findGroupOrderByInviteCode, joinOrder, leaveOrder, listGroupOrders, updateItemQuantity]
   );
 };
 

@@ -5,7 +5,8 @@ import CategorySidebar from "./CategorySidebar";
 import ItemsListing from "./Items";
 import useItems from "@/hooks/useItems";
 import { useAuth } from "@/hooks/useAuth";
-import { getItemsMenuViewMode, getStoredRestaurantId, setItemsMenuViewMode } from "@/lib/storage";
+import { getStoredRestaurantId } from "@/lib/auth";
+import { getItemsMenuViewMode, setItemsMenuViewMode } from "@/lib/view-preferences";
 import type { ApiMeta, ItemsCategory } from "@/components/pages/Items/types";
 import { resolveHasNext } from "@/components/pages/Items/utils/restaurant-card-utils";
 

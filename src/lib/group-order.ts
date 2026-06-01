@@ -1,4 +1,4 @@
-import { safeGetLocalStorageItem, safeRemoveLocalStorageItem, safeSetLocalStorageItem } from "@/lib/storage";
+import { safeGetLocalStorageItem, safeRemoveLocalStorageItem, safeSetLocalStorageItem } from "@/lib/browser-storage";
 import type { GroupOrder, GroupOrderStatus } from "@/types/group-order";
 
 export const GROUP_ORDER_CODE_KEY = "***";

@@ -4,8 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, UsersRound, Utensils, Share2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import GroupOrderModal from "@/components/pages/GroupOrder/components/GroupOrderModal";
-
-const GROUP_ORDER_CODE_KEY = "groupOrderCode";
+import { getStoredGroupOrderCode } from "@/lib/group-order";
 
 export default function GroupOrderSection() {
   const router = useRouter();
@@ -19,9 +18,7 @@ export default function GroupOrderSection() {
 
   useEffect(() => {
     const syncGroupOrderCode = () => {
-      if (typeof window === "undefined") return;
-
-      const storedCode = browserStorage.getItem(GROUP_ORDER_CODE_KEY);
+      const storedCode = getStoredGroupOrderCode();
       setGroupOrderCode(storedCode);
     };
 
