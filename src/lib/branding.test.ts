@@ -48,7 +48,22 @@ describe("branding normalization", () => {
     expect(branding.showCategories).toBe(false);
   });
 
-  it("uses flattened fallback branding keys and defaults", () => {
+  it("normalizes customer-app home envelope restaurant and config branding", () => {
+    const branding = normalizeBrandingApiResponse({
+      data: {
+        data: {
+          restaurant: { name: "Envelope Restaurant", logoUrl: "/envelope-logo.png" },
+          config: { branding: { primaryColor: "#abcdef" } },
+        },
+      },
+    });
+
+    expect(branding.restaurantName).toBe("Envelope Restaurant");
+    expect(branding.primaryColor).toBe("#abcdef");
+    expect(branding.logo.default).toBe("/envelope-logo.png");
+  });
+
+  it("uses flattened and nested fallback branding keys and defaults", () => {
     const branding = normalizeBrandingApiResponse({
       primaryColor: "#123456",
       secondaryColor: "#654321",
@@ -59,6 +74,34 @@ describe("branding normalization", () => {
     expect(branding.secondaryColor).toBe("#654321");
     expect(branding.fontFamily).toBe("Inter");
     expect(branding.accentColor).toBe(DEFAULT_BRANDING.accentColor);
+
+    const nested = normalizeBrandingApiResponse({
+      restaurant: { primaryColor: "#111111" },
+      config: { branding: { theme: { secondaryColor: "#222222" } } },
+    });
+
+    expect(nested.primaryColor).toBe("#111111");
+    expect(nested.secondaryColor).toBe("#222222");
+  });
+
+  it("normalizes dark palette values", () => {
+    const branding = normalizeBrandingApiResponse({
+      config: {
+        branding: {
+          theme: {
+            primaryColor: "#0f172a",
+            secondaryColor: "#111827",
+            backgroundColor: "#020617",
+            textColor: "#f8fafc",
+          },
+        },
+      },
+    });
+
+    expect(branding.primaryColor).toBe("#0f172a");
+    expect(branding.secondaryColor).toBe("#111827");
+    expect(branding.backgroundColor).toBe("#020617");
+    expect(branding.textColor).toBe("#f8fafc");
   });
 
   it("maps branding to CSS variables", () => {

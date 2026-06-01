@@ -48,7 +48,13 @@ const getNestedString = (value: unknown, keys: string[]) => {
 };
 
 export const normalizeBrandingApiResponse = (homeData: unknown): Branding => {
-  const data = isRecord(homeData) ? homeData : {};
+  const data = (() => {
+    const record = isRecord(homeData) ? homeData : {};
+    const firstData = getRecord(record, "data");
+    const nestedData = getRecord(firstData, "data");
+
+    return nestedData ?? firstData ?? record;
+  })();
   const restaurant = getRecord(data, "restaurant") ?? {};
   const config = getRecord(data, "config") ?? {};
   const branding = getRecord(config, "branding") ?? {};

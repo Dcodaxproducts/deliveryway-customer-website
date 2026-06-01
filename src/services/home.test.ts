@@ -13,7 +13,7 @@ describe("getHome", () => {
     getRequestMock.mockReset();
   });
 
-  it("calls customer-app home with only present params", async () => {
+  it("calls customer-app home with only present restaurantId param", async () => {
     getRequestMock.mockResolvedValue({
       data: {
         restaurant: { name: "Demo" },
@@ -33,14 +33,16 @@ describe("getHome", () => {
     expect(response.data.cuisines).toHaveLength(1);
   });
 
-  it("includes branchId when present", async () => {
+  it("passes restaurantId and branchId params only when present", async () => {
     getRequestMock.mockResolvedValue({ data: {} });
 
     await getHome("restaurant-1", "branch-1");
+    await getHome(null, "branch-1");
 
-    expect(getRequestMock).toHaveBeenCalledWith(
+    expect(getRequestMock).toHaveBeenNthCalledWith(1,
       "/customer-app/home?restaurantId=restaurant-1&branchId=branch-1"
     );
+    expect(getRequestMock).toHaveBeenNthCalledWith(2, "/customer-app/home?branchId=branch-1");
   });
 
   it("does not duplicate api or v1 segments", async () => {
@@ -49,5 +51,6 @@ describe("getHome", () => {
     await getHome();
 
     expect(getRequestMock).toHaveBeenCalledWith("/customer-app/home");
+    expect(getRequestMock.mock.calls[0][0]).not.toContain("/api/v1");
   });
 });

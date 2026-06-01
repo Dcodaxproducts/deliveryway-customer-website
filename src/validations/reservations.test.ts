@@ -38,17 +38,22 @@ describe("reservationSchema", () => {
     expect(reservationSchema.safeParse({ ...validReservation, guestCount: 5 }).success).toBe(true);
   });
 
-  it("requires contact branch, date, and time fields", () => {
+  it("requires date, time, guest count, and contact branch fields", () => {
     const result = reservationSchema.safeParse({
       ...validReservation,
       branchId: "",
       date: "",
       time: "",
+      guestCount: 0,
     });
 
     expect(result.success).toBe(false);
     expect(result.error?.issues.map((issue) => issue.path.join("."))).toEqual(
-      expect.arrayContaining(["branchId", "date", "time"])
+      expect.arrayContaining(["branchId", "date", "time", "guestCount"])
     );
+  });
+
+  it("accepts optional fields", () => {
+    expect(reservationSchema.safeParse({ ...validReservation, note: undefined }).success).toBe(true);
   });
 });
