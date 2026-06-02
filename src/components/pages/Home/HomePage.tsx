@@ -13,10 +13,12 @@ import Footer from "@/components/layout/footer/Footer";
 import RequiredBranchSelectionModal from "@/components/common/branch-selector/RequiredBranchSelectionModal";
 import OrderNowFloatingButton from "@/components/ui/OrderNowFloatingButton";
 import BranchOpeningHoursPopup from "@/components/pages/Home/components/BranchOpeningHours";
+import { CustomerDealsSection } from "@/components/pages/Home/components/CustomerDealsSection";
 
 import { DEFAULT_BRANDING } from "@/config/default-branding";
 import { useAuth } from "@/hooks/useAuth";
 import { useBranding } from "@/hooks/useBranding";
+import { useCustomerDeals } from "@/hooks/useCustomerDeals";
 import { useHome } from "@/hooks/useHome";
 import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
 
@@ -27,6 +29,7 @@ const HomePage = () => {
   const restaurantId = useMemo(() => resolveHomeRestaurantId(user, authRestaurantId), [authRestaurantId, user]);
   const branchId = useMemo(() => resolveHomeBranchId(user), [user]);
   const homeQuery = useHome(restaurantId, branchId, Boolean(token && branchId));
+  const dealsQuery = useCustomerDeals({ restaurantId, branchId, limit: 20 });
   const homeResponse = homeQuery.data;
   const homeData = homeResponse ? homeResponse.data : undefined;
   const branding = homeData?.branding ?? fallbackBranding ?? DEFAULT_BRANDING;
@@ -53,6 +56,11 @@ const HomePage = () => {
           <FoodCategorySection />
         </section>
       ) : null}
+
+      <CustomerDealsSection
+        deals={dealsQuery.deals}
+        isLoading={dealsQuery.isLoading}
+      />
 
       <WhyChooseUs />
       <AppPromo />
