@@ -17,6 +17,7 @@ import type { CustomerDeal } from "@/types/customer-deals";
 type CustomerDealsSectionProps = {
   deals: CustomerDeal[];
   isLoading?: boolean;
+  addingDealId?: string | null;
   onAddDeal?: (deal: CustomerDeal) => void;
 };
 
@@ -33,14 +34,17 @@ const CustomerDealsSkeleton = () => (
 
 const CustomerDealCard = ({
   deal,
+  isAdding,
   onAddDeal,
 }: {
   deal: CustomerDeal;
+  isAdding: boolean;
   onAddDeal?: (deal: CustomerDeal) => void;
 }) => {
   const image = getDealImage(deal);
   const itemNames = getDealItemNames(deal.scopeMenuItems);
   const dateRange = formatDealDateRange(deal.startsAt, deal.expiresAt);
+  const hasDealItems = deal.scopeMenuItems.length > 0;
   const handleAddDeal = useCallback(() => {
     onAddDeal?.(deal);
   }, [deal, onAddDeal]);
@@ -94,12 +98,19 @@ const CustomerDealCard = ({
           </p>
         ) : null}
 
+        {!hasDealItems ? (
+          <p className="mt-3 text-sm font-medium text-red-500">
+            This deal has no available items.
+          </p>
+        ) : null}
+
         <Button
           variant="primary"
           className="mt-5 w-full"
+          disabled={!hasDealItems || isAdding}
           onClick={handleAddDeal}
         >
-          Add Deal
+          {isAdding ? "Adding..." : "Add Deal"}
         </Button>
       </div>
     </article>
@@ -109,6 +120,7 @@ const CustomerDealCard = ({
 export const CustomerDealsSection = ({
   deals,
   isLoading = false,
+  addingDealId = null,
   onAddDeal,
 }: CustomerDealsSectionProps) => {
   const activeDeals = deals.filter(isDealActive).slice(0, 6);
@@ -143,6 +155,7 @@ export const CustomerDealsSection = ({
           <CustomerDealCard
             key={deal.id}
             deal={deal}
+            isAdding={addingDealId === deal.id}
             onAddDeal={onAddDeal}
           />
         ))}
