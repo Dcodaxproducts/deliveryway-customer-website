@@ -38,6 +38,28 @@ type HeroItemResult = {
 const SEARCH_DELAY_MS = 400;
 const SEARCH_LIMIT = 6;
 
+const getSafeImageSrc = (src?: string | null) => {
+    const trimmedSrc = src?.trim();
+
+    if (!trimmedSrc) return null;
+
+    if (trimmedSrc.startsWith("/")) return trimmedSrc;
+
+    try {
+        const parsedUrl = new URL(trimmedSrc);
+
+        return parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:" ? trimmedSrc : null;
+    } catch {
+        return null;
+    }
+};
+
+const getResultInitial = (label?: string | null) => {
+    const trimmedLabel = label?.trim();
+
+    return trimmedLabel ? trimmedLabel.charAt(0).toUpperCase() : "?";
+};
+
 const getSearchResults = <T,>(response: unknown): T[] => {
     if (
         typeof response === "object" &&
@@ -122,6 +144,37 @@ const HeroSection = ({
         }
 
         router.push("/items");
+    };
+
+    const renderResultImage = ({
+        imageUrl,
+        label,
+        sizeClassName = "h-12 w-12",
+    }: {
+        imageUrl?: string | null;
+        label: string;
+        sizeClassName?: string;
+    }) => {
+        const safeImageSrc = getSafeImageSrc(imageUrl);
+
+        return (
+            <div className={`relative shrink-0 overflow-hidden rounded-xl bg-primary/10 ${sizeClassName}`}>
+                {safeImageSrc ? (
+                    <Image
+                        src={safeImageSrc}
+                        alt={label}
+                        fill
+                        className="object-cover"
+                        sizes="48px"
+                        unoptimized
+                    />
+                ) : (
+                    <div className="flex h-full w-full items-center justify-center text-sm font-bold text-primary">
+                        {getResultInitial(label)}
+                    </div>
+                )}
+            </div>
+        );
     };
 
     useEffect(() => {
@@ -262,10 +315,18 @@ const HeroSection = ({
                                                     onClick={() => handleCategoryClick(category)}
                                                     className="flex w-full items-center gap-3 px-5 py-4 text-left transition hover:bg-orange-50/50"
                                                 >
-                                                    <Coffee size={18} className="shrink-0 text-primary" />
-                                                    <span className="min-w-0 truncate text-sm font-semibold text-gray-900">
-                                                        {category.name}
-                                                    </span>
+                                                    {renderResultImage({
+                                                        imageUrl: category.imageUrl,
+                                                        label: category.name,
+                                                    })}
+                                                    <div className="min-w-0">
+                                                        <h4 className="truncate text-sm font-semibold text-gray-900">
+                                                            {category.name}
+                                                        </h4>
+                                                        <p className="mt-1 text-xs text-gray-500">
+                                                            Category
+                                                        </p>
+                                                    </div>
                                                 </button>
                                             ))
                                             : itemResults.map((item) => (
@@ -275,13 +336,19 @@ const HeroSection = ({
                                                     onClick={() => handleItemClick(item)}
                                                     className="flex w-full items-start justify-between gap-4 px-5 py-4 text-left transition hover:bg-orange-50/50"
                                                 >
-                                                    <div className="min-w-0">
-                                                        <h4 className="truncate text-sm font-semibold text-gray-900">
-                                                            {item.name}
-                                                        </h4>
-                                                        <p className="mt-1 truncate text-xs text-gray-500">
-                                                            {item.category?.name || item.description || "Menu item"}
-                                                        </p>
+                                                    <div className="flex min-w-0 items-start gap-3">
+                                                        {renderResultImage({
+                                                            imageUrl: item.imageUrl,
+                                                            label: item.name,
+                                                        })}
+                                                        <div className="min-w-0">
+                                                            <h4 className="truncate text-sm font-semibold text-gray-900">
+                                                                {item.name}
+                                                            </h4>
+                                                            <p className="mt-1 truncate text-xs text-gray-500">
+                                                                {item.category?.name || item.description || "Menu item"}
+                                                            </p>
+                                                        </div>
                                                     </div>
                                                     {item.basePrice ? (
                                                         <span className="shrink-0 text-sm font-semibold text-gray-900">
