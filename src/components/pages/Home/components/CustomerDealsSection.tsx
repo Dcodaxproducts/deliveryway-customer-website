@@ -127,7 +127,7 @@ export const CustomerDealsSection = ({
 
   if (isLoading) {
     return (
-      <section className="mx-auto max-w-[1400px] px-4 pb-[30px] sm:px-6 sm:pb-[60px]">
+      <section className="mx-auto max-w-[1400px] px-4 pb-[30px] pt-[30px] sm:px-6 sm:pb-[60px] sm:pt-[60px]">
         <CustomerDealsSkeleton />
       </section>
     );
@@ -138,7 +138,7 @@ export const CustomerDealsSection = ({
   }
 
   return (
-    <section className="mx-auto max-w-[1400px] px-4 pb-[30px] sm:px-6 sm:pb-[60px]">
+    <section className="mx-auto max-w-[1400px] px-4 pb-[30px] pt-[30px] sm:px-6 sm:pb-[60px] sm:pt-[60px]">
       <div className="mb-4 flex items-end justify-between gap-4">
         <div>
           <p className="text-sm font-semibold uppercase tracking-wide text-primary">
