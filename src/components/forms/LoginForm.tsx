@@ -9,6 +9,7 @@ import { FaFacebook } from "react-icons/fa"
 import { FcGoogle } from "react-icons/fc"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
+import { Eye, EyeOff } from "lucide-react"
 
 import { MUTED_TEXT_CLASS } from "@/components/common/common-classes"
 import { Button } from "@/components/ui/button"
@@ -57,6 +58,7 @@ export function LoginForm() {
 
   const [isLoading, setIsLoading] = useState(false)
   const [isGuestMode, setIsGuestMode] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const validationMessages = useAuthValidationMessages()
   const translatedLoginSchema = useMemo(
     () => createLoginSchema(validationMessages),
@@ -200,12 +202,28 @@ setTimeout(() => {
               placeholder={t("email")}
               {...loginForm.register("email")}
             />
-            <Input
-              id="password"
-              type="password"
-              placeholder={t("password")}
-              {...loginForm.register("password")}
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder={t("password")}
+                className="pr-12"
+                {...loginForm.register("password")}
+              />
+              <button
+                type="button"
+                aria-label={showPassword ? t("hidePassword") : t("showPassword")}
+                aria-pressed={showPassword}
+                onClick={() => setShowPassword((current) => !current)}
+                className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-gray-500 transition hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" aria-hidden="true" />
+                ) : (
+                  <Eye className="h-5 w-5" aria-hidden="true" />
+                )}
+              </button>
+            </div>
             <Input
               id="restaurantId"
               placeholder={t("restaurantId")}

@@ -90,6 +90,8 @@
     "restaurantIdUpper": "Restaurant ID",
     "email": "Email",
     "password": "Password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "confirmPassword": "Confirm Password",
     "rememberMe": "Remember me",
     "forgotPassword": "Forgot Password?",
