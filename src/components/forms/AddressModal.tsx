@@ -24,7 +24,7 @@ import { useTranslations } from "next-intl";
 type AddressModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess?: () => void;
+  onSuccess?: (address?: { id?: string | number }) => void;
   editData?: (Partial<CheckoutAddressValues> & { id?: string | number }) | null;
 };
 
@@ -36,6 +36,28 @@ const initialForm: CheckoutAddressValues = {
   area: "",
   lat: "",
   lng: "",
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const getSavedAddress = (value: unknown): { id?: string | number } | undefined => {
+  if (isRecord(value) && isRecord(value.data)) {
+    return {
+      id:
+        typeof value.data.id === "string" || typeof value.data.id === "number"
+          ? value.data.id
+          : undefined,
+    };
+  }
+
+  if (isRecord(value)) {
+    return {
+      id: typeof value.id === "string" || typeof value.id === "number" ? value.id : undefined,
+    };
+  }
+
+  return undefined;
 };
 
 export default function AddressModal({
@@ -188,7 +210,7 @@ export default function AddressModal({
       }
 
       toast.success(editData ? t("addressUpdated") : t("addressAdded"));
-      onSuccess?.();
+      onSuccess?.(getSavedAddress(res));
       onOpenChange(false);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : errorT("somethingWentWrong"));

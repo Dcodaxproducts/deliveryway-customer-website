@@ -186,7 +186,9 @@ export function ProfileForm() {
     <AddressModal
       open={addressOpen}
       onOpenChange={setAddressOpen}
-      onSuccess={fetchAddresses}
+      onSuccess={() => {
+        void fetchAddresses();
+      }}
       editData={selectedAddress}
     />
 
