@@ -248,8 +248,130 @@
       "browseMenu": "Menü ansehen"
     }
   },
-  "about": {},
-  "contact": {},
+  "about": {
+    "banner": {
+      "imageAlt": "Über-uns-Banner",
+      "title": "Über uns",
+      "description": "Wir liefern Freude, eine Mahlzeit nach der anderen."
+    },
+    "story": {
+      "imageAlt": "Lieferservice",
+      "established": "Gegr. 2018",
+      "eyebrow": "Unsere Geschichte",
+      "titleLineOne": "Wir definieren das Essen",
+      "titleLineTwo": "zu Hause neu.",
+      "paragraphOne": "Was in einer kleinen Küche mit einem einzigen Fahrrad begann, ist zu einem kulinarischen Netzwerk geworden, das die besten Köche der Welt mit Ihrem Esstisch verbindet. Food Editorial entstand aus der Überzeugung, dass Komfort niemals auf Kosten der Qualität gehen sollte.",
+      "paragraphTwo": "Wir kuratieren jedes Restaurant, prüfen jeden Fahrer und testen jede Route, damit es beim Klingeln an Ihrer Tür nicht nur um eine Mahlzeit geht, sondern um ein Erlebnis."
+    },
+    "missionVisionValues": {
+      "missionTitle": "Unsere Mission",
+      "missionDescription": "Schnelle, frische und bezahlbare kulinarische Genussmomente an jede Haustür zu liefern, ohne unnötigen ökologischen Fußabdruck.",
+      "visionTitle": "Unsere Vision",
+      "visionDescription": "Der weltweit beliebteste Lieferservice zu werden, bekannt für Geschmack und logistische Präzision.",
+      "valuesTitle": "Unsere Werte",
+      "valuesDescription": "Qualität vor allem, Geschwindigkeit als Standard und der Kunde im Mittelpunkt jeder Entscheidung."
+    },
+    "whyChooseUs": {
+      "title": "Warum wir?",
+      "easyTitle": "Einfach bestellen",
+      "easyDescription": "Eine nahtlose Oberfläche, entwickelt für Tempo und Klarheit.",
+      "fastTitle": "Schnellste Lieferung",
+      "fastDescription": "Unser KI-gestütztes Routing sorgt dafür, dass Ihr Essen heiß ankommt.",
+      "qualityTitle": "Beste Qualität",
+      "qualityDescription": "Wir arbeiten nur mit erstklassigen, hygienisch zertifizierten Restaurants zusammen.",
+      "happyCustomers": "Zufriedene Kunden",
+      "satisfaction": "Zufriedenheit",
+      "branches": "Filialen",
+      "employees": "Mitarbeitende"
+    },
+    "team": {
+      "title": "Lernen Sie unser Team kennen",
+      "description": "Die Visionäre hinter dem Geschmack.",
+      "founderRole": "Gründer & CEO",
+      "chefRole": "Küchenchef",
+      "operationsRole": "Leitung Betrieb",
+      "logisticsRole": "Logistikdirektorin"
+    },
+    "testimonials": {
+      "title": "Was unsere Nutzer sagen",
+      "quote": "\"{text}\"",
+      "loyalCustomer": "Treue Kundin",
+      "foodCritic": "Food-Kritiker",
+      "localGuide": "Lokale Expertin",
+      "lisaText": "Die einzige App, die Essen liefert, das wirklich wie auf den Bildern aussieht. Jedes Mal absolute Perfektion.",
+      "davidText": "Blitzschnelle Lieferung. Ich weiß nicht, wie sie es machen, aber meine Pasta ist immer dampfend heiß.",
+      "miaText": "Nachhaltigkeit und Qualität in einem. Die Verpackung ist umweltfreundlich und der Geschmack ist 5-Sterne."
+    },
+    "cta": {
+      "appTitleLineOne": "Großartiges Essen,",
+      "appTitleLineTwo": "direkt an Ihre",
+      "appTitleLineThree": "Tür geliefert",
+      "appDescription": "Laden Sie unsere App herunter für das schnellste Erlebnis und exklusive Tagesangebote.",
+      "appPreviewAlt": "App-Vorschau",
+      "subscribeTitle": "Abonnieren und 25 % Rabatt erhalten",
+      "subscribeDescription": "Treten Sie unserer Mailingliste bei und erhalten Sie kuratierte Wochenmenüs und geheime Rabattcodes.",
+      "emailPlaceholder": "E-Mail-Adresse eingeben",
+      "subscribe": "Abonnieren"
+    }
+  },
+  "contact": {
+    "helpCenter": {
+      "title": "Das Hilfe-Center.",
+      "description": "Navigieren Sie einfach und transparent durch kulinarische Governance und redaktionelle Standards.",
+      "accountTitle": "KONTOVERWALTUNG",
+      "accountDescription": "Sicherheitsprotokolle, Profilauthentifizierung und redaktionelle Zugangsdaten.",
+      "deliveryTitle": "LIEFERPROTOKOLLE",
+      "deliveryDescription": "Logistikstandards, Temperaturintegrität und Einhaltung der Zustellvorgaben.",
+      "paymentTitle": "ZAHLUNG & ABRECHNUNG",
+      "paymentDescription": "Rechnungszyklen, sichere Transaktionen und finanzielle Abstimmung.",
+      "legalTitle": "RECHT & COMPLIANCE",
+      "legalDescription": "Regulatorische Updates, Datenschutzbedingungen und Vertrauensrahmen.",
+      "explore": "ENTDECKEN ->"
+    },
+    "faq": {
+      "title": "Häufig gestellte Fragen",
+      "description": "Wichtiges Wissen für unsere redaktionellen Partner.",
+      "credentialQuestion": "Wie verifiziere ich meine redaktionellen Zugangsdaten?",
+      "credentialAnswer": "Redaktionelle Zugangsdaten können über das sichere Partnerportal verifiziert werden. Navigieren Sie zu \"Identitätsverwaltung\" und laden Sie Ihre zertifizierten Unterlagen zur Prüfung durch unser Trust Board hoch.",
+      "safetyQuestion": "Welche Lebensmittelsicherheitsstandards gelten für Luxuslieferungen?",
+      "safetyAnswer": "Unsere Protokolle erfordern Echtzeit-Temperaturtracking und hochwertige Archivverpackung. Alle Partner müssen den ISO-22000-Standard für hochwertige kulinarische Logistik einhalten.",
+      "complianceQuestion": "Wie oft werden Compliance-Register aktualisiert?",
+      "complianceAnswer": "Der Editorial Trust aktualisiert das Compliance-Register am ersten Montag jedes Quartals. Bedeutende regulatorische Änderungen können Zwischenupdates auslösen.",
+      "directAssistanceTitle": "Direkte Unterstützung",
+      "directAssistanceDescription": "Unsere Kuratoren stehen für dringende Anfragen und Streitbeilegung zur Verfügung.",
+      "startLiveConsultation": "Live-Beratung starten",
+      "archivistNoteTitle": "Notiz des Archivars",
+      "archivistNote": "\"Integrität ist die letzte Zutat in jedem Gericht, das wir liefern. Dieses Hilfe-Center dient als unser Transparenzprotokoll.\"",
+      "chiefTrustOfficer": "Chief Trust Officer",
+      "founderAlt": "Gründer"
+    },
+    "editorial": {
+      "founderAlt": "Gründer",
+      "titleLineOne": "Lieferung auf ein",
+      "titleLineTwo": "redaktionelles Niveau heben.",
+      "description": "Wir liefern nicht nur Pakete; wir verwalten Reputation. Jedes Dokument, jedes Protokoll und jedes Support-Ticket wird mit der Präzision einer meisterhaften Garnitur behandelt.",
+      "button": "Unsere Compliance-Philosophie ansehen"
+    },
+    "chat": {
+      "loadingChat": "Chat wird geladen...",
+      "userContext": "BENUTZERKONTEXT",
+      "premiumMember": "Premium-Mitglied",
+      "accountSince": "Konto seit",
+      "recentTopic": "Aktuelles Thema",
+      "supportChat": "Support-Chat",
+      "conversations": "UNTERHALTUNGEN",
+      "orderBadge": "Bestellung",
+      "orderSupportTitle": "Bestellung #{orderId} - Bestellsupport",
+      "liveChat": "Live-Chat",
+      "encrypted": "VERSCHLÜSSELT",
+      "note": "Hinweis",
+      "privacyNotice": "Bitte teilen Sie in diesem Chat keine persönlichen Daten oder Kartendaten.",
+      "settingUpConversation": "Ihre Bestellunterhaltung wird eingerichtet...",
+      "you": "Sie",
+      "support": "Support",
+      "messagePlaceholder": "Nachricht eingeben..."
+    }
+  },
   "categories": {
     "banner": {
       "foodBackgroundAlt": "Essenshintergrund",
@@ -844,7 +966,17 @@
       "takeaway": "Abholung"
     }
   },
-  "notifications": {},
+  "notifications": {
+    "title": "Benachrichtigungen",
+    "description": "Verwalten Sie Restaurantbenachrichtigungen, Updates und Kundenaktivitäten.",
+    "markAllAsRead": "Alle als gelesen markieren",
+    "all": "Alle",
+    "loading": "Benachrichtigungen werden geladen...",
+    "empty": "Keine Benachrichtigungen gefunden",
+    "fallbackTitle": "Benachrichtigung",
+    "loadingMore": "Wird geladen...",
+    "loadMore": "Weitere Benachrichtigungen laden"
+  },
   "groupOrder": {
     "landing": {
       "badge": "Gruppenessen leicht gemacht",
@@ -1047,7 +1179,81 @@
     "noActiveBranchesDescription": "Derzeit sind keine Filialen verfügbar. Bitte versuchen Sie es später erneut.",
     "branchLocationAvailable": "Filialstandort verfügbar"
   },
-  "legal": {},
+  "legal": {
+    "privacy": {
+      "title": "Datenschutzerklärung",
+      "lastUpdated": "Zuletzt aktualisiert: 24. Oktober 2023",
+      "atGlanceTitle": "Auf einen Blick",
+      "atGlanceDescription": "Wir priorisieren Datenschutz von Anfang an. Unser Ziel ist Transparenz darüber, wie wir Ihre Daten erheben, verwenden und schützen.",
+      "dataSecurityTitle": "Datensicherheit",
+      "dataSecurityDescription": "Bankübliche Verschlüsselung für alle gespeicherten Daten.",
+      "noSaleTitle": "Kein Verkauf von Daten",
+      "noSaleDescription": "Wir verkaufen Ihre persönlichen Informationen niemals an Dritte.",
+      "dataCollectionTitle": "1. Datenerhebung",
+      "dataCollectionDescription": "Wir erheben Informationen, die Sie uns direkt bereitstellen, wenn Sie ein Konto erstellen, Ihr Profil aktualisieren oder den Kundensupport kontaktieren. Dazu können gehören:",
+      "identityDataTitle": "Identitätsdaten",
+      "identityDataDescription": "Name, Benutzername oder ähnliche Kennung.",
+      "contactDataTitle": "Kontaktdaten",
+      "contactDataDescription": "E-Mail-Adresse und Telefonnummern.",
+      "technicalDataDescription": "Wir erheben außerdem automatisch technische Daten wie Ihre IP-Adresse, Browsertyp und Betriebssystem, um unsere Servicebereitstellung und Sicherheitsprotokolle zu verbessern.",
+      "cookiesTitle": "2. Cookies & Tracking",
+      "cookiesDescription": "Unsere Website verwendet Cookies, um Sie von anderen Nutzern zu unterscheiden. So können wir Ihnen beim Besuch unserer Website ein gutes Erlebnis bieten und unsere Seite verbessern.",
+      "cookiesQuote": "Cookies sind kleine Textdateien, die von besuchten Websites auf Ihrem Computer gespeichert werden. Sie werden häufig verwendet, damit Websites funktionieren."
+    },
+    "terms": {
+      "title": "AGB",
+      "description": "Bitte lesen Sie diese Bedingungen sorgfältig. Durch den Zugriff auf unsere Dienste erklären Sie sich mit der präzisen Struktur unseres rechtlichen Rahmens einverstanden.",
+      "introductionTitle": "01. Einführung",
+      "introductionParagraphOne": "Willkommen auf unserer Plattform. Diese Allgemeinen Geschäftsbedingungen regeln die Nutzung unserer Website und Dienste. Durch die Nutzung unseres Dienstes akzeptieren Sie diese Bedingungen vollständig. Wenn Sie diesen Bedingungen oder Teilen davon nicht zustimmen, dürfen Sie unseren Dienst nicht nutzen.",
+      "introductionParagraphTwo": "Unsere Dienste sind bewusst klar gestaltet, um Ihre Rechte zu schützen und gleichzeitig operative Exzellenz sicherzustellen.",
+      "useTitle": "02. Nutzung des Dienstes",
+      "acceptableUseTitle": "Zulässige Nutzung",
+      "acceptableUseDescription": "Sie dürfen diese Website nicht in einer Weise nutzen, die Schäden an der Website verursacht oder verursachen könnte oder die Verfügbarkeit oder Zugänglichkeit des Dienstes beeinträchtigt.",
+      "restrictedAccessTitle": "Eingeschränkter Zugriff",
+      "restrictedAccessDescription": "Der Zugriff auf bestimmte Bereiche dieser Website ist eingeschränkt. Wir behalten uns das Recht vor, den Zugriff auf weitere Bereiche oder die gesamte Website nach eigenem Ermessen einzuschränken.",
+      "liabilityTitle": "03. Haftungsbeschränkung",
+      "noWarrantiesTitle": "Keine Gewährleistungen",
+      "noWarrantiesDescription": "Diese Website wird ohne ausdrückliche oder stillschweigende Zusicherungen oder Gewährleistungen bereitgestellt. Wir geben keine Zusicherungen in Bezug auf diese Website oder die bereitgestellten Informationen und Materialien ab.",
+      "indemnityTitle": "Freistellung",
+      "indemnityDescription": "Sie stellen uns hiermit frei und verpflichten sich, uns von Verlusten, Schäden, Kosten, Haftungen und Ausgaben freizuhalten, die aus einem Verstoß durch Sie entstehen.",
+      "disputeTitle": "04. Streitbeilegung",
+      "informalNegotiationTitle": "Informelle Verhandlung",
+      "informalNegotiationDescription": "Die Parteien versuchen zunächst mindestens 30 Tage lang, Streitigkeiten informell beizulegen, bevor ein Schiedsverfahren eingeleitet wird.",
+      "bindingArbitrationTitle": "Verbindliches Schiedsverfahren",
+      "bindingArbitrationDescription": "Wenn informelle Gespräche scheitern, werden Streitigkeiten durch ein endgültiges und verbindliches Schiedsverfahren nach den Regeln der lokalen Gerichtsbarkeit gelöst."
+    },
+    "refund": {
+      "title": "Rückerstattungsanfrage",
+      "description": "Der Editorial Trust stellt sicher, dass jedes kulinarische Erlebnis unseren strengen Standards entspricht. Wenn Ihre Bestellung nicht überzeugt hat, dokumentieren Sie die Abweichung bitte unten für unser Abgleichteam.",
+      "reviewTimelineTitle": "Prüfzeitraum",
+      "reviewTimelineDescription": "Anfragen werden innerhalb von 24 bis 48 Stunden bearbeitet. Sie erhalten eine elektronische Mitteilung, sobald die Gutschrift auf Ihre ursprüngliche Zahlungsmethode ausgestellt wurde.",
+      "evidenceRequiredTitle": "Nachweis erforderlich",
+      "evidenceRequiredDescription": "Für Qualitäts- oder Genauigkeitsansprüche sind hochauflösende fotografische Nachweise erforderlich, um die Untersuchung mit unseren Kurierpartnern zu erleichtern.",
+      "orderNumber": "Bestellnummer",
+      "orderNumberPlaceholder": "z. B. #ET-88291",
+      "dateOfOrder": "Bestelldatum",
+      "datePlaceholder": "MM/TT/JJJJ",
+      "reasonForRefund": "Grund für die Rückerstattung",
+      "selectReason": "Grund auswählen",
+      "wrongItem": "Falscher Artikel",
+      "qualityIssue": "Qualitätsproblem",
+      "missingItems": "Fehlende Artikel",
+      "uploadEvidence": "Nachweis hochladen",
+      "dragDropPhotos": "Fotos hierher ziehen oder",
+      "browse": "durchsuchen",
+      "messageExplanation": "Nachricht/Erklärung",
+      "messagePlaceholder": "Bitte geben Sie konkrete Details zum Problem an...",
+      "secureSubmissionProtocol": "Sicheres Einreichungsprotokoll",
+      "submitRequest": "Anfrage absenden",
+      "protocolTitle": "Das Editorial-Trust-Protokoll",
+      "verificationTitle": "Verifizierung",
+      "verificationDescription": "Unser System gleicht GPS-Protokolle, Küchenzeitstempel und Ihre bereitgestellten Unterlagen ab.",
+      "adjudicationTitle": "Prüfung",
+      "adjudicationDescription": "Ein Mitglied unserer Qualitätskontrolle prüft Fälle, die keine automatische Genehmigungsschwelle erreichen.",
+      "reimbursementTitle": "Erstattung",
+      "reimbursementDescription": "Gutschriften werden entweder als Editorial Points zur sofortigen Nutzung ausgegeben oder an Ihr Bankinstitut zurückerstattet."
+    }
+  },
   "validation": {
     "emailRequired": "Bitte geben Sie Ihre E-Mail ein",
     "emailInvalid": "Bitte geben Sie eine gültige E-Mail-Adresse ein",
@@ -1075,7 +1281,11 @@
     "reservationGuestWholeNumber": "Die Gästeanzahl muss eine ganze Zahl sein",
     "reservationGuestMin": "Die Gästeanzahl muss mindestens 1 sein",
     "reservationGuestMax": "Die Gästeanzahl darf höchstens 20 sein",
-    "reservationNoteMax": "Der besondere Wunsch darf höchstens 500 Zeichen lang sein"
+    "reservationNoteMax": "Der besondere Wunsch darf höchstens 500 Zeichen lang sein",
+    "contactNameRequired": "Name ist erforderlich",
+    "contactEmailRequired": "Eine gültige E-Mail-Adresse ist erforderlich",
+    "contactMessageRequired": "Nachricht ist erforderlich",
+    "reviewMax": "Bewertung darf höchstens 1000 Zeichen lang sein"
   },
   "errors": {
     "somethingWentWrong": "Etwas ist schiefgelaufen"

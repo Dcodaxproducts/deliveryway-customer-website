@@ -248,8 +248,130 @@
       "browseMenu": "Browse menu"
     }
   },
-  "about": {},
-  "contact": {},
+  "about": {
+    "banner": {
+      "imageAlt": "About banner",
+      "title": "About Us",
+      "description": "Delivering happiness, one meal at a time."
+    },
+    "story": {
+      "imageAlt": "Delivery service",
+      "established": "Est. 2018",
+      "eyebrow": "Our Story",
+      "titleLineOne": "Redefining the Home",
+      "titleLineTwo": "Dining Experience.",
+      "paragraphOne": "What started in a small kitchen with a single bike has transformed into a culinary network that bridges the gap between the world's best chefs and your dining table. Food Editorial was born from the belief that convenience should never compromise quality.",
+      "paragraphTwo": "We curate every restaurant, vet every driver, and test every route to ensure that when your doorbell rings, it's not just a meal, it's an experience."
+    },
+    "missionVisionValues": {
+      "missionTitle": "Our Mission",
+      "missionDescription": "To deliver fast, fresh, and affordable culinary delights to every doorstep without the environmental footprint.",
+      "visionTitle": "Our Vision",
+      "visionDescription": "To become the world's most loved delivery service, recognized for our taste and logistical precision.",
+      "valuesTitle": "Our Values",
+      "valuesDescription": "Quality above all, speed as a standard, and putting the customer at the heart of every decision we make."
+    },
+    "whyChooseUs": {
+      "title": "Why Choose Us",
+      "easyTitle": "Easy to Order",
+      "easyDescription": "A seamless interface designed for speed and clarity.",
+      "fastTitle": "Fastest Delivery",
+      "fastDescription": "Our AI-powered routing ensures your food arrives piping hot.",
+      "qualityTitle": "Best Quality",
+      "qualityDescription": "We only partner with top-tier, hygiene-certified restaurants.",
+      "happyCustomers": "Happy Customers",
+      "satisfaction": "Satisfaction",
+      "branches": "Branches",
+      "employees": "Employees"
+    },
+    "team": {
+      "title": "Meet Our Team",
+      "description": "The visionaries behind the flavor.",
+      "founderRole": "Founder & CEO",
+      "chefRole": "Executive Chef",
+      "operationsRole": "Head of Operations",
+      "logisticsRole": "Logistics Director"
+    },
+    "testimonials": {
+      "title": "What Our Users Say",
+      "quote": "\"{text}\"",
+      "loyalCustomer": "Loyal Customer",
+      "foodCritic": "Food Critic",
+      "localGuide": "Local Guide",
+      "lisaText": "The only app that delivers food that actually looks like the pictures. Absolute perfection every time.",
+      "davidText": "Lightning fast delivery. I don't know how they do it, but my pasta is always steaming hot.",
+      "miaText": "Sustainability and quality all in one. The packaging is eco-friendly and the taste is 5-star."
+    },
+    "cta": {
+      "appTitleLineOne": "Great food,",
+      "appTitleLineTwo": "delivered to your",
+      "appTitleLineThree": "door",
+      "appDescription": "Download our app for the fastest experience and exclusive daily deals.",
+      "appPreviewAlt": "App preview",
+      "subscribeTitle": "Subscribe and get 25% off",
+      "subscribeDescription": "Join our mailing list for curated weekly menus and secret discount codes.",
+      "emailPlaceholder": "Enter your email address",
+      "subscribe": "Subscribe"
+    }
+  },
+  "contact": {
+    "helpCenter": {
+      "title": "The Help Center.",
+      "description": "Navigating the intricacies of culinary governance and editorial standards with ease and transparency.",
+      "accountTitle": "ACCOUNT MANAGEMENT",
+      "accountDescription": "Security protocols, profile authentication, and editorial credentials.",
+      "deliveryTitle": "DELIVERY PROTOCOLS",
+      "deliveryDescription": "Logistics standards, temperature integrity, and carrier compliance.",
+      "paymentTitle": "PAYMENT & BILLING",
+      "paymentDescription": "Invoicing cycles, secure transactions, and financial reconciliation.",
+      "legalTitle": "LEGAL & COMPLIANCE",
+      "legalDescription": "Regulatory updates, privacy terms, and trust framework.",
+      "explore": "EXPLORE ->"
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "description": "Essential knowledge for our editorial partners.",
+      "credentialQuestion": "How do I verify my editorial credentials?",
+      "credentialAnswer": "Editorial credentials can be verified through the Secure Partner Portal. Navigate to 'Identity Management' and upload your certified documentation for review by our Trust Board.",
+      "safetyQuestion": "What are the food safety standards for luxury deliveries?",
+      "safetyAnswer": "Our protocols require real-time temperature tracking and archival-grade packaging. All partners must adhere to the ISO 22000 standard for high-end culinary logistics.",
+      "complianceQuestion": "How often are compliance registries updated?",
+      "complianceAnswer": "The Editorial Trust updates the compliance registry on the first Monday of every quarter. Significant regulatory shifts may trigger mid-cycle updates.",
+      "directAssistanceTitle": "Direct Assistance",
+      "directAssistanceDescription": "Our curators are available for high-priority inquiries and dispute resolution.",
+      "startLiveConsultation": "Start Live Consultation",
+      "archivistNoteTitle": "The Archivist's Note",
+      "archivistNote": "\"Integrity is the final ingredient in every dish we deliver. This help center serves as our ledger of transparency.\"",
+      "chiefTrustOfficer": "Chief Trust Officer",
+      "founderAlt": "Founder"
+    },
+    "editorial": {
+      "founderAlt": "Founder",
+      "titleLineOne": "Elevating Delivery to an",
+      "titleLineTwo": "Editorial Standard.",
+      "description": "We don't just deliver packages; we manage reputations. Every document, every protocol, and every support ticket is handled with the precision of a master chef's garnish.",
+      "button": "View Our Compliance Philosophy"
+    },
+    "chat": {
+      "loadingChat": "Loading chat...",
+      "userContext": "USER CONTEXT",
+      "premiumMember": "Premium Member",
+      "accountSince": "Account Since",
+      "recentTopic": "Recent Topic",
+      "supportChat": "Support Chat",
+      "conversations": "CONVERSATIONS",
+      "orderBadge": "Order",
+      "orderSupportTitle": "Order #{orderId} - Order Support",
+      "liveChat": "Live Chat",
+      "encrypted": "ENCRYPTED",
+      "note": "Note",
+      "privacyNotice": "Please do not share personal or card details in this chat.",
+      "settingUpConversation": "Setting up your order conversation...",
+      "you": "You",
+      "support": "Support",
+      "messagePlaceholder": "Type a message..."
+    }
+  },
   "categories": {
     "banner": {
       "foodBackgroundAlt": "Food Background",
@@ -844,7 +966,17 @@
       "takeaway": "Pickup"
     }
   },
-  "notifications": {},
+  "notifications": {
+    "title": "Notifications",
+    "description": "Manage your restaurant alerts, updates, and customer activity.",
+    "markAllAsRead": "Mark all as read",
+    "all": "All",
+    "loading": "Loading notifications...",
+    "empty": "No notifications found",
+    "fallbackTitle": "Notification",
+    "loadingMore": "Loading...",
+    "loadMore": "Load more notifications"
+  },
   "groupOrder": {
     "landing": {
       "badge": "Group dining made simple",
@@ -1047,7 +1179,81 @@
     "noActiveBranchesDescription": "There are no available branches at the moment. Please try again later.",
     "branchLocationAvailable": "Branch location available"
   },
-  "legal": {},
+  "legal": {
+    "privacy": {
+      "title": "Privacy Policy",
+      "lastUpdated": "Last Updated: October 24, 2023",
+      "atGlanceTitle": "At a Glance",
+      "atGlanceDescription": "We prioritize your privacy by design. Our commitment is to be transparent about how we collect, use, and protect your data.",
+      "dataSecurityTitle": "Data Security",
+      "dataSecurityDescription": "Bank-grade encryption for all storage.",
+      "noSaleTitle": "No Sale of Data",
+      "noSaleDescription": "We never sell your personal info to third parties.",
+      "dataCollectionTitle": "1. Data Collection",
+      "dataCollectionDescription": "We collect information you provide directly to us when you create an account, update your profile, or request customer support. This information may include:",
+      "identityDataTitle": "Identity Data",
+      "identityDataDescription": "Name, username, or similar identifier.",
+      "contactDataTitle": "Contact Data",
+      "contactDataDescription": "Email address and telephone numbers.",
+      "technicalDataDescription": "We also automatically collect technical data such as your IP address, browser type, and operating system to improve our service delivery and security protocols.",
+      "cookiesTitle": "2. Cookies & Tracking",
+      "cookiesDescription": "Our website uses cookies to distinguish you from other users. This helps us provide you with a good experience when you browse our website and also allows us to improve our site.",
+      "cookiesQuote": "Cookies are small text files placed on your computer by websites that you visit. They are widely used to make websites work."
+    },
+    "terms": {
+      "title": "Terms & Conditions",
+      "description": "Please read these terms carefully. By accessing our services, you agree to be bound by the architectural precision of our legal framework.",
+      "introductionTitle": "01. Introduction",
+      "introductionParagraphOne": "Welcome to our platform. These Terms and Conditions govern your use of our website and services. By using our service, you accept these terms in full. If you disagree with these terms or any part of these terms, you must not use our service.",
+      "introductionParagraphTwo": "Our services are designed with intentional clarity to ensure your legal rights are protected while maintaining operational excellence.",
+      "useTitle": "02. Use of Service",
+      "acceptableUseTitle": "Acceptable Use",
+      "acceptableUseDescription": "You must not use this website in any way that causes, or may cause, damage to the website or impairment of the availability or accessibility of the service.",
+      "restrictedAccessTitle": "Restricted Access",
+      "restrictedAccessDescription": "Access to certain areas of this website is restricted. We reserve the right to restrict access to other areas of this website, or indeed our whole website, at our discretion.",
+      "liabilityTitle": "03. Limitation of Liability",
+      "noWarrantiesTitle": "No Warranties",
+      "noWarrantiesDescription": "This website is provided as is without any representations or warranties, express or implied. We make no representations in relation to this website or the information and materials provided.",
+      "indemnityTitle": "Indemnity",
+      "indemnityDescription": "You hereby indemnify us and undertake to keep us indemnified against any losses, damages, costs, liabilities and expenses incurred or suffered by us arising out of any breach by you.",
+      "disputeTitle": "04. Dispute Resolution",
+      "informalNegotiationTitle": "Informal Negotiation",
+      "informalNegotiationDescription": "Parties shall first attempt to resolve any dispute informally for at least 30 days before initiating arbitration.",
+      "bindingArbitrationTitle": "Binding Arbitration",
+      "bindingArbitrationDescription": "If informal talks fail, disputes will be resolved through final and binding arbitration under the rules of the local jurisdiction."
+    },
+    "refund": {
+      "title": "Refund Request",
+      "description": "The Editorial Trust ensures that every culinary experience meets our rigorous standards. If your order fell short, please document the discrepancy below for our reconciliation team.",
+      "reviewTimelineTitle": "Review Timeline",
+      "reviewTimelineDescription": "Requests are processed within 24-48 hours. You will receive an electronic notice once the credit has been issued to your original payment method.",
+      "evidenceRequiredTitle": "Evidence Required",
+      "evidenceRequiredDescription": "For quality or accuracy claims, high-resolution photographic evidence is mandatory to facilitate the investigation with our courier partners.",
+      "orderNumber": "Order Number",
+      "orderNumberPlaceholder": "e.g. #ET-88291",
+      "dateOfOrder": "Date of Order",
+      "datePlaceholder": "mm/dd/yyyy",
+      "reasonForRefund": "Reason for Refund",
+      "selectReason": "Select a reason",
+      "wrongItem": "Wrong item",
+      "qualityIssue": "Quality issue",
+      "missingItems": "Missing items",
+      "uploadEvidence": "Upload Evidence",
+      "dragDropPhotos": "Drag and drop photos or",
+      "browse": "browse",
+      "messageExplanation": "Message/Explanation",
+      "messagePlaceholder": "Please provide specific details regarding the issue...",
+      "secureSubmissionProtocol": "Secure Submission Protocol",
+      "submitRequest": "Submit Request",
+      "protocolTitle": "The Editorial Trust Protocol",
+      "verificationTitle": "Verification",
+      "verificationDescription": "Our system cross-references GPS logs, kitchen timestamps, and your provided documentation.",
+      "adjudicationTitle": "Adjudication",
+      "adjudicationDescription": "A member of our quality control trust reviews cases that do not meet automated approval thresholds.",
+      "reimbursementTitle": "Reimbursement",
+      "reimbursementDescription": "Credits are issued as either Editorial Points for immediate use or returned to your banking institution."
+    }
+  },
   "validation": {
     "emailRequired": "Please enter your email",
     "emailInvalid": "Please enter a valid email",
@@ -1075,7 +1281,11 @@
     "reservationGuestWholeNumber": "Guest count must be a whole number",
     "reservationGuestMin": "Guest count must be at least 1",
     "reservationGuestMax": "Guest count must be 20 or fewer",
-    "reservationNoteMax": "Special request must be 500 characters or fewer"
+    "reservationNoteMax": "Special request must be 500 characters or fewer",
+    "contactNameRequired": "Name is required",
+    "contactEmailRequired": "Valid email is required",
+    "contactMessageRequired": "Message is required",
+    "reviewMax": "Review must be 1000 characters or fewer"
   },
   "errors": {
     "somethingWentWrong": "Something went wrong"

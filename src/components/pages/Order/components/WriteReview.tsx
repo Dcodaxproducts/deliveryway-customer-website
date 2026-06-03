@@ -2,18 +2,19 @@
 
 import Image from "next/image";
 import { Star, Loader2, Camera } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useSearchParams, useRouter } from "next/navigation";
 import useOrders from "@/hooks/useOrders";
 import { useAuthContext } from "@/hooks/useAuth";
-import { reviewSchema, type ReviewFormValues } from "@/validations/reviews";
+import { createReviewSchema, type ReviewFormValues } from "@/validations/reviews";
 import type { Order } from "@/services/orders";
 import { useTranslations } from "next-intl";
 
 export default function WriteReview() {
   const t = useTranslations("orders");
+  const validationT = useTranslations("validation");
   const params = useSearchParams();
   const router = useRouter();
   const orderId = params.get("orderId");
@@ -25,8 +26,13 @@ export default function WriteReview() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
+  const translatedReviewSchema = useMemo(
+    () => createReviewSchema({ reviewMax: validationT("reviewMax") }),
+    [validationT]
+  );
+
   const { setValue, watch, handleSubmit } = useForm<ReviewFormValues>({
-    resolver: zodResolver(reviewSchema),
+    resolver: zodResolver(translatedReviewSchema),
     defaultValues: { rating: 4, review: "" },
   });
   const rating = watch("rating");
