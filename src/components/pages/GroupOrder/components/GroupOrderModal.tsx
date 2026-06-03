@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useGroupOrderApi } from "@/hooks/useGroupOrder";
 import { useAuth } from "@/hooks/useAuth";
-import BranchSelect from "@/components/ui/BranchSelect";
+import { BranchSelect } from "@/components/ui/BranchSelect";
 import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { setStoredGroupOrderCode } from "@/lib/group-order";

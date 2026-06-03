@@ -1,21 +1,24 @@
 "use client";
 
 import { Twitter, Instagram, Linkedin, Globe } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 
-const Footer = ({ isHome = false }: { isHome?: boolean }) => {
+export const Footer = ({ isHome = false }: { isHome?: boolean }) => {
+  const t = useTranslations("footer");
+
   const quickLinks = [
     // { label: "Menu", href: "/menu" },
-    { label: "Categories", href: "/#categories" },
-    { label: "Contact", href: "/contact" },
-    { label: "Order Now", href: "/categories" },
+    { label: t("categories"), href: "/#categories" },
+    { label: t("contact"), href: "/contact" },
+    { label: t("orderNow"), href: "/categories" },
   ];
 
   const companyLinks = [
-    { label: "About", href: "/about" },
-    { label: "Terms", href: "/terms" },
-    { label: "Privacy Policy", href: "/privacy" },
-    { label: "Refund Policy", href: "/refund" },
+    { label: t("about"), href: "/about" },
+    { label: t("terms"), href: "/terms" },
+    { label: t("privacyPolicy"), href: "/privacy" },
+    { label: t("refundPolicy"), href: "/refund" },
   ];
 
   const socialLinks = [
@@ -48,9 +51,7 @@ const Footer = ({ isHome = false }: { isHome?: boolean }) => {
             <p
               className={`${textColor} text-sm leading-relaxed max-w-[300px] mt-[16px] mb-[24px]`}
             >
-              A perfect place for perfect food, all kind of parties and any other
-              gathering as well, for our guests to simply unwind and relax in
-              complete serenity.
+              {t("brandDescription")}
             </p>
 
             {/* SOCIAL */}
@@ -76,7 +77,7 @@ const Footer = ({ isHome = false }: { isHome?: boolean }) => {
           {/* QUICK LINKS */}
           <div className="lg:pl-30">
             <h3 className={`text-xl font-bold ${headingColor} mb-[26px]`}>
-              Quick Links
+              {t("quickLinks")}
             </h3>
 
             <ul className="flex flex-col gap-[22px]">
@@ -96,7 +97,7 @@ const Footer = ({ isHome = false }: { isHome?: boolean }) => {
           {/* COMPANY */}
           <div className="lg:pl-10">
             <h3 className={`text-xl font-bold ${headingColor} mb-[26px]`}>
-              Company
+              {t("company")}
             </h3>
 
             <ul className="flex flex-col gap-[22px]">
@@ -116,12 +117,12 @@ const Footer = ({ isHome = false }: { isHome?: boolean }) => {
           {/* CONTACT */}
           <div>
             <h3 className={`text-xl font-bold ${headingColor} mb-[26px]`}>
-              Contact
+              {t("contact")}
             </h3>
 
             <div className="flex flex-col gap-[22px] text-base">
               <p className={`${headingColor} font-medium`}>
-                Call :{" "}
+                {t("call")} :{" "}
                 <a
                   href="tel:+919512212240"
                   className={`${textColor} font-normal hover:text-primary`}
@@ -131,7 +132,7 @@ const Footer = ({ isHome = false }: { isHome?: boolean }) => {
               </p>
 
               <p className={`${headingColor} font-medium`}>
-                Email :{" "}
+                {t("email")} :{" "}
                 <a
                   href="mailto:foodloversksb@gmail.com"
                   className={`${textColor} font-normal hover:text-primary`}
@@ -141,7 +142,7 @@ const Footer = ({ isHome = false }: { isHome?: boolean }) => {
               </p>
 
               <p className={`${headingColor} font-medium leading-relaxed`}>
-                Address :{" "}
+                {t("address")} :{" "}
                 <span className={`${textColor} font-normal`}>
                   Food Lovers, The Family Garden Restaurant, Kuwarda Chowkdi,
                   Kosamba.
@@ -156,12 +157,10 @@ const Footer = ({ isHome = false }: { isHome?: boolean }) => {
           <p
             className={`text-center ${textColor} text-sm md:text-base`}
           >
-            Copyright © 2026 Food Lovers. All Rights Reserved.
+            {t("copyright")}
           </p>
         </div>
       </div>
     </footer>
   );
 };
-
-export default Footer;

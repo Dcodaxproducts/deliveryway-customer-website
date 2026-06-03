@@ -1,4 +1,4 @@
-import Footer from "@/components/layout/footer/Footer";
+import { Footer } from "@/components/layout/footer/Footer";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {

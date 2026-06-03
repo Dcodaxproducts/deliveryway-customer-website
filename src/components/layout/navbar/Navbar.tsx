@@ -22,7 +22,7 @@ import { useTranslations } from "next-intl"
 import { useAuthContext } from "@/hooks/useAuth"
 import { useAuth } from "@/hooks/useAuth"
 import useMenu from "@/hooks/useMenu"
-import BranchSwitcher from "@/components/common/branch-selector/BranchSwitcher"
+import { BranchSwitcher } from "@/components/common/branch-selector/BranchSwitcher"
 import { BrandLogo } from "@/components/common/BrandLogo"
 import { LanguageSelector } from "@/components/layout/navbar/LanguageSelector"
 

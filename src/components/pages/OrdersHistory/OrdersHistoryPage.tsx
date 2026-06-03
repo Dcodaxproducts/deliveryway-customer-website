@@ -9,7 +9,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import useBranchSelector from "@/hooks/useBranchSelector";
-import BranchPopup from "@/components/common/popups/BranchPopup";
+import { BranchPopup } from "@/components/common/popups/BranchPopup";
 import { getStoredAuthState } from "@/lib/auth";
 import type { Order, OrderItem, OrderMeta } from "@/services/orders";
 export function OrdersHistoryPage() {

@@ -20,7 +20,7 @@ import useMenu from "@/hooks/useMenu";
 import { useAuth } from "@/hooks/useAuth";
 import { getSignatureMenuViewMode, setSignatureMenuViewMode } from "@/lib/view-preferences";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import AsyncSelect from "@/components/ui/AsyncSelect";
+import { AsyncSelect } from "@/components/ui/AsyncSelect";
 import type { ApiRecord, CartPayload, ItemPriceOverride, MenuItem, MenuRecord, MenuVariation, Modifier, ModifierGroup, ModifierLink, ProductCardData, RawModifierLink, SelectedModifier, SelectedModifiersMap, SplitPizzaSelection, VariationPriceOverride } from "./types";
 import { normalizeArray, sortBySortOrder, toNumber } from "./signature-selection-utils";
 import { getSplitPizzaPricingVariation } from "@/components/pages/Items/utils/restaurant-card-utils";

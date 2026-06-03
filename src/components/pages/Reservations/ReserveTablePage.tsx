@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import useReservations from "@/hooks/useReservations";
 import { useAuth } from "@/hooks/useAuth";
 import ReservationSuccess from "@/components/pages/Reservations/components/ReservationSuccess";
-import AsyncSelect from "@/components/ui/AsyncSelect";
+import { AsyncSelect } from "@/components/ui/AsyncSelect";
 import { reservationSchema, type ReservationFormValues } from "@/validations/reservations";
 import type { Reservation, ReservationPayload } from "@/services/reservations";
 import type { BranchRecord } from "@/types/branch-selector";

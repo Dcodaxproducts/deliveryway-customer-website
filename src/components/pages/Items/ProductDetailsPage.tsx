@@ -11,7 +11,7 @@ import { getStoredGroupOrderCode } from "@/lib/group-order";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { Download, Eye, Loader2, Minus, Plus, X } from "lucide-react";
-import AsyncSelect from "@/components/ui/AsyncSelect";
+import { AsyncSelect } from "@/components/ui/AsyncSelect";
 import type { CartPayload, CheckoutType, ItemPriceOverride, MenuItem, MenuVariation, Modifier, ModifierGroup, ModifierLink, ModifierSelectionMap, PromotionInfo, RawModifierLink, SelectedModifier, VariationPriceOverride } from "@/components/pages/Items/types";
 import {
   buildCartPayload,

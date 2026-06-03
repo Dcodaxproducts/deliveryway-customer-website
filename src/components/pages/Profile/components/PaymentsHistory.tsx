@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import usePayments from "@/hooks/usePayments";
 import type { PaymentItem, PaymentMeta, WalletItem } from "@/services/payments";
 import { Button } from "@/components/ui/button";
-import PaginationSection from "@/components/ui/PaginationComponent";
+import { PaginationSection } from "@/components/ui/PaginationComponent";
 import { Input } from "@/components/ui/input";
 import {
   Select,
