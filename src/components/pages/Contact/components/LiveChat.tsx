@@ -23,7 +23,7 @@ const [creatingThread, setCreatingThread] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [sending, setSending] = useState(false);
 
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const chatBodyRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
   const activeThreadRef = useRef<ChatThread | null>(null);
   useEffect(() => {
@@ -148,7 +148,14 @@ const fetchMessages = async (id: string) => {
   };
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const chatBody = chatBodyRef.current;
+
+    if (!chatBody) return;
+
+    chatBody.scrollTo({
+      top: chatBody.scrollHeight,
+      behavior: "smooth",
+    });
   }, [messages]);
 
   useEffect(() => {
@@ -307,7 +314,7 @@ const fetchMessages = async (id: string) => {
         </div>
 
         {/* CHAT BODY */}
-        <div className="flex-1 overflow-y-auto px-6 py-6 custom-scrollbar">
+        <div ref={chatBodyRef} className="flex-1 overflow-y-auto px-6 py-6 custom-scrollbar">
           <div className="bg-[#2f2f2f] text-white rounded-md px-4 py-3 max-w-[720px]">
             <p className="text-[10px] uppercase tracking-wider opacity-60 mb-1">
               {t("note")}
@@ -354,8 +361,6 @@ const fetchMessages = async (id: string) => {
               </div>
             );
           })}
-
-          <div ref={bottomRef} />
         </div>
 
         {/* INPUT */}
