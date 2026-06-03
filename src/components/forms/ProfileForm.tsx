@@ -424,7 +424,7 @@ export function ProfileForm() {
       </div>
 
       {loadingAddresses && !addressesLoaded ? (
-        <p>Loading...</p>
+        <p>{commonT("loading")}</p>
       ) : (
         <div className="grid md:grid-cols-3 gap-4">
           {addresses.map((addr) => (

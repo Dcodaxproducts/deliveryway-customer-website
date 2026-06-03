@@ -74,9 +74,7 @@ const handleForgotPassword = async (values: ForgotPasswordFormValues) => {
 
 //   setResetUrl(generatedUrl);
 
-//   toast.success("Reset link generated (Dev Mode)");
 // } else {
-//   toast.success("If account exists, reset instructions are sent");
 // }
 
 

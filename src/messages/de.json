@@ -35,6 +35,8 @@
     "noResults": "Keine Ergebnisse gefunden",
     "goToPreviousPage": "Zur vorherigen Seite",
     "goToNextPage": "Zur nächsten Seite",
+    "previousSlide": "Vorherige Folie",
+    "nextSlide": "Nächste Folie",
     "showingFromData": "{showing} von {total} Einträgen werden angezeigt",
     "orderNow": "Jetzt bestellen"
   },
@@ -472,6 +474,20 @@
     }
   },
   "productDetails": {
+    "detailsPage": {
+      "stars": "{rating} Sterne",
+      "reviews": "{count} Bewertungen",
+      "reserveTable": "Tisch reservieren",
+      "priceCuisine": "₹ 2.000 für 2 | Nordindisch",
+      "distanceFrom": "von {place}",
+      "branchAddress": "Connaught Place, Central Delhi",
+      "openFrom": "Geöffnet ab",
+      "searchMenu": "Menü suchen",
+      "findFood": "Essen finden",
+      "totalCost": "Gesamtkosten:",
+      "couponPlaceholder": "Gutscheincode hier eingeben",
+      "startsAt": "Beginnt um {time}"
+    },
     "offerApplied": "Angebot angewendet",
     "promotionApplied": "Aktion angewendet",
     "promotion": "Aktion",

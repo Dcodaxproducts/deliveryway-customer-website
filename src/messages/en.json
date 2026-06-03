@@ -35,6 +35,8 @@
     "noResults": "No results found",
     "goToPreviousPage": "Go to previous page",
     "goToNextPage": "Go to next page",
+    "previousSlide": "Previous slide",
+    "nextSlide": "Next slide",
     "showingFromData": "Showing {showing} from {total} data",
     "orderNow": "Order Now"
   },
@@ -472,6 +474,20 @@
     }
   },
   "productDetails": {
+    "detailsPage": {
+      "stars": "{rating} Stars",
+      "reviews": "{count} Reviews",
+      "reserveTable": "Reserve table",
+      "priceCuisine": "₹ 2,000 for 2 | North Indian",
+      "distanceFrom": "from {place}",
+      "branchAddress": "Connaught Place, Central Delhi",
+      "openFrom": "Open from",
+      "searchMenu": "Search Menu",
+      "findFood": "Find Food",
+      "totalCost": "Total Cost:",
+      "couponPlaceholder": "Apply Coupon Code here",
+      "startsAt": "Starts at {time}"
+    },
     "offerApplied": "Offer applied",
     "promotionApplied": "Promotion applied",
     "promotion": "Promotion",

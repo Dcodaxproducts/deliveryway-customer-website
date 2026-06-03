@@ -88,15 +88,6 @@ function OrderStatusContent() {
   return (
     <div className="max-w-[1400px] mx-auto mt-[36px] mb-[113px] px-6 md:px-30 pt-5">
 
-      {/* BACK */}
-      {/* <Link
-        href="/"
-        className="flex items-center gap-2 mb-[45px] hover:opacity-70 transition-opacity"
-      >
-        <ArrowLeft size={37} />
-        <span className="text-xl font-semibold">Back</span>
-      </Link> */}
-
       {/* ================= NOT FOUND ================= */}
       {!loading && notFound && (
         <div className="bg-white rounded-xl shadow-lg p-10 text-center">
