@@ -83,9 +83,9 @@ export default function DeliveryAddressSection({
         <Button
           type="button"
           onClick={() => setAddressModalOpen(true)}
-          className="h-[44px] rounded-full bg-[#111111] px-5 text-white hover:bg-[#222222]"
+          className="h-9 rounded-full border border-primary/15 bg-primary/5 px-3.5 text-[13px] font-semibold text-primary shadow-none hover:border-primary/30 hover:bg-primary/10"
         >
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="mr-1.5 h-3.5 w-3.5" />
           {addressT("addNewAddress")}
         </Button>
       </div>
