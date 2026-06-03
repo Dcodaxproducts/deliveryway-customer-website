@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, MapPin, Navigation, X } from "lucide-react";
@@ -18,7 +18,8 @@ import { toast } from "sonner";
 import useCheckout from "@/hooks/useCheckout";
 import { reverseGeocode } from "@/services/geocoding";
 import { useAuth } from "@/hooks/useAuth";
-import { checkoutAddressSchema, type CheckoutAddressValues } from "@/validations/checkout";
+import { createCheckoutAddressSchema, type CheckoutAddressValues } from "@/validations/checkout";
+import { useTranslations } from "next-intl";
 
 type AddressModalProps = {
   open: boolean;
@@ -43,8 +44,18 @@ export default function AddressModal({
   onSuccess,
   editData,
 }: AddressModalProps) {
+  const validationT = useTranslations("validation");
   const { token } = useAuth();
   const { post, patch } = useCheckout(token);
+  const checkoutAddressSchema = useMemo(
+    () =>
+      createCheckoutAddressSchema({
+        streetRequired: validationT("streetRequired"),
+        cityRequired: validationT("cityRequired"),
+        countryRequired: validationT("countryRequired"),
+      }),
+    [validationT]
+  );
 
   const [loading, setLoading] = useState(false);
   const [locating, setLocating] = useState(false);

@@ -5,6 +5,7 @@ import { MapPin } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import useCheckout from "@/hooks/useCheckout";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslations } from "next-intl";
 
 type AddressRecord = { id: string; street?: string; area?: string; city?: string; state?: string; country?: string };
 
@@ -17,6 +18,7 @@ export default function DeliveryAddressSection({
   selectedAddress,
   setSelectedAddress,
 }: Props) {
+  const t = useTranslations("checkout");
   const { token } = useAuth();
   const { get } = useCheckout(token);
 
@@ -48,15 +50,15 @@ export default function DeliveryAddressSection({
       <div className="flex items-center gap-3">
         <MapPin className="text-primary" size={28} />
         <h2 className="text-[24px] font-semibold text-gray-900">
-          Delivery address
+          {t("deliveryAddress")}
         </h2>
       </div>
 
       {/* STATES */}
       {loading ? (
-        <p className="text-gray-500">Loading addresses...</p>
+        <p className="text-gray-500">{t("loadingAddresses")}</p>
       ) : addresses.length === 0 ? (
-        <p className="text-gray-400">No addresses found</p>
+        <p className="text-gray-400">{t("noAddressesFound")}</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-[20px] md:gap-[30px]">
 
