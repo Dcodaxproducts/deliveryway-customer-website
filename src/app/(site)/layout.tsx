@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "../globals.css";
 import { poppins } from "@/lib/fonts";
-import Navbar from "@/components/layout/navbar/Navbar";
+import { Navbar } from "@/components/layout/navbar/Navbar";
 
 export const metadata: Metadata = {
   title: "Home | Food",
