@@ -3,11 +3,12 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
 import { FaFacebook } from "react-icons/fa"
 import { FcGoogle } from "react-icons/fc"
 import { toast } from "sonner"
+import { useTranslations } from "next-intl"
 
 import { MUTED_TEXT_CLASS } from "@/components/common/common-classes"
 import { Button } from "@/components/ui/button"
@@ -19,21 +20,55 @@ import { getStoredGroupOrderCode } from "@/lib/group-order"
 import { roboto } from "@/lib/fonts"
 import { guestLoginCustomer, loginCustomer } from "@/services/auth"
 import {
-  guestLoginSchema,
-  loginSchema,
+  createGuestLoginSchema,
+  createLoginSchema,
+  type AuthValidationMessages,
   type GuestLoginFormValues,
   type LoginFormValues,
 } from "@/validations/auth"
 
-export default function LoginForm() {
+const useAuthValidationMessages = (): AuthValidationMessages => {
+  const t = useTranslations("validation")
+
+  return useMemo(
+    () => ({
+      emailRequired: t("emailRequired"),
+      emailInvalid: t("emailInvalid"),
+      passwordRequired: t("passwordRequired"),
+      restaurantIdRequired: t("restaurantIdRequired"),
+      firstNameRequired: t("firstNameRequired"),
+      lastNameRequired: t("lastNameRequired"),
+      phoneRequired: t("phoneRequired"),
+      confirmPasswordRequired: t("confirmPasswordRequired"),
+      acceptTermsRequired: t("acceptTermsRequired"),
+      passwordsDoNotMatch: t("passwordsDoNotMatch"),
+      otpRequired: t("otpRequired"),
+      newPasswordRequired: t("newPasswordRequired"),
+      restaurantIdMissing: t("restaurantIdMissing"),
+    }),
+    [t]
+  )
+}
+
+export function LoginForm() {
+  const t = useTranslations("auth")
   const router = useRouter()
   const { login } = useAuthContext()
 
   const [isLoading, setIsLoading] = useState(false)
   const [isGuestMode, setIsGuestMode] = useState(false)
+  const validationMessages = useAuthValidationMessages()
+  const translatedLoginSchema = useMemo(
+    () => createLoginSchema(validationMessages),
+    [validationMessages]
+  )
+  const translatedGuestLoginSchema = useMemo(
+    () => createGuestLoginSchema(validationMessages),
+    [validationMessages]
+  )
 
   const loginForm = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(translatedLoginSchema),
     defaultValues: {
       email: "",
       password: "",
@@ -42,7 +77,7 @@ export default function LoginForm() {
   })
 
   const guestForm = useForm<GuestLoginFormValues>({
-    resolver: zodResolver(guestLoginSchema),
+    resolver: zodResolver(translatedGuestLoginSchema),
     defaultValues: {
       firstName: "",
       lastName: "",
@@ -62,7 +97,7 @@ const getGroupOrderCode = () => getStoredGroupOrderCode();
 
       login(data)
 
-      toast.success("Login successful")
+      toast.success(t("loginSuccessful"))
 const code = getGroupOrderCode();
 
 setTimeout(() => {
@@ -88,7 +123,7 @@ setTimeout(() => {
 
       login(data)
 
-      toast.success("Guest session started")
+      toast.success(t("guestSessionStarted"))
 
    const code = getGroupOrderCode();
 
@@ -111,12 +146,12 @@ setTimeout(() => {
 
       <div className="space-y-1">
         <h1 className="text-headline-sm font-bold font-roboto text-primary">
-          {isGuestMode ? "Guest Login" : "Login"}
+          {isGuestMode ? t("guestLogin") : t("login")}
         </h1>
         <p className={MUTED_TEXT_CLASS}>
           {isGuestMode
-            ? "Continue as guest"
-            : "Please, fill in this form to login"}
+            ? t("continueAsGuest")
+            : t("loginDescription")}
         </p>
       </div>
 
@@ -130,22 +165,22 @@ setTimeout(() => {
           <>
             <Input
               id="guestFirstName"
-              placeholder="First Name"
+              placeholder={t("firstName")}
               {...guestForm.register("firstName")}
             />
             <Input
               id="guestLastName"
-              placeholder="Last Name"
+              placeholder={t("lastName")}
               {...guestForm.register("lastName")}
             />
             <Input
               id="guestPhone"
-              placeholder="Phone"
+              placeholder={t("phone")}
               {...guestForm.register("phone")}
             />
             <Input
               id="guestRestaurantId"
-              placeholder="Restaurant Id"
+              placeholder={t("restaurantId")}
               {...guestForm.register("restaurantId")}
             />
 
@@ -154,7 +189,7 @@ setTimeout(() => {
               disabled={isLoading}
               className="w-full h-[50px] text-lg font-semibold bg-primary text-white"
             >
-              {isLoading ? "Starting..." : "Sign in as Guest"}
+              {isLoading ? t("starting") : t("signInAsGuest")}
             </Button>
           </>
         ) : (
@@ -162,32 +197,32 @@ setTimeout(() => {
             <Input
               id="email"
               type="email"
-              placeholder="Email"
+              placeholder={t("email")}
               {...loginForm.register("email")}
             />
             <Input
               id="password"
               type="password"
-              placeholder="Password"
+              placeholder={t("password")}
               {...loginForm.register("password")}
             />
             <Input
               id="restaurantId"
-              placeholder="Restaurant Id"
+              placeholder={t("restaurantId")}
               {...loginForm.register("restaurantId")}
             />
 
             <div className="flex items-center justify-between text-sm my-7">
               <label className="flex items-center gap-2 cursor-pointer text-gray-500">
                 <Checkbox checked />
-                Remember me
+                {t("rememberMe")}
               </label>
 
               <Link
                 href="/auth/forgot-password"
                 className="text-primary hover:underline"
               >
-                Forgot Password?
+                {t("forgotPassword")}
               </Link>
             </div>
 
@@ -196,7 +231,7 @@ setTimeout(() => {
               disabled={isLoading}
               className="w-full h-[50px] text-lg font-semibold bg-primary text-white"
             >
-              {isLoading ? "Logging in..." : "Login"}
+              {isLoading ? t("loggingIn") : t("login")}
             </Button>
           </>
         )}
@@ -210,7 +245,7 @@ setTimeout(() => {
         >
           <FaFacebook className="w-[23px] h-[23px] mr-[15px]" />
           <span className={`${roboto.className} text-xl`}>
-            Sign In with Facebook
+            {t("signInWithFacebook")}
           </span>
         </button>
 
@@ -220,7 +255,7 @@ setTimeout(() => {
         >
           <FcGoogle className="w-[24px] h-[24px] mr-[15px]" />
           <span className={`${roboto.className} text-xl text-gray-500`}>
-            Sign In with Google
+            {t("signInWithGoogle")}
           </span>
         </button>
 
@@ -230,7 +265,7 @@ setTimeout(() => {
           onClick={() => setIsGuestMode(true)}
           className="text-primary underline text-sm"
         >
-          Sign in as Guest
+          {t("signInAsGuest")}
         </button>
 
         {/* BACK TO LOGIN */}
@@ -240,16 +275,16 @@ setTimeout(() => {
             onClick={() => setIsGuestMode(false)}
             className="text-gray-500 text-sm underline"
           >
-            Back to Login
+            {t("backToLogin")}
           </button>
         )}
       </div>
 
       {/* SIGNUP */}
       <p className="text-center text-sm text-muted-foreground mt-[40px]">
-        Don't have an account?{" "}
+        {t("dontHaveAccount")}{" "}
         <Link href="/auth/signup" className="text-blue hover:underline">
-          Sign up now
+          {t("signUpNow")}
         </Link>
       </p>
     </div>
