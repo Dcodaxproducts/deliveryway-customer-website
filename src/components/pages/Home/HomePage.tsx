@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
+import { useTranslations } from "next-intl";
 
 import HeroSection from "@/components/pages/Home/components/heroSection";
 import FoodCategorySection from "@/components/pages/Home/components/foodCategorySection";
@@ -25,6 +26,7 @@ import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
 import type { CustomerDeal } from "@/types/customer-deals";
 
 const HomePage = () => {
+  const t = useTranslations("home.hero");
   const { user, token, restaurantId: authRestaurantId } = useAuth();
   const { branding: fallbackBranding } = useBranding();
 
@@ -44,7 +46,7 @@ const HomePage = () => {
   const branding = homeData?.branding ?? fallbackBranding ?? DEFAULT_BRANDING;
   const resolvedBranch = homeData?.branch ?? user?.branch ?? null;
   const landingPopup = homeData?.landingPopup ?? null;
-  const heroTitle = homeData?.restaurant?.name ?? branding.restaurantName ?? "Are you starving?";
+  const heroTitle = homeData?.restaurant?.name ?? branding.restaurantName ?? t("defaultTitle");
   const heroTagline = branding.tagline;
   const heroImage = branding.assets.heroImage ?? branding.assets.coverImage ?? DEFAULT_BRANDING.assets.heroImage;
 
