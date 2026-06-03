@@ -209,58 +209,60 @@ const fetchMessages = async (id: string) => {
   }, [token]);
 
   return (
-    <div className="flex h-screen bg-[#f7f6f5] text-[13px] text-[#1f1f1f]">
+    <div className="flex h-[calc(100dvh-88px)] overflow-hidden bg-[#f7f6f5] text-[13px] text-[#1f1f1f]">
       {/* Sidebar */}
-      <aside className="hidden md:flex flex-col w-[260px] bg-[#f3f1ef] px-4 py-5">
-        <p className="text-[10px] tracking-widest text-gray-400 mb-3">
-          {t("userContext")}
-        </p>
+      <aside className="hidden min-h-0 w-[260px] flex-col overflow-hidden bg-[#f3f1ef] px-4 py-5 md:flex">
+        <div className="shrink-0">
+          <p className="text-[10px] tracking-widest text-gray-400 mb-3">
+            {t("userContext")}
+          </p>
 
-        <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 flex items-center justify-center rounded-full bg-[#f4c7b8] text-[12px] font-semibold">
-              {user?.profile?.firstName?.[0] || "U"}
-            </div>
-            <div>
-              <p className="font-medium text-[13px]">
-                {user?.profile?.firstName}
-              </p>
-              <p className="text-[11px] text-gray-400">
-                {t("premiumMember")}
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-4 space-y-3 text-[11px]">
-            <div>
-              <p className="text-gray-400 uppercase text-[9px] tracking-wider">
-                {t("accountSince")}
-              </p>
-              <p className="text-[12px] mt-[2px]">
-                {user?.profile?.createdAt
-                  ? formatDate(user?.profile?.createdAt)
-                  : "—"}
-              </p>
+          <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 flex items-center justify-center rounded-full bg-[#f4c7b8] text-[12px] font-semibold">
+                {user?.profile?.firstName?.[0] || "U"}
+              </div>
+              <div>
+                <p className="font-medium text-[13px]">
+                  {user?.profile?.firstName}
+                </p>
+                <p className="text-[11px] text-gray-400">
+                  {t("premiumMember")}
+                </p>
+              </div>
             </div>
 
-            <div>
-              <p className="text-gray-400 uppercase text-[9px] tracking-wider">
-                {t("recentTopic")}
-              </p>
-              <p className="text-[12px] mt-[2px]">
-                {threads[0]?.subject || t("supportChat")}
-              </p>
+            <div className="mt-4 space-y-3 text-[11px]">
+              <div>
+                <p className="text-gray-400 uppercase text-[9px] tracking-wider">
+                  {t("accountSince")}
+                </p>
+                <p className="text-[12px] mt-[2px]">
+                  {user?.profile?.createdAt
+                    ? formatDate(user?.profile?.createdAt)
+                    : "—"}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-gray-400 uppercase text-[9px] tracking-wider">
+                  {t("recentTopic")}
+                </p>
+                <p className="text-[12px] mt-[2px]">
+                  {threads[0]?.subject || t("supportChat")}
+                </p>
+              </div>
             </div>
           </div>
         </div>
 
         {/* THREADS */}
-        <div className="mt-6">
-          <p className="text-[10px] tracking-widest text-gray-400 mb-3">
+        <div className="mt-6 flex min-h-0 flex-1 flex-col">
+          <p className="mb-3 shrink-0 text-[10px] tracking-widest text-gray-400">
             {t("conversations")}
           </p>
 
-          <div className="space-y-2">
+          <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
             {threads.map((thread) => (
               <div
                 key={thread.id}
@@ -290,7 +292,7 @@ const fetchMessages = async (id: string) => {
       </aside>
 
       {/* MAIN */}
-      <main className="flex flex-col flex-1">
+      <main className="flex min-h-0 flex-1 flex-col">
         {/* HEADER */}
         <div className="flex items-center justify-between px-6 py-4 bg-[#f7f6f5] border-b border-gray-200">
          <h2 className="font-medium text-[14px]">
