@@ -10,7 +10,6 @@ import AppPromo from "@/components/pages/Home/components/appPromoSection";
 import Stats from "@/components/pages/Home/components/statsSection";
 import BlogSection from "@/components/pages/Home/components/blogSection";
 import NewsletterSection from "@/components/pages/Home/components/newsLetterSection";
-import { Footer } from "@/components/layout/footer/Footer";
 import { RequiredBranchSelectionModal } from "@/components/common/branch-selector/RequiredBranchSelectionModal";
 import { OrderNowFloatingButton } from "@/components/ui/OrderNowFloatingButton";
 import BranchOpeningHoursPopup from "@/components/pages/Home/components/BranchOpeningHours";
@@ -80,8 +79,6 @@ const HomePage = () => {
       <Stats />
       {branding.showPopularItems ? <BlogSection /> : null}
       <NewsletterSection />
-
-      <Footer isHome={true} />
 
       {user && token && !branchId ? <RequiredBranchSelectionModal /> : null}
 
