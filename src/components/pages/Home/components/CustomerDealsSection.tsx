@@ -176,7 +176,7 @@ const CustomerDealCard = ({
         <div className="mt-auto pt-5">
           <Button
             variant="primary"
-            className="w-full"
+            className="h-11 w-full px-4 text-sm"
             disabled={!hasDealItems || isAdding}
             onClick={handleAddDeal}
           >

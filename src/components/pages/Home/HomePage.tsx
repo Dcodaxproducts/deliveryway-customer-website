@@ -41,9 +41,16 @@ const HomePage = () => {
   const addDealMutation = useAddDealToCart(branchId);
   const handleAddDeal = useCallback(
     (deal: CustomerDeal, selectedMenuItemIds?: string[]) => {
-      addDealMutation.mutate({ deal, selectedMenuItemIds });
+      addDealMutation.mutate(
+        { deal, selectedMenuItemIds },
+        {
+          onSuccess: () => {
+            router.push("/checkout");
+          },
+        }
+      );
     },
-    [addDealMutation]
+    [addDealMutation, router]
   );
   const handleBrowseDeal = useCallback(
     (deal: CustomerDeal) => {
