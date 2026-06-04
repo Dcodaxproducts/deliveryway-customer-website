@@ -819,6 +819,15 @@
       "failedCreatePayment": "Zahlung konnte nicht erstellt werden",
       "choosePaymentMethod": "Wählen Sie unten eine Zahlungsmethode",
       "selectPaymentMethod": "Zahlungsmethode auswählen"
+    },
+    "giftCards": {
+      "redeemTitle": "Geschenkkarte einlösen",
+      "redeemDescription": "Geben Sie Ihren Geschenkkartencode ein, um Guthaben zu Ihrer Wallet hinzuzufügen.",
+      "code": "Geschenkkartencode",
+      "redeem": "Einlösen",
+      "redeeming": "Wird eingelöst...",
+      "creditedAmount": "Gutgeschriebener Betrag",
+      "walletBalance": "Wallet-Guthaben"
     }
   },
   "addresses": {
@@ -1306,6 +1315,7 @@
     "profileFirstNameRequired": "Vorname ist erforderlich",
     "profileLastNameRequired": "Nachname ist erforderlich",
     "avatarUrlInvalid": "Avatar muss eine gültige URL oder ein relativer Pfad sein",
+    "giftCardCodeRequired": "Geschenkkartencode ist erforderlich",
     "reservationBranchRequired": "Bitte wähle eine Filiale",
     "reservationDateTimeRequired": "Datum und Uhrzeit wählen",
     "reservationPastDate": "Vergangene Daten sind für Reservierungen nicht verfügbar.",

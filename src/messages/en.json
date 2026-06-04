@@ -819,6 +819,15 @@
       "failedCreatePayment": "Failed to create payment",
       "choosePaymentMethod": "Choose payment method below",
       "selectPaymentMethod": "Select Payment Method"
+    },
+    "giftCards": {
+      "redeemTitle": "Redeem Gift Card",
+      "redeemDescription": "Enter your gift card code to add credit to your wallet.",
+      "code": "Gift Card Code",
+      "redeem": "Redeem",
+      "redeeming": "Redeeming...",
+      "creditedAmount": "Credited Amount",
+      "walletBalance": "Wallet Balance"
     }
   },
   "addresses": {
@@ -1306,6 +1315,7 @@
     "profileFirstNameRequired": "First name is required",
     "profileLastNameRequired": "Last name is required",
     "avatarUrlInvalid": "Avatar must be a valid URL or relative path",
+    "giftCardCodeRequired": "Gift card code is required",
     "reservationBranchRequired": "Please select a branch",
     "reservationDateTimeRequired": "Select date & time",
     "reservationPastDate": "Past dates are not available for reservation.",
