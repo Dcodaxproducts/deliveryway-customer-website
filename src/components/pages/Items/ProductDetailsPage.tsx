@@ -801,6 +801,7 @@ function ProductDetailsPageContent() {
   const slug = params.get("slug");
   const itemIdParam = params.get("itemId") || "";
   const cartItemId = params.get("cartItemId") || "";
+  const dealIdContext = params.get("dealId") || "";
   const checkoutType = getCheckoutType(params.get("type"));
 
   const isEditingCartItem = Boolean(cartItemId);
@@ -2009,6 +2010,7 @@ function ProductDetailsPageContent() {
     includeMenuItem: true,
     includeBranch: true,
     clearSectionsWhenEmpty: false,
+    dealId: dealIdContext,
   });
 
   const buildPatchCartPayload = () => buildCartPayload({
@@ -2023,6 +2025,7 @@ function ProductDetailsPageContent() {
     includeMenuItem: false,
     includeBranch: false,
     clearSectionsWhenEmpty: true,
+    dealId: dealIdContext,
   });
 
   const clearCartAndRetryAdd = async () => {

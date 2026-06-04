@@ -20,6 +20,8 @@ import {
   getDealActionLabel,
   getDealRequirementText,
   getDealTypeLabel,
+  canAutoAddFixedDeal,
+  canUseInlineFlexibleDealSelection,
   isFixedItemDeal,
   isFlexibleCategoryDeal,
   isFlexibleItemDeal,
@@ -81,7 +83,11 @@ const CustomerDealCard = ({
     ? deal.scopeCategories.length > 0
     : deal.scopeMenuItems.length > 0;
   const handleAddDeal = useCallback(() => {
-    if (isFlexibleCategoryDeal(deal)) {
+    if (
+      isFlexibleCategoryDeal(deal) ||
+      (isFixedItemDeal(deal) && !canAutoAddFixedDeal(deal)) ||
+      (isFlexibleItemDeal(deal) && !canUseInlineFlexibleDealSelection(deal))
+    ) {
       onBrowseDeal?.(deal);
       return;
     }
@@ -227,13 +233,18 @@ export const CustomerDealsSection = ({
   const handleDealClick = useCallback(
     (deal: CustomerDeal, selectedIds?: string[]) => {
       if (isFlexibleItemDeal(deal) && !selectedIds) {
+        if (!canUseInlineFlexibleDealSelection(deal)) {
+          onBrowseDeal?.(deal);
+          return;
+        }
+
         openFlexibleDeal(deal);
         return;
       }
 
       onAddDeal?.(deal, selectedIds);
     },
-    [onAddDeal, openFlexibleDeal]
+    [onAddDeal, onBrowseDeal, openFlexibleDeal]
   );
 
   const toggleSelectedItem = useCallback((menuItemId: string, checked: boolean) => {

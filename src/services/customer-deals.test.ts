@@ -150,6 +150,34 @@ describe("getCustomerDeals", () => {
     expect(response.deals[0].scopeMenuItems[2].category?.name).toBe("Sides");
   });
 
+  it("normalizes deal item customization fields", () => {
+    const response = normalizeCustomerDealsResponse([
+      {
+        id: "customizable-deal",
+        dealSelectionMode: "FLEXIBLE_ITEMS",
+        dealRequiredQuantity: 1,
+        discountValue: 20,
+        scopeMenuItems: [
+          {
+            id: "item-1",
+            name: "Burger",
+            variations: [{ id: "large" }],
+            modifierGroups: [{ id: "sauces" }],
+            modifiers: [{ id: "extra-cheese" }],
+            modifierLinks: [{ id: "link-1" }],
+            hasConfigurableOptions: true,
+          },
+        ],
+      },
+    ]);
+
+    expect(response.deals[0].scopeMenuItems[0].variations).toHaveLength(1);
+    expect(response.deals[0].scopeMenuItems[0].modifierGroups).toHaveLength(1);
+    expect(response.deals[0].scopeMenuItems[0].modifiers).toHaveLength(1);
+    expect(response.deals[0].scopeMenuItems[0].modifierLinks).toHaveLength(1);
+    expect(response.deals[0].scopeMenuItems[0].hasConfigurableOptions).toBe(true);
+  });
+
   it("normalizes category ids into minimal category records", () => {
     const response = normalizeCustomerDealsResponse([
       {

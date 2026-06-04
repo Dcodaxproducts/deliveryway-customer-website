@@ -18,6 +18,8 @@ export type CustomerDealMenuItemCategory = {
   imageUrl?: string | null;
 };
 
+export type CustomerDealMenuItemOption = Record<string, unknown>;
+
 export type CustomerDealMenuItem = {
   id: string;
   name: string;
@@ -26,6 +28,14 @@ export type CustomerDealMenuItem = {
   basePrice?: string | number | null;
   discountedBasePrice?: string | number | null;
   category?: CustomerDealMenuItemCategory | null;
+  variations?: CustomerDealMenuItemOption[];
+  modifierGroups?: CustomerDealMenuItemOption[];
+  modifiers?: CustomerDealMenuItemOption[];
+  modifierLinks?: CustomerDealMenuItemOption[];
+  supportsDealIdCartPayload?: boolean;
+  supportsDealCartPayload?: boolean;
+  requiresCustomization?: boolean;
+  hasConfigurableOptions?: boolean;
 };
 
 export type CustomerDealCategory = {
@@ -137,6 +147,16 @@ const normalizeMenuItemCategory = (value: unknown): CustomerDealMenuItemCategory
   };
 };
 
+const normalizeUnknownArray = (value: unknown): CustomerDealMenuItemOption[] | undefined => {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  return value.filter(isRecord);
+};
+
+const getBoolean = (value: unknown) => (typeof value === "boolean" ? value : undefined);
+
 const normalizeMenuItems = (value: unknown): CustomerDealMenuItem[] => {
   if (!Array.isArray(value)) {
     return [];
@@ -152,6 +172,14 @@ const normalizeMenuItems = (value: unknown): CustomerDealMenuItem[] => {
       basePrice: getStringOrNumber(item.basePrice),
       discountedBasePrice: getStringOrNumber(item.discountedBasePrice),
       category: normalizeMenuItemCategory(item.category),
+      variations: normalizeUnknownArray(item.variations),
+      modifierGroups: normalizeUnknownArray(item.modifierGroups),
+      modifiers: normalizeUnknownArray(item.modifiers),
+      modifierLinks: normalizeUnknownArray(item.modifierLinks),
+      supportsDealIdCartPayload: getBoolean(item.supportsDealIdCartPayload),
+      supportsDealCartPayload: getBoolean(item.supportsDealCartPayload),
+      requiresCustomization: getBoolean(item.requiresCustomization),
+      hasConfigurableOptions: getBoolean(item.hasConfigurableOptions),
     }))
     .filter((item) => item.id);
 };

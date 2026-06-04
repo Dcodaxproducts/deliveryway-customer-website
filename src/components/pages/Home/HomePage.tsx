@@ -23,7 +23,10 @@ import { useBranding } from "@/hooks/useBranding";
 import { useAddDealToCart } from "@/hooks/useCart";
 import { useCustomerDeals } from "@/hooks/useCustomerDeals";
 import { useHome } from "@/hooks/useHome";
-import { isFlexibleCategoryDeal } from "@/components/pages/Home/utils/customer-deal-cart";
+import {
+  isFixedItemDeal,
+  isFlexibleCategoryDeal,
+} from "@/components/pages/Home/utils/customer-deal-cart";
 import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
 import type { CustomerDeal } from "@/types/customer-deals";
 
@@ -55,6 +58,7 @@ const HomePage = () => {
   const handleBrowseDeal = useCallback(
     (deal: CustomerDeal) => {
       const firstCategoryId = deal.scopeCategories[0]?.id;
+      const firstMenuItemId = deal.scopeMenuItems[0]?.id;
       const params = new URLSearchParams();
 
       params.set("dealId", deal.id);
@@ -63,7 +67,12 @@ const HomePage = () => {
         params.set("categoryId", firstCategoryId);
       }
 
-      router.push(`/items?${params.toString()}`);
+      if (isFixedItemDeal(deal) && deal.scopeMenuItems.length === 1 && firstMenuItemId) {
+        params.set("itemId", firstMenuItemId);
+        router.push(`/items/details?${params.toString()}`);
+      } else {
+        router.push(`/items?${params.toString()}`);
+      }
 
       if (isFlexibleCategoryDeal(deal)) {
         toast.info(dealsT("categoryDealToast"));

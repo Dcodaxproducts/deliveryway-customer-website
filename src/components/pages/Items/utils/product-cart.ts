@@ -27,6 +27,8 @@ type CartPayloadBuilderInput = {
   includeMenuItem: boolean;
   includeBranch: boolean;
   clearSectionsWhenEmpty: boolean;
+  dealId?: string | null;
+  shouldSendDealId?: boolean;
 };
 
 type CartPayloadBuilderModifierGroup = NonNullable<MenuItem["modifierGroups"]>[number];
@@ -71,6 +73,8 @@ export const buildCartPayload = ({
   includeMenuItem,
   includeBranch,
   clearSectionsWhenEmpty,
+  dealId,
+  shouldSendDealId = false,
 }: CartPayloadBuilderInput): CartPayload & Record<string, unknown> => {
   const splitSections = getSplitSections({ splitPizzaEnabled, splitPizzaItem, item });
   const restaurantMenuId = getRestaurantMenuId(item);
@@ -100,6 +104,10 @@ export const buildCartPayload = ({
     payload.sections = splitSections;
   } else if (clearSectionsWhenEmpty) {
     payload.sections = [];
+  }
+
+  if (shouldSendDealId && dealId) {
+    payload.dealId = dealId;
   }
 
   return payload;
