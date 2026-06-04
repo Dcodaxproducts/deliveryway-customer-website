@@ -10,6 +10,8 @@ export type CustomerDealApplyMode =
   | "ALL_ITEMS"
   | string;
 
+export type CustomerDealSelectionMode = "FIXED_ITEMS" | "FLEXIBLE_ITEMS";
+
 export type CustomerDealMenuItem = {
   id: string;
   name: string;
@@ -39,9 +41,13 @@ export type CustomerDeal = {
   id: string;
   title: string;
   description?: string | null;
+  dealSelectionMode: CustomerDealSelectionMode;
+  dealRequiredQuantity?: number | null;
   applyMode: CustomerDealApplyMode;
   discountType: CustomerDealDiscountType;
   discountValue: number;
+  thumbnailUrl?: string | null;
+  imageUrl?: string | null;
   startsAt?: string | null;
   expiresAt?: string | null;
   restaurant?: CustomerDealRestaurant | null;
@@ -71,6 +77,19 @@ const getNullableString = (value: unknown) => getString(value) ?? null;
 const getNumber = (value: unknown, fallback = 0) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+const getNullableNumber = (value: unknown) => {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const normalizeSelectionMode = (value: unknown): CustomerDealSelectionMode => {
+  return value === "FLEXIBLE_ITEMS" ? "FLEXIBLE_ITEMS" : "FIXED_ITEMS";
 };
 
 const getStringOrNumber = (value: unknown) => {
@@ -151,9 +170,13 @@ export const normalizeCustomerDeal = (input: unknown): CustomerDeal | null => {
     id,
     title: getString(input.title) ?? "Deal",
     description: getNullableString(input.description),
+    dealSelectionMode: normalizeSelectionMode(input.dealSelectionMode),
+    dealRequiredQuantity: getNullableNumber(input.dealRequiredQuantity),
     applyMode: getString(input.applyMode) ?? "ALL_ITEMS",
     discountType: getString(input.discountType) ?? "FIXED_PRICE",
     discountValue: getNumber(input.discountValue, 0),
+    thumbnailUrl: getNullableString(input.thumbnailUrl),
+    imageUrl: getNullableString(input.imageUrl),
     startsAt: getNullableString(input.startsAt),
     expiresAt: getNullableString(input.expiresAt),
     restaurant: normalizeRestaurant(input.restaurant),

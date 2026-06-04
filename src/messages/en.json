@@ -188,7 +188,12 @@
       "includes": "Includes {items}",
       "noAvailableItems": "This deal has no available items.",
       "adding": "Adding...",
-      "addDeal": "Add Deal"
+      "addDeal": "Add Deal",
+      "chooseItems": "Choose Items",
+      "browseItems": "Browse Items",
+      "selectEligibleItems": "Choose at least {count, plural, one {# eligible item} other {# eligible items}}.",
+      "addSelectedItems": "Add Selected Items",
+      "categoryDealToast": "Add at least {count, plural, one {# eligible item} other {# eligible items}} to activate this deal."
     },
     "whyChooseUs": {
       "title": "Why Choose Us",

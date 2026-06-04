@@ -1,15 +1,31 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Image from "next/image";
 import { BadgePercent, CalendarDays, PackageCheck } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  getDealImage,
+  getDealRequirementText,
+  getDealTypeLabel,
+  isFixedItemDeal,
+  isFlexibleCategoryDeal,
+  isFlexibleItemDeal,
+} from "@/components/pages/Home/utils/customer-deal-cart";
 import {
   formatDealDateRange,
   formatDealPrice,
-  getDealImage,
   getDealItemNames,
   isDealActive,
 } from "@/components/pages/Home/utils/customer-deals-formatters";
@@ -19,7 +35,8 @@ type CustomerDealsSectionProps = {
   deals: CustomerDeal[];
   isLoading?: boolean;
   addingDealId?: string | null;
-  onAddDeal?: (deal: CustomerDeal) => void;
+  onAddDeal?: (deal: CustomerDeal, selectedMenuItemIds?: string[]) => void;
+  onBrowseDeal?: (deal: CustomerDeal) => void;
 };
 
 const CustomerDealsSkeleton = () => (
@@ -37,19 +54,35 @@ const CustomerDealCard = ({
   deal,
   isAdding,
   onAddDeal,
+  onBrowseDeal,
 }: {
   deal: CustomerDeal;
   isAdding: boolean;
-  onAddDeal?: (deal: CustomerDeal) => void;
+  onAddDeal?: (deal: CustomerDeal, selectedMenuItemIds?: string[]) => void;
+  onBrowseDeal?: (deal: CustomerDeal) => void;
 }) => {
   const t = useTranslations("home.deals");
   const image = getDealImage(deal);
   const itemNames = getDealItemNames(deal.scopeMenuItems);
+  const categoryNames = getDealItemNames(deal.scopeCategories);
+  const requirementText = getDealRequirementText(deal);
   const dateRange = formatDealDateRange(deal.startsAt, deal.expiresAt);
-  const hasDealItems = deal.scopeMenuItems.length > 0;
+  const hasDealItems = isFlexibleCategoryDeal(deal)
+    ? deal.scopeCategories.length > 0
+    : deal.scopeMenuItems.length > 0;
   const handleAddDeal = useCallback(() => {
+    if (isFlexibleCategoryDeal(deal)) {
+      onBrowseDeal?.(deal);
+      return;
+    }
+
     onAddDeal?.(deal);
-  }, [deal, onAddDeal]);
+  }, [deal, onAddDeal, onBrowseDeal]);
+  const buttonLabel = isFlexibleCategoryDeal(deal)
+    ? t("browseItems")
+    : isFlexibleItemDeal(deal)
+      ? t("chooseItems")
+      : t("addDeal");
 
   return (
     <article className="overflow-hidden rounded-[24px] border border-gray-100 bg-white shadow-xl shadow-primary/5">
@@ -88,15 +121,32 @@ const CustomerDealCard = ({
           {deal.title}
         </h3>
 
+        <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-primary">
+          {getDealTypeLabel(deal)}
+        </p>
+
         {deal.description ? (
           <p className="mt-2 line-clamp-2 text-sm leading-5 text-gray-500">
             {deal.description}
           </p>
         ) : null}
 
-        {itemNames ? (
+        {isFixedItemDeal(deal) && itemNames ? (
           <p className="mt-3 line-clamp-2 text-sm font-medium text-gray-700">
             {t("includes", { items: itemNames })}
+          </p>
+        ) : null}
+
+        {isFlexibleItemDeal(deal) ? (
+          <p className="mt-3 line-clamp-2 text-sm font-medium text-gray-700">
+            {requirementText}
+          </p>
+        ) : null}
+
+        {isFlexibleCategoryDeal(deal) ? (
+          <p className="mt-3 line-clamp-2 text-sm font-medium text-gray-700">
+            {requirementText}
+            {categoryNames ? `: ${categoryNames}` : ""}
           </p>
         ) : null}
 
@@ -112,11 +162,16 @@ const CustomerDealCard = ({
           disabled={!hasDealItems || isAdding}
           onClick={handleAddDeal}
         >
-          {isAdding ? t("adding") : t("addDeal")}
+          {isAdding ? t("adding") : buttonLabel}
         </Button>
       </div>
     </article>
   );
+};
+
+const getRequiredQuantity = (deal: CustomerDeal) => {
+  const parsed = Number(deal.dealRequiredQuantity);
+  return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : 1;
 };
 
 export const CustomerDealsSection = ({
@@ -124,9 +179,60 @@ export const CustomerDealsSection = ({
   isLoading = false,
   addingDealId = null,
   onAddDeal,
+  onBrowseDeal,
 }: CustomerDealsSectionProps) => {
   const t = useTranslations("home.deals");
   const activeDeals = deals.filter(isDealActive).slice(0, 6);
+  const [selectedFlexibleDeal, setSelectedFlexibleDeal] = useState<CustomerDeal | null>(null);
+  const [selectedMenuItemIds, setSelectedMenuItemIds] = useState<string[]>([]);
+  const requiredQuantity = selectedFlexibleDeal ? getRequiredQuantity(selectedFlexibleDeal) : 1;
+  const selectedCount = selectedMenuItemIds.length;
+  const canAddSelectedItems = Boolean(
+    selectedFlexibleDeal && selectedCount >= requiredQuantity
+  );
+  const selectedFlexibleItems = useMemo(
+    () => selectedFlexibleDeal?.scopeMenuItems ?? [],
+    [selectedFlexibleDeal]
+  );
+
+  const openFlexibleDeal = useCallback((deal: CustomerDeal) => {
+    setSelectedFlexibleDeal(deal);
+    setSelectedMenuItemIds([]);
+  }, []);
+
+  const closeFlexibleDeal = useCallback(() => {
+    setSelectedFlexibleDeal(null);
+    setSelectedMenuItemIds([]);
+  }, []);
+
+  const handleDealClick = useCallback(
+    (deal: CustomerDeal, selectedIds?: string[]) => {
+      if (isFlexibleItemDeal(deal) && !selectedIds) {
+        openFlexibleDeal(deal);
+        return;
+      }
+
+      onAddDeal?.(deal, selectedIds);
+    },
+    [onAddDeal, openFlexibleDeal]
+  );
+
+  const toggleSelectedItem = useCallback((menuItemId: string, checked: boolean) => {
+    setSelectedMenuItemIds((current) => {
+      if (checked) {
+        return current.includes(menuItemId) ? current : [...current, menuItemId];
+      }
+
+      return current.filter((id) => id !== menuItemId);
+    });
+  }, []);
+
+  const addSelectedItems = useCallback(() => {
+    if (!selectedFlexibleDeal || !canAddSelectedItems) return;
+
+    onAddDeal?.(selectedFlexibleDeal, selectedMenuItemIds);
+    closeFlexibleDeal();
+  }, [canAddSelectedItems, closeFlexibleDeal, onAddDeal, selectedFlexibleDeal, selectedMenuItemIds]);
 
   if (isLoading) {
     return (
@@ -159,10 +265,64 @@ export const CustomerDealsSection = ({
             key={deal.id}
             deal={deal}
             isAdding={addingDealId === deal.id}
-            onAddDeal={onAddDeal}
+            onAddDeal={handleDealClick}
+            onBrowseDeal={onBrowseDeal}
           />
         ))}
       </div>
+
+      <Dialog
+        open={Boolean(selectedFlexibleDeal)}
+        onOpenChange={(open) => {
+          if (!open) {
+            closeFlexibleDeal();
+          }
+        }}
+      >
+        <DialogContent className="max-h-[90vh] overflow-auto rounded-[24px] sm:max-w-[560px]">
+          <DialogHeader>
+            <DialogTitle>{selectedFlexibleDeal?.title}</DialogTitle>
+            <DialogDescription>
+              {selectedFlexibleDeal
+                ? t("selectEligibleItems", {
+                    count: requiredQuantity,
+                  })
+                : ""}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            {selectedFlexibleItems.map((item) => {
+              const checked = selectedMenuItemIds.includes(item.id);
+
+              return (
+                <label
+                  key={item.id}
+                  className="flex cursor-pointer items-center gap-3 rounded-2xl border border-gray-100 p-3"
+                >
+                  <Checkbox
+                    checked={checked}
+                    onCheckedChange={(value) => toggleSelectedItem(item.id, value === true)}
+                  />
+                  <span className="text-sm font-medium text-gray-800">
+                    {item.name}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="primary"
+              disabled={!canAddSelectedItems || Boolean(addingDealId)}
+              onClick={addSelectedItems}
+            >
+              {addingDealId ? t("adding") : t("addSelectedItems")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };

@@ -188,7 +188,12 @@
       "includes": "Enthält {items}",
       "noAvailableItems": "Dieses Angebot enthält keine verfügbaren Artikel.",
       "adding": "Wird hinzugefügt...",
-      "addDeal": "Angebot hinzufügen"
+      "addDeal": "Angebot hinzufügen",
+      "chooseItems": "Artikel auswählen",
+      "browseItems": "Artikel ansehen",
+      "selectEligibleItems": "Wählen Sie mindestens {count, plural, one {# berechtigten Artikel} other {# berechtigte Artikel}}.",
+      "addSelectedItems": "Ausgewählte Artikel hinzufügen",
+      "categoryDealToast": "Fügen Sie mindestens {count, plural, one {# berechtigten Artikel} other {# berechtigte Artikel}} hinzu, um dieses Angebot zu aktivieren."
     },
     "whyChooseUs": {
       "title": "Warum wir?",

@@ -70,8 +70,12 @@ describe("getCustomerDeals", () => {
           {
             id: "deal-1",
             title: "Burger Combo",
+            dealSelectionMode: "FLEXIBLE_ITEMS",
+            dealRequiredQuantity: 2,
             discountValue: 799,
+            thumbnailUrl: "https://example.com/thumb.png",
             scopeMenuItems: [{ id: "item-1", name: "Burger" }],
+            scopeCategories: [{ id: "cat-1", name: "Burgers" }],
           },
         ],
       },
@@ -80,7 +84,11 @@ describe("getCustomerDeals", () => {
     expect(response.message).toBe("ok");
     expect(response.deals).toHaveLength(1);
     expect(response.deals[0].title).toBe("Burger Combo");
+    expect(response.deals[0].dealSelectionMode).toBe("FLEXIBLE_ITEMS");
+    expect(response.deals[0].dealRequiredQuantity).toBe(2);
+    expect(response.deals[0].thumbnailUrl).toBe("https://example.com/thumb.png");
     expect(response.deals[0].scopeMenuItems[0].name).toBe("Burger");
+    expect(response.deals[0].scopeCategories[0].name).toBe("Burgers");
   });
 
   it("handles direct array response", () => {
@@ -90,6 +98,8 @@ describe("getCustomerDeals", () => {
 
     expect(response.deals).toHaveLength(1);
     expect(response.deals[0].title).toBe("Deal");
+    expect(response.deals[0].dealSelectionMode).toBe("FIXED_ITEMS");
+    expect(response.deals[0].dealRequiredQuantity).toBeNull();
     expect(response.deals[0].discountValue).toBe(799);
   });
 

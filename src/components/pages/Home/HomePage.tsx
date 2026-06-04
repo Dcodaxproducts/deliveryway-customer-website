@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 
 import HeroSection from "@/components/pages/Home/components/heroSection";
 import FoodCategorySection from "@/components/pages/Home/components/foodCategorySection";
@@ -21,11 +23,14 @@ import { useBranding } from "@/hooks/useBranding";
 import { useAddDealToCart } from "@/hooks/useCart";
 import { useCustomerDeals } from "@/hooks/useCustomerDeals";
 import { useHome } from "@/hooks/useHome";
+import { isFlexibleCategoryDeal } from "@/components/pages/Home/utils/customer-deal-cart";
 import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
 import type { CustomerDeal } from "@/types/customer-deals";
 
 const HomePage = () => {
   const t = useTranslations("home.hero");
+  const dealsT = useTranslations("home.deals");
+  const router = useRouter();
   const { user, token, restaurantId: authRestaurantId } = useAuth();
   const { branding: fallbackBranding } = useBranding();
 
@@ -35,10 +40,31 @@ const HomePage = () => {
   const dealsQuery = useCustomerDeals({ restaurantId, branchId, limit: 20 });
   const addDealMutation = useAddDealToCart(branchId);
   const handleAddDeal = useCallback(
-    (deal: CustomerDeal) => {
-      addDealMutation.mutate(deal);
+    (deal: CustomerDeal, selectedMenuItemIds?: string[]) => {
+      addDealMutation.mutate({ deal, selectedMenuItemIds });
     },
     [addDealMutation]
+  );
+  const handleBrowseDeal = useCallback(
+    (deal: CustomerDeal) => {
+      const firstCategoryId = deal.scopeCategories[0]?.id;
+      const params = new URLSearchParams();
+
+      params.set("dealId", deal.id);
+
+      if (firstCategoryId) {
+        params.set("categoryId", firstCategoryId);
+      }
+
+      router.push(`/items?${params.toString()}`);
+
+      if (isFlexibleCategoryDeal(deal)) {
+        toast.info(dealsT("categoryDealToast", {
+          count: deal.dealRequiredQuantity ?? 1,
+        }));
+      }
+    },
+    [dealsT, router]
   );
   const homeResponse = homeQuery.data;
   const homeData = homeResponse ? homeResponse.data : undefined;
@@ -70,8 +96,9 @@ const HomePage = () => {
       <CustomerDealsSection
         deals={dealsQuery.deals}
         isLoading={dealsQuery.isLoading}
-        addingDealId={addDealMutation.isPending ? addDealMutation.variables?.id ?? null : null}
+        addingDealId={addDealMutation.isPending ? addDealMutation.variables?.deal.id ?? null : null}
         onAddDeal={handleAddDeal}
+        onBrowseDeal={handleBrowseDeal}
       />
 
       <WhyChooseUs />

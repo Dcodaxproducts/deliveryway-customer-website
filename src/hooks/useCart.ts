@@ -6,7 +6,12 @@ import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 
 import { useAuthContext } from "@/components/providers/auth-provider";
-import { buildDealCartItemsInput } from "@/components/pages/Home/utils/customer-deal-cart";
+import {
+  buildFixedDealCartItemsInput,
+  buildSelectedFlexibleDealCartItemsInput,
+  isFixedItemDeal,
+  isFlexibleItemDeal,
+} from "@/components/pages/Home/utils/customer-deal-cart";
 import { queryKeys } from "@/config/query-keys";
 import { useDomainApi, type DomainApiHook } from "@/hooks/useDomainApi";
 import { getApiErrorMessage } from "@/lib/errors";
@@ -34,6 +39,11 @@ import type { ApiRecord } from "@/components/pages/Items/types";
 import type { CustomerDeal } from "@/types/customer-deals";
 
 type CartMutationPayload = Record<string, unknown>;
+
+export type AddDealToCartInput = {
+  deal: CustomerDeal;
+  selectedMenuItemIds?: string[];
+};
 
 const service = {
   get: getCart,
@@ -145,7 +155,7 @@ export const useAddDealToCart = (branchId?: string | null) => {
   const customerId = user?.id ?? "";
 
   return useMutation({
-    mutationFn: async (deal: CustomerDeal) => {
+    mutationFn: async ({ deal, selectedMenuItemIds = [] }: AddDealToCartInput) => {
       if (!customerId) {
         throw new Error(t("customerNotFound"));
       }
@@ -154,13 +164,27 @@ export const useAddDealToCart = (branchId?: string | null) => {
         throw new Error(t("selectBranchFirst"));
       }
 
-      if (deal.scopeMenuItems.length < 1) {
+      if (isFixedItemDeal(deal) && deal.scopeMenuItems.length < 1) {
         throw new Error(t("dealNoItems"));
       }
 
-      const payloads = buildDealCartItemsInput(deal, branchId);
+      if (isFlexibleItemDeal(deal) && selectedMenuItemIds.length < 1) {
+        throw new Error(t("dealNoItems"));
+      }
+
+      const payloads = isFlexibleItemDeal(deal)
+        ? buildSelectedFlexibleDealCartItemsInput(deal, branchId, selectedMenuItemIds)
+        : buildFixedDealCartItemsInput(deal, branchId);
+      const requiredQuantity = Number(deal.dealRequiredQuantity);
+      const minimumEligibleItems = Number.isFinite(requiredQuantity) && requiredQuantity > 0
+        ? Math.floor(requiredQuantity)
+        : 1;
 
       if (payloads.length < 1) {
+        throw new Error(t("dealNoItems"));
+      }
+
+      if (isFlexibleItemDeal(deal) && payloads.length < minimumEligibleItems) {
         throw new Error(t("dealNoItems"));
       }
 
