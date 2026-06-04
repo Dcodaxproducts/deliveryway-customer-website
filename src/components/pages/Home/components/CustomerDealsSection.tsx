@@ -30,7 +30,7 @@ import {
   getDealItemNames,
   isDealActive,
 } from "@/components/pages/Home/utils/customer-deals-formatters";
-import type { CustomerDeal } from "@/types/customer-deals";
+import type { CustomerDeal, CustomerDealMenuItem } from "@/types/customer-deals";
 
 type CustomerDealsSectionProps = {
   deals: CustomerDeal[];
@@ -45,11 +45,19 @@ const CustomerDealsSkeleton = () => (
     {[1, 2, 3].map((item) => (
       <div
         key={item}
-        className="h-[250px] animate-pulse rounded-[24px] bg-gray-100"
+        className="h-[430px] animate-pulse rounded-[24px] bg-gray-100"
       />
     ))}
   </div>
 );
+
+const getMenuItemInitial = (name: string) => name.trim().charAt(0).toUpperCase() || "?";
+
+const getMenuItemPrice = (item: CustomerDealMenuItem) =>
+  item.discountedBasePrice ?? item.basePrice;
+
+const hasMenuItemPrice = (value: CustomerDealMenuItem["basePrice"]) =>
+  value !== null && value !== undefined && value !== "";
 
 const CustomerDealCard = ({
   deal,
@@ -88,7 +96,7 @@ const CustomerDealCard = ({
         : t("addDeal");
 
   return (
-    <article className="overflow-hidden rounded-[24px] border border-gray-100 bg-white shadow-xl shadow-primary/5">
+    <article className="flex h-full min-h-[430px] flex-col overflow-hidden rounded-[24px] border border-gray-100 bg-white shadow-xl shadow-primary/5">
       <div className="relative h-[150px] bg-primary/5">
         {image ? (
           <Image
@@ -105,7 +113,7 @@ const CustomerDealCard = ({
         )}
       </div>
 
-      <div className="p-5">
+      <div className="flex flex-1 flex-col p-5">
         <div className="mb-3 flex items-center justify-between gap-3">
           <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-primary">
             <PackageCheck size={12} />
@@ -165,14 +173,16 @@ const CustomerDealCard = ({
           </p>
         ) : null}
 
-        <Button
-          variant="primary"
-          className="mt-5 w-full"
-          disabled={!hasDealItems || isAdding}
-          onClick={handleAddDeal}
-        >
-          {isAdding ? t("adding") : translatedActionLabel}
-        </Button>
+        <div className="mt-auto pt-5">
+          <Button
+            variant="primary"
+            className="w-full"
+            disabled={!hasDealItems || isAdding}
+            onClick={handleAddDeal}
+          >
+            {isAdding ? t("adding") : translatedActionLabel}
+          </Button>
+        </div>
       </div>
     </article>
   );
@@ -288,7 +298,7 @@ export const CustomerDealsSection = ({
           }
         }}
       >
-        <DialogContent className="max-h-[90vh] overflow-auto rounded-[24px] sm:max-w-[560px]">
+        <DialogContent className="max-h-[90vh] overflow-auto rounded-[24px] sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>{selectedFlexibleDeal?.title}</DialogTitle>
             <DialogDescription>
@@ -303,19 +313,55 @@ export const CustomerDealsSection = ({
           <div className="space-y-3">
             {selectedFlexibleItems.map((item) => {
               const checked = selectedMenuItemIds.includes(item.id);
+              const itemPrice = getMenuItemPrice(item);
+              const categoryName = item.category?.name?.trim();
+              const description = item.description?.trim();
 
               return (
                 <label
                   key={item.id}
-                  className="flex cursor-pointer items-center gap-3 rounded-2xl border border-gray-100 p-3"
+                  className="flex cursor-pointer items-center gap-3 rounded-2xl border border-gray-100 p-3 transition-colors hover:border-primary/30 hover:bg-primary/5"
                 >
+                  <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-primary/10 text-primary">
+                    {item.imageUrl ? (
+                      <Image
+                        src={item.imageUrl}
+                        alt={item.name}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                    ) : (
+                      <span className="flex h-full items-center justify-center text-lg font-bold">
+                        {getMenuItemInitial(item.name)}
+                      </span>
+                    )}
+                  </div>
+
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-semibold text-gray-900">
+                      {item.name}
+                    </span>
+                    <span className="mt-1 flex flex-wrap items-center gap-2 text-xs font-medium text-gray-500">
+                      {hasMenuItemPrice(itemPrice) ? (
+                        <span className="text-primary">
+                          {formatDealPrice(itemPrice)}
+                        </span>
+                      ) : null}
+                      {categoryName ? <span>{categoryName}</span> : null}
+                    </span>
+                    {description ? (
+                      <span className="mt-1 line-clamp-1 text-xs leading-5 text-gray-500">
+                        {description}
+                      </span>
+                    ) : null}
+                  </span>
+
                   <Checkbox
+                    className="size-5"
                     checked={checked}
                     onCheckedChange={(value) => toggleSelectedItem(item.id, value === true)}
                   />
-                  <span className="text-sm font-medium text-gray-800">
-                    {item.name}
-                  </span>
                 </label>
               );
             })}
@@ -324,6 +370,7 @@ export const CustomerDealsSection = ({
           <DialogFooter>
             <Button
               variant="primary"
+              className="h-11 w-full px-6 py-2 sm:w-auto"
               disabled={!canAddSelectedItems || Boolean(addingDealId)}
               onClick={addSelectedItems}
             >

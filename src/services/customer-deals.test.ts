@@ -132,7 +132,13 @@ describe("getCustomerDeals", () => {
         scopeMenuItems: [
           { id: "item-1", name: "Burger" },
           { id: "item-2", name: "Drink" },
-          { id: "item-3", name: "Fries" },
+          {
+            id: "item-3",
+            name: "Fries",
+            description: "Crispy fries",
+            basePrice: 20,
+            category: { id: "cat-1", name: "Sides", imageUrl: null },
+          },
         ],
       },
     ]);
@@ -140,6 +146,8 @@ describe("getCustomerDeals", () => {
     expect(response.deals[0].dealSelectionMode).toBe("FLEXIBLE_ITEMS");
     expect(response.deals[0].dealRequiredQuantity).toBe(2);
     expect(response.deals[0].scopeMenuItems).toHaveLength(3);
+    expect(response.deals[0].scopeMenuItems[2].description).toBe("Crispy fries");
+    expect(response.deals[0].scopeMenuItems[2].category?.name).toBe("Sides");
   });
 
   it("normalizes category ids into minimal category records", () => {

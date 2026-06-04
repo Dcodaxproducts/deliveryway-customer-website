@@ -12,12 +12,20 @@ export type CustomerDealApplyMode =
 
 export type CustomerDealSelectionMode = "FIXED_ITEMS" | "FLEXIBLE_ITEMS";
 
+export type CustomerDealMenuItemCategory = {
+  id?: string;
+  name?: string;
+  imageUrl?: string | null;
+};
+
 export type CustomerDealMenuItem = {
   id: string;
   name: string;
+  description?: string | null;
   imageUrl?: string | null;
   basePrice?: string | number | null;
   discountedBasePrice?: string | number | null;
+  category?: CustomerDealMenuItemCategory | null;
 };
 
 export type CustomerDealCategory = {
@@ -117,6 +125,18 @@ const getStringOrNumber = (value: unknown) => {
   return null;
 };
 
+const normalizeMenuItemCategory = (value: unknown): CustomerDealMenuItemCategory | null => {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  return {
+    id: getString(value.id),
+    name: getString(value.name),
+    imageUrl: getNullableString(value.imageUrl),
+  };
+};
+
 const normalizeMenuItems = (value: unknown): CustomerDealMenuItem[] => {
   if (!Array.isArray(value)) {
     return [];
@@ -127,9 +147,11 @@ const normalizeMenuItems = (value: unknown): CustomerDealMenuItem[] => {
     .map((item) => ({
       id: getString(item.id) ?? "",
       name: getString(item.name) ?? "",
+      description: getNullableString(item.description),
       imageUrl: getNullableString(item.imageUrl),
       basePrice: getStringOrNumber(item.basePrice),
       discountedBasePrice: getStringOrNumber(item.discountedBasePrice),
+      category: normalizeMenuItemCategory(item.category),
     }))
     .filter((item) => item.id);
 };
