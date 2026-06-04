@@ -23,8 +23,10 @@ import {
   patchCart,
   postCart,
   quoteCustomerCart,
+  updateCustomerCart,
   updateCustomerCartItem,
   updateCustomerCartItemQuantity,
+  type CartUpdatePayload,
 } from "@/services/cart";
 import type { ApiResult } from "@/services/http";
 import type { CartItemRecord } from "@/components/pages/Items/components/signature-selection/types";
@@ -45,6 +47,7 @@ export type CartApi = DomainApiHook & {
   fetchCustomerCartItem: (args: { customerId: string; cartItemId: string }) => Promise<ApiRecord | null>;
   addCustomerCartItem: (args: { customerId: string; payload: CartMutationPayload }) => Promise<ApiResult>;
   quoteCustomerCart: (args: { customerId: string }) => Promise<ApiResult>;
+  updateCustomerCart: (args: { customerId: string; payload: CartUpdatePayload }) => Promise<ApiResult>;
   updateCustomerCartItem: (args: { cartItemId: string; payload: CartMutationPayload }) => Promise<ApiResult>;
   clearCustomerCart: (args: { customerId: string }) => Promise<ApiResult>;
   updateCustomerCartItemQuantity: (args: { customerId: string; cartItemId: string; quantity: number }) => Promise<ApiResult>;
@@ -75,6 +78,12 @@ export const useCart = (token: string | null): CartApi => {
 
   const refreshCartQuote = useCallback(
     ({ customerId }: { customerId: string }) => quoteCustomerCart({ customerId, token }),
+    [token]
+  );
+
+  const updateCart = useCallback(
+    ({ customerId, payload }: { customerId: string; payload: CartUpdatePayload }) =>
+      updateCustomerCart({ customerId, payload, token }),
     [token]
   );
 
@@ -116,6 +125,7 @@ export const useCart = (token: string | null): CartApi => {
       fetchCustomerCartItem: fetchCartItem,
       addCustomerCartItem: addCartItem,
       quoteCustomerCart: refreshCartQuote,
+      updateCustomerCart: updateCart,
       updateCustomerCartItem: updateCartItem,
       clearCustomerCart: clearCart,
       updateCustomerCartItemQuantity: updateCartItemQuantity,
@@ -123,7 +133,7 @@ export const useCart = (token: string | null): CartApi => {
       fetchGroupOrders: fetchGroups,
       addGroupOrderItem: addGroupItem,
     }),
-    [addCartItem, addGroupItem, api, clearCart, deleteCartItem, fetchCart, fetchCartItem, fetchGroups, refreshCartQuote, updateCartItem, updateCartItemQuantity]
+    [addCartItem, addGroupItem, api, clearCart, deleteCartItem, fetchCart, fetchCartItem, fetchGroups, refreshCartQuote, updateCart, updateCartItem, updateCartItemQuantity]
   );
 };
 

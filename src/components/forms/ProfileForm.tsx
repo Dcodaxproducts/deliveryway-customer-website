@@ -17,7 +17,7 @@ import { CARD_PANEL_CLASS } from "@/components/common/common-classes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import AddressModal from "./AddressModal";
+import { AddressModal } from "./AddressModal";
 import useProfileApi from "@/hooks/useProfile";
 import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";

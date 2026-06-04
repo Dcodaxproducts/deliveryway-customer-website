@@ -220,6 +220,8 @@ export type CartPayload = {
   modifiers?: Array<{ modifierId: string; quantity: number }>;
   note?: string;
   branchId?: string | null;
+  scheduledDeliveryAt?: string | null;
+  orderTime?: string | null;
   sections?: Array<{ slot: string; menuItemId?: string | number }>;
   splitPizza?: unknown;
 };

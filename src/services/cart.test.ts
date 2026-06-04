@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { addCustomerCartItem, quoteCustomerCart, updateCustomerCartItem } from "./cart";
+import { addCustomerCartItem, quoteCustomerCart, updateCustomerCart, updateCustomerCartItem } from "./cart";
 
 const postCartMock = vi.hoisted(() => vi.fn());
 const patchCartMock = vi.hoisted(() => vi.fn());
@@ -109,6 +109,46 @@ describe("cart service", () => {
       undefined
     );
     expect(patchCartMock.mock.calls[0][1]).not.toHaveProperty("modifiers");
+  });
+
+  it("updates customer cart schedule with scheduledDeliveryAt", async () => {
+    patchCartMock.mockResolvedValue({ success: true });
+
+    await updateCustomerCart({
+      customerId: "customer-1",
+      payload: {
+        scheduledDeliveryAt: "2026-06-10T19:30:00.000Z",
+      },
+    });
+
+    expect(patchCartMock).toHaveBeenCalledWith(
+      "/v1/cart?customerId=customer-1",
+      {
+        scheduledDeliveryAt: "2026-06-10T19:30:00.000Z",
+      },
+      undefined
+    );
+    expect(patchCartMock.mock.calls[0][0]).not.toContain("/api/v1");
+  });
+
+  it("maps legacy cart orderTime update to scheduledDeliveryAt", async () => {
+    patchCartMock.mockResolvedValue({ success: true });
+
+    await updateCustomerCart({
+      customerId: "customer-1",
+      payload: {
+        orderTime: "2026-06-10T19:30:00.000Z",
+      },
+    });
+
+    expect(patchCartMock).toHaveBeenCalledWith(
+      "/v1/cart?customerId=customer-1",
+      {
+        scheduledDeliveryAt: "2026-06-10T19:30:00.000Z",
+      },
+      undefined
+    );
+    expect(patchCartMock.mock.calls[0][1]).not.toHaveProperty("orderTime");
   });
 
   it("refreshes customer cart quote", async () => {

@@ -2,11 +2,12 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Tabs from "@/components/pages/Checkout/components/Tabs";
-import DeliverySection from "@/components/pages/Checkout/components/DeliverySection";
+import { DeliverySection } from "@/components/pages/Checkout/components/DeliverySection";
 import { PickupSection } from "@/components/pages/Checkout/components/PickupSection";
 import { CartSummarySection } from "@/components/pages/Checkout/components/CartSummarySection";
 import { useRouter, useSearchParams } from "next/navigation";
-import useCheckout from "@/hooks/useCheckout";
+import { useCheckout } from "@/hooks/useCheckout";
+import { useCart } from "@/hooks/useCart";
 import useReservations from "@/hooks/useReservations";
 import { toast } from "sonner";
 import { useAuthContext } from "@/hooks/useAuth";
@@ -34,7 +35,8 @@ function CheckoutPageContent() {
   const [validatingCoupon, setValidatingCoupon] = useState(false);
 
   const { user, token } = useAuthContext();
-  const { get, patch, del, post } = useCheckout(token);
+  const { get, patch, del, post, checkoutCustomerCart } = useCheckout(token);
+  const { updateCustomerCart } = useCart(token);
   const { fetchReservationBranch } = useReservations(token);
 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -136,6 +138,7 @@ function CheckoutPageContent() {
   const [pickupDate, setPickupDate] = useState<Date | null>(null);
   const [pickupTime, setPickupTime] = useState<string | null>(null);
   const [pickupBranch, setPickupBranch] = useState<BranchRecord | null>(null);
+  const [scheduledDeliveryValue, setScheduledDeliveryValue] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -342,10 +345,6 @@ function CheckoutPageContent() {
   };
 
   const getOrderTime = () => {
-    if (activeTab === "delivery") {
-      return new Date().toISOString();
-    }
-
     if (!pickupDate || !pickupTime) return null;
 
     try {
@@ -379,12 +378,65 @@ function CheckoutPageContent() {
     }
   };
 
+  const getScheduledDeliveryAt = () => {
+    if (activeTab === "pickup") {
+      return getOrderTime();
+    }
+
+    const trimmedValue = scheduledDeliveryValue.trim();
+
+    if (!trimmedValue) return undefined;
+
+    const scheduledDate = new Date(trimmedValue);
+
+    if (Number.isNaN(scheduledDate.getTime())) return null;
+
+    return scheduledDate.toISOString();
+  };
+
+  const setCartSchedule = async (scheduledDeliveryAt?: string | null) => {
+    if (!customerId || scheduledDeliveryAt === undefined) return true;
+
+    try {
+      const res = await updateCustomerCart({
+        customerId,
+        payload: {
+          scheduledDeliveryAt,
+        },
+      });
+
+      if (hasBackendError(res)) {
+        reportBackendError(
+          t("toast.failedSetSchedule"),
+          res,
+          t("toast.failedSetSchedule")
+        );
+        return false;
+      }
+
+      clearBackendError();
+      return true;
+    } catch (err) {
+      reportBackendError(
+        t("toast.failedSetSchedule"),
+        err,
+        err instanceof Error ? err.message : t("toast.failedSetSchedule")
+      );
+      return false;
+    }
+  };
+
   const handlePlaceOrder = async () => {
     try {
       setPlacingOrder(true);
 
       if (!cartItems.length) {
         toast.error(t("toast.cartEmpty"));
+        return;
+      }
+
+      if (!customerId) {
+        toast.error(t("toast.checkoutFailed"));
         return;
       }
 
@@ -404,22 +456,32 @@ function CheckoutPageContent() {
       const addressUpdated = await setCartAddress();
       if (!addressUpdated) return;
 
-      const orderTime = getOrderTime();
+      const scheduledDeliveryAt = getScheduledDeliveryAt();
 
-      if (!orderTime) {
-        toast.error(t("toast.invalidOrderTime"));
+      if (scheduledDeliveryAt === null) {
+        toast.error(
+          activeTab === "delivery"
+            ? t("toast.invalidScheduledDelivery")
+            : t("toast.invalidOrderTime")
+        );
         return;
       }
 
-      const res = await post(`/v1/cart/checkout?customerId=${customerId}`, {
-        orderTime,
-        paymentMethod:
-          paymentMethod === "card"
-            ? "STRIPE"
-            : paymentMethod === "wallet"
-            ? "WALLET"
-            : "COD",
-        customerNote: note,
+      const scheduleUpdated = await setCartSchedule(scheduledDeliveryAt);
+      if (!scheduleUpdated) return;
+
+      const res = await checkoutCustomerCart({
+        customerId,
+        payload: {
+          ...(scheduledDeliveryAt ? { scheduledDeliveryAt } : {}),
+          paymentMethod:
+            paymentMethod === "card"
+              ? "STRIPE"
+              : paymentMethod === "wallet"
+                ? "WALLET"
+                : "COD",
+          customerNote: note,
+        },
       });
 
       if (hasBackendError(res)) {
@@ -570,6 +632,8 @@ function CheckoutPageContent() {
               setCustomer={setCustomer}
               paymentMethod={paymentMethod}
               setPaymentMethod={setPaymentMethod}
+              scheduledDeliveryValue={scheduledDeliveryValue}
+              setScheduledDeliveryValue={setScheduledDeliveryValue}
             />
           ) : (
             <PickupSection

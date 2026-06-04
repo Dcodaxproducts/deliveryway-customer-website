@@ -5,6 +5,11 @@ import type { CartItemRecord } from "@/components/pages/Items/components/signatu
 
 type CartMutationPayload = Record<string, unknown>;
 
+export type CartUpdatePayload = CartMutationPayload & {
+  scheduledDeliveryAt?: string | null;
+  orderTime?: string | null;
+};
+
 const cartService = createDomainApiService();
 
 export const getCart = cartService.get;
@@ -65,6 +70,36 @@ export const addCustomerCartItem = ({
   payload: CartMutationPayload;
   token?: string | null;
 }) => postCart(`/v1/cart/items?customerId=${customerId}`, payload, token);
+
+export const normalizeCartUpdatePayload = (payload: CartUpdatePayload): CartMutationPayload => {
+  const { orderTime, scheduledDeliveryAt, ...rest } = payload;
+
+  if (scheduledDeliveryAt !== undefined) {
+    return {
+      ...rest,
+      scheduledDeliveryAt,
+    };
+  }
+
+  if (orderTime !== undefined) {
+    return {
+      ...rest,
+      scheduledDeliveryAt: orderTime,
+    };
+  }
+
+  return rest;
+};
+
+export const updateCustomerCart = ({
+  customerId,
+  payload,
+  token,
+}: {
+  customerId: string;
+  payload: CartUpdatePayload;
+  token?: string | null;
+}) => patchCart(`/v1/cart?customerId=${customerId}`, normalizeCartUpdatePayload(payload), token);
 
 export const quoteCustomerCart = ({
   customerId,
