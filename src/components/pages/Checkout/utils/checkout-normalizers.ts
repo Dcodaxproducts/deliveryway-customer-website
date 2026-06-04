@@ -130,7 +130,13 @@ export const hasBackendError = (res: unknown) => {
 
 const getModifierPriceFromGroups = (cartItem: ApiRecord, modifierId: string) => {
   const menuItem = asRecord(cartItem.menuItem);
-  const modifierGroups = normalizeArray<ApiRecord>(menuItem.modifierGroups);
+  const category = asRecord(menuItem.category);
+  const modifierGroups = [
+    ...normalizeArray<ApiRecord>(menuItem.modifierGroups),
+    ...normalizeArray<ApiRecord>(category.modifierGroups),
+    ...normalizeArray<ApiRecord>(menuItem.categoryModifierGroups),
+    ...normalizeArray<ApiRecord>(category.categoryModifierGroups),
+  ];
 
   for (const group of modifierGroups) {
     const modifiers = normalizeArray<ApiRecord>(group.modifiers);
@@ -163,6 +169,28 @@ export const getSelectedModifiers = (cartItemInput: unknown): CartModifier[] => 
         unitPrice,
         total,
       };
+    });
+  }
+
+  if (Array.isArray(cartItem.modifierSelections)) {
+    return normalizeArray<ApiRecord>(cartItem.modifierSelections).flatMap((selection) => {
+      const groupName = getStringValue(selection.groupName || selection.name, "");
+
+      return normalizeArray<ApiRecord>(selection.modifiers).map((modifier) => {
+        const modifierId = String(modifier.modifierId || modifier.id || "");
+        const quantity = Math.max(1, toNumber(modifier.quantity, 1));
+        const fallbackModifier = getModifierPriceFromGroups(cartItem, modifierId);
+        const unitPrice = toNumber(modifier.unitPrice ?? modifier.priceDelta, fallbackModifier.unitPrice);
+        const modifierName = getStringValue(modifier.name, fallbackModifier.name);
+
+        return {
+          modifierId,
+          name: groupName ? `${groupName}: ${modifierName}` : modifierName,
+          quantity,
+          unitPrice,
+          total: toNumber(modifier.total, unitPrice * quantity),
+        };
+      });
     });
   }
 
