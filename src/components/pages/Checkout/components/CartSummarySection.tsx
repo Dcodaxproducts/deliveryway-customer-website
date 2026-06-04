@@ -11,6 +11,7 @@ import {
   Layers2,
   BadgeDollarSign,
   AlertTriangle,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
@@ -129,6 +130,7 @@ interface Props {
   onApplyCoupon?: () => void;
   couponDiscount?: number;
   validatingCoupon?: boolean;
+  loadingCart?: boolean;
 }
 
 type CheckoutType = "delivery" | "pickup";
@@ -600,6 +602,7 @@ export function CartSummarySection({
   onApplyCoupon,
   couponDiscount = 0,
   validatingCoupon,
+  loadingCart = false,
 }: Props) {
   const t = useTranslations("checkout");
   const router = useRouter();
@@ -743,7 +746,14 @@ export function CartSummarySection({
           </div>
         </div>
 
-        {cartItems.length === 0 ? (
+        {loadingCart ? (
+          <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50/70 p-5 text-center">
+            <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Loader2 size={20} className="animate-spin" />
+            </div>
+            <p className="mt-3 text-sm font-medium text-gray-700">{t("loadingCart")}</p>
+          </div>
+        ) : cartItems.length === 0 ? (
           <div
             className={`rounded-2xl border border-dashed p-5 text-center ${
               backendError

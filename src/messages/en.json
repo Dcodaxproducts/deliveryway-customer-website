@@ -590,6 +590,7 @@
     "addMoreItems": "Add More Items",
     "clearCart": "Clear Cart",
     "backendError": "Backend Error",
+    "loadingCart": "Loading cart",
     "yourCartIsEmpty": "Your cart is empty",
     "emptyCartDescription": "Add items from the menu to start building the order.",
     "browseItems": "Browse Items",

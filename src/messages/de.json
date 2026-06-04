@@ -590,6 +590,7 @@
     "addMoreItems": "Weitere Artikel hinzufügen",
     "clearCart": "Warenkorb leeren",
     "backendError": "Backend-Fehler",
+    "loadingCart": "Warenkorb wird geladen",
     "yourCartIsEmpty": "Ihr Warenkorb ist leer",
     "emptyCartDescription": "Fügen Sie Artikel aus dem Menü hinzu, um die Bestellung zu beginnen.",
     "browseItems": "Artikel ansehen",

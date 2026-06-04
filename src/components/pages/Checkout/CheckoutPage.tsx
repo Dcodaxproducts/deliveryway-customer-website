@@ -41,7 +41,7 @@ function CheckoutPageContent() {
 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cartQuote, setCartQuote] = useState<ApiRecord | null>(null);
-  const [loadingCart, setLoadingCart] = useState(false);
+  const [loadingCart, setLoadingCart] = useState(true);
   const [backendError, setBackendError] = useState<BackendErrorState | null>(
     null
   );
@@ -122,6 +122,7 @@ function CheckoutPageContent() {
     } else {
       setCartItems([]);
       setCartQuote(null);
+      setLoadingCart(false);
     }
   }, [customerId]);
 
@@ -668,6 +669,7 @@ function CheckoutPageContent() {
             onApplyCoupon={validateCoupon}
             couponDiscount={couponDiscount}
             validatingCoupon={validatingCoupon}
+            loadingCart={loadingCart}
           />
         </div>
       </div>
