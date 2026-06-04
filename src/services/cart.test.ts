@@ -1,13 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { addCustomerCartItem, quoteCustomerCart, updateCustomerCart, updateCustomerCartItem } from "./cart";
+import { addCustomerCartItem, fetchCustomerCart, normalizeCartQuote, quoteCustomerCart, updateCustomerCart, updateCustomerCartItem } from "./cart";
 
+const getCartMock = vi.hoisted(() => vi.fn());
 const postCartMock = vi.hoisted(() => vi.fn());
 const patchCartMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@/services/domain-api", () => ({
   createDomainApiService: () => ({
-    get: vi.fn(),
+    get: getCartMock,
     post: postCartMock,
     patch: patchCartMock,
     del: vi.fn(),
@@ -16,6 +17,7 @@ vi.mock("@/services/domain-api", () => ({
 
 describe("cart service", () => {
   beforeEach(() => {
+    getCartMock.mockReset();
     postCartMock.mockReset();
     patchCartMock.mockReset();
   });
@@ -175,6 +177,73 @@ describe("cart service", () => {
           id: "deal-1",
           discountAmount: 301,
         },
+      },
+    });
+  });
+
+  it("normalizes customer cart quote from GET cart response", async () => {
+    getCartMock.mockResolvedValue({
+      data: {
+        data: {
+          items: [{ id: "cart-item-1" }],
+          quote: {
+            subtotal: "1300",
+            discountAmount: "301",
+            totalAmount: "999",
+            appliedPromotion: {
+              id: "deal-1",
+              title: "Any 2 Burgers",
+              applyMode: "SCOPED_ITEMS",
+              autoApply: true,
+              discountType: "FIXED_PRICE",
+              discountValue: "999",
+              discountAmount: "301",
+            },
+          },
+        },
+      },
+    });
+
+    const cart = await fetchCustomerCart({ customerId: "customer-1" });
+
+    expect(getCartMock).toHaveBeenCalledWith("/v1/cart?customerId=customer-1", undefined);
+    expect(cart.items).toEqual([{ id: "cart-item-1" }]);
+    expect(cart.quote).toEqual({
+      subtotal: 1300,
+      discountAmount: 301,
+      totalAmount: 999,
+      appliedPromotion: {
+        id: "deal-1",
+        title: "Any 2 Burgers",
+        applyMode: "SCOPED_ITEMS",
+        autoApply: true,
+        discountType: "FIXED_PRICE",
+        discountValue: 999,
+        discountAmount: 301,
+      },
+    });
+  });
+
+  it("normalizes standalone cart quote values", () => {
+    expect(
+      normalizeCartQuote({
+        subtotal: 1300,
+        discountAmount: 301,
+        totalAmount: 999,
+        appliedPromotion: {
+          id: "deal-1",
+          title: "Any 2 Burgers",
+          discountAmount: 301,
+        },
+      })
+    ).toMatchObject({
+      subtotal: 1300,
+      discountAmount: 301,
+      totalAmount: 999,
+      appliedPromotion: {
+        id: "deal-1",
+        title: "Any 2 Burgers",
+        discountAmount: 301,
       },
     });
   });

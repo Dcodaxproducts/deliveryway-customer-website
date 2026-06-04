@@ -37,6 +37,7 @@ import type { ApiResult } from "@/services/http";
 import type { CartItemRecord } from "@/components/pages/Items/components/signature-selection/types";
 import type { ApiRecord } from "@/components/pages/Items/types";
 import type { CustomerDeal } from "@/types/customer-deals";
+import type { CartQuote } from "@/types/cart";
 
 type CartMutationPayload = Record<string, unknown>;
 
@@ -53,7 +54,7 @@ const service = {
 };
 
 export type CartApi = DomainApiHook & {
-  fetchCustomerCart: (args: { customerId: string }) => Promise<{ response: ApiResult; items: CartItemRecord[] }>;
+  fetchCustomerCart: (args: { customerId: string }) => Promise<{ response: ApiResult; items: CartItemRecord[]; quote: CartQuote | null }>;
   fetchCustomerCartItem: (args: { customerId: string; cartItemId: string }) => Promise<ApiRecord | null>;
   addCustomerCartItem: (args: { customerId: string; payload: CartMutationPayload }) => Promise<ApiResult>;
   quoteCustomerCart: (args: { customerId: string }) => Promise<ApiResult>;

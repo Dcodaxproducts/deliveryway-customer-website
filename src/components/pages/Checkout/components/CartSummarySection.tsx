@@ -14,7 +14,12 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import type { ApiRecord, BackendErrorState } from "@/components/pages/Checkout/utils/checkout-normalizers";
+import {
+  getAppliedPromotionDiscountLine,
+  getCartItemLineTotal,
+  type ApiRecord,
+  type BackendErrorState,
+} from "@/components/pages/Checkout/utils/checkout-normalizers";
 import { useTranslations } from "next-intl";
 
 interface CartAddon {
@@ -24,7 +29,7 @@ interface CartAddon {
   quantity?: number | string;
   unitPrice?: number | string;
   price?: number | string;
-  priceDelta?: number | string;
+  priceDelta?: number | string | null;
   total?: number | string;
 }
 
@@ -36,7 +41,7 @@ interface CartSection {
   price?: number | string;
   pickupPrice?: number | string;
   pickupUnitPrice?: number | string;
-  selectedVariation?: ApiRecord;
+  selectedVariation?: ApiRecord | null;
   menuItem?: ApiRecord & { selectedVariation?: ApiRecord; pickupPrice?: number | string; unitPrice?: number | string; name?: string; slug?: string; imageUrl?: string; category?: ApiRecord; variationPriceOverrides?: unknown[]; variations?: unknown[]; depositAmount?: number | string; takeawayPriceAdjustment?: number | string; deliveryPriceAdjustment?: number | string };
   name?: string;
 }
@@ -49,7 +54,7 @@ type CartSectionRecord = ApiRecord & {
   price?: number | string;
   pickupPrice?: number | string;
   pickupUnitPrice?: number | string;
-  selectedVariation?: ApiRecord;
+  selectedVariation?: ApiRecord | null;
   menuItem?: ApiRecord & { selectedVariation?: ApiRecord; unitPrice?: number | string; pickupPrice?: number | string; name?: string };
   name?: string;
 };
@@ -69,7 +74,7 @@ interface CartItem {
   quantity: number;
   img?: string;
   selectedVariationName?: string;
-  selectedVariation?: ApiRecord;
+  selectedVariation?: ApiRecord | null;
   selectedModifiers?: CartAddon[];
   note?: string;
 
@@ -553,11 +558,7 @@ const getItemPricing = (item: CartItem, checkoutType: CheckoutType) => {
     depositUnitAmount * quantity
   );
 
-  const itemSubtotal = unitPriceWithModifiers * quantity;
-  const backendLineTotal = toNumber(
-    item.lineTotal,
-    itemSubtotal + depositTotal
-  );
+  const itemSubtotal = getCartItemLineTotal(item);
 
   const pickupExtraUnitPrice =
     checkoutType === "pickup"
@@ -574,8 +575,8 @@ const getItemPricing = (item: CartItem, checkoutType: CheckoutType) => {
     itemSubtotal,
     depositUnitAmount,
     depositTotal,
-    backendLineTotal,
-    lineTotal: backendLineTotal,
+    backendLineTotal: itemSubtotal,
+    lineTotal: itemSubtotal,
     pickupExtraUnitPrice,
     pickupExtraTotal,
     selectedAddons,
@@ -652,10 +653,8 @@ export function CartSummarySection({
 
   const appliedPromotion = resolvedQuote?.appliedPromotion ?? null;
   const hasAppliedPromotion = Boolean(appliedPromotion?.id || appliedPromotion?.title);
-  const quoteDiscount = Math.max(
-    0,
-    toNumber(resolvedQuote?.discountAmount ?? appliedPromotion?.discountAmount, 0)
-  );
+  const promotionDiscountLine = getAppliedPromotionDiscountLine(resolvedQuote);
+  const quoteDiscount = promotionDiscountLine?.amount ?? 0;
   const manualCouponDiscount = Math.max(0, toNumber(couponDiscount, 0));
   const discount = quoteDiscount > 0 ? quoteDiscount : manualCouponDiscount;
 
@@ -677,10 +676,7 @@ export function CartSummarySection({
       ? quoteSubtotal + pickupPriceTotal + deliveryFee + taxes
       : computedTotalBeforeDiscount;
 
-  const quotedFinalTotal =
-    quotePayableAmount !== null
-      ? quotePayableAmount + pickupPriceTotal
-      : null;
+  const quotedFinalTotal = quotePayableAmount;
 
   const finalTotal =
     quotedFinalTotal !== null
@@ -1126,7 +1122,7 @@ export function CartSummarySection({
         <div className="space-y-4 text-sm text-gray-500">
           <div className="flex items-center justify-between">
             <span>{t("itemTotal")}</span>
-            <span>{formatCurrency(itemTotal)}</span>
+            <span>{formatCurrency(quoteSubtotal ?? itemTotal)}</span>
           </div>
 
           {depositTotal > 0 ? (
@@ -1200,12 +1196,12 @@ export function CartSummarySection({
 
             {hasAppliedPromotion ? (
               <p className="mt-1 pl-6 text-xs font-normal text-green-700/90">
-                {appliedPromotion?.title || t("promotionDiscount")}
+                {promotionDiscountLine?.label || t("promotionDiscount")}
                 {appliedPromotion?.applyMode
                   ? ` · ${String(appliedPromotion.applyMode).replace(/_/g, " ")}`
                   : ""}
-                {toNumber(appliedPromotion?.discountAmount, 0) > 0
-                  ? ` · ${t("off", { amount: formatCurrency(appliedPromotion?.discountAmount) })}`
+                {promotionDiscountLine && promotionDiscountLine.amount > 0
+                  ? ` · ${t("off", { amount: formatCurrency(promotionDiscountLine.amount) })}`
                   : ""}
               </p>
             ) : null}
