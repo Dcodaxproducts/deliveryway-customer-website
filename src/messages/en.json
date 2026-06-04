@@ -193,7 +193,7 @@
       "browseItems": "Browse Items",
       "selectEligibleItems": "Choose at least {count, plural, one {# eligible item} other {# eligible items}}.",
       "addSelectedItems": "Add Selected Items",
-      "categoryDealToast": "Add at least {count, plural, one {# eligible item} other {# eligible items}} to activate this deal."
+      "categoryDealToast": "Browse eligible categories to activate this deal."
     },
     "whyChooseUs": {
       "title": "Why Choose Us",

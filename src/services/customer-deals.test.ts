@@ -103,6 +103,63 @@ describe("getCustomerDeals", () => {
     expect(response.deals[0].discountValue).toBe(799);
   });
 
+  it("normalizes old scoped item response as fixed items", () => {
+    const response = normalizeCustomerDealsResponse([
+      {
+        id: "legacy-deal",
+        applyMode: "SCOPED_ITEMS",
+        discountType: "FIXED_PRICE",
+        discountValue: 20,
+        scopeMenuItems: [
+          { id: "item-1", name: "Burger" },
+          { id: "item-2", name: "Drink" },
+        ],
+        scopeCategories: [],
+      },
+    ]);
+
+    expect(response.deals[0].dealSelectionMode).toBe("FIXED_ITEMS");
+    expect(response.deals[0].dealRequiredQuantity).toBeNull();
+  });
+
+  it("normalizes flexible item response with required quantity", () => {
+    const response = normalizeCustomerDealsResponse([
+      {
+        id: "flexible-items",
+        dealSelectionMode: "FLEXIBLE_ITEMS",
+        dealRequiredQuantity: 2,
+        discountValue: 20,
+        scopeMenuItems: [
+          { id: "item-1", name: "Burger" },
+          { id: "item-2", name: "Drink" },
+          { id: "item-3", name: "Fries" },
+        ],
+      },
+    ]);
+
+    expect(response.deals[0].dealSelectionMode).toBe("FLEXIBLE_ITEMS");
+    expect(response.deals[0].dealRequiredQuantity).toBe(2);
+    expect(response.deals[0].scopeMenuItems).toHaveLength(3);
+  });
+
+  it("normalizes category ids into minimal category records", () => {
+    const response = normalizeCustomerDealsResponse([
+      {
+        id: "category-deal",
+        dealSelectionMode: "FLEXIBLE_ITEMS",
+        dealRequiredQuantity: 3,
+        discountValue: 20,
+        scopeCategoryIds: ["cat-1", "cat-2"],
+      },
+    ]);
+
+    expect(response.deals[0].scopeCategoryIds).toEqual(["cat-1", "cat-2"]);
+    expect(response.deals[0].scopeCategories).toEqual([
+      { id: "cat-1", name: "Category" },
+      { id: "cat-2", name: "Category" },
+    ]);
+  });
+
   it("handles missing data safely", () => {
     const response = normalizeCustomerDealsResponse({ success: true, data: {} });
 

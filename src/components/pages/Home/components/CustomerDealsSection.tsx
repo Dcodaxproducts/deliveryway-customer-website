@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   getDealImage,
+  getDealActionLabel,
   getDealRequirementText,
   getDealTypeLabel,
   isFixedItemDeal,
@@ -67,6 +68,7 @@ const CustomerDealCard = ({
   const categoryNames = getDealItemNames(deal.scopeCategories);
   const requirementText = getDealRequirementText(deal);
   const dateRange = formatDealDateRange(deal.startsAt, deal.expiresAt);
+  const actionLabel = getDealActionLabel(deal);
   const hasDealItems = isFlexibleCategoryDeal(deal)
     ? deal.scopeCategories.length > 0
     : deal.scopeMenuItems.length > 0;
@@ -78,11 +80,12 @@ const CustomerDealCard = ({
 
     onAddDeal?.(deal);
   }, [deal, onAddDeal, onBrowseDeal]);
-  const buttonLabel = isFlexibleCategoryDeal(deal)
-    ? t("browseItems")
-    : isFlexibleItemDeal(deal)
-      ? t("chooseItems")
-      : t("addDeal");
+  const translatedActionLabel =
+    actionLabel === "Browse Items"
+      ? t("browseItems")
+      : actionLabel === "Choose Items"
+        ? t("chooseItems")
+        : t("addDeal");
 
   return (
     <article className="overflow-hidden rounded-[24px] border border-gray-100 bg-white shadow-xl shadow-primary/5">
@@ -131,6 +134,12 @@ const CustomerDealCard = ({
           </p>
         ) : null}
 
+        {isFixedItemDeal(deal) && requirementText ? (
+          <p className="mt-3 line-clamp-2 text-sm font-medium text-gray-700">
+            {requirementText}
+          </p>
+        ) : null}
+
         {isFixedItemDeal(deal) && itemNames ? (
           <p className="mt-3 line-clamp-2 text-sm font-medium text-gray-700">
             {t("includes", { items: itemNames })}
@@ -162,7 +171,7 @@ const CustomerDealCard = ({
           disabled={!hasDealItems || isAdding}
           onClick={handleAddDeal}
         >
-          {isAdding ? t("adding") : buttonLabel}
+          {isAdding ? t("adding") : translatedActionLabel}
         </Button>
       </div>
     </article>

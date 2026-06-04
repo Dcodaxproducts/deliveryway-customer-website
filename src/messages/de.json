@@ -193,7 +193,7 @@
       "browseItems": "Artikel ansehen",
       "selectEligibleItems": "Wählen Sie mindestens {count, plural, one {# berechtigten Artikel} other {# berechtigte Artikel}}.",
       "addSelectedItems": "Ausgewählte Artikel hinzufügen",
-      "categoryDealToast": "Fügen Sie mindestens {count, plural, one {# berechtigten Artikel} other {# berechtigte Artikel}} hinzu, um dieses Angebot zu aktivieren."
+      "categoryDealToast": "Sehen Sie berechtigte Kategorien an, um dieses Angebot zu aktivieren."
     },
     "whyChooseUs": {
       "title": "Warum wir?",

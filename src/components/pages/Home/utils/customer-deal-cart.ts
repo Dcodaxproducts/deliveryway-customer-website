@@ -8,53 +8,74 @@ export type DealCartItemInput = {
 
 const getRequiredQuantity = (deal: CustomerDeal) => {
   const parsed = Number(deal.dealRequiredQuantity);
-  return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : 1;
+  return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : null;
 };
 
 export const isFixedItemDeal = (deal: CustomerDeal) =>
   deal.dealSelectionMode === "FIXED_ITEMS";
 
 export const isFlexibleItemDeal = (deal: CustomerDeal) =>
-  deal.dealSelectionMode === "FLEXIBLE_ITEMS" && deal.scopeMenuItems.length > 0;
+  deal.dealSelectionMode === "FLEXIBLE_ITEMS" &&
+  deal.scopeMenuItems.length > 0 &&
+  deal.scopeCategories.length === 0;
 
 export const isFlexibleCategoryDeal = (deal: CustomerDeal) =>
   deal.dealSelectionMode === "FLEXIBLE_ITEMS" &&
-  deal.scopeMenuItems.length === 0 &&
   deal.scopeCategories.length > 0;
 
 export const getDealImage = (deal: CustomerDeal): string | null => {
-  const scopedItemImage = deal.scopeMenuItems.find(({ imageUrl }) =>
-    String(imageUrl || "").startsWith("http")
-  )?.imageUrl;
+  const scopedItemImage = deal.scopeMenuItems.find(({ imageUrl }) => imageUrl)?.imageUrl;
+  const scopedCategoryImage = deal.scopeCategories.find(({ imageUrl }) => imageUrl)?.imageUrl;
 
-  return deal.thumbnailUrl || deal.imageUrl || scopedItemImage || null;
+  return deal.thumbnailUrl || deal.imageUrl || scopedItemImage || scopedCategoryImage || null;
 };
 
 export const getDealTypeLabel = (deal: CustomerDeal) => {
+  const requiredQuantity = getRequiredQuantity(deal);
+
   if (isFlexibleCategoryDeal(deal)) {
-    return "Any N from Categories";
+    return requiredQuantity
+      ? `Any ${requiredQuantity} from Categories`
+      : "Any from Categories";
   }
 
   if (isFlexibleItemDeal(deal)) {
-    return "Any N Items";
+    return requiredQuantity ? `Any ${requiredQuantity} Items` : "Any Items";
   }
 
   return "Fixed Combo";
 };
 
 export const getDealRequirementText = (deal: CustomerDeal) => {
+  const requiredQuantity = getRequiredQuantity(deal);
+
   if (isFlexibleItemDeal(deal)) {
-    return `Choose any ${getRequiredQuantity(deal)} from ${deal.scopeMenuItems.length} items`;
+    return requiredQuantity
+      ? `Choose any ${requiredQuantity} from ${deal.scopeMenuItems.length} items`
+      : "Choose from selected items";
   }
 
   if (isFlexibleCategoryDeal(deal)) {
-    return `Choose any ${getRequiredQuantity(deal)} from selected categories`;
+    return requiredQuantity
+      ? `Choose any ${requiredQuantity} from selected categories`
+      : "Choose from selected categories";
   }
 
-  return deal.scopeMenuItems
-    .map(({ name }) => name.trim())
-    .filter(Boolean)
-    .join(", ");
+  const itemCount = deal.scopeMenuItems.length;
+
+  return itemCount > 0 ? `Includes ${itemCount} selected items` : "";
+};
+
+export const getDealActionLabel = (deal: CustomerDeal) => {
+  if (isFlexibleCategoryDeal(deal)) {
+    return "Browse Items";
+  }
+
+  if (isFlexibleItemDeal(deal)) {
+    return "Choose Items";
+  }
+
+  return "Add Deal";
 };
 
 const buildPayload = (branchId: string, menuItemIds: string[]): DealCartItemInput[] => {

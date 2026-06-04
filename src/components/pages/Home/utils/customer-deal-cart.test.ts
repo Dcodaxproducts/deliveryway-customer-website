@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   buildFixedDealCartItemsInput,
   buildSelectedFlexibleDealCartItemsInput,
+  getDealActionLabel,
+  getDealImage,
   getDealRequirementText,
   getDealTypeLabel,
   isFlexibleCategoryDeal,
@@ -94,14 +96,69 @@ describe("customer deal cart helpers", () => {
 
   it("deal type label works", () => {
     expect(getDealTypeLabel(fixedDeal)).toBe("Fixed Combo");
-    expect(getDealTypeLabel(flexibleItemDeal)).toBe("Any N Items");
-    expect(getDealTypeLabel(flexibleCategoryDeal)).toBe("Any N from Categories");
+    expect(getDealTypeLabel(flexibleItemDeal)).toBe("Any 2 Items");
+    expect(getDealTypeLabel(flexibleCategoryDeal)).toBe("Any 3 from Categories");
   });
 
   it("requirement text works", () => {
-    expect(getDealRequirementText(fixedDeal)).toBe("Burger, Invalid, Drink");
+    expect(getDealRequirementText(fixedDeal)).toBe("Includes 3 selected items");
     expect(getDealRequirementText(flexibleItemDeal)).toBe("Choose any 2 from 3 items");
     expect(getDealRequirementText(flexibleCategoryDeal)).toBe("Choose any 3 from selected categories");
+  });
+
+  it("old shape without required quantity does not show choose any text", () => {
+    expect(getDealTypeLabel(fixedDeal)).toBe("Fixed Combo");
+    expect(getDealRequirementText(fixedDeal)).not.toContain("Choose any");
+  });
+
+  it("flexible item deal with five scoped items shows required quantity", () => {
+    const deal: CustomerDeal = {
+      ...flexibleItemDeal,
+      dealRequiredQuantity: 2,
+      scopeMenuItems: [
+        { id: "item-1", name: "Item 1" },
+        { id: "item-2", name: "Item 2" },
+        { id: "item-3", name: "Item 3" },
+        { id: "item-4", name: "Item 4" },
+        { id: "item-5", name: "Item 5" },
+      ],
+    };
+
+    expect(getDealRequirementText(deal)).toBe("Choose any 2 from 5 items");
+  });
+
+  it("flexible deal without required quantity falls back safely", () => {
+    const itemDeal: CustomerDeal = {
+      ...flexibleItemDeal,
+      dealRequiredQuantity: null,
+    };
+    const categoryDeal: CustomerDeal = {
+      ...flexibleCategoryDeal,
+      dealRequiredQuantity: null,
+    };
+
+    expect(getDealTypeLabel(itemDeal)).toBe("Any Items");
+    expect(getDealRequirementText(itemDeal)).toBe("Choose from selected items");
+    expect(getDealActionLabel(itemDeal)).toBe("Choose Items");
+    expect(getDealTypeLabel(categoryDeal)).toBe("Any from Categories");
+    expect(getDealRequirementText(categoryDeal)).toBe("Choose from selected categories");
+    expect(getDealActionLabel(categoryDeal)).toBe("Browse Items");
+  });
+
+  it("deal image prefers thumbnail over image and scoped images", () => {
+    const deal: CustomerDeal = {
+      ...fixedDeal,
+      thumbnailUrl: "https://example.com/thumb.png",
+      imageUrl: "https://example.com/image.png",
+      scopeMenuItems: [
+        { id: "item-1", name: "Item", imageUrl: "https://example.com/item.png" },
+      ],
+      scopeCategories: [
+        { id: "cat-1", name: "Category", imageUrl: "https://example.com/cat.png" },
+      ],
+    };
+
+    expect(getDealImage(deal)).toBe("https://example.com/thumb.png");
   });
 
   it("returns empty if branchId is missing", () => {

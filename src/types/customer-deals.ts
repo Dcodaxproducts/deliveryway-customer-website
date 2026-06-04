@@ -41,19 +41,20 @@ export type CustomerDeal = {
   id: string;
   title: string;
   description?: string | null;
-  dealSelectionMode: CustomerDealSelectionMode;
-  dealRequiredQuantity?: number | null;
-  applyMode: CustomerDealApplyMode;
-  discountType: CustomerDealDiscountType;
-  discountValue: number;
   thumbnailUrl?: string | null;
   imageUrl?: string | null;
+  applyMode?: CustomerDealApplyMode | null;
+  discountType?: CustomerDealDiscountType | null;
+  discountValue: number;
+  dealSelectionMode: CustomerDealSelectionMode;
+  dealRequiredQuantity?: number | null;
   startsAt?: string | null;
   expiresAt?: string | null;
   restaurant?: CustomerDealRestaurant | null;
   branch?: CustomerDealBranch | null;
   scopeMenuItems: CustomerDealMenuItem[];
   scopeCategories: CustomerDealCategory[];
+  scopeCategoryIds?: string[];
 };
 
 export type CustomerDealsParams = {
@@ -88,8 +89,24 @@ const getNullableNumber = (value: unknown) => {
   return Number.isFinite(parsed) ? parsed : null;
 };
 
-const normalizeSelectionMode = (value: unknown): CustomerDealSelectionMode => {
-  return value === "FLEXIBLE_ITEMS" ? "FLEXIBLE_ITEMS" : "FIXED_ITEMS";
+const normalizeSelectionMode = (
+  value: unknown,
+  scopeCategories: CustomerDealCategory[],
+  dealRequiredQuantity: number | null
+): CustomerDealSelectionMode => {
+  if (value === "FIXED_ITEMS" || value === "FLEXIBLE_ITEMS") {
+    return value;
+  }
+
+  if (scopeCategories.length > 0 && dealRequiredQuantity !== null) {
+    return "FLEXIBLE_ITEMS";
+  }
+
+  if (dealRequiredQuantity !== null && dealRequiredQuantity > 0) {
+    return "FLEXIBLE_ITEMS";
+  }
+
+  return "FIXED_ITEMS";
 };
 
 const getStringOrNumber = (value: unknown) => {
@@ -132,6 +149,27 @@ const normalizeCategories = (value: unknown): CustomerDealCategory[] => {
     .filter((category) => category.id);
 };
 
+const normalizeCategoryIds = (value: unknown): string[] => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter((id): id is string => typeof id === "string" && id.trim().length > 0);
+};
+
+const normalizeDealCategories = (categories: unknown, categoryIds: string[]) => {
+  const normalizedCategories = normalizeCategories(categories);
+
+  if (normalizedCategories.length > 0) {
+    return normalizedCategories;
+  }
+
+  return categoryIds.map((id) => ({
+    id,
+    name: "Category",
+  }));
+};
+
 const normalizeRestaurant = (value: unknown): CustomerDealRestaurant | null => {
   if (!isRecord(value)) {
     return null;
@@ -166,12 +204,32 @@ export const normalizeCustomerDeal = (input: unknown): CustomerDeal | null => {
     return null;
   }
 
+  const dealRequiredQuantity = getNullableNumber(input.dealRequiredQuantity);
+  const scopeCategoryIds = normalizeCategoryIds(input.scopeCategoryIds);
+  const scopeCategories = normalizeDealCategories(input.scopeCategories, scopeCategoryIds);
+  const dealSelectionMode = normalizeSelectionMode(
+    input.dealSelectionMode,
+    scopeCategories,
+    dealRequiredQuantity
+  );
+
+  if (
+    process.env.NODE_ENV === "development" &&
+    input.discountType === "FIXED_PRICE" &&
+    input.applyMode === "SCOPED_ITEMS" &&
+    input.dealSelectionMode === undefined
+  ) {
+    console.warn(
+      "Deal is using legacy response shape; flexible UI requires dealSelectionMode/dealRequiredQuantity from backend."
+    );
+  }
+
   return {
     id,
     title: getString(input.title) ?? "Deal",
     description: getNullableString(input.description),
-    dealSelectionMode: normalizeSelectionMode(input.dealSelectionMode),
-    dealRequiredQuantity: getNullableNumber(input.dealRequiredQuantity),
+    dealSelectionMode,
+    dealRequiredQuantity,
     applyMode: getString(input.applyMode) ?? "ALL_ITEMS",
     discountType: getString(input.discountType) ?? "FIXED_PRICE",
     discountValue: getNumber(input.discountValue, 0),
@@ -182,7 +240,8 @@ export const normalizeCustomerDeal = (input: unknown): CustomerDeal | null => {
     restaurant: normalizeRestaurant(input.restaurant),
     branch: normalizeBranch(input.branch),
     scopeMenuItems: normalizeMenuItems(input.scopeMenuItems),
-    scopeCategories: normalizeCategories(input.scopeCategories),
+    scopeCategories,
+    scopeCategoryIds,
   };
 };
 

@@ -59,9 +59,7 @@ const HomePage = () => {
       router.push(`/items?${params.toString()}`);
 
       if (isFlexibleCategoryDeal(deal)) {
-        toast.info(dealsT("categoryDealToast", {
-          count: deal.dealRequiredQuantity ?? 1,
-        }));
+        toast.info(dealsT("categoryDealToast"));
       }
     },
     [dealsT, router]
