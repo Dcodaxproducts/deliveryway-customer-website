@@ -27,4 +27,18 @@ describe("getApiErrorMessage", () => {
       })
     ).toBe("Table reservations are not enabled for this branch");
   });
+
+  it("uses backend response data message before generic Error messages", () => {
+    const error = Object.assign(new Error("Request failed with status code 400"), {
+      response: {
+        data: {
+          message: "Buyer cannot redeem their own purchased gift card",
+        },
+      },
+    });
+
+    expect(getApiErrorMessage(error)).toBe(
+      "Buyer cannot redeem their own purchased gift card"
+    );
+  });
 });

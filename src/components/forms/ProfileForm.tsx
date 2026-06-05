@@ -415,7 +415,7 @@ export function ProfileForm() {
     </div>
 
     <div className="mb-5">
-      <GiftCardRedeemCard branchId={user?.branchId ?? user?.branch?.id ?? null} />
+      <GiftCardRedeemCard />
     </div>
 
     {/* ROW 2 */}
