@@ -650,6 +650,8 @@
       "label": "Tip",
       "helper": "Optional amount for the restaurant staff.",
       "apply": "Apply Tip",
+      "update": "Update Tip",
+      "applied": "Tip applied: {amount} added to total.",
       "remove": "Remove"
     },
     "totals": {
@@ -668,6 +670,8 @@
       "failedSetAddress": "Failed to set address",
       "failedSetSchedule": "Failed to set scheduled delivery",
       "failedSetTip": "Failed to update tip",
+      "tipApplied": "Tip added to total",
+      "tipRemoved": "Tip removed from total",
       "cartEmpty": "Cart is empty",
       "selectAddress": "Please select address",
       "selectPickupDateTime": "Please select pickup date and time",

@@ -1270,7 +1270,11 @@ export function CartSummarySection({
                 disabled={applyingTip}
                 className="h-[42px] text-white"
               >
-                {applyingTip ? t("applying") : t("tip.apply")}
+                {applyingTip
+                  ? t("applying")
+                  : tipAmount > 0
+                    ? t("tip.update")
+                    : t("tip.apply")}
               </Button>
               {tipAmount > 0 ? (
                 <Button
@@ -1283,6 +1287,14 @@ export function CartSummarySection({
                 </Button>
               ) : null}
             </div>
+            {tipAmount > 0 ? (
+              <p
+                role="status"
+                className="mt-2 text-xs font-medium text-green-700"
+              >
+                {t("tip.applied", { amount: formatCurrency(tipAmount) })}
+              </p>
+            ) : null}
           </div>
         ) : null}
 

@@ -69,6 +69,17 @@ function CheckoutPageContent() {
     setBackendError(null);
   };
 
+  const applyTipToCurrentQuote = (tipAmount: number) => {
+    setCartQuote((currentQuote) => {
+      if (!currentQuote) return currentQuote;
+
+      return {
+        ...currentQuote,
+        tipAmount,
+      };
+    });
+  };
+
   const [stripePayment, setStripePayment] = useState<{ open: boolean; clientSecret: string; publishableKey: string; paymentId: string; orderId: string | number }>({
     open: false,
     clientSecret: "",
@@ -456,7 +467,11 @@ function CheckoutPageContent() {
       }
 
       await fetchCart();
+      applyTipToCurrentQuote(normalizedTip);
       clearBackendError();
+      toast.success(
+        normalizedTip > 0 ? t("toast.tipApplied") : t("toast.tipRemoved")
+      );
     } catch (err) {
       reportBackendError(
         t("toast.failedSetTip"),

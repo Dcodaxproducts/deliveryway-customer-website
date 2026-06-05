@@ -650,6 +650,8 @@
       "label": "Trinkgeld",
       "helper": "Optionaler Betrag für das Restaurantpersonal.",
       "apply": "Trinkgeld anwenden",
+      "update": "Trinkgeld aktualisieren",
+      "applied": "Trinkgeld angewendet: {amount} zum Gesamtbetrag hinzugefügt.",
       "remove": "Entfernen"
     },
     "totals": {
@@ -668,6 +670,8 @@
       "failedSetAddress": "Adresse konnte nicht festgelegt werden",
       "failedSetSchedule": "Geplante Lieferung konnte nicht festgelegt werden",
       "failedSetTip": "Trinkgeld konnte nicht aktualisiert werden",
+      "tipApplied": "Trinkgeld zum Gesamtbetrag hinzugefügt",
+      "tipRemoved": "Trinkgeld vom Gesamtbetrag entfernt",
       "cartEmpty": "Warenkorb ist leer",
       "selectAddress": "Bitte wählen Sie eine Adresse aus",
       "selectPickupDateTime": "Bitte wählen Sie Abholdatum und Abholzeit aus",
