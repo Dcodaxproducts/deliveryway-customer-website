@@ -14,6 +14,7 @@ import {
   getDealTypeLabel,
   getDealActionKind,
   isFixedItemDeal,
+  isFlexibleAllItemsDeal,
   isFlexibleCategoryDeal,
   isFlexibleItemDeal,
 } from "@/components/pages/Home/utils/customer-deal-cart";
@@ -62,7 +63,7 @@ const CustomerDealCard = ({
   const actionLabel = getDealActionLabel(deal);
   const hasDealItems = isFlexibleCategoryDeal(deal)
     ? deal.scopeCategories.length > 0
-    : deal.scopeMenuItems.length > 0;
+    : isFlexibleAllItemsDeal(deal) || deal.scopeMenuItems.length > 0;
   const handleAddDeal = useCallback(() => {
     onAddDeal?.(deal);
   }, [deal, onAddDeal]);
@@ -142,6 +143,12 @@ const CustomerDealCard = ({
           <p className="mt-3 line-clamp-2 text-sm font-medium text-gray-700">
             {requirementText}
             {categoryNames ? `: ${categoryNames}` : ""}
+          </p>
+        ) : null}
+
+        {isFlexibleAllItemsDeal(deal) ? (
+          <p className="mt-3 line-clamp-2 text-sm font-medium text-gray-700">
+            {requirementText}
           </p>
         ) : null}
 

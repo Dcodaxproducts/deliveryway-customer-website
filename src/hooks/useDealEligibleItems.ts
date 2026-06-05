@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { useAuth } from "@/hooks/useAuth";
 import useItems from "@/hooks/useItems";
+import { isFlexibleAllItemsDeal } from "@/components/pages/Home/utils/customer-deal-cart";
 import type { MenuItem } from "@/components/pages/Items/types";
 import type { CustomerDeal, CustomerDealMenuItem, CustomerDealMenuItemOption } from "@/types/customer-deals";
 
@@ -93,6 +94,7 @@ export const useDealEligibleItems = ({
   const { token, restaurantId: authRestaurantId } = useAuth();
   const { fetchMenuItemsPage } = useItems(token);
   const [categoryItems, setCategoryItems] = useState<CustomerDealMenuItem[]>([]);
+  const [allMenuItems, setAllMenuItems] = useState<CustomerDealMenuItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -102,13 +104,15 @@ export const useDealEligibleItems = ({
   );
   const categoryIdsKey = categoryIds.join(":");
   const restaurantId = deal?.restaurant?.id || authRestaurantId || "";
+  const shouldFetchAllMenuItems = deal ? isFlexibleAllItemsDeal(deal) : false;
 
   useEffect(() => {
     let isMounted = true;
 
-    const fetchCategoryItems = async () => {
-      if (!open || !deal || categoryIds.length === 0) {
+    const fetchEligibleItems = async () => {
+      if (!open || !deal || (!shouldFetchAllMenuItems && categoryIds.length === 0)) {
         setCategoryItems([]);
+        setAllMenuItems([]);
         setError(null);
         setIsLoading(false);
         return;
@@ -116,6 +120,7 @@ export const useDealEligibleItems = ({
 
       if (!restaurantId) {
         setCategoryItems([]);
+        setAllMenuItems([]);
         setError("Restaurant is unavailable for this deal.");
         setIsLoading(false);
         return;
@@ -125,6 +130,26 @@ export const useDealEligibleItems = ({
       setError(null);
 
       try {
+        if (shouldFetchAllMenuItems) {
+          const { items } = await fetchMenuItemsPage({
+            restaurantId,
+            page: 1,
+            limit: 100,
+          });
+
+          if (!isMounted) {
+            return;
+          }
+
+          setCategoryItems([]);
+          setAllMenuItems(
+            mergeUniqueDealEligibleItems([
+              items.map(toDealMenuItem).filter((item): item is CustomerDealMenuItem => item !== null),
+            ])
+          );
+          return;
+        }
+
         const responses = await Promise.all(
           categoryIds.map((categoryId) =>
             fetchMenuItemsPage({
@@ -146,10 +171,12 @@ export const useDealEligibleItems = ({
           )
         );
 
+        setAllMenuItems([]);
         setCategoryItems(nextItems);
       } catch {
         if (isMounted) {
           setCategoryItems([]);
+          setAllMenuItems([]);
           setError("Unable to load eligible items for this deal.");
         }
       } finally {
@@ -159,14 +186,18 @@ export const useDealEligibleItems = ({
       }
     };
 
-    fetchCategoryItems();
+    fetchEligibleItems();
 
     return () => {
       isMounted = false;
     };
-  }, [categoryIds, categoryIdsKey, deal, fetchMenuItemsPage, open, restaurantId]);
+  }, [categoryIds, categoryIdsKey, deal, fetchMenuItemsPage, open, restaurantId, shouldFetchAllMenuItems]);
 
-  const items = categoryIds.length > 0 ? categoryItems : deal?.scopeMenuItems ?? [];
+  const items = shouldFetchAllMenuItems
+    ? allMenuItems
+    : categoryIds.length > 0
+      ? categoryItems
+      : deal?.scopeMenuItems ?? [];
 
   return {
     items,

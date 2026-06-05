@@ -12,6 +12,7 @@ import {
   shouldIncludeDealIdInCartPayload,
   shouldSendDealIdForCartItem,
   isFlexibleCategoryDeal,
+  isFlexibleAllItemsDeal,
 } from "./customer-deal-cart";
 import type { CustomerDeal } from "@/types/customer-deals";
 
@@ -53,6 +54,16 @@ const flexibleCategoryDeal: CustomerDeal = {
     { id: "cat-burgers", name: "Burgers" },
     { id: "cat-sides", name: "Sides" },
   ],
+};
+
+const flexibleAllItemsDeal: CustomerDeal = {
+  ...fixedDeal,
+  id: "deal-4",
+  dealSelectionMode: "FLEXIBLE_ITEMS",
+  dealRequiredQuantity: 1,
+  applyMode: "ALL_ITEMS",
+  scopeMenuItems: [],
+  scopeCategories: [],
 };
 
 describe("customer deal cart helpers", () => {
@@ -120,6 +131,14 @@ describe("customer deal cart helpers", () => {
   it("flexible item deal opens chooser action", () => {
     expect(getDealActionKind(flexibleItemDeal)).toBe("OPEN_CHOOSER");
     expect(getDealActionLabel(flexibleItemDeal)).toBe("Choose Items");
+  });
+
+  it("flexible all-items deal opens chooser action", () => {
+    expect(isFlexibleAllItemsDeal(flexibleAllItemsDeal)).toBe(true);
+    expect(getDealActionKind(flexibleAllItemsDeal)).toBe("OPEN_CHOOSER");
+    expect(getDealActionLabel(flexibleAllItemsDeal)).toBe("Choose Items");
+    expect(getDealTypeLabel(flexibleAllItemsDeal)).toBe("Any 1 Item");
+    expect(getDealRequirementText(flexibleAllItemsDeal)).toBe("Choose any 1 item");
   });
 
   it("fixed simple deal can auto-add only if no customization", () => {

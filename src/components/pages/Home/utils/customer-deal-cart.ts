@@ -20,6 +20,8 @@ const getRequiredQuantity = (deal: CustomerDeal) => {
   return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : null;
 };
 
+const getItemsLabel = (count: number) => `Any ${count} Item${count === 1 ? "" : "s"}`;
+
 export const isFixedItemDeal = (deal: CustomerDeal) =>
   deal.dealSelectionMode === "FIXED_ITEMS";
 
@@ -31,6 +33,12 @@ export const isFlexibleItemDeal = (deal: CustomerDeal) =>
 export const isFlexibleCategoryDeal = (deal: CustomerDeal) =>
   deal.dealSelectionMode === "FLEXIBLE_ITEMS" &&
   deal.scopeCategories.length > 0;
+
+export const isFlexibleAllItemsDeal = (deal: CustomerDeal) =>
+  deal.dealSelectionMode === "FLEXIBLE_ITEMS" &&
+  deal.scopeMenuItems.length === 0 &&
+  deal.scopeCategories.length === 0 &&
+  deal.applyMode === "ALL_ITEMS";
 
 export const hasKnownCustomizationStateForDealItem = (item: CustomerDealMenuItem) =>
   CUSTOMIZATION_FIELDS.some((field) => Array.isArray(item[field])) ||
@@ -114,7 +122,11 @@ export const getDealTypeLabel = (deal: CustomerDeal) => {
   }
 
   if (isFlexibleItemDeal(deal)) {
-    return requiredQuantity ? `Any ${requiredQuantity} Items` : "Any Items";
+    return requiredQuantity ? getItemsLabel(requiredQuantity) : "Any Items";
+  }
+
+  if (isFlexibleAllItemsDeal(deal)) {
+    return requiredQuantity ? getItemsLabel(requiredQuantity) : "Any Items";
   }
 
   return "Fixed Combo";
@@ -135,6 +147,12 @@ export const getDealRequirementText = (deal: CustomerDeal) => {
       : "Choose from selected categories";
   }
 
+  if (isFlexibleAllItemsDeal(deal)) {
+    return requiredQuantity
+      ? `Choose any ${requiredQuantity} item${requiredQuantity === 1 ? "" : "s"}`
+      : "Choose from available items";
+  }
+
   const itemCount = deal.scopeMenuItems.length;
 
   return itemCount > 0 ? `Includes ${itemCount} selected items` : "";
@@ -146,6 +164,10 @@ export const getDealActionLabel = (deal: CustomerDeal) => {
   }
 
   if (isFlexibleItemDeal(deal)) {
+    return "Choose Items";
+  }
+
+  if (isFlexibleAllItemsDeal(deal)) {
     return "Choose Items";
   }
 
