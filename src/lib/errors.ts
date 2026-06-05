@@ -20,6 +20,14 @@ export const getApiErrorMessage = (error: unknown, fallback = "Something went wr
     return directMessage;
   }
 
+  const nestedErrorMessage = isRecord(error)
+    ? getStringProperty(error.error, "message")
+    : undefined;
+
+  if (nestedErrorMessage) {
+    return nestedErrorMessage;
+  }
+
   if (isRecord(error)) {
     const responseMessage = getStringProperty(error.response, "message");
     if (responseMessage) {
@@ -32,6 +40,14 @@ export const getApiErrorMessage = (error: unknown, fallback = "Something went wr
 
     if (responseDataMessage) {
       return responseDataMessage;
+    }
+
+    const responseDataErrorMessage = isRecord(error.response) && isRecord(error.response.data)
+      ? getStringProperty(error.response.data.error, "message")
+      : undefined;
+
+    if (responseDataErrorMessage) {
+      return responseDataErrorMessage;
     }
   }
 
