@@ -43,6 +43,7 @@ function CheckoutPageContent() {
 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cartQuote, setCartQuote] = useState<ApiRecord | null>(null);
+  const [appliedTipAmount, setAppliedTipAmount] = useState(0);
   const [loadingCart, setLoadingCart] = useState(true);
   const [backendError, setBackendError] = useState<BackendErrorState | null>(
     null
@@ -117,6 +118,9 @@ function CheckoutPageContent() {
 
       setCartItems(formatted);
       setCartQuote(quote);
+      setAppliedTipAmount((previousTipAmount) =>
+        quote ? Math.max(0, toNumber(quote.tipAmount, 0)) : previousTipAmount
+      );
       clearBackendError();
     } catch (err) {
       reportBackendError(
@@ -135,6 +139,7 @@ function CheckoutPageContent() {
     } else {
       setCartItems([]);
       setCartQuote(null);
+      setAppliedTipAmount(0);
       setLoadingCart(false);
     }
   }, [customerId]);
@@ -270,16 +275,19 @@ function CheckoutPageContent() {
   const clearCart = async () => {
     const previousCartItems = cartItems;
     const previousCartQuote = cartQuote;
+    const previousAppliedTipAmount = appliedTipAmount;
 
     try {
       setCartItems([]);
       setCartQuote(null);
+      setAppliedTipAmount(0);
 
       const res = await del(`/v1/cart?customerId=${customerId}`);
 
       if (hasBackendError(res)) {
         setCartItems(previousCartItems);
         setCartQuote(previousCartQuote);
+        setAppliedTipAmount(previousAppliedTipAmount);
         reportBackendError(
           t("toast.failedClearCart"),
           res,
@@ -293,6 +301,7 @@ function CheckoutPageContent() {
     } catch (err) {
       setCartItems(previousCartItems);
       setCartQuote(previousCartQuote);
+      setAppliedTipAmount(previousAppliedTipAmount);
       reportBackendError(
         t("toast.failedClearCart"),
         err,
@@ -467,6 +476,7 @@ function CheckoutPageContent() {
       }
 
       await fetchCart();
+      setAppliedTipAmount(normalizedTip);
       applyTipToCurrentQuote(normalizedTip);
       clearBackendError();
       toast.success(
@@ -527,7 +537,10 @@ function CheckoutPageContent() {
       const scheduleUpdated = await setCartSchedule(scheduledDeliveryAt);
       if (!scheduleUpdated) return;
 
-      const checkoutTipAmount = Math.max(0, toNumber(cartQuote?.tipAmount, 0));
+      const checkoutTipAmount = Math.max(
+        0,
+        toNumber(cartQuote?.tipAmount, appliedTipAmount)
+      );
 
       const res = await checkoutCustomerCart({
         customerId,
@@ -716,6 +729,7 @@ function CheckoutPageContent() {
           <CartSummarySection
             cartItems={cartItems}
             quote={cartQuote}
+            appliedTipAmount={appliedTipAmount}
             updateQuantity={updateQuantity}
             deleteItem={deleteItem}
             clearCart={clearCart}

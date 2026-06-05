@@ -142,6 +142,7 @@ interface Props {
   couponDiscount?: number;
   validatingCoupon?: boolean;
   loadingCart?: boolean;
+  appliedTipAmount?: number;
   onApplyTip?: (amount: number) => Promise<void> | void;
   applyingTip?: boolean;
 }
@@ -616,6 +617,7 @@ export function CartSummarySection({
   couponDiscount = 0,
   validatingCoupon,
   loadingCart = false,
+  appliedTipAmount = 0,
   onApplyTip,
   applyingTip = false,
 }: Props) {
@@ -663,7 +665,9 @@ export function CartSummarySection({
   const quoteDeliveryFee = toNullableNumber(resolvedQuote?.deliveryFee);
   const quoteTaxAmount = toNullableNumber(resolvedQuote?.taxAmount);
   const quoteServiceChargeAmount = toNullableNumber(resolvedQuote?.serviceChargeAmount) ?? 0;
-  const quoteTipAmount = toNullableNumber(resolvedQuote?.tipAmount) ?? 0;
+  const quoteTipAmount =
+    toNullableNumber(resolvedQuote?.tipAmount) ??
+    Math.max(0, toNumber(appliedTipAmount, 0));
   const quotePayableAmount = resolvedQuote ? getDisplayTotalAmount(resolvedQuote) : null;
   const [tipInput, setTipInput] = useState("");
 
