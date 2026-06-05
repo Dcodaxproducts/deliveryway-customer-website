@@ -81,6 +81,66 @@ describe("cart service", () => {
     expect(postCartMock.mock.calls[0][1]).not.toHaveProperty("modifiers");
   });
 
+  it("cleans ready-made deal cart payloads before posting", async () => {
+    postCartMock.mockResolvedValue({ success: true });
+
+    await addCustomerCartItem({
+      customerId: "customer-1",
+      payload: {
+        branchId: "branch-1",
+        menuItemId: "deal-item-1",
+        dealId: "deal-1",
+        variationId: "large",
+        quantity: 1,
+        modifiers: [{ modifierId: "modifier-1", quantity: 1 }],
+        modifierSelections: undefined,
+        sections: [{ slot: "LEFT", menuItemId: "pizza-left" }],
+      },
+    });
+
+    expect(postCartMock.mock.calls[0][1]).toEqual({
+      branchId: "branch-1",
+      menuItemId: "deal-item-1",
+      dealId: "deal-1",
+      quantity: 1,
+    });
+  });
+
+  it("keeps grouped modifierSelections for customizable deal payloads", async () => {
+    postCartMock.mockResolvedValue({ success: true });
+
+    await addCustomerCartItem({
+      customerId: "customer-1",
+      payload: {
+        branchId: "branch-1",
+        menuItemId: "deal-item-2",
+        dealId: "deal-1",
+        variationId: "large",
+        quantity: 1,
+        modifiers: [{ modifierId: "legacy-modifier", quantity: 1 }],
+        modifierSelections: [
+          {
+            modifierGroupId: "group-1",
+            modifiers: [{ modifierId: "modifier-1", quantity: 1 }],
+          },
+        ],
+      },
+    });
+
+    expect(postCartMock.mock.calls[0][1]).toEqual({
+      branchId: "branch-1",
+      menuItemId: "deal-item-2",
+      dealId: "deal-1",
+      quantity: 1,
+      modifierSelections: [
+        {
+          modifierGroupId: "group-1",
+          modifiers: [{ modifierId: "modifier-1", quantity: 1 }],
+        },
+      ],
+    });
+  });
+
   it("updates customer cart item with grouped modifier selections", async () => {
     patchCartMock.mockResolvedValue({ success: true });
 

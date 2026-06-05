@@ -1,10 +1,7 @@
 import type { CustomerDeal, CustomerDealMenuItem } from "@/types/customer-deals";
+import type { AddCartItemPayload, CartModifierSelectionInput } from "@/types/cart";
 
-export type DealCartItemInput = {
-  branchId: string;
-  menuItemId: string;
-  quantity: number;
-};
+export type DealCartItemInput = AddCartItemPayload;
 
 export type DealActionKind = "AUTO_ADD" | "OPEN_CHOOSER";
 
@@ -14,6 +11,8 @@ const CUSTOMIZATION_FIELDS = [
   "modifiers",
   "modifierLinks",
 ] as const;
+
+const hasOptions = (value: unknown) => Array.isArray(value) && value.length > 0;
 
 const getRequiredQuantity = (deal: CustomerDeal) => {
   const parsed = Number(deal.dealRequiredQuantity);
@@ -51,12 +50,40 @@ export const requiresCustomizationForDealItem = (item: CustomerDealMenuItem): bo
 
   return CUSTOMIZATION_FIELDS.some((field) => {
     const value = item[field];
-    return Array.isArray(value) && value.length > 0;
+    return hasOptions(value);
   });
 };
 
 const supportsDealIdCartPayload = (item: CustomerDealMenuItem) =>
-  item.supportsDealIdCartPayload === true || item.supportsDealCartPayload === true;
+  item.supportsDealIdCartPayload === true ||
+  item.supportsDealCartPayload === true ||
+  item.isDealMenuItem === true;
+
+export const hasDealMenuItemModifierOptions = (item: CustomerDealMenuItem) =>
+  hasOptions(item.modifierGroups) || hasOptions(item.modifiers) || hasOptions(item.modifierLinks);
+
+export const hasUnsupportedDealMenuItemCustomization = (item: CustomerDealMenuItem) =>
+  hasOptions(item.variations) || item.supportsSplitPizza === true;
+
+export const isDealMenuItemReadyMade = (item: CustomerDealMenuItem): boolean =>
+  supportsDealIdCartPayload(item) &&
+  !hasDealMenuItemModifierOptions(item) &&
+  !hasUnsupportedDealMenuItemCustomization(item);
+
+export const isDealMenuItemCustomizable = (item: CustomerDealMenuItem): boolean =>
+  supportsDealIdCartPayload(item) &&
+  hasDealMenuItemModifierOptions(item) &&
+  !hasUnsupportedDealMenuItemCustomization(item);
+
+export const canSendDealIdForReadyMadeItem = (
+  deal: CustomerDeal,
+  item: CustomerDealMenuItem
+): boolean => Boolean(deal.id && item.id && isDealMenuItemReadyMade(item));
+
+export const canSendDealIdWithModifierSelections = (
+  deal: CustomerDeal,
+  item: CustomerDealMenuItem
+): boolean => Boolean(deal.id && item.id && isDealMenuItemCustomizable(item));
 
 export const shouldSendDealIdForCartItem = (
   deal: CustomerDeal,
@@ -64,8 +91,7 @@ export const shouldSendDealIdForCartItem = (
 ): boolean =>
   isFixedItemDeal(deal) &&
   deal.scopeMenuItems.length === 1 &&
-  !requiresCustomizationForDealItem(item) &&
-  supportsDealIdCartPayload(item);
+  canSendDealIdForReadyMadeItem(deal, item);
 
 export const shouldIncludeDealIdInCartPayload = ({
   deal,
@@ -76,7 +102,7 @@ export const shouldIncludeDealIdInCartPayload = ({
   item?: CustomerDealMenuItem | null;
   hasCustomization?: boolean;
 }) => {
-  if (!deal || !item || hasCustomization || deal.dealSelectionMode === "FLEXIBLE_ITEMS") {
+  if (!deal || !item || hasCustomization) {
     return false;
   }
 
@@ -84,11 +110,11 @@ export const shouldIncludeDealIdInCartPayload = ({
     return false;
   }
 
-  return shouldSendDealIdForCartItem(deal, item);
+  return canSendDealIdForReadyMadeItem(deal, item);
 };
 
 export const canAutoAddDealItem = (item: CustomerDealMenuItem) =>
-  !requiresCustomizationForDealItem(item);
+  !requiresCustomizationForDealItem(item) || isDealMenuItemReadyMade(item);
 
 export const canAutoAddFixedDeal = (deal: CustomerDeal) =>
   isFixedItemDeal(deal) &&
@@ -189,6 +215,41 @@ const buildPayload = (branchId: string, menuItemIds: string[]): DealCartItemInpu
     }));
 };
 
+const trimId = (value: string) => value.trim();
+
+export const buildReadyMadeDealCartItemPayload = ({
+  deal,
+  item,
+  branchId,
+}: {
+  deal: CustomerDeal;
+  item: CustomerDealMenuItem;
+  branchId: string;
+}): AddCartItemPayload => ({
+  branchId: trimId(branchId),
+  menuItemId: trimId(item.id),
+  dealId: trimId(deal.id),
+  quantity: 1,
+});
+
+export const buildCustomizableDealCartItemPayload = ({
+  deal,
+  item,
+  branchId,
+  modifierSelections,
+}: {
+  deal: CustomerDeal;
+  item: CustomerDealMenuItem;
+  branchId: string;
+  modifierSelections: CartModifierSelectionInput[];
+}): AddCartItemPayload => ({
+  branchId: trimId(branchId),
+  menuItemId: trimId(item.id),
+  dealId: trimId(deal.id),
+  quantity: 1,
+  modifierSelections,
+});
+
 export const buildFixedDealCartItemsInput = (
   deal: CustomerDeal,
   branchId: string
@@ -197,10 +258,24 @@ export const buildFixedDealCartItemsInput = (
     return [];
   }
 
-  return buildPayload(
-    branchId,
-    deal.scopeMenuItems.filter(canAutoAddDealItem).map(({ id }) => id)
-  );
+  const resolvedBranchId = branchId.trim();
+
+  if (!resolvedBranchId) {
+    return [];
+  }
+
+  return deal.scopeMenuItems
+    .filter(canAutoAddDealItem)
+    .map((item) =>
+      canSendDealIdForReadyMadeItem(deal, item)
+        ? buildReadyMadeDealCartItemPayload({ deal, item, branchId: resolvedBranchId })
+        : {
+            branchId: resolvedBranchId,
+            menuItemId: item.id.trim(),
+            quantity: 1,
+          }
+    )
+    .filter((payload) => payload.menuItemId);
 };
 
 export const buildSelectedFlexibleDealCartItemsInput = (
@@ -219,12 +294,38 @@ export const buildSelectedFlexibleDealCartItemsInput = (
       .map(({ id }) => id.trim())
       .filter(Boolean)
   );
-  const uniqueSelectedIds = Array.from(new Set(selectedMenuItemIds));
-
-  return buildPayload(
-    branchId,
-    uniqueSelectedIds.filter((menuItemId) => eligibleIds.has(menuItemId.trim()))
+  const eligibleItemsById = new Map(
+    eligibleMenuItems
+      .filter(canAutoAddDealItem)
+      .map((item) => [item.id.trim(), item])
   );
+  const uniqueSelectedIds = Array.from(new Set(selectedMenuItemIds));
+  const resolvedBranchId = branchId.trim();
+
+  if (!resolvedBranchId) {
+    return [];
+  }
+
+  return uniqueSelectedIds
+    .map((menuItemId) => menuItemId.trim())
+    .filter((menuItemId) => eligibleIds.has(menuItemId))
+    .map((menuItemId) => {
+      const item = eligibleItemsById.get(menuItemId);
+
+      if (item && canSendDealIdForReadyMadeItem(deal, item)) {
+        return buildReadyMadeDealCartItemPayload({
+          deal,
+          item,
+          branchId: resolvedBranchId,
+        });
+      }
+
+      return {
+        branchId: resolvedBranchId,
+        menuItemId,
+        quantity: 1,
+      };
+    });
 };
 
 export const buildDealCartItemsInput = buildFixedDealCartItemsInput;

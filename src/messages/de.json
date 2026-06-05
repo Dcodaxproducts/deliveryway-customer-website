@@ -198,6 +198,10 @@
       "loadingEligibleItems": "Berechtigte Artikel werden geladen...",
       "noEligibleItems": "Keine berechtigten Artikel für dieses Angebot gefunden.",
       "customize": "Anpassen",
+      "backToItems": "Zurück zu Artikeln",
+      "chooseOne": "Eine Option wählen",
+      "chooseMultiple": "Optionen wählen",
+      "unsupportedDealCustomization": "Dieser Angebotsartikel kann noch nicht mit Variationen angepasst werden.",
       "fixedRequirement": "Enthält ausgewählte Artikel",
       "flexibleRequirement": "Wählen Sie beliebige {count, plural, one {# Artikel} other {# Artikel}}",
       "categoryRequirement": "Wählen Sie beliebige {count, plural, one {# Artikel} other {# Artikel}} aus ausgewählten Kategorien"
@@ -517,6 +521,7 @@
     "maximumAddons": "{itemName} erlaubt höchstens {count, plural, one {# Add-on} other {# Add-ons}}",
     "failedClearBranchCart": "Warenkorb konnte vor dem Filialwechsel nicht geleert werden",
     "itemNotFound": "Artikel nicht gefunden",
+    "unsupportedDealCustomization": "Variationen und Split-Section-Anpassungen werden für Angebotsartikel noch nicht unterstützt.",
     "selectOtherPizzaHalf": "Bitte wählen Sie die andere Pizzahälfte aus",
     "failedFetchGroupOrder": "Gruppenbestellung konnte nicht geladen werden",
     "invalidGroupOrder": "Ungültige Gruppenbestellung",

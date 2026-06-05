@@ -198,6 +198,10 @@
       "loadingEligibleItems": "Loading eligible items...",
       "noEligibleItems": "No eligible items found for this deal.",
       "customize": "Customize",
+      "backToItems": "Back to items",
+      "chooseOne": "Choose one",
+      "chooseMultiple": "Choose options",
+      "unsupportedDealCustomization": "This deal item cannot be customized with variations yet.",
       "fixedRequirement": "Includes selected items",
       "flexibleRequirement": "Choose any {count, plural, one {# item} other {# items}}",
       "categoryRequirement": "Choose any {count, plural, one {# item} other {# items}} from selected categories"
@@ -517,6 +521,7 @@
     "maximumAddons": "{itemName} allows at most {count, plural, one {# add-on} other {# add-ons}}",
     "failedClearBranchCart": "Failed to clear cart before switching branch",
     "itemNotFound": "Item not found",
+    "unsupportedDealCustomization": "Variation and split-section customization are not supported for deal items yet.",
     "selectOtherPizzaHalf": "Please select the other pizza half",
     "failedFetchGroupOrder": "Failed to fetch group order",
     "invalidGroupOrder": "Invalid group order",

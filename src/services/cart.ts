@@ -133,7 +133,32 @@ export const addCustomerCartItem = ({
   customerId: string;
   payload: CartMutationPayload;
   token?: string | null;
-}) => postCart(`/v1/cart/items?customerId=${customerId}`, payload, token);
+}) => postCart(`/v1/cart/items?customerId=${customerId}`, cleanAddCartItemPayload(payload), token);
+
+export const cleanAddCartItemPayload = (payload: CartMutationPayload): CartMutationPayload => {
+  if (!payload.dealId) {
+    return payload;
+  }
+
+  const cleanedPayload: CartMutationPayload = { ...payload };
+
+  delete cleanedPayload.variationId;
+  delete cleanedPayload.modifiers;
+  delete cleanedPayload.sections;
+  delete cleanedPayload.splitPizza;
+  delete cleanedPayload.selectedSections;
+
+  if (Array.isArray(cleanedPayload.modifierSelections)) {
+    return {
+      ...cleanedPayload,
+      modifierSelections: cleanedPayload.modifierSelections,
+    };
+  }
+
+  delete cleanedPayload.modifierSelections;
+
+  return cleanedPayload;
+};
 
 export const normalizeCartUpdatePayload = (payload: CartUpdatePayload): CartMutationPayload => {
   const { orderTime, scheduledDeliveryAt, tipAmount, ...rest } = payload;

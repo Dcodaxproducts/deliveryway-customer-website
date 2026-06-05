@@ -53,8 +53,26 @@ export type CartQuote = {
   appliedPromotion?: CartAppliedPromotion | null;
 };
 
+export type CartModifierSelectionInput = {
+  modifierGroupId: string;
+  modifiers: Array<{
+    modifierId: string;
+    quantity: number;
+  }>;
+};
+
+export type AddCartItemPayload = {
+  branchId: string;
+  menuItemId: string;
+  dealId?: string;
+  variationId?: string;
+  quantity: number;
+  modifiers?: Array<{ modifierId: string; quantity: number }>;
+  modifierSelections?: CartModifierSelectionInput[];
+  note?: string;
+};
+
 export type {
-  CartModifierSelectionInput,
   CartPayload,
 } from "@/components/pages/Items/types";
 export type { CartUpdatePayload } from "@/services/cart";

@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildCustomizableDealCartItemPayload,
   buildFixedDealCartItemsInput,
+  buildReadyMadeDealCartItemPayload,
   buildSelectedFlexibleDealCartItemsInput,
+  canSendDealIdForReadyMadeItem,
+  canSendDealIdWithModifierSelections,
   getDealActionLabel,
   getDealActionKind,
   getDealImage,
@@ -11,6 +15,8 @@ import {
   requiresCustomizationForDealItem,
   shouldIncludeDealIdInCartPayload,
   shouldSendDealIdForCartItem,
+  isDealMenuItemCustomizable,
+  isDealMenuItemReadyMade,
   isFlexibleCategoryDeal,
   isFlexibleAllItemsDeal,
 } from "./customer-deal-cart";
@@ -209,7 +215,7 @@ describe("customer deal cart helpers", () => {
       scopeMenuItems: [safeItem],
     };
 
-    expect(shouldIncludeDealIdInCartPayload({ deal: flexibleItemDeal, item: safeItem })).toBe(false);
+    expect(shouldIncludeDealIdInCartPayload({ deal: flexibleItemDeal, item: safeItem })).toBe(true);
     expect(shouldIncludeDealIdInCartPayload({ deal: flexibleCategoryDeal, item: safeItem })).toBe(false);
     expect(
       shouldIncludeDealIdInCartPayload({
@@ -239,6 +245,121 @@ describe("customer deal cart helpers", () => {
         customizableItem
       )
     ).toBe(false);
+  });
+
+  it("ready-made deal item payload includes dealId only", () => {
+    const readyMadeItem = {
+      id: "deal-item-1",
+      name: "Ready combo",
+      variations: [],
+      modifierGroups: [],
+      modifiers: [],
+      modifierLinks: [],
+      supportsDealIdCartPayload: true,
+    };
+
+    expect(isDealMenuItemReadyMade(readyMadeItem)).toBe(true);
+    expect(canSendDealIdForReadyMadeItem(fixedDeal, readyMadeItem)).toBe(true);
+    expect(buildReadyMadeDealCartItemPayload({
+      deal: fixedDeal,
+      item: readyMadeItem,
+      branchId: "branch-1",
+    })).toEqual({
+      branchId: "branch-1",
+      menuItemId: "deal-item-1",
+      dealId: "deal-1",
+      quantity: 1,
+    });
+  });
+
+  it("fixed ready-made deal item auto payload omits modifiers selections and variation", () => {
+    const [payload] = buildFixedDealCartItemsInput(
+      {
+        ...fixedDeal,
+        scopeMenuItems: [
+          {
+            id: "deal-item-1",
+            name: "Ready combo",
+            variations: [],
+            modifierGroups: [],
+            modifiers: [],
+            modifierLinks: [],
+            supportsDealIdCartPayload: true,
+          },
+        ],
+      },
+      "branch-1"
+    );
+
+    expect(payload.dealId).toBe("deal-1");
+    expect(payload).not.toHaveProperty("modifiers");
+    expect(payload).not.toHaveProperty("modifierSelections");
+    expect(payload).not.toHaveProperty("variationId");
+  });
+
+  it("customizable deal item payload includes dealId and modifierSelections only", () => {
+    const customizableItem = {
+      id: "deal-item-2",
+      name: "Custom combo",
+      variations: [],
+      modifierGroups: [
+        {
+          id: "group-1",
+          name: "Sauce",
+          minSelect: 1,
+          maxSelect: 1,
+          modifiers: [{ id: "modifier-1", name: "Garlic" }],
+        },
+      ],
+      modifiers: [],
+      modifierLinks: [],
+      supportsDealIdCartPayload: true,
+    };
+
+    const payload = buildCustomizableDealCartItemPayload({
+      deal: fixedDeal,
+      item: customizableItem,
+      branchId: "branch-1",
+      modifierSelections: [
+        {
+          modifierGroupId: "group-1",
+          modifiers: [{ modifierId: "modifier-1", quantity: 1 }],
+        },
+      ],
+    });
+
+    expect(isDealMenuItemCustomizable(customizableItem)).toBe(true);
+    expect(canSendDealIdWithModifierSelections(fixedDeal, customizableItem)).toBe(true);
+    expect(payload).toEqual({
+      branchId: "branch-1",
+      menuItemId: "deal-item-2",
+      dealId: "deal-1",
+      quantity: 1,
+      modifierSelections: [
+        {
+          modifierGroupId: "group-1",
+          modifiers: [{ modifierId: "modifier-1", quantity: 1 }],
+        },
+      ],
+    });
+    expect(payload).not.toHaveProperty("variationId");
+    expect(payload).not.toHaveProperty("modifiers");
+  });
+
+  it("deal item with variations is blocked as unsupported", () => {
+    const variationDealItem = {
+      id: "deal-item-3",
+      name: "Sized combo",
+      variations: [{ id: "large" }],
+      modifierGroups: [],
+      modifiers: [],
+      modifierLinks: [],
+      supportsDealIdCartPayload: true,
+    };
+
+    expect(isDealMenuItemReadyMade(variationDealItem)).toBe(false);
+    expect(isDealMenuItemCustomizable(variationDealItem)).toBe(false);
+    expect(canSendDealIdForReadyMadeItem(fixedDeal, variationDealItem)).toBe(false);
   });
 
   it("items without customization metadata remain selectable", () => {

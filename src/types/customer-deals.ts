@@ -33,8 +33,10 @@ export type CustomerDealMenuItem = {
   modifierGroups?: CustomerDealMenuItemOption[];
   modifiers?: CustomerDealMenuItemOption[];
   modifierLinks?: CustomerDealMenuItemOption[];
+  supportsSplitPizza?: boolean | null;
   supportsDealIdCartPayload?: boolean;
   supportsDealCartPayload?: boolean;
+  isDealMenuItem?: boolean;
   requiresCustomization?: boolean;
   hasConfigurableOptions?: boolean;
 };
@@ -178,8 +180,10 @@ const normalizeMenuItems = (value: unknown): CustomerDealMenuItem[] => {
       modifierGroups: normalizeUnknownArray(item.modifierGroups),
       modifiers: normalizeUnknownArray(item.modifiers),
       modifierLinks: normalizeUnknownArray(item.modifierLinks),
+      supportsSplitPizza: typeof item.supportsSplitPizza === "boolean" ? item.supportsSplitPizza : null,
       supportsDealIdCartPayload: getBoolean(item.supportsDealIdCartPayload),
       supportsDealCartPayload: getBoolean(item.supportsDealCartPayload),
+      isDealMenuItem: getBoolean(item.isDealMenuItem),
       requiresCustomization: getBoolean(item.requiresCustomization),
       hasConfigurableOptions: getBoolean(item.hasConfigurableOptions),
     }))
