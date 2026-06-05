@@ -34,6 +34,11 @@ export type CustomerDealMenuItem = {
   modifiers?: CustomerDealMenuItemOption[];
   modifierLinks?: CustomerDealMenuItemOption[];
   supportsSplitPizza?: boolean | null;
+  minSelect?: string | number | null;
+  maxSelect?: string | number | null;
+  isRequired?: boolean | null;
+  minQuantity?: string | number | null;
+  maxQuantity?: string | number | null;
   supportsDealIdCartPayload?: boolean;
   supportsDealCartPayload?: boolean;
   isDealMenuItem?: boolean;
@@ -181,6 +186,11 @@ const normalizeMenuItems = (value: unknown): CustomerDealMenuItem[] => {
       modifiers: normalizeUnknownArray(item.modifiers),
       modifierLinks: normalizeUnknownArray(item.modifierLinks),
       supportsSplitPizza: typeof item.supportsSplitPizza === "boolean" ? item.supportsSplitPizza : null,
+      minSelect: getStringOrNumber(item.minSelect),
+      maxSelect: getStringOrNumber(item.maxSelect),
+      isRequired: typeof item.isRequired === "boolean" ? item.isRequired : null,
+      minQuantity: getStringOrNumber(item.minQuantity),
+      maxQuantity: getStringOrNumber(item.maxQuantity),
       supportsDealIdCartPayload: getBoolean(item.supportsDealIdCartPayload),
       supportsDealCartPayload: getBoolean(item.supportsDealCartPayload),
       isDealMenuItem: getBoolean(item.isDealMenuItem),

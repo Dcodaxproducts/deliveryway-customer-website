@@ -37,8 +37,15 @@ const toDealMenuItem = (item: MenuItem): CustomerDealMenuItem | null => {
     modifierGroups: normalizeOptions(item.modifierGroups),
     modifiers: normalizeOptions(item.modifiers),
     modifierLinks: normalizeOptions(item.modifierLinks),
-    requiresCustomization: undefined,
-    hasConfigurableOptions: undefined,
+    supportsSplitPizza: item.supportsSplitPizza ?? null,
+    minSelect: item.minSelect,
+    maxSelect: item.maxSelect,
+    isRequired: item.isRequired,
+    minQuantity: item.minQuantity,
+    maxQuantity: item.maxQuantity,
+    supportsDealIdCartPayload: item.supportsDealIdCartPayload ?? undefined,
+    supportsDealCartPayload: item.supportsDealCartPayload ?? undefined,
+    isDealMenuItem: item.isDealMenuItem ?? undefined,
   };
 };
 

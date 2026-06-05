@@ -202,6 +202,7 @@
       "chooseOne": "Choose one",
       "chooseMultiple": "Choose options",
       "unsupportedDealCustomization": "This deal item cannot be customized with variations yet.",
+      "reviewDealItems": "Please review deal items before adding to cart.",
       "fixedRequirement": "Includes selected items",
       "flexibleRequirement": "Choose any {count, plural, one {# item} other {# items}}",
       "categoryRequirement": "Choose any {count, plural, one {# item} other {# items}} from selected categories"

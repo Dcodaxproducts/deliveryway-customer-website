@@ -202,6 +202,7 @@
       "chooseOne": "Eine Option wählen",
       "chooseMultiple": "Optionen wählen",
       "unsupportedDealCustomization": "Dieser Angebotsartikel kann noch nicht mit Variationen angepasst werden.",
+      "reviewDealItems": "Bitte prüfen Sie die Angebotsartikel vor dem Hinzufügen zum Warenkorb.",
       "fixedRequirement": "Enthält ausgewählte Artikel",
       "flexibleRequirement": "Wählen Sie beliebige {count, plural, one {# Artikel} other {# Artikel}}",
       "categoryRequirement": "Wählen Sie beliebige {count, plural, one {# Artikel} other {# Artikel}} aus ausgewählten Kategorien"

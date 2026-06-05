@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   buildCustomizableDealCartItemPayload,
+  buildSelectedFlexibleDealCartItemsInput,
   canAutoAddDealItem,
   canSendDealIdWithModifierSelections,
   getDealTypeLabel,
@@ -36,6 +37,7 @@ import {
   useDealEligibleItems,
 } from "@/hooks/useDealEligibleItems";
 import { useAddDealToCart } from "@/hooks/useCart";
+import type { AddCartItemPayload } from "@/types/cart";
 import type { CustomerDeal, CustomerDealMenuItem } from "@/types/customer-deals";
 
 type DealChooserDrawerProps = {
@@ -201,10 +203,19 @@ export function DealChooserDrawer({
   const [selectedMenuItemIds, setSelectedMenuItemIds] = useState<string[]>([]);
   const [customizingItem, setCustomizingItem] = useState<CustomerDealMenuItem | null>(null);
   const [selectedModifiersByGroup, setSelectedModifiersByGroup] = useState<Record<string, SelectedDealModifier[]>>({});
+  const [customizedPayloadsByItemId, setCustomizedPayloadsByItemId] = useState<Record<string, AddCartItemPayload>>({});
   const [modifierErrors, setModifierErrors] = useState<Record<string, string>>({});
 
   const requiredQuantity = getDealRequiredSelectionCount(deal);
-  const selectedCount = selectedMenuItemIds.length;
+  const customizedItemIds = useMemo(
+    () => Object.keys(customizedPayloadsByItemId),
+    [customizedPayloadsByItemId]
+  );
+  const selectedDealItemIds = useMemo(
+    () => Array.from(new Set([...selectedMenuItemIds, ...customizedItemIds])),
+    [customizedItemIds, selectedMenuItemIds]
+  );
+  const selectedCount = selectedDealItemIds.length;
   const canAddSelectedItems = canSubmitDealSelection({
     selectedCount,
     requiredCount: requiredQuantity,
@@ -220,6 +231,7 @@ export function DealChooserDrawer({
       setSelectedMenuItemIds([]);
       setCustomizingItem(null);
       setSelectedModifiersByGroup({});
+      setCustomizedPayloadsByItemId({});
       setModifierErrors({});
     }
   }, [open]);
@@ -237,6 +249,14 @@ export function DealChooserDrawer({
 
       return current.filter((id) => id !== menuItemId);
     });
+    if (!checked) {
+      setCustomizedPayloadsByItemId((current) => {
+        const next = { ...current };
+        delete next[menuItemId];
+
+        return next;
+      });
+    }
   }, []);
 
   const customizeItem = useCallback(
@@ -328,34 +348,28 @@ export function DealChooserDrawer({
       customizationGroups,
       selectedModifiersByGroup
     );
+    const payload = buildCustomizableDealCartItemPayload({
+      deal,
+      item: customizingItem,
+      branchId,
+      modifierSelections,
+    });
 
-    addDealMutation.mutate(
-      {
-        deal,
-        cartItemPayloads: [
-          buildCustomizableDealCartItemPayload({
-            deal,
-            item: customizingItem,
-            branchId,
-            modifierSelections,
-          }),
-        ],
-      },
-      {
-        onSuccess: () => {
-          onOpenChange(false);
-          router.push("/checkout");
-        },
-      }
+    setCustomizedPayloadsByItemId((current) => ({
+      ...current,
+      [customizingItem.id]: payload,
+    }));
+    setSelectedMenuItemIds((current) =>
+      current.includes(customizingItem.id) ? current : [...current, customizingItem.id]
     );
+    setCustomizingItem(null);
+    setSelectedModifiersByGroup({});
+    setModifierErrors({});
   }, [
-    addDealMutation,
     branchId,
     customizationGroups,
     customizingItem,
     deal,
-    onOpenChange,
-    router,
     selectedModifiersByGroup,
     t,
   ]);
@@ -365,13 +379,30 @@ export function DealChooserDrawer({
       return;
     }
 
+    const customizedItemIdSet = new Set(customizedItemIds);
+    const simpleSelectedIds = selectedMenuItemIds.filter(
+      (menuItemId) => !customizedItemIdSet.has(menuItemId)
+    );
+    const dealForSelection = isFixedItemDeal(deal)
+      ? { ...deal, dealSelectionMode: "FLEXIBLE_ITEMS" as const, dealRequiredQuantity: requiredQuantity }
+      : deal;
+    const simplePayloads = buildSelectedFlexibleDealCartItemsInput(
+      dealForSelection,
+      branchId || "",
+      simpleSelectedIds,
+      selectedItems.filter((item) => !customizedItemIdSet.has(item.id))
+    );
+    const customizedPayloads = customizedItemIds
+      .map((itemId) => customizedPayloadsByItemId[itemId])
+      .filter((payload): payload is AddCartItemPayload => Boolean(payload));
+    const cartItemPayloads = [...simplePayloads, ...customizedPayloads];
+
     addDealMutation.mutate(
       {
-        deal: isFixedItemDeal(deal)
-          ? { ...deal, dealSelectionMode: "FLEXIBLE_ITEMS", dealRequiredQuantity: requiredQuantity }
-          : deal,
-        selectedMenuItemIds,
+        deal: dealForSelection,
+        selectedMenuItemIds: simpleSelectedIds,
         eligibleMenuItems: selectedItems,
+        cartItemPayloads: cartItemPayloads.length > 0 ? cartItemPayloads : undefined,
       },
       {
         onSuccess: () => {
@@ -383,6 +414,9 @@ export function DealChooserDrawer({
   }, [
     addDealMutation,
     canAddSelectedItems,
+    branchId,
+    customizedItemIds,
+    customizedPayloadsByItemId,
     deal,
     onOpenChange,
     requiredQuantity,
@@ -439,7 +473,7 @@ export function DealChooserDrawer({
         {!isLoading && !error && items.length > 0 && !customizingItem ? (
           <div className="space-y-3">
             {items.map((item) => {
-              const checked = selectedMenuItemIds.includes(item.id);
+              const checked = selectedDealItemIds.includes(item.id);
               const itemPrice = getMenuItemPrice(item);
               const categoryName = item.category?.name?.trim();
               const description = item.description?.trim();

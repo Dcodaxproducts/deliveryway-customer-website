@@ -4,6 +4,11 @@ import type { AddCartItemPayload, CartModifierSelectionInput } from "@/types/car
 export type DealCartItemInput = AddCartItemPayload;
 
 export type DealActionKind = "AUTO_ADD" | "OPEN_CHOOSER";
+export type DealScopedItemCustomizationState =
+  | "SIMPLE"
+  | "REQUIRES_MODIFIERS"
+  | "REQUIRES_UNSUPPORTED_VARIATION"
+  | "UNKNOWN";
 
 const CUSTOMIZATION_FIELDS = [
   "variations",
@@ -13,6 +18,30 @@ const CUSTOMIZATION_FIELDS = [
 ] as const;
 
 const hasOptions = (value: unknown) => Array.isArray(value) && value.length > 0;
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const toNumber = (value: unknown, fallback = 0) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+const isRequiredOptionRecord = (value: unknown) => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    value.isRequired === true ||
+    value.required === true ||
+    toNumber(value.minSelect, 0) > 0 ||
+    toNumber(value.minQuantity, 0) > 0
+  );
+};
+
+const hasRequiredOptionRecords = (value: unknown) =>
+  Array.isArray(value) && value.some(isRequiredOptionRecord);
 
 const getRequiredQuantity = (deal: CustomerDeal) => {
   const parsed = Number(deal.dealRequiredQuantity);
@@ -40,18 +69,9 @@ export const isFlexibleAllItemsDeal = (deal: CustomerDeal) =>
   deal.applyMode === "ALL_ITEMS";
 
 export const requiresCustomizationForDealItem = (item: CustomerDealMenuItem): boolean => {
-  if (item.requiresCustomization === true || item.hasConfigurableOptions === true) {
-    return true;
-  }
+  const state = getDealScopedItemCustomizationState(item);
 
-  if (item.requiresCustomization === false || item.hasConfigurableOptions === false) {
-    return false;
-  }
-
-  return CUSTOMIZATION_FIELDS.some((field) => {
-    const value = item[field];
-    return hasOptions(value);
-  });
+  return state === "REQUIRES_MODIFIERS" || state === "REQUIRES_UNSUPPORTED_VARIATION";
 };
 
 const supportsDealIdCartPayload = (item: CustomerDealMenuItem) =>
@@ -64,6 +84,57 @@ export const hasDealMenuItemModifierOptions = (item: CustomerDealMenuItem) =>
 
 export const hasUnsupportedDealMenuItemCustomization = (item: CustomerDealMenuItem) =>
   hasOptions(item.variations) || item.supportsSplitPizza === true;
+
+export const getDealScopedItemCustomizationState = (
+  item: CustomerDealMenuItem
+): DealScopedItemCustomizationState => {
+  if (hasUnsupportedDealMenuItemCustomization(item)) {
+    return "REQUIRES_UNSUPPORTED_VARIATION";
+  }
+
+  if (
+    item.requiresCustomization === true ||
+    item.hasConfigurableOptions === true ||
+    item.isRequired === true ||
+    toNumber(item.minSelect, 0) > 0 ||
+    toNumber(item.minQuantity, 0) > 0 ||
+    hasRequiredOptionRecords(item.modifierGroups) ||
+    hasRequiredOptionRecords(item.modifiers) ||
+    hasRequiredOptionRecords(item.modifierLinks)
+  ) {
+    return "REQUIRES_MODIFIERS";
+  }
+
+  const hasKnownCustomizationMetadata =
+    item.requiresCustomization === false ||
+    item.hasConfigurableOptions === false ||
+    item.supportsSplitPizza !== undefined ||
+    CUSTOMIZATION_FIELDS.some((field) => Array.isArray(item[field]));
+
+  if (!hasKnownCustomizationMetadata) {
+    return "UNKNOWN";
+  }
+
+  return "SIMPLE";
+};
+
+export const getUnknownDealScopedItemIds = (deal: CustomerDeal) =>
+  deal.scopeMenuItems
+    .filter((item) => getDealScopedItemCustomizationState(item) === "UNKNOWN")
+    .map(({ id }) => id.trim())
+    .filter(Boolean);
+
+export const mergeDealScopedItemDetails = (
+  deal: CustomerDeal,
+  detailsById: Record<string, CustomerDealMenuItem>
+): CustomerDeal => ({
+  ...deal,
+  scopeMenuItems: deal.scopeMenuItems.map((item) => {
+    const detail = detailsById[item.id.trim()];
+
+    return detail ? { ...item, ...detail, id: item.id, name: detail.name || item.name } : item;
+  }),
+});
 
 export const isDealMenuItemReadyMade = (item: CustomerDealMenuItem): boolean =>
   supportsDealIdCartPayload(item) &&
@@ -97,12 +168,20 @@ export const shouldIncludeDealIdInCartPayload = ({
   deal,
   item,
   hasCustomization,
+  isDealMenuItem,
+  hasModifierSelections,
+  hasVariation,
+  hasSplitSelection,
 }: {
   deal?: CustomerDeal | null;
   item?: CustomerDealMenuItem | null;
   hasCustomization?: boolean;
+  isDealMenuItem?: boolean;
+  hasModifierSelections?: boolean;
+  hasVariation?: boolean;
+  hasSplitSelection?: boolean;
 }) => {
-  if (!deal || !item || hasCustomization) {
+  if (!deal || !item || hasCustomization || hasVariation || hasSplitSelection) {
     return false;
   }
 
@@ -110,11 +189,15 @@ export const shouldIncludeDealIdInCartPayload = ({
     return false;
   }
 
-  return canSendDealIdForReadyMadeItem(deal, item);
+  if (hasModifierSelections) {
+    return Boolean(isDealMenuItem) && canSendDealIdWithModifierSelections(deal, item);
+  }
+
+  return Boolean(isDealMenuItem) && canSendDealIdForReadyMadeItem(deal, item);
 };
 
 export const canAutoAddDealItem = (item: CustomerDealMenuItem) =>
-  !requiresCustomizationForDealItem(item) || isDealMenuItemReadyMade(item);
+  getDealScopedItemCustomizationState(item) === "SIMPLE" || isDealMenuItemReadyMade(item);
 
 export const canAutoAddFixedDeal = (deal: CustomerDeal) =>
   isFixedItemDeal(deal) &&
