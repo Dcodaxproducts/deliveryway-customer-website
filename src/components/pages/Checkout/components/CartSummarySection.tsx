@@ -97,6 +97,7 @@ interface CartItem {
   pickupUnitPrice?: unknown;
   takeawayPriceAdjustment?: unknown;
   deliveryPriceAdjustment?: unknown;
+  dealId?: string | null;
 }
 
 interface CartQuote {
@@ -888,7 +889,9 @@ export function CartSummarySection({
                 selectedSections,
               } = pricing;
 
-              const selectedVariationName = getSelectedVariationName(item);
+              const selectedVariationName = item.dealId
+                ? ""
+                : getSelectedVariationName(item);
               const isSplitPizza = selectedSections.length > 0;
               const splitPizzaDisplay = getSplitPizzaDisplay(
                 item,

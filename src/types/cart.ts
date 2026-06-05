@@ -9,9 +9,19 @@ export type CartSelectedVariation = {
 export type CartSelectedModifier = {
   id?: string;
   modifierId?: string;
+  modifierGroupId?: string;
+  groupName?: string;
   name?: string;
   quantity?: number;
+  unitPrice?: number;
   priceDelta?: number | string | null;
+  total?: number;
+  modifier?: {
+    id?: string;
+    name?: string;
+    priceDelta?: number | string | null;
+  } | null;
+  modifiers?: CartSelectedModifier[];
 };
 
 export type CartItem = {
