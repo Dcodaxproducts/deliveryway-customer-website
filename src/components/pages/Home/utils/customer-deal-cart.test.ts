@@ -221,7 +221,7 @@ describe("customer deal cart helpers", () => {
     expect(shouldIncludeDealIdInCartPayload({ deal: safeFixedDeal, item: safeItem })).toBe(true);
   });
 
-  it("customizable and unknown items are not safe for dealId cart payloads", () => {
+  it("customizable items are not safe for dealId cart payloads", () => {
     const customizableItem = {
       id: "burger-id",
       name: "Burger",
@@ -231,16 +231,25 @@ describe("customer deal cart helpers", () => {
       modifierLinks: [],
       supportsDealIdCartPayload: true,
     };
-    const unknownItem = { id: "drink-id", name: "Drink" };
 
     expect(requiresCustomizationForDealItem(customizableItem)).toBe(true);
-    expect(requiresCustomizationForDealItem(unknownItem)).toBe(true);
     expect(
       shouldSendDealIdForCartItem(
         { ...fixedDeal, scopeMenuItems: [customizableItem] },
         customizableItem
       )
     ).toBe(false);
+  });
+
+  it("items without customization metadata remain selectable", () => {
+    const unknownItem = { id: "drink-id", name: "Drink" };
+
+    expect(requiresCustomizationForDealItem(unknownItem)).toBe(false);
+    expect(buildFixedDealCartItemsInput(
+      { ...fixedDeal, scopeMenuItems: [unknownItem] },
+      "branch-1"
+    )).toEqual([{ branchId: "branch-1", menuItemId: "drink-id", quantity: 1 }]);
+    expect(getDealActionKind({ ...fixedDeal, scopeMenuItems: [unknownItem] })).toBe("AUTO_ADD");
   });
 
   it("deal type label works", () => {

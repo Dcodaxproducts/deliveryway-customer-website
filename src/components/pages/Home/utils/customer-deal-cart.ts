@@ -40,18 +40,13 @@ export const isFlexibleAllItemsDeal = (deal: CustomerDeal) =>
   deal.scopeCategories.length === 0 &&
   deal.applyMode === "ALL_ITEMS";
 
-export const hasKnownCustomizationStateForDealItem = (item: CustomerDealMenuItem) =>
-  CUSTOMIZATION_FIELDS.some((field) => Array.isArray(item[field])) ||
-  item.requiresCustomization !== undefined ||
-  item.hasConfigurableOptions !== undefined;
-
 export const requiresCustomizationForDealItem = (item: CustomerDealMenuItem): boolean => {
   if (item.requiresCustomization === true || item.hasConfigurableOptions === true) {
     return true;
   }
 
-  if (!hasKnownCustomizationStateForDealItem(item)) {
-    return true;
+  if (item.requiresCustomization === false || item.hasConfigurableOptions === false) {
+    return false;
   }
 
   return CUSTOMIZATION_FIELDS.some((field) => {
