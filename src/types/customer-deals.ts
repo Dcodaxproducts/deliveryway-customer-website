@@ -23,6 +23,7 @@ export type CustomerDealMenuItemOption = Record<string, unknown>;
 export type CustomerDealMenuItem = {
   id: string;
   name: string;
+  slug?: string | null;
   description?: string | null;
   imageUrl?: string | null;
   basePrice?: string | number | null;
@@ -167,6 +168,7 @@ const normalizeMenuItems = (value: unknown): CustomerDealMenuItem[] => {
     .map((item) => ({
       id: getString(item.id) ?? "",
       name: getString(item.name) ?? "",
+      slug: getNullableString(item.slug),
       description: getNullableString(item.description),
       imageUrl: getNullableString(item.imageUrl),
       basePrice: getStringOrNumber(item.basePrice),

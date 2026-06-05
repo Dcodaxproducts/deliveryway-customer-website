@@ -111,6 +111,10 @@ export function DealChooserDrawer({
       params.set("itemId", item.id);
       params.set("dealContext", "chooser");
 
+      if (item.slug) {
+        params.set("slug", item.slug);
+      }
+
       onOpenChange(false);
       router.push(`/items/details?${params.toString()}`);
     },

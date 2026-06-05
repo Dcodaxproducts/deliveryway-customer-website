@@ -23,6 +23,7 @@ const toDealMenuItem = (item: MenuItem): CustomerDealMenuItem | null => {
   return {
     id,
     name: item.name || "Item",
+    slug: item.slug,
     description: item.description,
     imageUrl: item.imageUrl,
     basePrice: item.basePrice ?? item.price,
