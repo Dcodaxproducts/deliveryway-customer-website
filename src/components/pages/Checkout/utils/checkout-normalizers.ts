@@ -86,6 +86,9 @@ const getStringValue = (value: unknown, fallback = "") => {
   return fallback;
 };
 
+const getServiceChargeType = (value: unknown) =>
+  typeof value === "string" && value.trim() ? value : null;
+
 export const getBackendErrorMessage = (res: unknown, fallback = "Something went wrong") => {
   const record = asRecord(res);
   const error = record.error;
@@ -407,8 +410,17 @@ export const normalizeCartQuote = (value: unknown): NormalizedCartQuote | null =
 
   return {
     subtotal: toNumber(quote.subtotal, 0),
+    taxAmount: toNumber(quote.taxAmount, 0),
+    deliveryFee: toNumber(quote.deliveryFee, 0),
+    serviceChargeType: getServiceChargeType(quote.serviceChargeType),
+    serviceChargeValue: quote.serviceChargeValue === null || quote.serviceChargeValue === undefined
+      ? null
+      : toNumber(quote.serviceChargeValue, 0),
+    serviceChargeAmount: toNumber(quote.serviceChargeAmount, 0),
+    tipAmount: toNumber(quote.tipAmount, 0),
     discountAmount: toNumber(quote.discountAmount, 0),
     totalAmount: toNumber(quote.totalAmount, 0),
+    payableAmount: toNumber(quote.payableAmount, toNumber(quote.totalAmount, 0)),
     appliedPromotion: normalizeCartAppliedPromotion(quote.appliedPromotion),
   };
 };

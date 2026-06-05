@@ -639,6 +639,18 @@
     "completePayment": "Zahlung abschließen",
     "processing": "Wird verarbeitet...",
     "payNow": "Jetzt bezahlen",
+    "tip": {
+      "label": "Trinkgeld",
+      "helper": "Optionaler Betrag für das Restaurantpersonal.",
+      "apply": "Trinkgeld anwenden",
+      "remove": "Entfernen"
+    },
+    "totals": {
+      "serviceCharge": "Servicegebühr",
+      "serviceChargeWithPercentage": "Servicegebühr ({value}%)",
+      "tip": "Trinkgeld",
+      "payableAmount": "Zahlbetrag"
+    },
     "toast": {
       "failedFetchCart": "Warenkorb konnte nicht geladen werden",
       "failedUpdateQuantity": "Menge konnte nicht aktualisiert werden",
@@ -648,6 +660,7 @@
       "failedSetOrderType": "Bestellart konnte nicht festgelegt werden",
       "failedSetAddress": "Adresse konnte nicht festgelegt werden",
       "failedSetSchedule": "Geplante Lieferung konnte nicht festgelegt werden",
+      "failedSetTip": "Trinkgeld konnte nicht aktualisiert werden",
       "cartEmpty": "Warenkorb ist leer",
       "selectAddress": "Bitte wählen Sie eine Adresse aus",
       "selectPickupDateTime": "Bitte wählen Sie Abholdatum und Abholzeit aus",

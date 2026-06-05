@@ -9,6 +9,7 @@ type CartMutationPayload = Record<string, unknown>;
 export type CartUpdatePayload = CartMutationPayload & {
   scheduledDeliveryAt?: string | null;
   orderTime?: string | null;
+  tipAmount?: number | null;
 };
 
 const cartService = createDomainApiService();
@@ -27,6 +28,9 @@ const toNumber = (value: unknown, fallback = 0) => {
 };
 
 const getString = (value: unknown) => (typeof value === "string" ? value : "");
+
+const getServiceChargeType = (value: unknown) =>
+  typeof value === "string" && value.trim() ? value : null;
 
 export const normalizeCartAppliedPromotion = (value: unknown): CartAppliedPromotion | null => {
   const promotion = getRecord(value);
@@ -62,8 +66,17 @@ export const normalizeCartQuote = (value: unknown): CartQuote | null => {
 
   return {
     subtotal: toNumber(quote.subtotal, 0),
+    taxAmount: toNumber(quote.taxAmount, 0),
+    deliveryFee: toNumber(quote.deliveryFee, 0),
+    serviceChargeType: getServiceChargeType(quote.serviceChargeType),
+    serviceChargeValue: quote.serviceChargeValue === null || quote.serviceChargeValue === undefined
+      ? null
+      : toNumber(quote.serviceChargeValue, 0),
+    serviceChargeAmount: toNumber(quote.serviceChargeAmount, 0),
+    tipAmount: toNumber(quote.tipAmount, 0),
     discountAmount: toNumber(quote.discountAmount, 0),
     totalAmount: toNumber(quote.totalAmount, 0),
+    payableAmount: toNumber(quote.payableAmount, toNumber(quote.totalAmount, 0)),
     appliedPromotion: normalizeCartAppliedPromotion(quote.appliedPromotion),
   };
 };
@@ -123,23 +136,34 @@ export const addCustomerCartItem = ({
 }) => postCart(`/v1/cart/items?customerId=${customerId}`, payload, token);
 
 export const normalizeCartUpdatePayload = (payload: CartUpdatePayload): CartMutationPayload => {
-  const { orderTime, scheduledDeliveryAt, ...rest } = payload;
+  const { orderTime, scheduledDeliveryAt, tipAmount, ...rest } = payload;
+  const normalizedPayload: CartMutationPayload = { ...rest };
+
+  if (tipAmount !== undefined) {
+    const parsedTip = Number(tipAmount);
+
+    if (tipAmount === null) {
+      normalizedPayload.tipAmount = 0;
+    } else if (Number.isFinite(parsedTip) && parsedTip >= 0) {
+      normalizedPayload.tipAmount = parsedTip;
+    }
+  }
 
   if (scheduledDeliveryAt !== undefined) {
     return {
-      ...rest,
+      ...normalizedPayload,
       scheduledDeliveryAt,
     };
   }
 
   if (orderTime !== undefined) {
     return {
-      ...rest,
+      ...normalizedPayload,
       scheduledDeliveryAt: orderTime,
     };
   }
 
-  return rest;
+  return normalizedPayload;
 };
 
 export const updateCustomerCart = ({

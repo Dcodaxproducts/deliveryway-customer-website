@@ -133,6 +133,45 @@ describe("cart service", () => {
     expect(patchCartMock.mock.calls[0][0]).not.toContain("/api/v1");
   });
 
+  it("updates customer cart tipAmount", async () => {
+    patchCartMock.mockResolvedValue({ success: true });
+
+    await updateCustomerCart({
+      customerId: "customer-1",
+      payload: {
+        tipAmount: 150,
+      },
+    });
+
+    expect(patchCartMock).toHaveBeenCalledWith(
+      "/v1/cart?customerId=customer-1",
+      {
+        tipAmount: 150,
+      },
+      undefined
+    );
+    expect(patchCartMock.mock.calls[0][0]).not.toContain("/api/v1");
+  });
+
+  it("clears customer cart tipAmount with zero when null is passed", async () => {
+    patchCartMock.mockResolvedValue({ success: true });
+
+    await updateCustomerCart({
+      customerId: "customer-1",
+      payload: {
+        tipAmount: null,
+      },
+    });
+
+    expect(patchCartMock).toHaveBeenCalledWith(
+      "/v1/cart?customerId=customer-1",
+      {
+        tipAmount: 0,
+      },
+      undefined
+    );
+  });
+
   it("maps legacy cart orderTime update to scheduledDeliveryAt", async () => {
     patchCartMock.mockResolvedValue({ success: true });
 
@@ -188,8 +227,15 @@ describe("cart service", () => {
           items: [{ id: "cart-item-1" }],
           quote: {
             subtotal: "1300",
+            taxAmount: "0",
+            deliveryFee: "150",
+            serviceChargeType: "PERCENTAGE",
+            serviceChargeValue: "10",
+            serviceChargeAmount: "100",
+            tipAmount: "150",
             discountAmount: "301",
             totalAmount: "999",
+            payableAmount: "999",
             appliedPromotion: {
               id: "deal-1",
               title: "Any 2 Burgers",
@@ -210,8 +256,15 @@ describe("cart service", () => {
     expect(cart.items).toEqual([{ id: "cart-item-1" }]);
     expect(cart.quote).toEqual({
       subtotal: 1300,
+      taxAmount: 0,
+      deliveryFee: 150,
+      serviceChargeType: "PERCENTAGE",
+      serviceChargeValue: 10,
+      serviceChargeAmount: 100,
+      tipAmount: 150,
       discountAmount: 301,
       totalAmount: 999,
+      payableAmount: 999,
       appliedPromotion: {
         id: "deal-1",
         title: "Any 2 Burgers",
@@ -228,8 +281,15 @@ describe("cart service", () => {
     expect(
       normalizeCartQuote({
         subtotal: 1300,
+        taxAmount: 0,
+        deliveryFee: 150,
+        serviceChargeType: "PERCENTAGE",
+        serviceChargeValue: 10,
+        serviceChargeAmount: 100,
+        tipAmount: 150,
         discountAmount: 301,
         totalAmount: 999,
+        payableAmount: 1400,
         appliedPromotion: {
           id: "deal-1",
           title: "Any 2 Burgers",
@@ -238,8 +298,15 @@ describe("cart service", () => {
       })
     ).toMatchObject({
       subtotal: 1300,
+      taxAmount: 0,
+      deliveryFee: 150,
+      serviceChargeType: "PERCENTAGE",
+      serviceChargeValue: 10,
+      serviceChargeAmount: 100,
+      tipAmount: 150,
       discountAmount: 301,
       totalAmount: 999,
+      payableAmount: 1400,
       appliedPromotion: {
         id: "deal-1",
         title: "Any 2 Burgers",

@@ -639,6 +639,18 @@
     "completePayment": "Complete Payment",
     "processing": "Processing...",
     "payNow": "Pay Now",
+    "tip": {
+      "label": "Tip",
+      "helper": "Optional amount for the restaurant staff.",
+      "apply": "Apply Tip",
+      "remove": "Remove"
+    },
+    "totals": {
+      "serviceCharge": "Service Charge",
+      "serviceChargeWithPercentage": "Service Charge ({value}%)",
+      "tip": "Tip",
+      "payableAmount": "Payable Amount"
+    },
     "toast": {
       "failedFetchCart": "Failed to fetch cart",
       "failedUpdateQuantity": "Failed to update quantity",
@@ -648,6 +660,7 @@
       "failedSetOrderType": "Failed to set order type",
       "failedSetAddress": "Failed to set address",
       "failedSetSchedule": "Failed to set scheduled delivery",
+      "failedSetTip": "Failed to update tip",
       "cartEmpty": "Cart is empty",
       "selectAddress": "Please select address",
       "selectPickupDateTime": "Please select pickup date and time",

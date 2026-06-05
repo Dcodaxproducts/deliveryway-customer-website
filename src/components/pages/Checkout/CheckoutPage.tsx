@@ -23,6 +23,7 @@ import type { ApiRecord, BackendErrorState, CartItem } from "@/components/pages/
 import { asRecord, getBackendErrorCode, getBackendErrorMessage, getBackendErrorMeta, hasBackendError, normalizeCartItem, normalizeCartResponse, recalculateCartItemQuantity, toNumber } from "@/components/pages/Checkout/utils/checkout-normalizers";
 import type { BranchRecord } from "@/types/branch-selector";
 import { useTranslations } from "next-intl";
+import { normalizeCheckoutTipAmount } from "@/validations/checkout";
 
 function CheckoutPageContent() {
   const t = useTranslations("checkout");
@@ -33,6 +34,7 @@ function CheckoutPageContent() {
   const [couponCode, setCouponCode] = useState("");
   const [couponDiscount, setCouponDiscount] = useState(0);
   const [validatingCoupon, setValidatingCoupon] = useState(false);
+  const [applyingTip, setApplyingTip] = useState(false);
 
   const { user, token } = useAuthContext();
   const { get, patch, del, post, checkoutCustomerCart } = useCheckout(token);
@@ -427,6 +429,45 @@ function CheckoutPageContent() {
     }
   };
 
+  const applyTip = async (tipAmount: number) => {
+    if (!customerId) return;
+
+    const normalizedTip = normalizeCheckoutTipAmount(tipAmount);
+
+    if (normalizedTip === null) return;
+
+    try {
+      setApplyingTip(true);
+
+      const res = await updateCustomerCart({
+        customerId,
+        payload: {
+          tipAmount: normalizedTip,
+        },
+      });
+
+      if (hasBackendError(res)) {
+        reportBackendError(
+          t("toast.failedSetTip"),
+          res,
+          t("toast.failedSetTip")
+        );
+        return;
+      }
+
+      await fetchCart();
+      clearBackendError();
+    } catch (err) {
+      reportBackendError(
+        t("toast.failedSetTip"),
+        err,
+        err instanceof Error ? err.message : t("toast.failedSetTip")
+      );
+    } finally {
+      setApplyingTip(false);
+    }
+  };
+
   const handlePlaceOrder = async () => {
     try {
       setPlacingOrder(true);
@@ -471,10 +512,13 @@ function CheckoutPageContent() {
       const scheduleUpdated = await setCartSchedule(scheduledDeliveryAt);
       if (!scheduleUpdated) return;
 
+      const checkoutTipAmount = Math.max(0, toNumber(cartQuote?.tipAmount, 0));
+
       const res = await checkoutCustomerCart({
         customerId,
         payload: {
           ...(scheduledDeliveryAt ? { scheduledDeliveryAt } : {}),
+          ...(checkoutTipAmount > 0 ? { tipAmount: checkoutTipAmount } : {}),
           paymentMethod:
             paymentMethod === "card"
               ? "STRIPE"
@@ -670,6 +714,8 @@ function CheckoutPageContent() {
             couponDiscount={couponDiscount}
             validatingCoupon={validatingCoupon}
             loadingCart={loadingCart}
+            onApplyTip={applyTip}
+            applyingTip={applyingTip}
           />
         </div>
       </div>

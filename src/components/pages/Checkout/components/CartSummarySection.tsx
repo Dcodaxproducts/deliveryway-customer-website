@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import {
   Plus,
   Minus,
@@ -15,6 +16,11 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import {
+  getDisplayTotalAmount,
+  getServiceChargeLabel,
+  shouldShowPositiveAmountLine,
+} from "@/components/pages/Checkout/utils/checkout-formatters";
 import {
   getAppliedPromotionDiscountLine,
   getCartItemLineTotal,
@@ -96,6 +102,10 @@ interface CartQuote {
   subtotal?: number | string;
   taxAmount?: number | string;
   deliveryFee?: number | string;
+  serviceChargeType?: string | null;
+  serviceChargeValue?: number | string | null;
+  serviceChargeAmount?: number | string;
+  tipAmount?: number | string;
   discountAmount?: number | string;
   walletAppliedAmount?: number | string;
   loyaltyDiscountAmount?: number | string;
@@ -131,6 +141,8 @@ interface Props {
   couponDiscount?: number;
   validatingCoupon?: boolean;
   loadingCart?: boolean;
+  onApplyTip?: (amount: number) => Promise<void> | void;
+  applyingTip?: boolean;
 }
 
 type CheckoutType = "delivery" | "pickup";
@@ -603,6 +615,8 @@ export function CartSummarySection({
   couponDiscount = 0,
   validatingCoupon,
   loadingCart = false,
+  onApplyTip,
+  applyingTip = false,
 }: Props) {
   const t = useTranslations("checkout");
   const router = useRouter();
@@ -647,12 +661,19 @@ export function CartSummarySection({
   const quoteSubtotal = toNullableNumber(resolvedQuote?.subtotal);
   const quoteDeliveryFee = toNullableNumber(resolvedQuote?.deliveryFee);
   const quoteTaxAmount = toNullableNumber(resolvedQuote?.taxAmount);
-  const quotePayableAmount = toNullableNumber(
-    resolvedQuote?.payableAmount ?? resolvedQuote?.totalAmount
-  );
+  const quoteServiceChargeAmount = toNullableNumber(resolvedQuote?.serviceChargeAmount) ?? 0;
+  const quoteTipAmount = toNullableNumber(resolvedQuote?.tipAmount) ?? 0;
+  const quotePayableAmount = resolvedQuote ? getDisplayTotalAmount(resolvedQuote) : null;
+  const [tipInput, setTipInput] = useState("");
+
+  useEffect(() => {
+    setTipInput(quoteTipAmount > 0 ? String(quoteTipAmount) : "");
+  }, [quoteTipAmount]);
 
   const deliveryFee = quoteDeliveryFee ?? (checkoutType === "delivery" ? 0 : 0);
   const taxes = quoteTaxAmount ?? 0;
+  const serviceCharge = Math.max(0, quoteServiceChargeAmount);
+  const tipAmount = Math.max(0, quoteTipAmount);
 
   const appliedPromotion = resolvedQuote?.appliedPromotion ?? null;
   const hasAppliedPromotion = Boolean(appliedPromotion?.id || appliedPromotion?.title);
@@ -672,11 +693,11 @@ export function CartSummarySection({
   );
 
   const computedTotalBeforeDiscount =
-    itemTotal + depositTotal + pickupPriceTotal + deliveryFee + taxes;
+    itemTotal + depositTotal + pickupPriceTotal + deliveryFee + taxes + serviceCharge + tipAmount;
 
   const totalBeforeDiscount =
     quoteSubtotal !== null
-      ? quoteSubtotal + pickupPriceTotal + deliveryFee + taxes
+      ? quoteSubtotal + pickupPriceTotal + deliveryFee + taxes + serviceCharge + tipAmount
       : computedTotalBeforeDiscount;
 
   const quotedFinalTotal = quotePayableAmount;
@@ -707,6 +728,19 @@ export function CartSummarySection({
     params.set("type", checkoutType);
 
     router.push(`/items/details?${params.toString()}`);
+  };
+
+  const handleApplyTip = () => {
+    const nextTip = toNumber(tipInput, 0);
+
+    if (nextTip < 0) return;
+
+    void onApplyTip?.(nextTip);
+  };
+
+  const handleRemoveTip = () => {
+    setTipInput("");
+    void onApplyTip?.(0);
   };
 
   return (
@@ -1172,7 +1206,73 @@ export function CartSummarySection({
             </div>
             <span>{formatCurrency(taxes)}</span>
           </div>
+
+          {shouldShowPositiveAmountLine(serviceCharge) ? (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                <span>
+                  {getServiceChargeLabel({
+                    serviceChargeType: resolvedQuote?.serviceChargeType,
+                    serviceChargeValue: resolvedQuote?.serviceChargeValue,
+                    serviceChargeLabel: t("totals.serviceCharge"),
+                    serviceChargeWithPercentageLabel: (value) =>
+                      t("totals.serviceChargeWithPercentage", { value }),
+                  })}
+                </span>
+                <Info size={16} />
+              </div>
+              <span>{formatCurrency(serviceCharge)}</span>
+            </div>
+          ) : null}
+
+          {shouldShowPositiveAmountLine(tipAmount) ? (
+            <div className="flex items-center justify-between">
+              <span>{t("totals.tip")}</span>
+              <span>{formatCurrency(tipAmount)}</span>
+            </div>
+          ) : null}
         </div>
+
+        {canEditCart ? (
+          <div className="rounded-md border border-gray-100 bg-gray-50 p-3">
+            <label
+              htmlFor="checkout-tip"
+              className="mb-1 block text-sm font-medium text-gray-700"
+            >
+              {t("tip.label")}
+            </label>
+            <p className="mb-3 text-xs text-gray-500">{t("tip.helper")}</p>
+            <div className="flex gap-2">
+              <input
+                id="checkout-tip"
+                type="number"
+                min="0"
+                value={tipInput}
+                onChange={(event) => setTipInput(event.target.value)}
+                placeholder="0"
+                className="h-[42px] flex-1 rounded-md border px-3 py-2 text-sm"
+              />
+              <Button
+                type="button"
+                onClick={handleApplyTip}
+                disabled={applyingTip}
+                className="h-[42px] text-white"
+              >
+                {applyingTip ? t("applying") : t("tip.apply")}
+              </Button>
+              {tipAmount > 0 ? (
+                <Button
+                  type="button"
+                  onClick={handleRemoveTip}
+                  disabled={applyingTip}
+                  className="h-[42px] bg-gray-200 text-gray-700 hover:bg-gray-200"
+                >
+                  {t("tip.remove")}
+                </Button>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
 
         <div className="mt-4 flex gap-2">
           <input
@@ -1254,7 +1354,13 @@ export function CartSummarySection({
           ) : null}
 
           <div className="flex items-center justify-between text-[24px] font-medium text-gray-900">
-            <span>{walletAppliedAmount > 0 ? t("payableTotal") : t("total")}</span>
+            <span>
+              {quotedFinalTotal !== null
+                ? t("totals.payableAmount")
+                : walletAppliedAmount > 0
+                  ? t("payableTotal")
+                  : t("total")}
+            </span>
             <span>{formatCurrency(finalTotal)}</span>
           </div>
         </div>

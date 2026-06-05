@@ -113,16 +113,30 @@ describe("checkout normalizers", () => {
             discountAmount: 301,
           },
           subtotal: 1300,
+          taxAmount: 0,
+          deliveryFee: 150,
+          serviceChargeType: "PERCENTAGE",
+          serviceChargeValue: 10,
+          serviceChargeAmount: 100,
+          tipAmount: 150,
           discountAmount: 301,
           totalAmount: 999,
+          payableAmount: 1400,
         },
       },
     });
 
     expect(quote).toEqual({
       subtotal: 1300,
+      taxAmount: 0,
+      deliveryFee: 150,
+      serviceChargeType: "PERCENTAGE",
+      serviceChargeValue: 10,
+      serviceChargeAmount: 100,
+      tipAmount: 150,
       discountAmount: 301,
       totalAmount: 999,
+      payableAmount: 1400,
       appliedPromotion: {
         id: "deal-1",
         title: "Burger Combo",
@@ -187,5 +201,36 @@ describe("checkout normalizers", () => {
     });
 
     expect(quote?.totalAmount).toBe(999);
+  });
+
+  it("quote normalizer preserves service charge tip and payable amount", () => {
+    const { quote } = normalizeCartResponse({
+      data: {
+        quote: {
+          subtotal: 1000,
+          taxAmount: 0,
+          deliveryFee: 150,
+          serviceChargeType: "PERCENTAGE",
+          serviceChargeValue: 10,
+          serviceChargeAmount: 100,
+          tipAmount: 150,
+          discountAmount: 0,
+          totalAmount: 1400,
+          payableAmount: 1400,
+        },
+      },
+    });
+
+    expect(quote).toMatchObject({
+      serviceChargeType: "PERCENTAGE",
+      serviceChargeValue: 10,
+      serviceChargeAmount: 100,
+      tipAmount: 150,
+      payableAmount: 1400,
+      taxAmount: 0,
+      deliveryFee: 150,
+      discountAmount: 0,
+      totalAmount: 1400,
+    });
   });
 });

@@ -37,10 +37,19 @@ export type CartAppliedPromotion = {
   discountAmount?: number;
 };
 
+export type ServiceChargeType = "PERCENTAGE" | "AMOUNT" | string;
+
 export type CartQuote = {
   subtotal: number;
-  discountAmount: number;
+  taxAmount?: number;
+  deliveryFee?: number;
+  serviceChargeType?: ServiceChargeType | null;
+  serviceChargeValue?: number | null;
+  serviceChargeAmount?: number;
+  tipAmount?: number;
+  discountAmount?: number;
   totalAmount: number;
+  payableAmount?: number;
   appliedPromotion?: CartAppliedPromotion | null;
 };
 
