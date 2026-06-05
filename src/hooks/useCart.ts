@@ -10,7 +10,6 @@ import {
   buildFixedDealCartItemsInput,
   buildSelectedFlexibleDealCartItemsInput,
   isFixedItemDeal,
-  isFlexibleItemDeal,
 } from "@/components/pages/Home/utils/customer-deal-cart";
 import { queryKeys } from "@/config/query-keys";
 import { useDomainApi, type DomainApiHook } from "@/hooks/useDomainApi";
@@ -36,7 +35,7 @@ import {
 import type { ApiResult } from "@/services/http";
 import type { CartItemRecord } from "@/components/pages/Items/components/signature-selection/types";
 import type { ApiRecord } from "@/components/pages/Items/types";
-import type { CustomerDeal } from "@/types/customer-deals";
+import type { CustomerDeal, CustomerDealMenuItem } from "@/types/customer-deals";
 import type { CartQuote } from "@/types/cart";
 
 type CartMutationPayload = Record<string, unknown>;
@@ -44,6 +43,7 @@ type CartMutationPayload = Record<string, unknown>;
 export type AddDealToCartInput = {
   deal: CustomerDeal;
   selectedMenuItemIds?: string[];
+  eligibleMenuItems?: CustomerDealMenuItem[];
 };
 
 const service = {
@@ -156,7 +156,7 @@ export const useAddDealToCart = (branchId?: string | null) => {
   const customerId = user?.id ?? "";
 
   return useMutation({
-    mutationFn: async ({ deal, selectedMenuItemIds = [] }: AddDealToCartInput) => {
+    mutationFn: async ({ deal, selectedMenuItemIds = [], eligibleMenuItems }: AddDealToCartInput) => {
       if (!customerId) {
         throw new Error(t("customerNotFound"));
       }
@@ -169,12 +169,12 @@ export const useAddDealToCart = (branchId?: string | null) => {
         throw new Error(t("dealNoItems"));
       }
 
-      if (isFlexibleItemDeal(deal) && selectedMenuItemIds.length < 1) {
+      if (deal.dealSelectionMode === "FLEXIBLE_ITEMS" && selectedMenuItemIds.length < 1) {
         throw new Error(t("dealNoItems"));
       }
 
-      const payloads = isFlexibleItemDeal(deal)
-        ? buildSelectedFlexibleDealCartItemsInput(deal, branchId, selectedMenuItemIds)
+      const payloads = deal.dealSelectionMode === "FLEXIBLE_ITEMS"
+        ? buildSelectedFlexibleDealCartItemsInput(deal, branchId, selectedMenuItemIds, eligibleMenuItems)
         : buildFixedDealCartItemsInput(deal, branchId);
       const requiredQuantity = Number(deal.dealRequiredQuantity);
       const minimumEligibleItems = Number.isFinite(requiredQuantity) && requiredQuantity > 0
@@ -185,7 +185,7 @@ export const useAddDealToCart = (branchId?: string | null) => {
         throw new Error(t("dealNoItems"));
       }
 
-      if (isFlexibleItemDeal(deal) && payloads.length < minimumEligibleItems) {
+      if (deal.dealSelectionMode === "FLEXIBLE_ITEMS" && payloads.length < minimumEligibleItems) {
         throw new Error(t("dealNoItems"));
       }
 

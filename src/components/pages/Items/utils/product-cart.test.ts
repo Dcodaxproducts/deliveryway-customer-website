@@ -87,6 +87,44 @@ describe("product cart helpers", () => {
     expect(payload).not.toHaveProperty("dealId");
   });
 
+  it("does not include query dealId unless explicitly allowed", () => {
+    const payload = buildCartPayload({
+      item: { id: "burger-1" },
+      branchId: "branch-1",
+      selectedVariation: null,
+      qty: 1,
+      selectedModifiers: {},
+      splitPizzaEnabled: false,
+      splitPizzaItem: null,
+      includeMenuItem: true,
+      includeBranch: true,
+      clearSectionsWhenEmpty: false,
+      dealId: "query-deal-id",
+      shouldSendDealId: false,
+    });
+
+    expect(payload).not.toHaveProperty("dealId");
+  });
+
+  it("includes dealId only when helper explicitly marks payload safe", () => {
+    const payload = buildCartPayload({
+      item: { id: "ready-made-combo" },
+      branchId: "branch-1",
+      selectedVariation: null,
+      qty: 1,
+      selectedModifiers: {},
+      splitPizzaEnabled: false,
+      splitPizzaItem: null,
+      includeMenuItem: true,
+      includeBranch: true,
+      clearSectionsWhenEmpty: false,
+      dealId: "safe-fixed-deal",
+      shouldSendDealId: true,
+    });
+
+    expect(payload.dealId).toBe("safe-fixed-deal");
+  });
+
   it("preserves legacy flat modifiers when grouped flow is inactive", () => {
     const payload = buildCartPayload({
       item: { id: "burger-1" },

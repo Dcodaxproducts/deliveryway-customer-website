@@ -6,6 +6,8 @@ export type DealCartItemInput = {
   quantity: number;
 };
 
+export type DealActionKind = "AUTO_ADD" | "OPEN_CHOOSER";
+
 const CUSTOMIZATION_FIELDS = [
   "variations",
   "modifierGroups",
@@ -61,6 +63,26 @@ export const shouldSendDealIdForCartItem = (
   deal.scopeMenuItems.length === 1 &&
   !requiresCustomizationForDealItem(item) &&
   supportsDealIdCartPayload(item);
+
+export const shouldIncludeDealIdInCartPayload = ({
+  deal,
+  item,
+  hasCustomization,
+}: {
+  deal?: CustomerDeal | null;
+  item?: CustomerDealMenuItem | null;
+  hasCustomization?: boolean;
+}) => {
+  if (!deal || !item || hasCustomization || deal.dealSelectionMode === "FLEXIBLE_ITEMS") {
+    return false;
+  }
+
+  if (isFlexibleCategoryDeal(deal)) {
+    return false;
+  }
+
+  return shouldSendDealIdForCartItem(deal, item);
+};
 
 export const canAutoAddDealItem = (item: CustomerDealMenuItem) =>
   !requiresCustomizationForDealItem(item);
@@ -130,6 +152,9 @@ export const getDealActionLabel = (deal: CustomerDeal) => {
   return "Add Deal";
 };
 
+export const getDealActionKind = (deal: CustomerDeal): DealActionKind =>
+  canAutoAddFixedDeal(deal) ? "AUTO_ADD" : "OPEN_CHOOSER";
+
 const buildPayload = (branchId: string, menuItemIds: string[]): DealCartItemInput[] => {
   const resolvedBranchId = branchId.trim();
 
@@ -164,14 +189,15 @@ export const buildFixedDealCartItemsInput = (
 export const buildSelectedFlexibleDealCartItemsInput = (
   deal: CustomerDeal,
   branchId: string,
-  selectedMenuItemIds: string[]
+  selectedMenuItemIds: string[],
+  eligibleMenuItems: CustomerDealMenuItem[] = deal.scopeMenuItems
 ): DealCartItemInput[] => {
-  if (!isFlexibleItemDeal(deal)) {
+  if (deal.dealSelectionMode !== "FLEXIBLE_ITEMS") {
     return [];
   }
 
   const eligibleIds = new Set(
-    deal.scopeMenuItems
+    eligibleMenuItems
       .filter(canAutoAddDealItem)
       .map(({ id }) => id.trim())
       .filter(Boolean)

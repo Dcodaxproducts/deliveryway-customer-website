@@ -4,10 +4,12 @@ import {
   buildFixedDealCartItemsInput,
   buildSelectedFlexibleDealCartItemsInput,
   getDealActionLabel,
+  getDealActionKind,
   getDealImage,
   getDealRequirementText,
   getDealTypeLabel,
   requiresCustomizationForDealItem,
+  shouldIncludeDealIdInCartPayload,
   shouldSendDealIdForCartItem,
   isFlexibleCategoryDeal,
 } from "./customer-deal-cart";
@@ -76,6 +78,7 @@ describe("customer deal cart helpers", () => {
 
   it("category deal does not build automatic item payload", () => {
     expect(isFlexibleCategoryDeal(flexibleCategoryDeal)).toBe(true);
+    expect(getDealActionKind(flexibleCategoryDeal)).toBe("OPEN_CHOOSER");
     expect(buildFixedDealCartItemsInput(flexibleCategoryDeal, "branch-1")).toEqual([]);
     expect(
       buildSelectedFlexibleDealCartItemsInput(
@@ -84,6 +87,23 @@ describe("customer deal cart helpers", () => {
         ["burger-id"]
       )
     ).toEqual([]);
+  });
+
+  it("category deal builds selected normal item payload from eligible category items", () => {
+    expect(
+      buildSelectedFlexibleDealCartItemsInput(
+        flexibleCategoryDeal,
+        "branch-1",
+        ["pizza-id", "drink-id"],
+        [
+          { id: "pizza-id", name: "Pizza", variations: [], modifierGroups: [], modifiers: [], modifierLinks: [] },
+          { id: "drink-id", name: "Drink", variations: [], modifierGroups: [], modifiers: [], modifierLinks: [] },
+        ]
+      )
+    ).toEqual([
+      { branchId: "branch-1", menuItemId: "pizza-id", quantity: 1 },
+      { branchId: "branch-1", menuItemId: "drink-id", quantity: 1 },
+    ]);
   });
 
   it("flexible deal cart payload does not include dealId", () => {
@@ -95,6 +115,30 @@ describe("customer deal cart helpers", () => {
 
     expect(payload).toEqual({ branchId: "branch-1", menuItemId: "burger-id", quantity: 1 });
     expect(payload).not.toHaveProperty("dealId");
+  });
+
+  it("flexible item deal opens chooser action", () => {
+    expect(getDealActionKind(flexibleItemDeal)).toBe("OPEN_CHOOSER");
+    expect(getDealActionLabel(flexibleItemDeal)).toBe("Choose Items");
+  });
+
+  it("fixed simple deal can auto-add only if no customization", () => {
+    expect(getDealActionKind(fixedDeal)).toBe("AUTO_ADD");
+    expect(
+      getDealActionKind({
+        ...fixedDeal,
+        scopeMenuItems: [
+          {
+            id: "customizable",
+            name: "Customizable",
+            variations: [{ id: "large" }],
+            modifierGroups: [],
+            modifiers: [],
+            modifierLinks: [],
+          },
+        ],
+      })
+    ).toBe("OPEN_CHOOSER");
   });
 
   it("does not include dealId, coupon, discountType, or applyMode in cart payload", () => {
@@ -129,6 +173,33 @@ describe("customer deal cart helpers", () => {
     expect(
       shouldSendDealIdForCartItem(fixedDeal, fixedDeal.scopeMenuItems[0])
     ).toBe(false);
+  });
+
+  it("includes dealId only for explicitly safe ready-made fixed deal item", () => {
+    const safeItem = {
+      id: "combo-id",
+      name: "Combo",
+      variations: [],
+      modifierGroups: [],
+      modifiers: [],
+      modifierLinks: [],
+      supportsDealIdCartPayload: true,
+    };
+    const safeFixedDeal = {
+      ...fixedDeal,
+      scopeMenuItems: [safeItem],
+    };
+
+    expect(shouldIncludeDealIdInCartPayload({ deal: flexibleItemDeal, item: safeItem })).toBe(false);
+    expect(shouldIncludeDealIdInCartPayload({ deal: flexibleCategoryDeal, item: safeItem })).toBe(false);
+    expect(
+      shouldIncludeDealIdInCartPayload({
+        deal: safeFixedDeal,
+        item: safeItem,
+        hasCustomization: true,
+      })
+    ).toBe(false);
+    expect(shouldIncludeDealIdInCartPayload({ deal: safeFixedDeal, item: safeItem })).toBe(true);
   });
 
   it("customizable and unknown items are not safe for dealId cart payloads", () => {

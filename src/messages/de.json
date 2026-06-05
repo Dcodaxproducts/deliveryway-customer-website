@@ -193,7 +193,14 @@
       "browseItems": "Artikel ansehen",
       "selectEligibleItems": "Wählen Sie mindestens {count, plural, one {# berechtigten Artikel} other {# berechtigte Artikel}}.",
       "addSelectedItems": "Ausgewählte Artikel hinzufügen",
-      "categoryDealToast": "Sehen Sie berechtigte Kategorien an, um dieses Angebot zu aktivieren."
+      "categoryDealToast": "Sehen Sie berechtigte Kategorien an, um dieses Angebot zu aktivieren.",
+      "selected": "ausgewählt",
+      "loadingEligibleItems": "Berechtigte Artikel werden geladen...",
+      "noEligibleItems": "Keine berechtigten Artikel für dieses Angebot gefunden.",
+      "customize": "Anpassen",
+      "fixedRequirement": "Enthält ausgewählte Artikel",
+      "flexibleRequirement": "Wählen Sie beliebige {count, plural, one {# Artikel} other {# Artikel}}",
+      "categoryRequirement": "Wählen Sie beliebige {count, plural, one {# Artikel} other {# Artikel}} aus ausgewählten Kategorien"
     },
     "whyChooseUs": {
       "title": "Warum wir?",

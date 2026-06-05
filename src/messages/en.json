@@ -193,7 +193,14 @@
       "browseItems": "Browse Items",
       "selectEligibleItems": "Choose at least {count, plural, one {# eligible item} other {# eligible items}}.",
       "addSelectedItems": "Add Selected Items",
-      "categoryDealToast": "Browse eligible categories to activate this deal."
+      "categoryDealToast": "Browse eligible categories to activate this deal.",
+      "selected": "selected",
+      "loadingEligibleItems": "Loading eligible items...",
+      "noEligibleItems": "No eligible items found for this deal.",
+      "customize": "Customize",
+      "fixedRequirement": "Includes selected items",
+      "flexibleRequirement": "Choose any {count, plural, one {# item} other {# items}}",
+      "categoryRequirement": "Choose any {count, plural, one {# item} other {# items}} from selected categories"
     },
     "whyChooseUs": {
       "title": "Why Choose Us",

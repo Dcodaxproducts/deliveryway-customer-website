@@ -2011,6 +2011,7 @@ function ProductDetailsPageContent() {
     includeBranch: true,
     clearSectionsWhenEmpty: false,
     dealId: dealIdContext,
+    shouldSendDealId: false,
   });
 
   const buildPatchCartPayload = () => buildCartPayload({
@@ -2026,6 +2027,7 @@ function ProductDetailsPageContent() {
     includeBranch: false,
     clearSectionsWhenEmpty: true,
     dealId: dealIdContext,
+    shouldSendDealId: false,
   });
 
   const clearCartAndRetryAdd = async () => {
