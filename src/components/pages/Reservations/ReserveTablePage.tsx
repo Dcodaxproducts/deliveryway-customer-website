@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Clock, Info, Star } from "lucide-react";
+import { Clock, Info, LoaderCircle, Star } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
@@ -341,7 +341,13 @@ export function ReserveTablePage() {
     },
   });
 
-  const { handleSubmit: handleFormSubmit, setValue, watch, reset } = form;
+  const {
+    formState: { isSubmitting },
+    handleSubmit: handleFormSubmit,
+    setValue,
+    watch,
+    reset,
+  } = form;
   const date = watch("date");
   const time = watch("time");
   const guestCount = watch("guestCount");
@@ -785,9 +791,16 @@ export function ReserveTablePage() {
             {/* SUBMIT */}
             <Button
               className="w-full py-4 text-white disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={loading || !canSubmit}
+              disabled={loading || isSubmitting || !canSubmit}
             >
-              {loading ? t("reserving") : t("confirmReservation")}
+              {isSubmitting ? (
+                <>
+                  <LoaderCircle className="h-4 w-4 animate-spin" />
+                  {t("reserving")}
+                </>
+              ) : (
+                t("confirmReservation")
+              )}
             </Button>
           </form>
         </div>
