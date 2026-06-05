@@ -19,6 +19,26 @@ export const getDisplayTotalAmount = (quote: TotalsInput | null | undefined) => 
   return toNullableNumber(quote?.payableAmount) ?? toNullableNumber(quote?.totalAmount) ?? 0;
 };
 
+export const getTipAdjustedDisplayTotalAmount = ({
+  displayTotal,
+  tipAmount,
+  totalWithoutTip,
+}: {
+  displayTotal: number;
+  tipAmount: number;
+  totalWithoutTip: number;
+}) => {
+  const normalizedTip = Math.max(0, tipAmount);
+  const normalizedDisplayTotal = Math.max(0, displayTotal);
+  const normalizedTotalWithoutTip = Math.max(0, totalWithoutTip);
+
+  if (normalizedTip > 0 && normalizedDisplayTotal <= normalizedTotalWithoutTip + 0.01) {
+    return normalizedDisplayTotal + normalizedTip;
+  }
+
+  return normalizedDisplayTotal;
+};
+
 export const getServiceChargeLabel = ({
   serviceChargeType,
   serviceChargeValue,

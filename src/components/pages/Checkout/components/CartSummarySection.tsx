@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation";
 import {
   getDisplayTotalAmount,
   getServiceChargeLabel,
+  getTipAdjustedDisplayTotalAmount,
   shouldShowPositiveAmountLine,
 } from "@/components/pages/Checkout/utils/checkout-formatters";
 import {
@@ -700,7 +701,18 @@ export function CartSummarySection({
       ? quoteSubtotal + pickupPriceTotal + deliveryFee + taxes + serviceCharge + tipAmount
       : computedTotalBeforeDiscount;
 
-  const quotedFinalTotal = quotePayableAmount;
+  const totalWithoutTip = Math.max(
+    0,
+    totalBeforeDiscount - tipAmount - discount - loyaltyDiscount - walletAppliedAmount
+  );
+  const quotedFinalTotal =
+    quotePayableAmount !== null
+      ? getTipAdjustedDisplayTotalAmount({
+          displayTotal: quotePayableAmount,
+          tipAmount,
+          totalWithoutTip,
+        })
+      : null;
 
   const finalTotal =
     quotedFinalTotal !== null
@@ -1250,7 +1262,7 @@ export function CartSummarySection({
                 value={tipInput}
                 onChange={(event) => setTipInput(event.target.value)}
                 placeholder="0"
-                className="h-[42px] flex-1 rounded-md border px-3 py-2 text-sm"
+                className="h-[42px] flex-1 rounded-md border border-gray-200 px-3 py-2 text-sm outline-none transition-colors focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
               />
               <Button
                 type="button"
@@ -1280,7 +1292,7 @@ export function CartSummarySection({
             value={couponCode || ""}
             onChange={(e) => setCouponCode?.(e.target.value)}
             placeholder={t("couponPlaceholder")}
-            className="flex-1 rounded-md border px-3 py-2 text-sm"
+            className="flex-1 rounded-md border border-gray-200 px-3 py-2 text-sm outline-none transition-colors focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
           />
 
           <Button

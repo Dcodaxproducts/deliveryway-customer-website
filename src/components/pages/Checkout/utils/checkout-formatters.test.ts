@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   getDisplayTotalAmount,
   getServiceChargeLabel,
+  getTipAdjustedDisplayTotalAmount,
   shouldShowPositiveAmountLine,
 } from "./checkout-formatters";
 
@@ -31,6 +32,24 @@ describe("checkout formatters", () => {
 
   it("prefers payableAmount over totalAmount", () => {
     expect(getDisplayTotalAmount({ totalAmount: 1200, payableAmount: 900 })).toBe(900);
+  });
+
+  it("adds tip to display total only when quoted total is still pre-tip", () => {
+    expect(
+      getTipAdjustedDisplayTotalAmount({
+        displayTotal: 1000,
+        tipAmount: 150,
+        totalWithoutTip: 1000,
+      })
+    ).toBe(1150);
+
+    expect(
+      getTipAdjustedDisplayTotalAmount({
+        displayTotal: 1150,
+        tipAmount: 150,
+        totalWithoutTip: 1000,
+      })
+    ).toBe(1150);
   });
 
   it("hides zero amount lines", () => {
