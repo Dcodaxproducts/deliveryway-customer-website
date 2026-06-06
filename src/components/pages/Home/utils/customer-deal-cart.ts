@@ -85,6 +85,39 @@ export const hasDealMenuItemModifierOptions = (item: CustomerDealMenuItem) =>
 export const hasUnsupportedDealMenuItemCustomization = (item: CustomerDealMenuItem) =>
   hasOptions(item.variations) || item.supportsSplitPizza === true;
 
+export const getDealMenuItemDefaultVariationId = (item: CustomerDealMenuItem) => {
+  const variations = Array.isArray(item.variations)
+    ? item.variations.filter(isRecord)
+    : [];
+  const defaultVariation = variations.find((variation) => variation.isDefault === true);
+  const fallbackVariation = variations[0];
+  const variationId = defaultVariation?.id ?? fallbackVariation?.id;
+
+  return typeof variationId === "string" || typeof variationId === "number"
+    ? String(variationId).trim()
+    : "";
+};
+
+export const getDealMenuItemDefaultVariationLabel = (item: CustomerDealMenuItem) => {
+  const variations = Array.isArray(item.variations)
+    ? item.variations.filter(isRecord)
+    : [];
+  const defaultVariation = variations.find((variation) => variation.isDefault === true);
+  const fallbackVariation = variations[0];
+  const variation = defaultVariation ?? fallbackVariation;
+  const label = variation?.displayText ?? variation?.name ?? variation?.label;
+
+  return typeof label === "string" ? label.trim() : "";
+};
+
+export const canSelectFlexibleDealItem = (item: CustomerDealMenuItem) =>
+  canAutoAddDealItem(item) ||
+  Boolean(
+    getDealMenuItemDefaultVariationId(item) &&
+      item.supportsSplitPizza !== true &&
+      !hasDealMenuItemModifierOptions(item)
+  );
+
 export const getDealScopedItemCustomizationState = (
   item: CustomerDealMenuItem
 ): DealScopedItemCustomizationState => {
@@ -373,13 +406,13 @@ export const buildSelectedFlexibleDealCartItemsInput = (
 
   const eligibleIds = new Set(
     eligibleMenuItems
-      .filter(canAutoAddDealItem)
+      .filter(canSelectFlexibleDealItem)
       .map(({ id }) => id.trim())
       .filter(Boolean)
   );
   const eligibleItemsById = new Map(
     eligibleMenuItems
-      .filter(canAutoAddDealItem)
+      .filter(canSelectFlexibleDealItem)
       .map((item) => [item.id.trim(), item])
   );
   const uniqueSelectedIds = Array.from(new Set(selectedMenuItemIds));
@@ -394,6 +427,7 @@ export const buildSelectedFlexibleDealCartItemsInput = (
     .filter((menuItemId) => eligibleIds.has(menuItemId))
     .map((menuItemId) => {
       const item = eligibleItemsById.get(menuItemId);
+      const variationId = item ? getDealMenuItemDefaultVariationId(item) : "";
 
       if (item && canSendDealIdForReadyMadeItem(deal, item)) {
         return buildReadyMadeDealCartItemPayload({
@@ -406,6 +440,7 @@ export const buildSelectedFlexibleDealCartItemsInput = (
       return {
         branchId: resolvedBranchId,
         menuItemId,
+        ...(variationId ? { variationId } : {}),
         quantity: 1,
       };
     });

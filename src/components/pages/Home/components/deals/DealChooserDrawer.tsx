@@ -18,8 +18,9 @@ import {
 import {
   buildCustomizableDealCartItemPayload,
   buildSelectedFlexibleDealCartItemsInput,
-  canAutoAddDealItem,
+  canSelectFlexibleDealItem,
   canSendDealIdWithModifierSelections,
+  getDealMenuItemDefaultVariationLabel,
   getDealTypeLabel,
   hasUnsupportedDealMenuItemCustomization,
   isDealMenuItemCustomizable,
@@ -478,8 +479,10 @@ export function DealChooserDrawer({
               const categoryName = item.category?.name?.trim();
               const description = item.description?.trim();
               const requiresCustomization = requiresCustomizationForDealItem(item);
-              const canSelectInline = canAutoAddDealItem(item);
-              const unsupportedDealCustomization = hasUnsupportedDealMenuItemCustomization(item);
+              const canSelectInline = canSelectFlexibleDealItem(item);
+              const defaultVariationLabel = getDealMenuItemDefaultVariationLabel(item);
+              const unsupportedDealCustomization =
+                hasUnsupportedDealMenuItemCustomization(item) && !canSelectInline;
               const canCustomizeInline = isDealMenuItemCustomizable(item);
 
               return (
@@ -520,13 +523,18 @@ export function DealChooserDrawer({
                         {description}
                       </p>
                     ) : null}
+                    {defaultVariationLabel && canSelectInline ? (
+                      <p className="mt-1 text-xs font-medium text-gray-500">
+                        {t("defaultVariationSelected", { variation: defaultVariationLabel })}
+                      </p>
+                    ) : null}
                   </div>
 
                   {unsupportedDealCustomization ? (
                     <div className="max-w-[170px] text-right text-xs font-medium text-red-500">
                       {t("unsupportedDealCustomization")}
                     </div>
-                  ) : requiresCustomization ? (
+                  ) : requiresCustomization && !canSelectInline ? (
                     <Button
                       className="h-9 shrink-0 rounded-full border border-primary/20 bg-white px-3 text-xs text-primary hover:bg-primary/5"
                       onClick={() =>

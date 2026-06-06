@@ -5,8 +5,11 @@ import {
   buildFixedDealCartItemsInput,
   buildReadyMadeDealCartItemPayload,
   buildSelectedFlexibleDealCartItemsInput,
+  canSelectFlexibleDealItem,
   canSendDealIdForReadyMadeItem,
   canSendDealIdWithModifierSelections,
+  getDealMenuItemDefaultVariationId,
+  getDealMenuItemDefaultVariationLabel,
   getDealActionLabel,
   getDealActionKind,
   getDealImage,
@@ -412,11 +415,14 @@ describe("customer deal cart helpers", () => {
     expect(payload).not.toHaveProperty("modifiers");
   });
 
-  it("deal item with variations is blocked as unsupported", () => {
+  it("flexible deal item with variations can be selected using its default variation", () => {
     const variationDealItem = {
       id: "deal-item-3",
       name: "Sized combo",
-      variations: [{ id: "large" }],
+      variations: [
+        { id: "small", name: "Small" },
+        { id: "large", displayText: "Large", isDefault: true },
+      ],
       modifierGroups: [],
       modifiers: [],
       modifierLinks: [],
@@ -426,6 +432,42 @@ describe("customer deal cart helpers", () => {
     expect(isDealMenuItemReadyMade(variationDealItem)).toBe(false);
     expect(isDealMenuItemCustomizable(variationDealItem)).toBe(false);
     expect(canSendDealIdForReadyMadeItem(fixedDeal, variationDealItem)).toBe(false);
+    expect(canSelectFlexibleDealItem(variationDealItem)).toBe(true);
+    expect(getDealMenuItemDefaultVariationId(variationDealItem)).toBe("large");
+    expect(getDealMenuItemDefaultVariationLabel(variationDealItem)).toBe("Large");
+    expect(buildSelectedFlexibleDealCartItemsInput(
+      flexibleItemDeal,
+      "branch-1",
+      ["deal-item-3"],
+      [variationDealItem]
+    )).toEqual([
+      {
+        branchId: "branch-1",
+        menuItemId: "deal-item-3",
+        variationId: "large",
+        quantity: 1,
+      },
+    ]);
+  });
+
+  it("flexible deal item with split pizza variation remains unsupported", () => {
+    const splitVariationDealItem = {
+      id: "deal-item-4",
+      name: "Split pizza",
+      variations: [{ id: "large" }],
+      modifierGroups: [],
+      modifiers: [],
+      modifierLinks: [],
+      supportsSplitPizza: true,
+    };
+
+    expect(canSelectFlexibleDealItem(splitVariationDealItem)).toBe(false);
+    expect(buildSelectedFlexibleDealCartItemsInput(
+      flexibleItemDeal,
+      "branch-1",
+      ["deal-item-4"],
+      [splitVariationDealItem]
+    )).toEqual([]);
   });
 
   it("unknown item detail triggers detail fetch path and does not auto-add", () => {

@@ -201,6 +201,7 @@
       "backToItems": "Back to items",
       "chooseOne": "Choose one",
       "chooseMultiple": "Choose options",
+      "defaultVariationSelected": "{variation} will be selected.",
       "unsupportedDealCustomization": "This deal item cannot be customized with variations yet.",
       "reviewDealItems": "Please review deal items before adding to cart.",
       "fixedRequirement": "Includes selected items",
