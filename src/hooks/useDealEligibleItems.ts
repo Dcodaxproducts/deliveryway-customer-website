@@ -89,7 +89,7 @@ export const canSubmitDealSelection = ({
 }: {
   selectedCount: number;
   requiredCount: number;
-}) => selectedCount >= requiredCount;
+}) => selectedCount === requiredCount;
 
 export const useDealEligibleItems = ({
   deal,

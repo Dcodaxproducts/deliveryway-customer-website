@@ -70,6 +70,7 @@ describe("deal eligible item helpers", () => {
   it("requires selected count to meet deal required quantity", () => {
     expect(canSubmitDealSelection({ selectedCount: 1, requiredCount: 2 })).toBe(false);
     expect(canSubmitDealSelection({ selectedCount: 2, requiredCount: 2 })).toBe(true);
+    expect(canSubmitDealSelection({ selectedCount: 3, requiredCount: 2 })).toBe(false);
   });
 
   it("uses scoped fixed item count as required count for fixed chooser deals", () => {
