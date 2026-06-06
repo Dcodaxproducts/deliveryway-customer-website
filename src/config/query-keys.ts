@@ -10,6 +10,8 @@ export const queryKeys = {
     all: ["branches"] as const,
     list: (restaurantId?: string | null) => ["branches", restaurantId ?? "all"] as const,
     request: (endpoint: string) => ["branches", "request", endpoint] as const,
+    nearby: (params: { lat?: number | null; lng?: number | null; page: number; limit: number }) =>
+      ["branches", "nearby", params] as const,
   },
   menu: {
     all: ["menu"] as const,
