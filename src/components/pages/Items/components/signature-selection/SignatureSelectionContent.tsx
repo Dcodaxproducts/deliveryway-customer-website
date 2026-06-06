@@ -29,6 +29,9 @@ import {
   buildModifierSelections,
   validateModifierSelections,
 } from "@/components/pages/Items/utils/modifier-selections";
+import {
+  getModifierPriceForVariation,
+} from "@/components/pages/Items/utils/modifier-pricing";
 
 type SignatureSelectionContentProps = {
   restaurantId?: string | null;
@@ -1138,53 +1141,16 @@ export function SignatureSelectionContent({
 
   const getModifierEffectivePrice = (
     modifier: Modifier,
-    itemId?: string,
+    item?: MenuItem | null,
     variation?: MenuVariation | null
   ) => {
-    const modifierId = String(modifier?.id || "");
-    const variationId = String(variation?.id || "");
+    if (!item) return toNumber(modifier?.priceDelta, 0);
 
-    if (variationId) {
-      const modifierSideOverride = findBestModifierOverride({
-        overrides: modifier?.variationPriceOverrides,
-        modifierId,
-        menuItemId: itemId,
-        variationId,
-      });
-
-      const modifierSideAmount = getOverrideAmount(modifierSideOverride);
-
-      if (modifierSideAmount !== null) {
-        return modifierSideAmount;
-      }
-
-      const variationSideOverride = findBestModifierOverride({
-        overrides: variation?.modifierPriceOverrides,
-        modifierId,
-        menuItemId: itemId,
-        variationId,
-      });
-
-      const variationSideAmount = getOverrideAmount(variationSideOverride);
-
-      if (variationSideAmount !== null) {
-        return variationSideAmount;
-      }
-    }
-
-    const itemOverride = findBestModifierOverride({
-      overrides: modifier?.itemPriceOverrides,
-      modifierId,
-      menuItemId: itemId,
+    return getModifierPriceForVariation({
+      item,
+      selectedVariationId: variation?.id ?? null,
+      modifierId: String(modifier?.id || ""),
     });
-
-    const itemAmount = getOverrideAmount(itemOverride);
-
-    if (itemAmount !== null) {
-      return itemAmount;
-    }
-
-    return toNumber(modifier?.priceDelta, 0);
   };
 
   const getGroupValidation = (group: ModifierGroup) => {
@@ -1338,7 +1304,7 @@ export function SignatureSelectionContent({
       .reduce((acc, modifier) => {
         const modifierPrice = getModifierEffectivePrice(
           modifier,
-          item?.id,
+          item,
           variation
         );
 
@@ -1854,7 +1820,7 @@ export function SignatureSelectionContent({
 
             const effectivePrice = getModifierEffectivePrice(
               modifier,
-              selectedItem.id,
+              selectedItem,
               selectedVariation
             );
 
@@ -1989,7 +1955,7 @@ export function SignatureSelectionContent({
 
               const effectivePrice = getModifierEffectivePrice(
                 modifier,
-                item.id,
+                item,
                 variation
               );
 
