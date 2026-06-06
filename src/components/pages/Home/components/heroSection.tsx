@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { MapPin, Navigation, Store } from "lucide-react";
+import { Navigation, Store } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -9,6 +9,7 @@ import { useTranslations } from "next-intl";
 import { useAuthContext } from "@/hooks/useAuth";
 import { useNearbyBranches } from "@/hooks/useBranches";
 import { useUserLocation } from "@/hooks/useUserLocation";
+import { AddressLocationPicker } from "@/components/common/branch-selector/AddressLocationPicker";
 import {
   branchSupportsDelivery,
   branchSupportsPickup,
@@ -42,7 +43,14 @@ const HeroSection = ({
   const resolvedHeroImage = resolveHttpsImageUrl(heroImage, "/hero.png");
   const [mode, setMode] = useState<BranchSearchMode>("delivery");
   const [showResults, setShowResults] = useState(false);
-  const { coordinates, permissionState, errorMessage, requestLocation } = useUserLocation();
+  const {
+    coordinates,
+    locationLabel,
+    permissionState,
+    errorMessage,
+    requestLocation,
+    acceptCoordinates,
+  } = useUserLocation();
   const nearbyQuery = useNearbyBranches(
     coordinates
       ? {
@@ -75,6 +83,16 @@ const HeroSection = ({
     if (!coordinates) {
       requestLocation();
     }
+  };
+
+  const handleUseCurrentLocation = () => {
+    setShowResults(true);
+    requestLocation();
+  };
+
+  const handleSelectSearchLocation = (nextCoordinates: { lat: number; lng: number }, label?: string) => {
+    acceptCoordinates(nextCoordinates, label || "Selected address");
+    setShowResults(true);
   };
 
   const handleSelectBranch = (branch: NearbyBranch) => {
@@ -152,26 +170,20 @@ const HeroSection = ({
           ) : null}
 
           <div className="relative">
-            <div className="flex flex-col gap-3 md:flex-row">
-              <div className="flex min-h-[49px] grow items-center gap-3 rounded-xl bg-[#F5F5F5] px-4 text-gray-700">
-                <MapPin size={20} className="shrink-0 text-primary" />
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-[#111827]">
-                    Use my location
-                  </p>
-                  <p className="truncate text-xs text-[#757575]">
-                    {coordinates
-                      ? "Location ready. Find the nearest branch."
-                      : "Share your location to see nearby branches first."}
-                  </p>
-                </div>
-              </div>
+            <AddressLocationPicker
+              coordinates={coordinates}
+              locationLabel={locationLabel}
+              onSelectLocation={handleSelectSearchLocation}
+              onUseCurrentLocation={handleUseCurrentLocation}
+              isLocating={permissionState === "requesting"}
+            />
 
+            <div className="mt-3 flex justify-end">
               <button
                 type="button"
                 onClick={handleFindNearbyBranches}
                 disabled={permissionState === "requesting"}
-                className="flex items-center justify-center gap-2 rounded-xl bg-primary px-8 py-4 text-base font-semibold text-white transition hover:bg-[#d94e24] disabled:cursor-not-allowed disabled:opacity-70 md:px-10"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-8 py-4 text-base font-semibold text-white transition hover:bg-[#d94e24] disabled:cursor-not-allowed disabled:opacity-70 md:w-auto md:px-10"
               >
                 <Navigation size={18} strokeWidth={3} />
                 {permissionState === "requesting" ? "Locating..." : "Find Nearby Branches"}

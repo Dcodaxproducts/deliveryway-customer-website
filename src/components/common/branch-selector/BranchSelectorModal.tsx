@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   FaCheckCircle,
-  FaLocationArrow,
   FaMapMarkerAlt,
   FaSearch,
   FaStore,
@@ -25,6 +24,7 @@ import {
 } from "@/lib/branch-selector";
 import { usePathname } from "next/navigation";
 import { useUserLocation } from "@/hooks/useUserLocation";
+import { AddressLocationPicker } from "@/components/common/branch-selector/AddressLocationPicker";
 
 type BranchSearchMode = "delivery" | "pickup";
 
@@ -68,7 +68,14 @@ export function BranchSelectorModal({
   const [branches, setBranches] = useState<Branch[]>([]);
   const [branchMode, setBranchMode] = useState<BranchSearchMode>("delivery");
   const [useNearbyResults, setUseNearbyResults] = useState(false);
-  const { coordinates, permissionState, errorMessage, requestLocation } = useUserLocation();
+  const {
+    coordinates,
+    locationLabel,
+    permissionState,
+    errorMessage,
+    requestLocation,
+    acceptCoordinates,
+  } = useUserLocation();
   const nearbyQuery = useNearbyBranches(
     coordinates
       ? {
@@ -254,6 +261,11 @@ export function BranchSelectorModal({
     requestLocation();
   };
 
+  const handleSelectSearchLocation = (nextCoordinates: { lat: number; lng: number }, label?: string) => {
+    acceptCoordinates(nextCoordinates, label || "Selected address");
+    setUseNearbyResults(true);
+  };
+
   const handleEmptyClose = () => {
     /*
      * Even when forceSelection is true, allow closing the modal if there are
@@ -324,18 +336,17 @@ export function BranchSelectorModal({
               ))}
             </div>
 
-            <button
-              type="button"
-              onClick={handleUseCurrentLocation}
-              disabled={permissionState === "requesting"}
-              className="mb-4 inline-flex h-11 items-center justify-center gap-2 rounded-full border border-[color:rgba(206,24,27,0.18)] bg-white px-5 text-sm font-semibold text-[var(--primary)] transition hover:bg-[color:rgba(206,24,27,0.04)] disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              <FaLocationArrow className="text-[12px]" />
-              {permissionState === "requesting" ? "Locating you..." : "Use my current location"}
-            </button>
+            <AddressLocationPicker
+              coordinates={coordinates}
+              locationLabel={locationLabel}
+              onSelectLocation={handleSelectSearchLocation}
+              onUseCurrentLocation={handleUseCurrentLocation}
+              isLocating={permissionState === "requesting"}
+              compact
+            />
 
             {branchMode === "delivery" ? (
-              <p className="mb-4 text-xs leading-5 text-[#8A8A8A]">
+              <p className="mb-4 mt-4 text-xs leading-5 text-[#8A8A8A]">
                 Delivery coverage is confirmed at checkout based on your address.
               </p>
             ) : null}
@@ -355,7 +366,7 @@ export function BranchSelectorModal({
                   setUseNearbyResults(false);
                   setSearchInput(e.target.value);
                 }}
-                placeholder={t("searchBranchByNameOrLocation")}
+                placeholder="Manual branch fallback search"
                 className="h-12 w-full rounded-2xl border border-[#E5E7EB] bg-[#F9FAFB] pl-11 pr-4 text-sm text-[#111827] outline-none transition-all duration-200 placeholder:text-[#9CA3AF] focus:border-[var(--primary)] focus:bg-white focus:ring-4 focus:ring-[color:rgba(206,24,27,0.08)]"
               />
             </div>

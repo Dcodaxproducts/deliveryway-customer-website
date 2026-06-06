@@ -9,6 +9,10 @@ export type UserCoordinates = {
   lng: number;
 };
 
+type StoredUserLocation = UserCoordinates & {
+  label?: string;
+};
+
 export type LocationPermissionState = "idle" | "requesting" | "granted" | "denied" | "unsupported";
 
 const USER_LOCATION_STORAGE_KEY = "deliveryway:last-user-location";
@@ -24,6 +28,15 @@ const isCoordinates = (value: unknown): value is UserCoordinates => {
   return typeof record.lat === "number" && Number.isFinite(record.lat) && typeof record.lng === "number" && Number.isFinite(record.lng);
 };
 
+const isStoredUserLocation = (value: unknown): value is StoredUserLocation => {
+  if (!isCoordinates(value)) {
+    return false;
+  }
+
+  const record = value as Record<string, unknown>;
+  return typeof record.label === "undefined" || typeof record.label === "string";
+};
+
 const readStoredCoordinates = () => {
   const stored = safeGetLocalStorageItem(USER_LOCATION_STORAGE_KEY);
 
@@ -33,18 +46,19 @@ const readStoredCoordinates = () => {
 
   try {
     const parsed = JSON.parse(stored) as unknown;
-    return isCoordinates(parsed) ? parsed : null;
+    return isStoredUserLocation(parsed) ? parsed : null;
   } catch {
     return null;
   }
 };
 
-const saveCoordinates = (coordinates: UserCoordinates) => {
-  safeSetLocalStorageItem(USER_LOCATION_STORAGE_KEY, JSON.stringify(coordinates));
+const saveCoordinates = (location: StoredUserLocation) => {
+  safeSetLocalStorageItem(USER_LOCATION_STORAGE_KEY, JSON.stringify(location));
 };
 
 export const useUserLocation = () => {
   const [coordinates, setCoordinates] = useState<UserCoordinates | null>(null);
+  const [locationLabel, setLocationLabel] = useState("");
   const [permissionState, setPermissionState] = useState<LocationPermissionState>("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -53,13 +67,28 @@ export const useUserLocation = () => {
 
     if (storedCoordinates) {
       setCoordinates(storedCoordinates);
+      setLocationLabel(storedCoordinates.label ?? "");
       setPermissionState("granted");
     }
+  }, []);
+
+  const acceptCoordinates = useCallback((nextCoordinates: UserCoordinates, label = "") => {
+    const nextLocation = {
+      ...nextCoordinates,
+      label,
+    };
+
+    saveCoordinates(nextLocation);
+    setCoordinates(nextCoordinates);
+    setLocationLabel(label);
+    setPermissionState("granted");
+    setErrorMessage("");
   }, []);
 
   const clearLocation = useCallback(() => {
     safeRemoveLocalStorageItem(USER_LOCATION_STORAGE_KEY);
     setCoordinates(null);
+    setLocationLabel("");
     setPermissionState("idle");
     setErrorMessage("");
   }, []);
@@ -81,9 +110,7 @@ export const useUserLocation = () => {
           lng: position.coords.longitude,
         };
 
-        saveCoordinates(nextCoordinates);
-        setCoordinates(nextCoordinates);
-        setPermissionState("granted");
+        acceptCoordinates(nextCoordinates, "Current location");
       },
       (error) => {
         setPermissionState(error.code === error.PERMISSION_DENIED ? "denied" : "idle");
@@ -95,12 +122,14 @@ export const useUserLocation = () => {
         timeout: 12000,
       }
     );
-  }, []);
+  }, [acceptCoordinates]);
 
   return {
     coordinates,
+    locationLabel,
     permissionState,
     errorMessage,
+    acceptCoordinates,
     requestLocation,
     clearLocation,
   };
