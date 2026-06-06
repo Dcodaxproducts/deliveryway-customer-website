@@ -14,7 +14,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const normalizeOptions = (value: unknown): CustomerDealMenuItemOption[] | undefined =>
   Array.isArray(value) ? value.filter(isRecord) : undefined;
 
-const toDealMenuItem = (item: MenuItem): CustomerDealMenuItem | null => {
+export const toDealEligibleMenuItem = (item: MenuItem): CustomerDealMenuItem | null => {
   const id = item.id ? String(item.id) : "";
 
   if (!id) {
@@ -34,14 +34,14 @@ const toDealMenuItem = (item: MenuItem): CustomerDealMenuItem | null => {
       name: typeof item.category?.name === "string" ? item.category.name : undefined,
     },
     variations: normalizeOptions(item.variations),
-    modifierGroups: normalizeOptions(item.modifierGroups),
-    modifiers: normalizeOptions(item.modifiers),
-    modifierLinks: normalizeOptions(item.modifierLinks),
+    modifierGroups: [],
+    modifiers: [],
+    modifierLinks: [],
     supportsSplitPizza: item.supportsSplitPizza ?? null,
-    minSelect: item.minSelect,
+    minSelect: null,
     maxSelect: item.maxSelect,
-    isRequired: item.isRequired,
-    minQuantity: item.minQuantity,
+    isRequired: false,
+    minQuantity: null,
     maxQuantity: item.maxQuantity,
     supportsDealIdCartPayload: item.supportsDealIdCartPayload ?? undefined,
     supportsDealCartPayload: item.supportsDealCartPayload ?? undefined,
@@ -151,7 +151,7 @@ export const useDealEligibleItems = ({
           setCategoryItems([]);
           setAllMenuItems(
             mergeUniqueDealEligibleItems([
-              items.map(toDealMenuItem).filter((item): item is CustomerDealMenuItem => item !== null),
+              items.map(toDealEligibleMenuItem).filter((item): item is CustomerDealMenuItem => item !== null),
             ])
           );
           return;
@@ -174,7 +174,7 @@ export const useDealEligibleItems = ({
 
         const nextItems = mergeUniqueDealEligibleItems(
           responses.map(({ items }) =>
-            items.map(toDealMenuItem).filter((item): item is CustomerDealMenuItem => item !== null)
+            items.map(toDealEligibleMenuItem).filter((item): item is CustomerDealMenuItem => item !== null)
           )
         );
 
