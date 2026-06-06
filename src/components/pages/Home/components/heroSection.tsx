@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { Navigation, Store } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Store } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 
@@ -41,6 +41,7 @@ const HeroSection = ({
   const t = useTranslations("home.hero");
   const { user, setUser } = useAuthContext();
   const resolvedHeroImage = resolveHttpsImageUrl(heroImage, "/hero.png");
+  const branchSearchRef = useRef<HTMLDivElement | null>(null);
   const [mode, setMode] = useState<BranchSearchMode>("delivery");
   const [showResults, setShowResults] = useState(false);
   const {
@@ -76,6 +77,33 @@ const HeroSection = ({
       ),
     [mode, nearbyQuery.branches]
   );
+
+  useEffect(() => {
+    if (!showResults) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target;
+
+      if (!(target instanceof Node)) return;
+      if (branchSearchRef.current?.contains(target)) return;
+
+      setShowResults(false);
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setShowResults(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [showResults]);
 
   const handleFindNearbyBranches = () => {
     setShowResults(true);
@@ -169,7 +197,7 @@ const HeroSection = ({
             </div>
           ) : null}
 
-          <div className="relative">
+          <div ref={branchSearchRef} className="relative">
             <AddressLocationPicker
               coordinates={coordinates}
               locationLabel={locationLabel}
@@ -177,18 +205,6 @@ const HeroSection = ({
               onUseCurrentLocation={handleUseCurrentLocation}
               isLocating={permissionState === "requesting"}
             />
-
-            <div className="mt-3 flex justify-end">
-              <button
-                type="button"
-                onClick={handleFindNearbyBranches}
-                disabled={permissionState === "requesting"}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-8 py-4 text-base font-semibold text-white transition hover:bg-[#d94e24] disabled:cursor-not-allowed disabled:opacity-70 md:w-auto md:px-10"
-              >
-                <Navigation size={18} strokeWidth={3} />
-                {permissionState === "requesting" ? "Locating..." : "Find Nearby Branches"}
-              </button>
-            </div>
 
             {mode === "delivery" ? (
               <p className="mt-3 text-xs text-[#8A8A8A]">
