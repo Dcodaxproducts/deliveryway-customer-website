@@ -135,7 +135,7 @@ const HeroSection = ({
   };
 
   return (
-    <main className="relative flex h-[630px] w-full items-center justify-center">
+    <main className="relative flex min-h-[630px] w-full items-center justify-center py-10 md:py-16">
       <div className="absolute inset-0 z-0">
         <Image
           src={resolvedHeroImage}
@@ -213,7 +213,7 @@ const HeroSection = ({
             ) : null}
 
             {showResults ? (
-              <div className="absolute left-0 right-0 top-[calc(100%+12px)] z-20 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_18px_45px_rgba(0,0,0,0.14)]">
+              <div className="mt-4 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_18px_45px_rgba(0,0,0,0.14)]">
                 {permissionState === "denied" || permissionState === "unsupported" ? (
                   <div className="px-5 py-6 text-sm text-gray-600">
                     {errorMessage || "Location is unavailable. Please choose a branch from the branch selector."}
@@ -228,7 +228,7 @@ const HeroSection = ({
                     No nearby {mode === "pickup" ? "pickup" : "delivery"} branches found.
                   </div>
                 ) : (
-                  <div className="max-h-[320px] divide-y divide-gray-100 overflow-y-auto">
+                  <div className="max-h-[min(320px,36vh)] divide-y divide-gray-100 overflow-y-auto">
                     {filteredBranches.map((branch) => {
                       const available = isBranchCurrentlyAvailable(branch);
 
