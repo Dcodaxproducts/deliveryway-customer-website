@@ -333,9 +333,6 @@ export function DealChooserDrawer({
 
     const nextItemErrors: Record<string, string> = {};
     const nextGroupErrors: Record<string, Record<string, string>> = {};
-    const dealForSelection = isFixedItemDeal(deal)
-      ? { ...deal, dealSelectionMode: "FLEXIBLE_ITEMS" as const, dealRequiredQuantity: requiredQuantity }
-      : deal;
     const cartItemPayloads = selectedMenuItemIds
       .map((menuItemId) => {
         const item = detailedItemsById.get(menuItemId);
@@ -346,7 +343,7 @@ export function DealChooserDrawer({
         }
 
         const validation = validateDealChooserItemConfiguration({
-          deal: dealForSelection,
+          deal,
           item,
           configuration: configurationsByItemId[menuItemId],
         });
@@ -364,7 +361,7 @@ export function DealChooserDrawer({
         }
 
         return buildDealCartItemPayload({
-          deal: dealForSelection,
+          deal,
           item,
           branchId,
           configuration: configurationsByItemId[menuItemId],
@@ -388,7 +385,7 @@ export function DealChooserDrawer({
 
     addDealMutation.mutate(
       {
-        deal: dealForSelection,
+        deal,
         selectedMenuItemIds,
         eligibleMenuItems: selectedItems,
         cartItemPayloads,

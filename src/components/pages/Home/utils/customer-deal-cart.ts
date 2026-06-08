@@ -194,12 +194,26 @@ export const isDealMenuItemCustomizable = (item: CustomerDealMenuItem): boolean 
 export const canSendDealIdForReadyMadeItem = (
   deal: CustomerDeal,
   item: CustomerDealMenuItem
-): boolean => Boolean(deal.id && item.id && isDealMenuItemReadyMade(item));
+): boolean =>
+  Boolean(
+    deal.id &&
+      item.id &&
+      (isFixedItemDeal(deal) || supportsDealIdCartPayload(item)) &&
+      !hasDealMenuItemModifierOptions(item) &&
+      !hasUnsupportedDealMenuItemCustomization(item)
+  );
 
 export const canSendDealIdWithModifierSelections = (
   deal: CustomerDeal,
   item: CustomerDealMenuItem
-): boolean => Boolean(deal.id && item.id && isDealMenuItemCustomizable(item));
+): boolean =>
+  Boolean(
+    deal.id &&
+      item.id &&
+      (isFixedItemDeal(deal) || supportsDealIdCartPayload(item)) &&
+      hasDealMenuItemModifierOptions(item) &&
+      !hasUnsupportedDealMenuItemCustomization(item)
+  );
 
 export const shouldSendDealIdForCartItem = (
   deal: CustomerDeal,

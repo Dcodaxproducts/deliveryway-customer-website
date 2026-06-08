@@ -81,8 +81,8 @@ const flexibleAllItemsDeal: CustomerDeal = {
 describe("customer deal cart helpers", () => {
   it("fixed deal builds payload for all scoped items", () => {
     expect(buildFixedDealCartItemsInput(fixedDeal, "branch-1")).toEqual([
-      { branchId: "branch-1", menuItemId: "burger-id", quantity: 1 },
-      { branchId: "branch-1", menuItemId: "drink-id", quantity: 1 },
+      { branchId: "branch-1", menuItemId: "burger-id", dealId: "deal-1", quantity: 1 },
+      { branchId: "branch-1", menuItemId: "drink-id", dealId: "deal-1", quantity: 1 },
     ]);
   });
 
@@ -218,17 +218,17 @@ describe("customer deal cart helpers", () => {
     ).toBe("SIMPLE");
   });
 
-  it("does not include dealId, coupon, discountType, or applyMode in cart payload", () => {
+  it("includes only fixed dealId, not coupon, discountType, or applyMode in cart payload", () => {
     const [payload] = buildFixedDealCartItemsInput(fixedDeal, "branch-1");
 
-    expect(Object.keys(payload)).toEqual(["branchId", "menuItemId", "quantity"]);
-    expect(payload).not.toHaveProperty("dealId");
+    expect(Object.keys(payload)).toEqual(["branchId", "menuItemId", "dealId", "quantity"]);
+    expect(payload.dealId).toBe("deal-1");
     expect(payload).not.toHaveProperty("coupon");
     expect(payload).not.toHaveProperty("discountType");
     expect(payload).not.toHaveProperty("applyMode");
   });
 
-  it("fixed scoped item helper does not include dealId unless explicitly safe", () => {
+  it("fixed scoped item helper includes dealId for simple fixed deal items", () => {
     const [payload] = buildFixedDealCartItemsInput(
       {
         ...fixedDeal,
@@ -246,7 +246,7 @@ describe("customer deal cart helpers", () => {
       "branch-1"
     );
 
-    expect(payload).not.toHaveProperty("dealId");
+    expect(payload.dealId).toBe("deal-1");
     expect(
       shouldSendDealIdForCartItem(fixedDeal, fixedDeal.scopeMenuItems[0])
     ).toBe(false);
@@ -414,6 +414,28 @@ describe("customer deal cart helpers", () => {
     });
     expect(payload).not.toHaveProperty("variationId");
     expect(payload).not.toHaveProperty("modifiers");
+  });
+
+  it("fixed scoped item with modifier selections can send dealId without support flag", () => {
+    const customizableItem = {
+      id: "deal-item-2",
+      name: "Custom combo",
+      variations: [],
+      modifierGroups: [
+        {
+          id: "group-1",
+          name: "Sauce",
+          minSelect: 1,
+          maxSelect: 1,
+          modifiers: [{ id: "modifier-1", name: "Garlic" }],
+        },
+      ],
+      modifiers: [],
+      modifierLinks: [],
+    };
+
+    expect(canSendDealIdWithModifierSelections(fixedDeal, customizableItem)).toBe(true);
+    expect(canSendDealIdWithModifierSelections(flexibleItemDeal, customizableItem)).toBe(false);
   });
 
   it("flexible deal item with variations can be selected using its default variation", () => {
