@@ -1232,6 +1232,7 @@ function ProductDetailsPageContent() {
 
     const helperPrice = getModifierPriceForVariation({
       item: menuItem,
+      selectedVariation: variation,
       selectedVariationId: variation?.id ?? null,
       modifierId: String(modifier?.id || ""),
     });

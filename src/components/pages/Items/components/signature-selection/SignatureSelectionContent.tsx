@@ -1152,6 +1152,7 @@ export function SignatureSelectionContent({
 
     return getModifierPriceForVariation({
       item,
+      selectedVariation: variation,
       selectedVariationId: variation?.id ?? null,
       modifierId: String(modifier?.id || ""),
     });

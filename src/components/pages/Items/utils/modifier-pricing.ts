@@ -160,10 +160,12 @@ const getModifierItemPriceOverrides = (modifier: ModifierPriceSource) => {
 
 export const getModifierPriceForVariation = ({
   item,
+  selectedVariation,
   selectedVariationId,
   modifierId,
 }: {
   item: ModifierPricingMenuItem;
+  selectedVariation?: VariationPriceOverrideSource | null;
   selectedVariationId?: string | null;
   modifierId: string;
 }): number => {
@@ -178,6 +180,15 @@ export const getModifierPriceForVariation = ({
 
   if (itemOverridePrice !== null) {
     return itemOverridePrice;
+  }
+
+  const selectedVariationModifierPrice = findModifierPrice(
+    selectedVariation?.modifierPriceOverrides,
+    normalizedModifierId
+  );
+
+  if (selectedVariationModifierPrice !== null) {
+    return selectedVariationModifierPrice;
   }
 
   const variation = findVariationOverride(item, selectedVariationId);

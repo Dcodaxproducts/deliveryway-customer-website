@@ -108,6 +108,27 @@ describe("modifier pricing", () => {
     ).toBe(0);
   });
 
+  it("uses selected variation modifierPriceOverrides from category variations", () => {
+    expect(
+      getModifierPriceForVariation({
+        item: baseItem,
+        selectedVariation: {
+          id: "small",
+          modifierPriceOverrides: [
+            {
+              menuItemId: "item-1",
+              variationId: "small",
+              modifierId: "modifier-1",
+              priceDelta: "1",
+            },
+          ],
+        },
+        selectedVariationId: "small",
+        modifierId: "modifier-1",
+      })
+    ).toBe(1);
+  });
+
   it("falls back to group modifier default price", () => {
     expect(
       getModifierPriceForVariation({

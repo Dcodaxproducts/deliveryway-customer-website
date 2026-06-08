@@ -953,6 +953,7 @@ export function RestaurantCard({ item }: { item: MenuItem }) {
 
     return getModifierPriceForVariation({
       item: menuItem,
+      selectedVariation: variation,
       selectedVariationId: variation?.id ?? null,
       modifierId: String(modifier?.id || ""),
     });
