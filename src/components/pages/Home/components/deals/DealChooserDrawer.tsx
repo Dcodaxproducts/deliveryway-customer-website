@@ -103,6 +103,7 @@ export function DealChooserDrawer({
   );
   const itemDetailsQuery = useDealScopedItemsDetails({
     itemIds,
+    items,
     enabled: open && itemIds.length > 0,
   });
 

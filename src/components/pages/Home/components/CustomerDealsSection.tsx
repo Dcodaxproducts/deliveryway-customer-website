@@ -196,6 +196,7 @@ export const CustomerDealsSection = ({
   );
   const scopedDetailsQuery = useDealScopedItemsDetails({
     itemIds: pendingDetailItemIds,
+    items: pendingDeal?.scopeMenuItems ?? [],
     enabled: Boolean(pendingDeal && pendingDetailItemIds.length > 0),
   });
 
@@ -251,11 +252,19 @@ export const CustomerDealsSection = ({
       return;
     }
 
-    const hasAllDetails = pendingDetailItemIds.every(
-      (itemId) => scopedDetailsQuery.detailsById[itemId]
-    );
+    const missingUnknownItemIds = pendingDetailItemIds.filter((itemId) => {
+      if (scopedDetailsQuery.detailsById[itemId]) {
+        return false;
+      }
 
-    if (!hasAllDetails) {
+      const pendingItem = pendingDeal.scopeMenuItems.find(
+        (item) => item.id.trim() === itemId
+      );
+
+      return !pendingItem || getDealScopedItemCustomizationState(pendingItem) === "UNKNOWN";
+    });
+
+    if (missingUnknownItemIds.length > 0) {
       setPendingDeal(null);
       toast.warning(t("reviewDealItems"));
       return;
