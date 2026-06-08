@@ -30,6 +30,7 @@ type AddressModalProps = {
 
 const initialForm: CheckoutAddressValues = {
   street: "",
+  postalCode: "",
   city: "",
   state: "",
   country: "",
@@ -76,6 +77,7 @@ export function AddressModal({
     () =>
       createCheckoutAddressSchema({
         streetRequired: validationT("streetRequired"),
+        postalCodeRequired: validationT("postalCodeRequired"),
         cityRequired: validationT("cityRequired"),
         countryRequired: validationT("countryRequired"),
       }),
@@ -95,6 +97,7 @@ export function AddressModal({
     if (editData) {
       reset({
         street: editData.street || "",
+        postalCode: editData.postalCode || "",
         city: editData.city || "",
         state: editData.state || "",
         country: editData.country || "",
@@ -163,6 +166,7 @@ export function AddressModal({
           ""
       );
       setValue("state", getAddressValue(address.state) || currentValues.state || "");
+      setValue("postalCode", getAddressValue(address.postcode) || currentValues.postalCode || "");
       setValue("country", getAddressValue(address.country) || currentValues.country || "");
       setValue("lat", lat);
       setValue("lng", lng);
@@ -197,13 +201,14 @@ export function AddressModal({
         state: form.state.trim(),
         country: form.country.trim(),
         area: form.area.trim(),
+        postalCode: form.postalCode.trim(),
         lat: form.lat.trim(),
         lng: form.lng.trim(),
       };
 
       const res = editData
         ? await patch(`/v1/addresses/${editData.id}`, payload)
-        : await post("/v1/addresses", payload);
+        : await post("/v1/addresses", { ...payload, isDefault: false });
 
       if (res?.error) {
         throw new Error(res.error);
@@ -330,16 +335,29 @@ export function AddressModal({
               </div>
             </div>
 
-            {/* COUNTRY */}
-            <div className="space-y-2">
-              <label className={LABEL_TEXT_CLASS}>
-                {t("country")}
-              </label>
-              <Input
-                placeholder={t("countryPlaceholder")}
-                {...register("country")}
-                className={INPUT_BASE_CLASS}
-              />
+            {/* POSTAL CODE / COUNTRY */}
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_1.4fr]">
+              <div className="space-y-2">
+                <label className={LABEL_TEXT_CLASS}>
+                  {t("postalCode")}
+                </label>
+                <Input
+                  placeholder={t("postalCodePlaceholder")}
+                  {...register("postalCode")}
+                  className={INPUT_BASE_CLASS}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className={LABEL_TEXT_CLASS}>
+                  {t("country")}
+                </label>
+                <Input
+                  placeholder={t("countryPlaceholder")}
+                  {...register("country")}
+                  className={INPUT_BASE_CLASS}
+                />
+              </div>
             </div>
 
             {/* LAT / LNG */}

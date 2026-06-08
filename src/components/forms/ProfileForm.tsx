@@ -470,6 +470,11 @@ export function ProfileForm() {
               <p className="text-sm text-[#7A7A7A]">
                 {addr.area}, {addr.city}
               </p>
+              {addr.postalCode ? (
+                <p className="text-sm text-[#7A7A7A]">
+                  {addr.postalCode}
+                </p>
+              ) : null}
               <p className="text-sm text-[#7A7A7A]">
                 {addr.state}, {addr.country}
               </p>

@@ -99,7 +99,14 @@ export function DeliveryAddressSection({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-[20px] md:gap-[30px]">
 
           {addresses.map((addr) => {
-            const fullAddress = `${addr.street}, ${addr.area}, ${addr.city}, ${addr.state}, ${addr.country}`;
+            const fullAddress = [
+              addr.street,
+              addr.area,
+              addr.postalCode,
+              addr.city,
+              addr.state,
+              addr.country,
+            ].filter(Boolean).join(", ");
 
 const isSelected = selectedAddress === addr.id;
 
