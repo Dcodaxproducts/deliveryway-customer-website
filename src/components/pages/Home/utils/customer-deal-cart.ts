@@ -157,6 +157,18 @@ export const getUnknownDealScopedItemIds = (deal: CustomerDeal) =>
     .map(({ id }) => id.trim())
     .filter(Boolean);
 
+export const getDealScopedItemIdsForDetails = (deal: CustomerDeal) => {
+  const scopedItemIds = deal.scopeMenuItems
+    .map(({ id }) => id.trim())
+    .filter(Boolean);
+
+  if (isFixedItemDeal(deal)) {
+    return scopedItemIds;
+  }
+
+  return getUnknownDealScopedItemIds(deal);
+};
+
 export const mergeDealScopedItemDetails = (
   deal: CustomerDeal,
   detailsById: Record<string, CustomerDealMenuItem>

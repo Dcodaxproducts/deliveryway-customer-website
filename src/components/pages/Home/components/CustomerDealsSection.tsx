@@ -14,8 +14,8 @@ import {
   getDealRequirementText,
   getDealTypeLabel,
   getDealActionKind,
+  getDealScopedItemIdsForDetails,
   getDealScopedItemCustomizationState,
-  getUnknownDealScopedItemIds,
   canSelectFlexibleDealItem,
   isFixedItemDeal,
   isFlexibleAllItemsDeal,
@@ -190,13 +190,13 @@ export const CustomerDealsSection = ({
   const activeDeals = deals.filter(isDealActive).slice(0, 6);
   const [selectedChooserDeal, setSelectedChooserDeal] = useState<CustomerDeal | null>(null);
   const [pendingDeal, setPendingDeal] = useState<CustomerDeal | null>(null);
-  const pendingUnknownItemIds = useMemo(
-    () => (pendingDeal ? getUnknownDealScopedItemIds(pendingDeal) : []),
+  const pendingDetailItemIds = useMemo(
+    () => (pendingDeal ? getDealScopedItemIdsForDetails(pendingDeal) : []),
     [pendingDeal]
   );
   const scopedDetailsQuery = useDealScopedItemsDetails({
-    itemIds: pendingUnknownItemIds,
-    enabled: Boolean(pendingDeal && pendingUnknownItemIds.length > 0),
+    itemIds: pendingDetailItemIds,
+    enabled: Boolean(pendingDeal && pendingDetailItemIds.length > 0),
   });
 
   const resolveDealAction = useCallback(
@@ -228,9 +228,9 @@ export const CustomerDealsSection = ({
 
   const handleDealClick = useCallback(
     (deal: CustomerDeal) => {
-      const unknownItemIds = getUnknownDealScopedItemIds(deal);
+      const detailItemIds = getDealScopedItemIdsForDetails(deal);
 
-      if (unknownItemIds.length > 0) {
+      if (detailItemIds.length > 0) {
         setPendingDeal(deal);
         return;
       }
@@ -241,7 +241,23 @@ export const CustomerDealsSection = ({
   );
 
   useEffect(() => {
-    if (!pendingDeal || pendingUnknownItemIds.length === 0 || scopedDetailsQuery.isLoading) {
+    if (!pendingDeal || pendingDetailItemIds.length === 0 || scopedDetailsQuery.isLoading) {
+      return;
+    }
+
+    if (scopedDetailsQuery.isError) {
+      setPendingDeal(null);
+      toast.warning(t("reviewDealItems"));
+      return;
+    }
+
+    const hasAllDetails = pendingDetailItemIds.every(
+      (itemId) => scopedDetailsQuery.detailsById[itemId]
+    );
+
+    if (!hasAllDetails) {
+      setPendingDeal(null);
+      toast.warning(t("reviewDealItems"));
       return;
     }
 
@@ -254,10 +270,12 @@ export const CustomerDealsSection = ({
     resolveDealAction(resolvedDeal);
   }, [
     pendingDeal,
-    pendingUnknownItemIds.length,
+    pendingDetailItemIds.length,
     resolveDealAction,
     scopedDetailsQuery.detailsById,
+    scopedDetailsQuery.isError,
     scopedDetailsQuery.isLoading,
+    t,
   ]);
 
   if (isLoading) {

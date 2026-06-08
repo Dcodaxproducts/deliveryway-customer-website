@@ -14,6 +14,7 @@ import {
   getDealActionKind,
   getDealImage,
   getDealRequirementText,
+  getDealScopedItemIdsForDetails,
   getDealScopedItemCustomizationState,
   getUnknownDealScopedItemIds,
   getDealTypeLabel,
@@ -480,6 +481,14 @@ describe("customer deal cart helpers", () => {
       "branch-1"
     )).toEqual([]);
     expect(getDealActionKind({ ...fixedDeal, scopeMenuItems: [unknownItem] })).toBe("OPEN_CHOOSER");
+  });
+
+  it("fixed deals fetch full item details before deciding auto-add", () => {
+    expect(getDealScopedItemIdsForDetails(fixedDeal)).toEqual([
+      "burger-id",
+      "drink-id",
+    ]);
+    expect(getDealScopedItemIdsForDetails(flexibleItemDeal)).toEqual([]);
   });
 
   it("deal type label works", () => {
