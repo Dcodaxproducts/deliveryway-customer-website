@@ -14,6 +14,7 @@ import { useTranslations } from "next-intl";
 type CartItem = {
   id: string;
   menuItemId?: string;
+  dealId?: string | null;
   quantity: number;
   name: string;
   unitPrice: number;
@@ -63,6 +64,7 @@ export function OrderCartSidebar({
         return {
           id: String(item.id ?? ""),
           menuItemId: item.menuItemId ? String(item.menuItemId) : undefined,
+          dealId: typeof item.dealId === "string" ? item.dealId : null,
           quantity,
           name: item.menuItem?.name || t("untitledItem"),
           unitPrice,
@@ -98,6 +100,7 @@ export function OrderCartSidebar({
   const updateQuantity = async (id: string, type: "inc" | "dec") => {
     const item = cartItems.find((i) => i.id === id);
     if (!item || !customerId) return;
+    if (item.dealId) return;
 
     const newQty =
       type === "inc" ? item.quantity + 1 : Math.max(1, item.quantity - 1);
@@ -219,27 +222,33 @@ export function OrderCartSidebar({
                       </div>
 
                       <div className="flex items-center justify-between gap-3">
-                        <div className="flex h-8 items-center overflow-hidden rounded-full border border-black/5 bg-[#f7f7f7] px-1.5">
-                          <button
-                            onClick={() => updateQuantity(item.id, "dec")}
-                            disabled={actionId === item.id}
-                            className="flex h-6 w-6 items-center justify-center rounded-full text-[#666] transition hover:bg-white hover:text-[#222] disabled:opacity-50"
-                          >
-                            <Minus className="h-3.5 w-3.5" />
-                          </button>
-
-                          <span className="w-7 text-center text-[13px] font-medium text-[#222]">
+                        {item.dealId ? (
+                          <div className="inline-flex h-8 min-w-8 items-center justify-center rounded-full border border-primary/10 bg-primary/5 px-3 text-[13px] font-semibold text-primary">
                             {item.quantity}
-                          </span>
+                          </div>
+                        ) : (
+                          <div className="flex h-8 items-center overflow-hidden rounded-full border border-black/5 bg-[#f7f7f7] px-1.5">
+                            <button
+                              onClick={() => updateQuantity(item.id, "dec")}
+                              disabled={actionId === item.id}
+                              className="flex h-6 w-6 items-center justify-center rounded-full text-[#666] transition hover:bg-white hover:text-[#222] disabled:opacity-50"
+                            >
+                              <Minus className="h-3.5 w-3.5" />
+                            </button>
 
-                          <button
-                            onClick={() => updateQuantity(item.id, "inc")}
-                            disabled={actionId === item.id}
-                            className="flex h-6 w-6 items-center justify-center rounded-full text-[#666] transition hover:bg-white hover:text-[#222] disabled:opacity-50"
-                          >
-                            <Plus className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
+                            <span className="w-7 text-center text-[13px] font-medium text-[#222]">
+                              {item.quantity}
+                            </span>
+
+                            <button
+                              onClick={() => updateQuantity(item.id, "inc")}
+                              disabled={actionId === item.id}
+                              className="flex h-6 w-6 items-center justify-center rounded-full text-[#666] transition hover:bg-white hover:text-[#222] disabled:opacity-50"
+                            >
+                              <Plus className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        )}
 
                         <span className="shrink-0 text-[13px] font-medium text-[#222]">
                           ${item.lineTotal.toFixed(2)}

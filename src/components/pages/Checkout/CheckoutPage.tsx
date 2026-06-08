@@ -199,6 +199,7 @@ function CheckoutPageContent() {
   const updateQuantity = async (id: string, type: "inc" | "dec") => {
     const currentItem = cartItems.find((item) => item.id === id);
     if (!currentItem) return;
+    if (currentItem.dealId) return;
 
     const currentQty = Math.max(1, toNumber(currentItem.quantity, 1));
 

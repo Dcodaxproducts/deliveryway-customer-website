@@ -898,6 +898,7 @@ export function CartSummarySection({
                 selectedSections,
                 splitLabels
               );
+              const isDealItem = Boolean(item.dealId);
 
               return (
                 <div
@@ -1146,27 +1147,33 @@ export function CartSummarySection({
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-[12px]">
-                          <button
-                            type="button"
-                            onClick={() => updateQuantity(String(item.id), "dec")}
-                            className="flex h-[20px] w-[20px] items-center justify-center rounded-sm border border-gray-900 text-gray-900 transition-colors hover:border-primary hover:text-primary"
-                          >
-                            <Minus size={13} strokeWidth={3} />
-                          </button>
-
-                          <span className="w-4 text-center text-base text-gray-900">
+                        {isDealItem ? (
+                          <div className="inline-flex h-8 min-w-8 items-center justify-center rounded-full border border-primary/10 bg-primary/5 px-3 text-sm font-semibold text-primary">
                             {quantity}
-                          </span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-[12px]">
+                            <button
+                              type="button"
+                              onClick={() => updateQuantity(String(item.id), "dec")}
+                              className="flex h-[20px] w-[20px] items-center justify-center rounded-sm border border-gray-900 text-gray-900 transition-colors hover:border-primary hover:text-primary"
+                            >
+                              <Minus size={13} strokeWidth={3} />
+                            </button>
 
-                          <button
-                            type="button"
-                            onClick={() => updateQuantity(String(item.id), "inc")}
-                            className="flex h-[20px] w-[20px] items-center justify-center rounded-sm border border-gray-900 text-gray-900 transition-colors hover:border-primary hover:text-primary"
-                          >
-                            <Plus size={13} strokeWidth={3} />
-                          </button>
-                        </div>
+                            <span className="w-4 text-center text-base text-gray-900">
+                              {quantity}
+                            </span>
+
+                            <button
+                              type="button"
+                              onClick={() => updateQuantity(String(item.id), "inc")}
+                              className="flex h-[20px] w-[20px] items-center justify-center rounded-sm border border-gray-900 text-gray-900 transition-colors hover:border-primary hover:text-primary"
+                            >
+                              <Plus size={13} strokeWidth={3} />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
