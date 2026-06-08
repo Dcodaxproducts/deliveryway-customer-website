@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, MapPin, Navigation, X } from "lucide-react";
+import { Check, Loader2, MapPin, Navigation, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +37,7 @@ const initialForm: CheckoutAddressValues = {
   area: "",
   lat: "",
   lng: "",
+  isDefault: false,
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -86,10 +87,11 @@ export function AddressModal({
 
   const [loading, setLoading] = useState(false);
   const [locating, setLocating] = useState(false);
-  const { register, reset, setValue, getValues, handleSubmit } = useForm<CheckoutAddressValues>({
+  const { register, reset, setValue, getValues, handleSubmit, watch } = useForm<CheckoutAddressValues>({
     resolver: zodResolver(checkoutAddressSchema),
     defaultValues: initialForm,
   });
+  const isDefaultSelected = watch("isDefault");
 
   useEffect(() => {
     if (!open) return;
@@ -104,6 +106,7 @@ export function AddressModal({
         area: editData.area || "",
         lat: editData.lat ? String(editData.lat) : "",
         lng: editData.lng ? String(editData.lng) : "",
+        isDefault: Boolean(editData.isDefault),
       });
     } else {
       reset(initialForm);
@@ -204,11 +207,12 @@ export function AddressModal({
         postalCode: form.postalCode.trim(),
         lat: form.lat.trim(),
         lng: form.lng.trim(),
+        isDefault: form.isDefault,
       };
 
       const res = editData
         ? await patch(`/v1/addresses/${editData.id}`, payload)
-        : await post("/v1/addresses", { ...payload, isDefault: false });
+        : await post("/v1/addresses", payload);
 
       if (res?.error) {
         throw new Error(res.error);
@@ -282,6 +286,47 @@ export function AddressModal({
             </div>
 
             <div className="h-px bg-[#ECECEC]" />
+
+            <button
+              type="button"
+              role="switch"
+              aria-checked={isDefaultSelected}
+              onClick={() => {
+                setValue("isDefault", !isDefaultSelected, {
+                  shouldDirty: true,
+                  shouldTouch: true,
+                });
+              }}
+              className={`flex w-full items-center justify-between gap-4 rounded-[18px] border p-4 text-left transition ${
+                isDefaultSelected
+                  ? "border-[#D91F26]/25 bg-[#D91F26]/5"
+                  : "border-[#ECECEC] bg-[#FAFAFA] hover:border-[#D7D7D7]"
+              }`}
+            >
+              <span>
+                <span className="block text-[14px] font-semibold text-[#202020]">
+                  {t("setAsDefault")}
+                </span>
+                <span className="mt-1 block text-[12px] leading-5 text-[#7A7A7A]">
+                  {t("setAsDefaultDescription")}
+                </span>
+              </span>
+              <span
+                className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full p-1 transition ${
+                  isDefaultSelected ? "bg-[#D91F26]" : "bg-[#D8D8D8]"
+                }`}
+              >
+                <span
+                  className={`flex h-5 w-5 items-center justify-center rounded-full bg-white shadow-sm transition ${
+                    isDefaultSelected ? "translate-x-5" : "translate-x-0"
+                  }`}
+                >
+                  {isDefaultSelected ? (
+                    <Check className="h-3.5 w-3.5 text-[#D91F26]" />
+                  ) : null}
+                </span>
+              </span>
+            </button>
 
             {/* STREET */}
             <div className="space-y-2">

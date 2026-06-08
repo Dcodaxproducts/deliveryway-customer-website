@@ -11,9 +11,10 @@ import {
 
 describe("checkout validation", () => {
   it("validates checkout address requirements", () => {
-    expect(checkoutAddressSchema.safeParse({ street: "", postalCode: "", city: "", state: "", country: "", area: "", lat: "", lng: "" }).success).toBe(false);
-    expect(checkoutAddressSchema.safeParse({ street: "A", postalCode: "12345", city: "B", state: "", country: "C", area: "", lat: "", lng: "" }).success).toBe(true);
-    expect(checkoutAddressSchema.safeParse({ street: "A", postalCode: "", city: "B", state: "", country: "C", area: "", lat: "", lng: "" }).success).toBe(false);
+    expect(checkoutAddressSchema.safeParse({ street: "", postalCode: "", city: "", state: "", country: "", area: "", lat: "", lng: "", isDefault: false }).success).toBe(false);
+    expect(checkoutAddressSchema.safeParse({ street: "A", postalCode: "12345", city: "B", state: "", country: "C", area: "", lat: "", lng: "", isDefault: true }).success).toBe(true);
+    expect(checkoutAddressSchema.safeParse({ street: "A", postalCode: "", city: "B", state: "", country: "C", area: "", lat: "", lng: "", isDefault: false }).success).toBe(false);
+    expect(checkoutAddressSchema.safeParse({ street: "A", postalCode: "12345", city: "B", state: "", country: "C", area: "", lat: "", lng: "" }).success).toBe(false);
   });
 
   it("validates customer and notes shapes", () => {
@@ -45,7 +46,7 @@ describe("checkout validation", () => {
       countryRequired: "Country translated",
     });
 
-    const result = schema.safeParse({ street: "", postalCode: "", city: "", state: "", country: "", area: "", lat: "", lng: "" });
+    const result = schema.safeParse({ street: "", postalCode: "", city: "", state: "", country: "", area: "", lat: "", lng: "", isDefault: false });
 
     expect(result.success).toBe(false);
 

@@ -22,6 +22,7 @@ export type AddressRecord = {
   city?: string;
   state?: string;
   country?: string;
+  isDefault?: boolean;
 };
 
 export type WalletSummary = {
@@ -103,6 +104,7 @@ export const fetchAddresses = async (api: Pick<ApiClient, "get">): Promise<Addre
     city: getString(address.city),
     state: getString(address.state),
     country: getString(address.country),
+    isDefault: address.isDefault === true,
   })) : [];
 };
 

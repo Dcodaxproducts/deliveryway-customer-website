@@ -49,6 +49,7 @@ export const createCheckoutAddressSchema = (
   area: z.string().trim(),
   lat: z.string().trim(),
   lng: z.string().trim(),
+  isDefault: z.boolean(),
 });
 
 export const checkoutCustomerSchema = createCheckoutCustomerSchema(
