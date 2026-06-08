@@ -418,26 +418,17 @@ export function DealChooserDrawer({
     selectedMenuItemIds.every((itemId) => {
       const item = detailedItemsById.get(itemId);
 
-      if (!item || item.supportsSplitPizza === true) {
+      if (!item || !deal) {
         return false;
       }
 
-      const variations = getDealChooserVariations(item);
-      const groups = getDealChooserModifierGroups(item);
-      const selectedModifiers = getSelectedModifiersByGroup(
-        groups,
-        configurationsByItemId[itemId]
-      );
-      const variationComplete =
-        variations.length === 0 || Boolean(configurationsByItemId[itemId]?.selectedVariationId);
-      const modifiersComplete = groups.every((group) => {
-        const groupId = getDealChooserId(group.id);
-        const minSelect = Math.max(0, getDealChooserNumber(group.minSelect, 0));
-
-        return (selectedModifiers[groupId]?.length ?? 0) >= minSelect;
+      const validation = validateDealChooserItemConfiguration({
+        deal,
+        item,
+        configuration: configurationsByItemId[itemId],
       });
 
-      return variationComplete && modifiersComplete;
+      return !validation.itemError && Object.keys(validation.groupErrors).length === 0;
     });
 
   const getItemStatus = useCallback(

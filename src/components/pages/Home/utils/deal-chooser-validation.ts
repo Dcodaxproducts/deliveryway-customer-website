@@ -269,13 +269,6 @@ export const validateDealChooserItemConfiguration = ({
   item: CustomerDealMenuItem;
   configuration?: DealChooserItemConfiguration;
 }): DealChooserItemValidationResult => {
-  if (item.supportsSplitPizza === true) {
-    return {
-      itemError: "Split customization is not supported for this deal item.",
-      groupErrors: {},
-    };
-  }
-
   const groups = getDealChooserModifierGroups(item);
   const variations = getDealChooserVariations(item);
   const hasBackendDealFlow = canUseBackendDealItemFlow(deal, item);

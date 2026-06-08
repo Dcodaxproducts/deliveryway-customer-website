@@ -325,4 +325,46 @@ describe("deal chooser validation", () => {
       modifierSelections: configuration.modifierSelections,
     });
   });
+
+  it("allows split-capable flexible items when normal variation and modifier choices are selected", () => {
+    const configuration: DealChooserItemConfiguration = {
+      menuItemId: "pizza",
+      selectedVariationId: "small",
+      modifierSelections: [
+        {
+          modifierGroupId: "size",
+          modifiers: [{ modifierId: "large", quantity: 1 }],
+        },
+      ],
+    };
+
+    const item: CustomerDealMenuItem = {
+      ...requiredModifierItem,
+      variations: [{ id: "small", name: "Small" }],
+      supportsSplitPizza: true,
+    };
+
+    const validation = validateDealChooserItemConfiguration({
+      deal: flexibleDeal,
+      item,
+      configuration,
+    });
+
+    expect(validation.itemError).toBeUndefined();
+    expect(validation.groupErrors).toEqual({});
+    expect(
+      buildDealCartItemPayload({
+        deal: flexibleDeal,
+        item,
+        branchId: "branch-1",
+        configuration,
+      })
+    ).toEqual({
+      branchId: "branch-1",
+      menuItemId: "pizza",
+      quantity: 1,
+      variationId: "small",
+      modifierSelections: configuration.modifierSelections,
+    });
+  });
 });
