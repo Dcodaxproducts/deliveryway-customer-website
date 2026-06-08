@@ -202,6 +202,11 @@ export const CustomerDealsSection = ({
 
   const resolveDealAction = useCallback(
     (deal: CustomerDeal) => {
+      if (isFixedItemDeal(deal)) {
+        onAddDeal?.(deal);
+        return;
+      }
+
       const states = deal.scopeMenuItems.map(getDealScopedItemCustomizationState);
 
       if (states.includes("UNKNOWN")) {

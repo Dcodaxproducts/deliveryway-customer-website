@@ -158,13 +158,13 @@ export const getUnknownDealScopedItemIds = (deal: CustomerDeal) =>
     .filter(Boolean);
 
 export const getDealScopedItemIdsForDetails = (deal: CustomerDeal) => {
+  if (isFixedItemDeal(deal)) {
+    return [];
+  }
+
   const scopedItemIds = deal.scopeMenuItems
     .map(({ id }) => id.trim())
     .filter(Boolean);
-
-  if (isFixedItemDeal(deal)) {
-    return scopedItemIds;
-  }
 
   return getUnknownDealScopedItemIds(deal);
 };
@@ -260,8 +260,7 @@ export const canAutoAddDealItem = (item: CustomerDealMenuItem) =>
 
 export const canAutoAddFixedDeal = (deal: CustomerDeal) =>
   isFixedItemDeal(deal) &&
-  deal.scopeMenuItems.length > 0 &&
-  deal.scopeMenuItems.every(canAutoAddDealItem);
+  deal.scopeMenuItems.some(({ id }) => id.trim());
 
 export const canUseInlineFlexibleDealSelection = (deal: CustomerDeal) =>
   isFlexibleItemDeal(deal) &&
@@ -407,15 +406,9 @@ export const buildFixedDealCartItemsInput = (
   }
 
   return deal.scopeMenuItems
-    .filter(canAutoAddDealItem)
+    .filter((item) => item.id.trim())
     .map((item) =>
-      canSendDealIdForReadyMadeItem(deal, item)
-        ? buildReadyMadeDealCartItemPayload({ deal, item, branchId: resolvedBranchId })
-        : {
-            branchId: resolvedBranchId,
-            menuItemId: item.id.trim(),
-            quantity: 1,
-          }
+      buildReadyMadeDealCartItemPayload({ deal, item, branchId: resolvedBranchId })
     )
     .filter((payload) => payload.menuItemId);
 };

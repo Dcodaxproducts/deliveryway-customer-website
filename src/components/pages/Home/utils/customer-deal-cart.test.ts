@@ -86,6 +86,34 @@ describe("customer deal cart helpers", () => {
     ]);
   });
 
+  it("fixed combo payload ignores underlying required modifiers", () => {
+    const requiredModifierDeal = {
+      ...fixedDeal,
+      id: "fixed-combo",
+      scopeMenuItems: [
+        {
+          id: "pizza-id",
+          name: "Pizza",
+          modifierGroups: [
+            {
+              id: "group-1",
+              minSelect: 1,
+              modifiers: [{ id: "modifier-1", name: "Cheese" }],
+            },
+          ],
+          modifiers: [],
+          modifierLinks: [],
+          variations: [],
+        },
+      ],
+    };
+
+    expect(getDealActionKind(requiredModifierDeal)).toBe("AUTO_ADD");
+    expect(buildFixedDealCartItemsInput(requiredModifierDeal, "branch-1")).toEqual([
+      { branchId: "branch-1", menuItemId: "pizza-id", dealId: "fixed-combo", quantity: 1 },
+    ]);
+  });
+
   it("flexible item deal builds payload only for selected eligible items", () => {
     expect(
       buildSelectedFlexibleDealCartItemsInput(
@@ -153,7 +181,7 @@ describe("customer deal cart helpers", () => {
     expect(getDealRequirementText(flexibleAllItemsDeal)).toBe("Choose any 1 item");
   });
 
-  it("fixed simple deal can auto-add only if no customization", () => {
+  it("fixed deal can auto-add even when scoped items have customization metadata", () => {
     expect(getDealActionKind(fixedDeal)).toBe("AUTO_ADD");
     expect(
       getDealActionKind({
@@ -169,7 +197,7 @@ describe("customer deal cart helpers", () => {
           },
         ],
       })
-    ).toBe("OPEN_CHOOSER");
+    ).toBe("AUTO_ADD");
   });
 
   it("scope item with required modifierGroups returns requires modifiers", () => {
@@ -493,7 +521,7 @@ describe("customer deal cart helpers", () => {
     )).toEqual([]);
   });
 
-  it("unknown item detail triggers detail fetch path and does not auto-add", () => {
+  it("unknown fixed deal item still uses ready-made deal payload", () => {
     const unknownItem = { id: "drink-id", name: "Drink" };
 
     expect(getDealScopedItemCustomizationState(unknownItem)).toBe("UNKNOWN");
@@ -501,15 +529,14 @@ describe("customer deal cart helpers", () => {
     expect(buildFixedDealCartItemsInput(
       { ...fixedDeal, scopeMenuItems: [unknownItem] },
       "branch-1"
-    )).toEqual([]);
-    expect(getDealActionKind({ ...fixedDeal, scopeMenuItems: [unknownItem] })).toBe("OPEN_CHOOSER");
+    )).toEqual([
+      { branchId: "branch-1", menuItemId: "drink-id", dealId: "deal-1", quantity: 1 },
+    ]);
+    expect(getDealActionKind({ ...fixedDeal, scopeMenuItems: [unknownItem] })).toBe("AUTO_ADD");
   });
 
-  it("fixed deals fetch full item details before deciding auto-add", () => {
-    expect(getDealScopedItemIdsForDetails(fixedDeal)).toEqual([
-      "burger-id",
-      "drink-id",
-    ]);
+  it("fixed deals do not fetch item details before direct add", () => {
+    expect(getDealScopedItemIdsForDetails(fixedDeal)).toEqual([]);
     expect(getDealScopedItemIdsForDetails(flexibleItemDeal)).toEqual([]);
   });
 
