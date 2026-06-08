@@ -78,6 +78,36 @@ describe("modifier pricing", () => {
     ).toBe(75);
   });
 
+  it("prioritizes item modifierPriceOverrides over nested variation prices", () => {
+    expect(
+      getModifierPriceForVariation({
+        item: {
+          ...baseItem,
+          modifierPriceOverrides: [
+            {
+              modifierId: "modifier-1",
+              priceDelta: "0",
+              modifier: {
+                id: "modifier-1",
+                name: "Cheese",
+                priceDelta: "5",
+                variationPriceOverrides: [
+                  {
+                    variationId: "small",
+                    modifierId: "modifier-1",
+                    priceDelta: "2",
+                  },
+                ],
+              },
+            },
+          ],
+        },
+        selectedVariationId: "small",
+        modifierId: "modifier-1",
+      })
+    ).toBe(0);
+  });
+
   it("falls back to group modifier default price", () => {
     expect(
       getModifierPriceForVariation({

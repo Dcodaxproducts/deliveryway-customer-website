@@ -1077,7 +1077,11 @@ function ProductDetailsPageContent() {
     const modifiers = getNormalizedModifiersFromGroup(group);
     const minSelect = Math.max(0, toNumber(group?.minSelect, 0));
     const rawMaxSelect = toNumber(group?.maxSelect, modifiers.length);
-    const selectionType = group?.selectionType === "SINGLE" ? "SINGLE" : "MULTIPLE";
+    const isSingleSelectionGroup = minSelect === 1 && rawMaxSelect === 1;
+    const selectionType =
+      group?.selectionType === "SINGLE" || isSingleSelectionGroup
+        ? "SINGLE"
+        : "MULTIPLE";
     const maxSelect = selectionType === "SINGLE"
       ? 1
       : Math.max(minSelect, rawMaxSelect > 0 ? rawMaxSelect : modifiers.length);
@@ -1242,7 +1246,11 @@ function ProductDetailsPageContent() {
         ? toNumber(group.maxSelect, 0)
         : undefined;
 
-    const selectionType = group?.selectionType === "SINGLE" ? "SINGLE" : "MULTIPLE";
+    const isSingleSelectionGroup = rawMin === 1 && rawMax === 1;
+    const selectionType =
+      group?.selectionType === "SINGLE" || isSingleSelectionGroup
+        ? "SINGLE"
+        : "MULTIPLE";
     const isRequired = Boolean(group?.isRequired) || rawMin > 0;
 
     return {
