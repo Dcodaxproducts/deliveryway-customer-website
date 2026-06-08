@@ -906,14 +906,16 @@ export function CartSummarySection({
                   className="group relative rounded-2xl border border-gray-100 bg-white p-3 shadow-sm transition hover:shadow-md"
                 >
                   <div className="absolute right-2 top-2 z-10 flex gap-1 opacity-0 transition group-hover:opacity-100">
-                    <button
-                      type="button"
-                      onClick={() => handleEditItem(item)}
-                      className="rounded-md bg-gray-100 p-1 transition hover:bg-primary/10"
-                      aria-label={t("editItem", { name: item.name })}
-                    >
-                      <Pencil size={14} className="text-gray-700" />
-                    </button>
+                    {!isDealItem ? (
+                      <button
+                        type="button"
+                        onClick={() => handleEditItem(item)}
+                        className="rounded-md bg-gray-100 p-1 transition hover:bg-primary/10"
+                        aria-label={t("editItem", { name: item.name })}
+                      >
+                        <Pencil size={14} className="text-gray-700" />
+                      </button>
+                    ) : null}
 
                     <button
                       type="button"
