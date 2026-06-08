@@ -173,15 +173,6 @@ export const getModifierPriceForVariation = ({
 
   if (!normalizedModifierId) return 0;
 
-  const itemOverridePrice = findModifierPrice(
-    item.modifierPriceOverrides,
-    normalizedModifierId
-  );
-
-  if (itemOverridePrice !== null) {
-    return itemOverridePrice;
-  }
-
   const selectedVariationModifierPrice = findModifierPrice(
     selectedVariation?.modifierPriceOverrides,
     normalizedModifierId
@@ -199,6 +190,15 @@ export const getModifierPriceForVariation = ({
 
   if (variationModifierPrice !== null) {
     return variationModifierPrice;
+  }
+
+  const itemOverridePrice = findModifierPrice(
+    item.modifierPriceOverrides,
+    normalizedModifierId
+  );
+
+  if (itemOverridePrice !== null) {
+    return itemOverridePrice;
   }
 
   const itemModifier = getItemModifierCandidates(item).find(
