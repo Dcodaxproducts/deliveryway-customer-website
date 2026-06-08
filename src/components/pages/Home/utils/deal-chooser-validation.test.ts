@@ -256,21 +256,73 @@ describe("deal chooser validation", () => {
     });
   });
 
-  it("blocks unsupported variation for backend deal item flow", () => {
+  it("allows flexible deal item variation selection without backend dealId payload", () => {
+    const item: CustomerDealMenuItem = {
+      id: "pizza",
+      name: "Pizza",
+      variations: [{ id: "large", name: "Large" }],
+      modifierGroups: [],
+      modifiers: [],
+      modifierLinks: [],
+      supportsDealIdCartPayload: true,
+    };
+    const configuration: DealChooserItemConfiguration = {
+      menuItemId: "pizza",
+      selectedVariationId: "large",
+      modifierSelections: [],
+    };
+
     const validation = validateDealChooserItemConfiguration({
       deal: flexibleDeal,
-      item: {
-        id: "pizza",
-        name: "Pizza",
-        variations: [{ id: "large", name: "Large" }],
-        modifierGroups: [],
-        modifiers: [],
-        modifierLinks: [],
-        supportsDealIdCartPayload: true,
-      },
-      configuration: { menuItemId: "pizza", selectedVariationId: "large", modifierSelections: [] },
+      item,
+      configuration,
     });
 
-    expect(validation.itemError).toBe("Variation selection is not supported for this deal item.");
+    expect(validation.itemError).toBeUndefined();
+    expect(
+      buildDealCartItemPayload({
+        deal: flexibleDeal,
+        item,
+        branchId: "branch-1",
+        configuration,
+      })
+    ).toEqual({
+      branchId: "branch-1",
+      menuItemId: "pizza",
+      quantity: 1,
+      variationId: "large",
+    });
+  });
+
+  it("sends flexible variation item modifiers without dealId", () => {
+    const configuration: DealChooserItemConfiguration = {
+      menuItemId: "pizza",
+      selectedVariationId: "small",
+      modifierSelections: [
+        {
+          modifierGroupId: "size",
+          modifiers: [{ modifierId: "large", quantity: 1 }],
+        },
+      ],
+    };
+
+    expect(
+      buildDealCartItemPayload({
+        deal: flexibleDeal,
+        item: {
+          ...requiredModifierItem,
+          variations: [{ id: "small", name: "Small" }],
+          supportsDealIdCartPayload: true,
+        },
+        branchId: "branch-1",
+        configuration,
+      })
+    ).toEqual({
+      branchId: "branch-1",
+      menuItemId: "pizza",
+      quantity: 1,
+      variationId: "small",
+      modifierSelections: configuration.modifierSelections,
+    });
   });
 });

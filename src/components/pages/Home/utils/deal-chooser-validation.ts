@@ -228,12 +228,19 @@ export const isDealChooserItemConfigurable = (item: CustomerDealMenuItem) =>
 export const canUseBackendDealItemFlow = (
   deal: CustomerDeal,
   item: CustomerDealMenuItem
-) =>
-  item.supportsDealIdCartPayload === true ||
-  item.supportsDealCartPayload === true ||
-  item.isDealMenuItem === true ||
-  canSendDealIdForReadyMadeItem(deal, item) ||
-  canSendDealIdWithModifierSelections(deal, item);
+) => {
+  if (getDealChooserVariations(item).length > 0) {
+    return false;
+  }
+
+  return (
+    item.supportsDealIdCartPayload === true ||
+    item.supportsDealCartPayload === true ||
+    item.isDealMenuItem === true ||
+    canSendDealIdForReadyMadeItem(deal, item) ||
+    canSendDealIdWithModifierSelections(deal, item)
+  );
+};
 
 export const validateDealChooserSelectedCount = ({
   selectedCount,
@@ -309,7 +316,11 @@ export const buildDealCartItemPayload = ({
 }): AddCartItemPayload => {
   const modifierSelections = configuration?.modifierSelections ?? [];
 
-  if (modifierSelections.length > 0 && canSendDealIdWithModifierSelections(deal, item)) {
+  if (
+    modifierSelections.length > 0 &&
+    !configuration?.selectedVariationId &&
+    canSendDealIdWithModifierSelections(deal, item)
+  ) {
     return buildCustomizableDealCartItemPayload({
       deal,
       item,
@@ -318,7 +329,7 @@ export const buildDealCartItemPayload = ({
     });
   }
 
-  if (canSendDealIdForReadyMadeItem(deal, item)) {
+  if (!configuration?.selectedVariationId && canSendDealIdForReadyMadeItem(deal, item)) {
     return buildReadyMadeDealCartItemPayload({
       deal,
       item,
