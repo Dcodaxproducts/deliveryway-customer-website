@@ -839,6 +839,9 @@ function CheckoutPageContent() {
               setSelectedAddress={setSelectedAddress}
               note={note}
               setNote={setNote}
+              customer={customer}
+              setCustomer={setCustomer}
+              isGuest={isGuest}
               paymentMethod={paymentMethod}
               setPaymentMethod={setPaymentMethod}
               pickupDate={pickupDate}

@@ -1,4 +1,5 @@
 import AddressSection from "@/components/pages/Checkout/components/AddressSection"
+import CustomerDetailsForm from "@/components/pages/Checkout/components/CustomerDetailsForm"
 import { SelectPickupTimeSection } from "@/components/pages/Checkout/components/TimeSection"
 import NotesSection from "@/components/pages/Checkout/components/NotesSection"
 import PaymentMethodSection from "@/components/pages/Checkout/components/PaymentMethodSection"
@@ -9,6 +10,9 @@ type PickupSectionProps = {
   setSelectedAddress: (value: string) => void;
   note: string;
   setNote: (value: string) => void;
+  customer: { name: string; phone: string; email: string };
+  setCustomer: (value: { name: string; phone: string; email: string }) => void;
+  isGuest?: boolean;
   paymentMethod: string;
   setPaymentMethod: (value: string) => void;
   pickupDate: Date | null;
@@ -24,6 +28,7 @@ export function PickupSection(props: PickupSectionProps) {
       <AddressSection {...props} />
       <NotesSection {...props} />
       <SelectPickupTimeSection {...props} />
+      <CustomerDetailsForm {...props} editable={props.isGuest} />
       <PaymentMethodSection {...props} />
     </div>
   );
