@@ -158,7 +158,7 @@ export function OrderCartSidebar({
   const loyaltyDiscount = Math.max(0, toNumber(cartQuote?.loyaltyDiscountAmount, 0));
   const walletAppliedAmount = Math.max(0, toNumber(cartQuote?.walletAppliedAmount, 0));
   const totalBeforeDiscount =
-    quoteSubtotal + depositTotal + pickupPriceTotal + deliveryFee + taxes + serviceCharge + tipAmount;
+    quoteSubtotal + pickupPriceTotal + deliveryFee + taxes + serviceCharge + tipAmount;
   const finalTotal = Math.max(
     0,
     toNumber(

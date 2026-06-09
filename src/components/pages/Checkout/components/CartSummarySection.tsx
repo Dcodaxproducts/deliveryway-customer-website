@@ -721,7 +721,7 @@ export function CartSummarySection({
   );
 
   const computedTotalBeforeDiscount =
-    itemTotal + depositTotal + pickupPriceTotal + deliveryFee + taxes + serviceCharge + tipAmount;
+    itemTotal + pickupPriceTotal + deliveryFee + taxes + serviceCharge + tipAmount;
 
   const totalBeforeDiscount =
     quoteSubtotal !== null
