@@ -132,7 +132,7 @@ function CheckoutPageContent() {
   const [applyingTip, setApplyingTip] = useState(false);
 
   const { get, patch, del, post, checkoutCustomerCart } = useCheckout(token);
-  const { updateCustomerCart, quoteCustomerCart } = useCart(token);
+  const { updateCustomerCart, updateCustomerCartOrderType, quoteCustomerCart } = useCart(token);
   const { fetchReservationBranch } = useReservations(token);
 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -323,7 +323,21 @@ function CheckoutPageContent() {
 
     const quoteTimer = window.setTimeout(async () => {
       const orderType = getCheckoutOrderType(activeTab);
-      const payload: Record<string, unknown> = { orderType };
+      const orderTypeRes = await updateCustomerCartOrderType({
+        customerId,
+        orderType,
+      });
+
+      if (hasBackendError(orderTypeRes)) {
+        reportBackendError(
+          t("toast.quoteFailed"),
+          orderTypeRes,
+          t("toast.quoteFailed")
+        );
+        return;
+      }
+
+      const payload: Record<string, unknown> = {};
 
       if (activeTab === "delivery" && isGuest && hasGuestDeliveryAddress(guestDeliveryAddress)) {
         payload.guestDeliveryAddress = getGuestDeliveryAddressPayload(guestDeliveryAddress);
@@ -349,7 +363,7 @@ function CheckoutPageContent() {
     }, 450);
 
     return () => window.clearTimeout(quoteTimer);
-  }, [activeTab, customerId, guestDeliveryAddress, isGuest, quoteCustomerCart, selectedAddress]);
+  }, [activeTab, customerId, guestDeliveryAddress, isGuest, quoteCustomerCart, selectedAddress, updateCustomerCartOrderType]);
 
   useEffect(() => {
     const loadPickupBranch = async () => {

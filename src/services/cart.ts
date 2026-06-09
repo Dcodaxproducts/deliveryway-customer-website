@@ -6,6 +6,7 @@ import type { CartAppliedPromotion, CartQuote } from "@/types/cart";
 
 type CartMutationPayload = Record<string, unknown>;
 type CartQuotePayload = Record<string, unknown>;
+type CartOrderType = "DELIVERY" | "TAKEAWAY";
 
 export type CartUpdatePayload = CartMutationPayload & {
   scheduledDeliveryAt?: string | null;
@@ -192,6 +193,13 @@ export const normalizeCartUpdatePayload = (payload: CartUpdatePayload): CartMuta
   return normalizedPayload;
 };
 
+export const normalizeCartQuotePayload = (payload: CartQuotePayload): CartMutationPayload => {
+  const allowedPayload: CartMutationPayload = { ...payload };
+  delete allowedPayload.orderType;
+
+  return allowedPayload;
+};
+
 export const updateCustomerCart = ({
   customerId,
   payload,
@@ -202,6 +210,16 @@ export const updateCustomerCart = ({
   token?: string | null;
 }) => patchCart(`/v1/cart?customerId=${customerId}`, normalizeCartUpdatePayload(payload), token);
 
+export const updateCustomerCartOrderType = ({
+  customerId,
+  orderType,
+  token,
+}: {
+  customerId: string;
+  orderType: CartOrderType;
+  token?: string | null;
+}) => patchCart(`/v1/cart/order-type?customerId=${customerId}`, { orderType }, token);
+
 export const quoteCustomerCart = ({
   customerId,
   payload = {},
@@ -210,7 +228,7 @@ export const quoteCustomerCart = ({
   customerId: string;
   payload?: CartQuotePayload;
   token?: string | null;
-}) => postCart(`/v1/cart/quote?customerId=${customerId}`, payload, token);
+}) => postCart(`/v1/cart/quote?customerId=${customerId}`, normalizeCartQuotePayload(payload), token);
 
 export const updateCustomerCartItem = ({
   cartItemId,

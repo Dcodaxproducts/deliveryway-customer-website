@@ -7,6 +7,7 @@ import {
   normalizeCartQuote,
   quoteCustomerCart,
   updateCustomerCart,
+  updateCustomerCartOrderType,
   updateCustomerCartDealQuantity,
   updateCustomerCartItem,
 } from "./cart";
@@ -327,7 +328,6 @@ describe("cart service", () => {
     await quoteCustomerCart({
       customerId: "guest-1",
       payload: {
-        orderType: "DELIVERY",
         guestDeliveryAddress: {
           street: "Street 12",
           area: "DHA",
@@ -344,7 +344,6 @@ describe("cart service", () => {
     expect(postCartMock).toHaveBeenCalledWith(
       "/v1/cart/quote?customerId=guest-1",
       {
-        orderType: "DELIVERY",
         guestDeliveryAddress: {
           street: "Street 12",
           area: "DHA",
@@ -356,6 +355,39 @@ describe("cart service", () => {
           lng: "74.3587",
         },
       },
+      undefined
+    );
+  });
+
+  it("does not send orderType in cart quote payload", async () => {
+    postCartMock.mockResolvedValue({ success: true });
+
+    await quoteCustomerCart({
+      customerId: "customer-1",
+      payload: {
+        orderType: "DELIVERY",
+        tipAmount: 2,
+      },
+    });
+
+    expect(postCartMock).toHaveBeenCalledWith(
+      "/v1/cart/quote?customerId=customer-1",
+      { tipAmount: 2 },
+      undefined
+    );
+  });
+
+  it("updates cart order type through the documented cart endpoint", async () => {
+    patchCartMock.mockResolvedValue({ success: true });
+
+    await updateCustomerCartOrderType({
+      customerId: "customer-1",
+      orderType: "TAKEAWAY",
+    });
+
+    expect(patchCartMock).toHaveBeenCalledWith(
+      "/v1/cart/order-type?customerId=customer-1",
+      { orderType: "TAKEAWAY" },
       undefined
     );
   });
