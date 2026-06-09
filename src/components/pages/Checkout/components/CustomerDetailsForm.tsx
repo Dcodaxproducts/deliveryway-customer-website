@@ -1,5 +1,16 @@
 import { SECTION_TITLE_CLASS } from '@/components/common/common-classes'
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { ExternalLink, ShieldCheck } from "lucide-react"
 import { useTranslations } from "next-intl"
+import { useState } from "react"
 
 interface Props {
   customer: {
@@ -33,6 +44,10 @@ const CustomerDetailsForm = ({
   privacyPolicyLoading = false,
 }: Props) => {
   const t = useTranslations("checkout")
+  const [isPolicyOpen, setIsPolicyOpen] = useState(false)
+  const policyTitle = privacyPolicy?.title || t("privacyPolicyDialogTitle")
+  const policyContent = privacyPolicy?.content || t("guestPrivacyPolicyFallback")
+
   const updateCustomerField = (field: keyof Props["customer"], value: string) => {
     setCustomer({
       ...customer,
@@ -115,33 +130,67 @@ const CustomerDetailsForm = ({
 </p>
 
 {editable ? (
-  <div className="rounded-2xl border border-primary/15 bg-primary/5 p-4 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
-    <label className="flex items-start gap-3">
+  <div className="rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/10 via-white to-white p-4 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
+    <div className="flex items-start gap-3">
       <input
         type="checkbox"
         checked={privacyPolicyAccepted}
         onChange={(event) => setPrivacyPolicyAccepted?.(event.target.checked)}
         className="mt-1 size-5 rounded border-gray-300 text-primary accent-primary focus:ring-primary/30"
       />
-      <span className="space-y-2 text-sm text-gray-700">
-        <span className="block font-medium text-gray-950">
+      <div className="min-w-0 flex-1 space-y-3 text-sm text-gray-700">
+        <label className="block cursor-pointer font-medium text-gray-950">
           {t("guestPrivacyPolicyConsent")}
-        </span>
-        <span className="block max-h-28 overflow-y-auto pr-2 leading-6">
-          {privacyPolicyLoading
-            ? t("guestPrivacyPolicyLoading")
-            : privacyPolicy?.content || t("guestPrivacyPolicyFallback")}
-        </span>
-        <a
-          href={privacyPolicy?.policyLink || "/privacy"}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex font-semibold text-primary underline-offset-4 hover:underline"
+        </label>
+        <p className="line-clamp-3 leading-6 text-gray-600">
+          {privacyPolicyLoading ? t("guestPrivacyPolicyLoading") : policyContent}
+        </p>
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => setIsPolicyOpen(true)}
+          className="h-auto rounded-full px-0 py-0 font-semibold text-primary hover:bg-transparent hover:text-primary/85"
         >
           {t("viewPrivacyPolicy")}
-        </a>
-      </span>
-    </label>
+          <ExternalLink className="size-4" />
+        </Button>
+      </div>
+    </div>
+
+    <Dialog open={isPolicyOpen} onOpenChange={setIsPolicyOpen}>
+      <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-hidden rounded-2xl border-0 p-0 shadow-[0_30px_90px_rgba(15,23,42,0.28)] sm:max-w-2xl">
+        <DialogHeader className="border-b border-gray-100 bg-gradient-to-br from-primary/10 via-white to-white px-6 py-5 text-left">
+          <div className="mb-2 flex size-11 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <ShieldCheck className="size-5" />
+          </div>
+          <DialogTitle className="text-2xl font-semibold leading-tight text-gray-950">
+            {policyTitle}
+          </DialogTitle>
+          <DialogDescription className="text-sm leading-6 text-gray-600">
+            {t("privacyPolicyDialogDescription")}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="max-h-[55dvh] overflow-y-auto px-6 py-5">
+          <div className="whitespace-pre-wrap text-sm leading-7 text-gray-700">
+            {privacyPolicyLoading ? t("guestPrivacyPolicyLoading") : policyContent}
+          </div>
+        </div>
+
+        <DialogFooter className="border-t border-gray-100 bg-gray-50/80 px-6 py-4">
+          <Button
+            type="button"
+            onClick={() => {
+              setPrivacyPolicyAccepted?.(true)
+              setIsPolicyOpen(false)
+            }}
+            className="h-11 rounded-full px-6 font-semibold"
+          >
+            {t("acceptPrivacyPolicy")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </div>
 ) : null}
       </div>
@@ -149,4 +198,4 @@ const CustomerDetailsForm = ({
   )
 }
 
-export default CustomerDetailsForm
+export { CustomerDetailsForm }

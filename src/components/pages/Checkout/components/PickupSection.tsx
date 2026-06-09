@@ -1,5 +1,5 @@
 import AddressSection from "@/components/pages/Checkout/components/AddressSection"
-import CustomerDetailsForm from "@/components/pages/Checkout/components/CustomerDetailsForm"
+import { CustomerDetailsForm } from "@/components/pages/Checkout/components/CustomerDetailsForm"
 import { SelectPickupTimeSection } from "@/components/pages/Checkout/components/TimeSection"
 import NotesSection from "@/components/pages/Checkout/components/NotesSection"
 import PaymentMethodSection from "@/components/pages/Checkout/components/PaymentMethodSection"

@@ -3,7 +3,7 @@ import { useTranslations } from 'next-intl';
 
 import { DeliveryAddressSection } from '@/components/pages/Checkout/components/DeliveryAddressSection';
 import NotesSection from '@/components/pages/Checkout/components/NotesSection';
-import CustomerDetailsForm from '@/components/pages/Checkout/components/CustomerDetailsForm';
+import { CustomerDetailsForm } from '@/components/pages/Checkout/components/CustomerDetailsForm';
 import PaymentMethodSection from '@/components/pages/Checkout/components/PaymentMethodSection';
 import type { CheckoutAddressValues } from '@/validations/checkout';
 
