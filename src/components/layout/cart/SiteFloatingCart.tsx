@@ -20,6 +20,7 @@ export function SiteFloatingCart() {
   const [isOpen, setIsOpen] = useState(false);
 
   const isHiddenRoute = HIDDEN_CART_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+  const checkoutType = user?.selectedOrderType === "TAKEAWAY" ? "pickup" : "delivery";
 
   const refreshCart = useCallback(() => {
     setCartRefreshKey((current) => current + 1);
@@ -43,7 +44,7 @@ export function SiteFloatingCart() {
   }
 
   return (
-    <div className="fixed bottom-5 right-4 z-40 flex items-end justify-end sm:bottom-6 sm:right-6">
+    <div className="fixed bottom-5 right-4 z-40 flex items-end justify-end sm:bottom-6 sm:right-6 lg:bottom-8 lg:right-8">
       {isOpen ? (
         <div className="relative h-[min(720px,calc(100vh-7rem))] w-[min(380px,calc(100vw-2rem))]">
           <Button
@@ -61,17 +62,20 @@ export function SiteFloatingCart() {
             cartRefreshKey={cartRefreshKey}
             onCartRefresh={refreshCart}
             presentation="floating"
+            checkoutType={checkoutType}
           />
         </div>
       ) : (
         <Button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="h-14 rounded-full border border-black/10 bg-white px-5 text-[#222] shadow-[0_18px_48px_rgba(15,23,42,0.18)] hover:bg-[#f7f7f7]"
+          className="h-11 rounded-full border border-black/10 bg-white px-3.5 text-[#222] shadow-[0_14px_38px_rgba(15,23,42,0.16)] hover:bg-[#f7f7f7] sm:h-12 sm:px-4"
           aria-label={t("openCart")}
         >
-          <ShoppingBag className="h-5 w-5 text-primary" />
-          <span className="text-sm font-semibold">{t("yourOrder")}</span>
+          <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 sm:h-8 sm:w-8">
+            <ShoppingBag className="h-4 w-4 text-primary" />
+          </span>
+          <span className="text-[13px] font-semibold sm:text-sm">{t("yourOrder")}</span>
         </Button>
       )}
     </div>
