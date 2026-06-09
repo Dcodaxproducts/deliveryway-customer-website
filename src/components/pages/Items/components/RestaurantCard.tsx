@@ -77,6 +77,16 @@ const formatMoney = (value: unknown) => {
   return `$${formatPrice(value)}`;
 };
 
+const formatModifierSelectionPrice = (unitPrice: number, quantity: number) => {
+  const safeQuantity = Math.max(1, Math.floor(toNumber(quantity, 1)));
+
+  if (safeQuantity <= 1) {
+    return `+${formatMoney(unitPrice)}`;
+  }
+
+  return `+${formatMoney(unitPrice)} * ${safeQuantity} = +${formatMoney(unitPrice * safeQuantity)}`;
+};
+
 const isPromotionObject = (value: unknown): value is PromotionInfo => {
   return Boolean(value && typeof value === "object");
 };
@@ -1547,7 +1557,10 @@ export function RestaurantCard({ item }: { item: MenuItem }) {
 
                     {effectivePrice > 0 ? (
                       <span className="shrink-0 font-semibold text-primary">
-                        +${effectivePrice.toFixed(2)}
+                        {formatModifierSelectionPrice(
+                          effectivePrice,
+                          selectedModifierQuantity,
+                        )}
                       </span>
                     ) : null}
                   </label>

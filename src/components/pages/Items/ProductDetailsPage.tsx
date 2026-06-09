@@ -63,6 +63,16 @@ const formatMoney = (value: unknown) => {
   return `$${toNumber(value, 0).toFixed(2)}`;
 };
 
+const formatModifierSelectionPrice = (unitPrice: number, quantity: number) => {
+  const safeQuantity = Math.max(1, Math.floor(toNumber(quantity, 1)));
+
+  if (safeQuantity <= 1) {
+    return `+${formatMoney(unitPrice)}`;
+  }
+
+  return `+${formatMoney(unitPrice)} * ${safeQuantity} = +${formatMoney(unitPrice * safeQuantity)}`;
+};
+
 const isPromotionObject = (value: unknown): value is PromotionInfo => {
   return Boolean(value && typeof value === "object");
 };
@@ -2029,7 +2039,10 @@ function ProductDetailsPageContent() {
 
                     {effectivePrice > 0 ? (
                       <span className="shrink-0 text-right font-medium text-primary">
-                        +{formatMoney(effectivePrice)}
+                        {formatModifierSelectionPrice(
+                          effectivePrice,
+                          selectedModifierQuantity
+                        )}
                       </span>
                     ) : null}
                   </div>
