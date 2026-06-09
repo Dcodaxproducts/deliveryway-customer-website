@@ -1722,8 +1722,6 @@ export function RestaurantCard({ item }: { item: MenuItem }) {
 
       if (groupCode) {
         router.push("/group-order/lobby");
-      } else {
-        router.push("/checkout");
       }
     } catch (error) {
       toast.error(tErrors("somethingWentWrong"));

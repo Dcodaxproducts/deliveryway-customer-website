@@ -570,6 +570,8 @@
     "free": "KOSTENLOS",
     "total": "Gesamt",
     "proceedToCheckout": "Weiter zur Kasse",
+    "openCart": "Warenkorb öffnen",
+    "minimizeCart": "Warenkorb minimieren",
     "averageDeliveryTime": "Durchschnittliche Lieferzeit: 25–35 Min.",
     "customerNotFound": "Kunde nicht gefunden",
     "selectBranchFirst": "Bitte wählen Sie zuerst eine Filiale aus",

@@ -570,6 +570,8 @@
     "free": "FREE",
     "total": "Total",
     "proceedToCheckout": "Proceed to Checkout",
+    "openCart": "Open cart",
+    "minimizeCart": "Minimize cart",
     "averageDeliveryTime": "Average delivery time: 25–35 mins",
     "customerNotFound": "Customer not found",
     "selectBranchFirst": "Please select a branch first",

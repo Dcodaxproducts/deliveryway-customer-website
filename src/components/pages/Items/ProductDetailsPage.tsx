@@ -2127,7 +2127,7 @@ function ProductDetailsPageContent() {
 
       if (groupCode) {
         router.push("/group-order/lobby");
-      } else {
+      } else if (isEditingCartItem) {
         router.push(`/checkout?type=${checkoutType}`);
       }
     } catch (error) {

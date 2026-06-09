@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
@@ -88,7 +87,6 @@ export function DealChooserDrawer({
   branchId,
 }: DealChooserDrawerProps) {
   const t = useTranslations("home.deals");
-  const router = useRouter();
   const addDealMutation = useAddDealToCart(branchId);
   const { items, isLoading, error } = useDealEligibleItems({ deal, open });
   const [selectedMenuItemIds, setSelectedMenuItemIds] = useState<string[]>([]);
@@ -395,7 +393,6 @@ export function DealChooserDrawer({
       {
         onSuccess: () => {
           onOpenChange(false);
-          router.push("/checkout");
         },
       }
     );
@@ -409,7 +406,6 @@ export function DealChooserDrawer({
     itemDetailsQuery.isLoading,
     onOpenChange,
     requiredQuantity,
-    router,
     selectedCount,
     selectedItems,
     selectedMenuItemIds,
