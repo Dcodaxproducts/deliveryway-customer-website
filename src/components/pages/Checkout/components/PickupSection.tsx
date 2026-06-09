@@ -13,6 +13,14 @@ type PickupSectionProps = {
   customer: { name: string; phone: string; email: string };
   setCustomer: (value: { name: string; phone: string; email: string }) => void;
   isGuest?: boolean;
+  privacyPolicyAccepted?: boolean;
+  setPrivacyPolicyAccepted?: (value: boolean) => void;
+  privacyPolicy?: {
+    title: string;
+    content: string;
+    policyLink: string;
+  } | null;
+  privacyPolicyLoading?: boolean;
   paymentMethod: string;
   setPaymentMethod: (value: string) => void;
   pickupDate: Date | null;

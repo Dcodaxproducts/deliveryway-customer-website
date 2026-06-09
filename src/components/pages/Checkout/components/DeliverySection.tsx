@@ -19,6 +19,14 @@ type DeliverySectionProps = {
   scheduledDeliveryValue: string;
   setScheduledDeliveryValue: (value: string) => void;
   isGuest?: boolean;
+  privacyPolicyAccepted?: boolean;
+  setPrivacyPolicyAccepted?: (value: boolean) => void;
+  privacyPolicy?: {
+    title: string;
+    content: string;
+    policyLink: string;
+  } | null;
+  privacyPolicyLoading?: boolean;
   guestDeliveryAddress: CheckoutAddressValues;
   setGuestDeliveryAddress: (value: CheckoutAddressValues) => void;
 };

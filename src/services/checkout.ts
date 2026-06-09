@@ -14,10 +14,9 @@ export type CheckoutCartPayload = Record<string, unknown> & {
   orderTime?: string | null;
   tipAmount?: number;
   guestContact?: {
-    firstName: string;
-    lastName: string;
     email: string;
     phone: string;
+    privacyPolicyAccepted: boolean;
   };
   guestDeliveryAddress?: {
     street: string;

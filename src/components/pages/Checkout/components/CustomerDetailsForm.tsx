@@ -13,9 +13,25 @@ interface Props {
     email: string
   }) => void
   editable?: boolean
+  privacyPolicyAccepted?: boolean
+  setPrivacyPolicyAccepted?: (value: boolean) => void
+  privacyPolicy?: {
+    title: string
+    content: string
+    policyLink: string
+  } | null
+  privacyPolicyLoading?: boolean
 }
 
-const CustomerDetailsForm = ({ customer, setCustomer, editable = false }: Props) => {
+const CustomerDetailsForm = ({
+  customer,
+  setCustomer,
+  editable = false,
+  privacyPolicyAccepted = false,
+  setPrivacyPolicyAccepted,
+  privacyPolicy,
+  privacyPolicyLoading = false,
+}: Props) => {
   const t = useTranslations("checkout")
   const updateCustomerField = (field: keyof Props["customer"], value: string) => {
     setCustomer({
@@ -97,6 +113,37 @@ const CustomerDetailsForm = ({ customer, setCustomer, editable = false }: Props)
 <p className="text-sm text-gray-500 mt-2">
   {editable ? t("guestCustomerDetailsRequired") : t("customerDetailsAutoFilled")}
 </p>
+
+{editable ? (
+  <div className="rounded-2xl border border-primary/15 bg-primary/5 p-4 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
+    <label className="flex items-start gap-3">
+      <input
+        type="checkbox"
+        checked={privacyPolicyAccepted}
+        onChange={(event) => setPrivacyPolicyAccepted?.(event.target.checked)}
+        className="mt-1 size-5 rounded border-gray-300 text-primary accent-primary focus:ring-primary/30"
+      />
+      <span className="space-y-2 text-sm text-gray-700">
+        <span className="block font-medium text-gray-950">
+          {t("guestPrivacyPolicyConsent")}
+        </span>
+        <span className="block max-h-28 overflow-y-auto pr-2 leading-6">
+          {privacyPolicyLoading
+            ? t("guestPrivacyPolicyLoading")
+            : privacyPolicy?.content || t("guestPrivacyPolicyFallback")}
+        </span>
+        <a
+          href={privacyPolicy?.policyLink || "/privacy"}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex font-semibold text-primary underline-offset-4 hover:underline"
+        >
+          {t("viewPrivacyPolicy")}
+        </a>
+      </span>
+    </label>
+  </div>
+) : null}
       </div>
     </section>
   )

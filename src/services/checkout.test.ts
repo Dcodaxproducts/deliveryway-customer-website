@@ -70,10 +70,9 @@ describe("checkout service", () => {
       payload: {
         paymentMethod: "COD",
         guestContact: {
-          firstName: "Ali",
-          lastName: "Khan",
           email: "guest@example.com",
           phone: "+923001234567",
+          privacyPolicyAccepted: true,
         },
         guestDeliveryAddress: {
           street: "Street 12",
@@ -93,10 +92,9 @@ describe("checkout service", () => {
       {
         paymentMethod: "COD",
         guestContact: {
-          firstName: "Ali",
-          lastName: "Khan",
           email: "guest@example.com",
           phone: "+923001234567",
+          privacyPolicyAccepted: true,
         },
         guestDeliveryAddress: {
           street: "Street 12",
