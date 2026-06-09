@@ -50,7 +50,7 @@ interface CartSection {
   pickupPrice?: number | string;
   pickupUnitPrice?: number | string;
   selectedVariation?: ApiRecord | null;
-  menuItem?: ApiRecord & { selectedVariation?: ApiRecord; pickupPrice?: number | string; unitPrice?: number | string; name?: string; slug?: string; imageUrl?: string; category?: ApiRecord; variationPriceOverrides?: unknown[]; variations?: unknown[]; depositAmount?: number | string; takeawayPriceAdjustment?: number | string; deliveryPriceAdjustment?: number | string };
+  menuItem?: ApiRecord & { selectedVariation?: ApiRecord; pickupPrice?: number | string; unitPrice?: number | string; name?: string; slug?: string; imageUrl?: string; category?: ApiRecord; variationPriceOverrides?: unknown[]; variations?: unknown[]; depositAmount?: number | string; takeawayPriceAdjustment?: number | string; deliveryPriceAdjustment?: number | string; pricing?: ApiRecord };
   name?: string;
 }
 
@@ -304,12 +304,14 @@ const findSelectedVariation = (item: CartItem): CartSectionRecord | null => {
   );
 };
 
-const getBaseUnitPrice = (item: CartItem) => {
+const getBaseUnitPrice = (item: CartItem, checkoutType: CheckoutType) => {
   const selectedSections = getSelectedSections(item);
 
   if (selectedSections.length > 0) {
     const highestSectionPrice = Math.max(
-      ...selectedSections.map((section) => toNumber(section?.unitPrice, 0)),
+      ...selectedSections.map((section) =>
+        getSplitSectionCheckoutPrice(section, checkoutType)
+      ),
       0
     );
 
@@ -400,6 +402,45 @@ const getSplitSectionPickupPrice = (section?: CartSection) => {
   return null;
 };
 
+const isPickupPricingModeEnabled = (section?: CartSection) => {
+  const candidateMode = String(
+    section?.menuItem?.pricingMode ??
+      section?.menuItem?.pricing?.mode ??
+      ""
+  ).trim();
+
+  return candidateMode.toUpperCase() === "MULTIPLE";
+};
+
+const getSplitSectionCheckoutPrice = (
+  section: CartSection,
+  checkoutType: CheckoutType
+) => {
+  const deliveryPrice = getSplitSectionDeliveryPrice(section);
+  const explicitPickupPrice = getSplitSectionPickupPrice(section);
+  const hasMultiplePricing = isPickupPricingModeEnabled(section);
+  const deliveryAdjustment = toNumber(section.menuItem?.deliveryPriceAdjustment ?? 0);
+  const pickupAdjustment = toNumber(section.menuItem?.takeawayPriceAdjustment ?? 0);
+
+  if (checkoutType === "delivery") {
+    if (hasMultiplePricing && deliveryAdjustment > 0) {
+      return deliveryPrice + deliveryAdjustment;
+    }
+
+    return deliveryPrice;
+  }
+
+  if (explicitPickupPrice !== null) {
+    return explicitPickupPrice;
+  }
+
+  if (hasMultiplePricing && pickupAdjustment > 0) {
+    return deliveryPrice + pickupAdjustment;
+  }
+
+  return deliveryPrice;
+};
+
 type SplitLabels = {
   half: string;
   leftHalf: string;
@@ -438,7 +479,8 @@ const getSplitSectionName = (section: CartSection | undefined, fallback: string)
 export const getSplitPizzaDisplay = (
   item: CartItem,
   selectedSections: CartSection[],
-  labels: SplitLabels
+  labels: SplitLabels,
+  checkoutType: CheckoutType
 ) => {
   const currentMenuItemId = String(getMenuItemId(item) || "");
   const currentItemName = String(item?.name || item?.menuItem?.name || "").trim();
@@ -448,7 +490,7 @@ export const getSplitPizzaDisplay = (
     const sectionMenuItemId = String(section?.menuItemId || "");
     const deliveryPrice = getSplitSectionDeliveryPrice(section);
     const pickupPrice = getSplitSectionPickupPrice(section);
-    const displayPrice = deliveryPrice;
+    const checkoutPrice = getSplitSectionCheckoutPrice(section, checkoutType);
     const isCurrentById =
       Boolean(currentMenuItemId) && sectionMenuItemId === currentMenuItemId;
     const isCurrentByName =
@@ -460,10 +502,10 @@ export const getSplitPizzaDisplay = (
       index,
       label: getSplitHalfLabel(section?.slot, `${labels.half} ${index + 1}`, labels),
       displayName: sectionName,
-      price: displayPrice,
+      price: checkoutPrice,
       deliveryPrice,
       pickupPrice,
-      checkoutPrice: displayPrice,
+      checkoutPrice,
       hasExplicitPickupPrice: pickupPrice !== null,
       isCurrentItem: isCurrentById || isCurrentByName,
     };
@@ -497,7 +539,7 @@ export const getItemPricing = (item: CartItem, checkoutType: CheckoutType) => {
 
   const modifiersTotal = toNumber(item.modifiersTotal, fallbackModifiersTotal);
 
-  const baseUnitPrice = getBaseUnitPrice(item);
+  const baseUnitPrice = getBaseUnitPrice(item, checkoutType);
 
   // Keep backend/cart pricing as the source of truth. Pickup price is added
   // separately below instead of replacing the item/variation unit price.
@@ -822,7 +864,8 @@ export function CartSummarySection({
               const splitPizzaDisplay = getSplitPizzaDisplay(
                 item,
                 selectedSections,
-                splitLabels
+                splitLabels,
+                checkoutType
               );
               const includedItems = Array.isArray(item.includedItems)
                 ? item.includedItems

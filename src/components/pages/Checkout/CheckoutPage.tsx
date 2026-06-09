@@ -43,6 +43,9 @@ type GuestPrivacyPolicy = {
   policyLink: string;
 };
 
+const getCheckoutOrderType = (checkoutType: string) =>
+  checkoutType === "pickup" ? "TAKEAWAY" : "DELIVERY";
+
 const isGuestUser = (user: ReturnType<typeof useAuthContext>["user"]) =>
   user?.isGuest === true || String(user?.role || "").toUpperCase() === "GUEST";
 
@@ -235,37 +238,6 @@ function CheckoutPageContent() {
     }
   }, [customerId]);
 
-  useEffect(() => {
-    if (!customerId) return;
-
-    let isMounted = true;
-
-    const syncCartOrderType = async () => {
-      const res = await patch(`/v1/cart/order-type?customerId=${customerId}`, {
-        orderType: activeTab === "pickup" ? "TAKEAWAY" : "DELIVERY",
-      });
-
-      if (!isMounted) return;
-
-      if (hasBackendError(res)) {
-        reportBackendError(
-          t("toast.failedSetOrderType"),
-          res,
-          t("toast.failedSetOrderType")
-        );
-        return;
-      }
-
-      await fetchCart();
-    };
-
-    void syncCartOrderType();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [activeTab, customerId]);
-
   const [selectedAddress, setSelectedAddress] = useState<string | null>("");
   const [guestDeliveryAddress, setGuestDeliveryAddress] =
     useState<CheckoutAddressValues>(emptyGuestDeliveryAddress);
@@ -347,16 +319,23 @@ function CheckoutPageContent() {
   }, [get, isGuest, restaurantId]);
 
   useEffect(() => {
-    if (!isGuest || activeTab !== "delivery" || !customerId) return;
-    if (!hasGuestDeliveryAddress(guestDeliveryAddress)) return;
+    if (!customerId) return;
 
     const quoteTimer = window.setTimeout(async () => {
+      const orderType = getCheckoutOrderType(activeTab);
+      const payload: Record<string, unknown> = { orderType };
+
+      if (activeTab === "delivery" && isGuest && hasGuestDeliveryAddress(guestDeliveryAddress)) {
+        payload.guestDeliveryAddress = getGuestDeliveryAddressPayload(guestDeliveryAddress);
+      }
+
+      if (activeTab === "delivery" && !isGuest && selectedAddress) {
+        payload.deliveryAddressId = selectedAddress;
+      }
+
       const res = await quoteCustomerCart({
         customerId,
-        payload: {
-          orderType: "DELIVERY",
-          guestDeliveryAddress: getGuestDeliveryAddressPayload(guestDeliveryAddress),
-        },
+        payload,
       });
 
       if (!hasBackendError(res)) {
@@ -370,7 +349,7 @@ function CheckoutPageContent() {
     }, 450);
 
     return () => window.clearTimeout(quoteTimer);
-  }, [activeTab, customerId, guestDeliveryAddress, isGuest, quoteCustomerCart]);
+  }, [activeTab, customerId, guestDeliveryAddress, isGuest, quoteCustomerCart, selectedAddress]);
 
   useEffect(() => {
     const loadPickupBranch = async () => {
@@ -517,33 +496,6 @@ function CheckoutPageContent() {
         t("toast.failedClearCart"),
         err,
         err instanceof Error ? err.message : t("toast.failedClearCart")
-      );
-      return false;
-    }
-  };
-
-  const setOrderType = async () => {
-    try {
-      const res = await patch(`/v1/cart/order-type?customerId=${customerId}`, {
-        orderType: activeTab === "pickup" ? "TAKEAWAY" : "DELIVERY",
-      });
-
-      if (hasBackendError(res)) {
-        reportBackendError(
-          t("toast.failedSetOrderType"),
-          res,
-          t("toast.failedSetOrderType")
-        );
-        return false;
-      }
-
-      clearBackendError();
-      return true;
-    } catch (err) {
-      reportBackendError(
-        t("toast.failedSetOrderType"),
-        err,
-        err instanceof Error ? err.message : t("toast.failedSetOrderType")
       );
       return false;
     }
@@ -744,9 +696,6 @@ function CheckoutPageContent() {
         return;
       }
 
-      const orderTypeUpdated = await setOrderType();
-      if (!orderTypeUpdated) return;
-
       const addressUpdated = await setCartAddress();
       if (!addressUpdated) return;
 
@@ -772,6 +721,7 @@ function CheckoutPageContent() {
       const res = await checkoutCustomerCart({
         customerId,
         payload: {
+          orderType: getCheckoutOrderType(activeTab),
           ...(scheduledDeliveryAt ? { scheduledDeliveryAt } : {}),
           ...(checkoutTipAmount > 0 ? { tipAmount: checkoutTipAmount } : {}),
           ...(isGuest

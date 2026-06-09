@@ -275,7 +275,12 @@ export function OrderCartSidebar({
               } = pricing;
               const isDealItem = isDealCartItem(item);
               const selectedVariationName = isDealItem ? "" : getSelectedVariationName(item);
-              const splitPizzaDisplay = getSplitPizzaDisplay(item, selectedSections, splitLabels);
+              const splitPizzaDisplay = getSplitPizzaDisplay(
+                item,
+                selectedSections,
+                splitLabels,
+                checkoutType
+              );
               const includedItems = Array.isArray(item.includedItems) ? item.includedItems : [];
 
               return (

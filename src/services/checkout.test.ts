@@ -62,6 +62,27 @@ describe("checkout service", () => {
     expect(postCheckoutMock.mock.calls[0][0]).not.toContain("/api/v1");
   });
 
+  it("sends selected orderType in checkout payload", async () => {
+    postCheckoutMock.mockResolvedValue({ success: true });
+
+    await checkoutCustomerCart({
+      customerId: "customer-1",
+      payload: {
+        paymentMethod: "COD",
+        orderType: "TAKEAWAY",
+      },
+    });
+
+    expect(postCheckoutMock).toHaveBeenCalledWith(
+      "/v1/cart/checkout?customerId=customer-1",
+      {
+        paymentMethod: "COD",
+        orderType: "TAKEAWAY",
+      },
+      undefined
+    );
+  });
+
   it("sends guest contact and inline guest delivery address in checkout payload", async () => {
     postCheckoutMock.mockResolvedValue({ success: true });
 
