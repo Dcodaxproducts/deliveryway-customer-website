@@ -130,9 +130,9 @@ export function GroupOrderModal({ open, onClose }: GroupOrderModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center px-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-4 backdrop-blur-sm">
 
-      <div className="relative w-full max-w-lg bg-white rounded-[24px] shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-gray-100 p-6 md:p-8">
+      <div className="relative flex max-h-[calc(100dvh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-[24px] border border-gray-100 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.15)]">
 
         {/* CLOSE */}
         <button
@@ -143,7 +143,7 @@ export function GroupOrderModal({ open, onClose }: GroupOrderModalProps) {
         </button>
 
         {/* HEADER */}
-        <div className="mb-6">
+        <div className="shrink-0 px-6 pb-4 pt-6 md:px-8 md:pt-8">
           <h2 className="text-2xl font-semibold text-gray-900">
             {t("title")}
           </h2>
@@ -152,7 +152,7 @@ export function GroupOrderModal({ open, onClose }: GroupOrderModalProps) {
           </p>
         </div>
 
-        <div className="space-y-5">
+        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 pb-4 md:px-8">
 
           {/* BRANCH */}
           <BranchSelect
@@ -266,26 +266,27 @@ export function GroupOrderModal({ open, onClose }: GroupOrderModalProps) {
             />
           </div>
 
-          {/* ACTIONS */}
-          <div className="flex gap-3 pt-2 justify-end">
+        </div>
 
-            <Button
-              variant="outline"
-              className="w-fit rounded-full"
-              onClick={onClose}
-            >
-              {commonT("cancel")}
-            </Button>
+        {/* ACTIONS */}
+        <div className="flex shrink-0 justify-end gap-3 border-t border-gray-100 bg-white px-6 py-4 md:px-8">
 
-            <Button
-              className="w-fit rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md hover:shadow-lg transition"
-              onClick={handleSubmit}
-              disabled={loading}
-            >
-              {loading ? t("creating") : t("startOrder")}
-            </Button>
+          <Button
+            variant="outline"
+            className="w-fit rounded-full"
+            onClick={onClose}
+          >
+            {commonT("cancel")}
+          </Button>
 
-          </div>
+          <Button
+            className="w-fit rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md transition hover:shadow-lg"
+            onClick={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? t("creating") : t("startOrder")}
+          </Button>
+
         </div>
       </div>
     </div>
