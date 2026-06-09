@@ -21,7 +21,6 @@ export function SiteFloatingCart() {
   const [isOpen, setIsOpen] = useState(false);
 
   const isHiddenRoute = HIDDEN_CART_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
-  const isHomePage = pathname === "/";
   const checkoutType = user?.selectedOrderType === "TAKEAWAY" ? "pickup" : "delivery";
 
   const refreshCart = useCallback(() => {
@@ -48,8 +47,7 @@ export function SiteFloatingCart() {
   return (
     <div
       className={cn(
-        "fixed right-4 z-40 flex items-end justify-end sm:right-6 lg:right-8",
-        isHomePage ? "bottom-20 sm:bottom-24 lg:bottom-28" : "bottom-5 sm:bottom-6 lg:bottom-8"
+        "fixed bottom-5 right-4 z-40 flex items-end justify-end sm:bottom-6 sm:right-6 lg:bottom-8 lg:right-8"
       )}
     >
       {isOpen ? (
