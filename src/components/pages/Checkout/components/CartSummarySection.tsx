@@ -327,54 +327,6 @@ const getBaseUnitPrice = (item: CartItem) => {
   );
 };
 
-const getExplicitPickupUnitPrice = (item: CartItem) => {
-  const menuItem = getMenuItem(item);
-  const override = findSelectedVariationOverride(item);
-  const variation = findSelectedVariation(item);
-
-  const candidates = [
-    item.pickupUnitPrice,
-    item.pickupPrice,
-    item?.selectedVariation?.pickupPrice,
-    item?.menuItem?.selectedVariation?.pickupPrice,
-    override?.pickupPrice,
-    variation?.pickupPrice,
-    menuItem?.pickupPrice,
-  ];
-
-  for (const candidate of candidates) {
-    const numeric = toNumber(candidate, 0);
-
-    if (numeric > 0) return numeric;
-  }
-
-  return null;
-};
-
-const getPickupAdjustedUnitPrice = (item: CartItem, baseUnitPrice: number) => {
-  const explicitPickupPrice = getExplicitPickupUnitPrice(item);
-
-  if (explicitPickupPrice !== null) {
-    return explicitPickupPrice;
-  }
-
-  const adjustment = toNumber(
-    item.takeawayPriceAdjustment ?? item.menuItem?.takeawayPriceAdjustment,
-    0
-  );
-
-  return Math.max(0, baseUnitPrice + adjustment);
-};
-
-const getDeliveryAdjustedUnitPrice = (item: CartItem, baseUnitPrice: number) => {
-  const adjustment = toNumber(
-    item.deliveryPriceAdjustment ?? item.menuItem?.deliveryPriceAdjustment,
-    0
-  );
-
-  return Math.max(0, baseUnitPrice + adjustment);
-};
-
 const getDepositUnitAmount = (item: CartItem) => {
   return toNumber(item.depositAmount ?? item.menuItem?.depositAmount, 0);
 };
@@ -446,38 +398,6 @@ const getSplitSectionPickupPrice = (section?: CartSection) => {
   }
 
   return null;
-};
-
-const getItemPickupExtraUnitPrice = (
-  item: CartItem,
-  selectedSections: CartSection[] = getSelectedSections(item)
-) => {
-  const itemPickupCandidates = [
-    item.pickupUnitPrice,
-    item.pickupPrice,
-    item?.selectedVariation?.pickupPrice,
-    item?.menuItem?.selectedVariation?.pickupPrice,
-    findSelectedVariationOverride(item)?.pickupPrice,
-    findSelectedVariation(item)?.pickupPrice,
-    item?.menuItem?.pickupPrice,
-  ];
-
-  const itemPickupPrices = itemPickupCandidates
-    .map((candidate) => toNumber(candidate, 0))
-    .filter((price) => price > 0);
-
-  const sectionPickupPrices = selectedSections
-    .map((section) => getSplitSectionPickupPrice(section))
-    .filter((price): price is number => price !== null && price > 0);
-
-  const allPickupPrices = [...itemPickupPrices, ...sectionPickupPrices];
-
-  if (!allPickupPrices.length) return 0;
-
-  // For split pizza, pickup price should be added once for the selected/larger
-  // variation, not for every half. For regular multiple cart items, this helper
-  // runs per item, so each item's pickup price is still added separately.
-  return Math.max(...allPickupPrices);
 };
 
 type SplitLabels = {
@@ -599,12 +519,6 @@ export const getItemPricing = (item: CartItem, checkoutType: CheckoutType) => {
 
   const itemSubtotal = getCartItemLineTotal(item);
 
-  const pickupExtraUnitPrice =
-    checkoutType === "pickup"
-      ? getItemPickupExtraUnitPrice(item, selectedSections)
-      : 0;
-  const pickupExtraTotal = pickupExtraUnitPrice * quantity;
-
   return {
     quantity,
     baseUnitPrice,
@@ -616,8 +530,6 @@ export const getItemPricing = (item: CartItem, checkoutType: CheckoutType) => {
     depositTotal,
     backendLineTotal: itemSubtotal,
     lineTotal: itemSubtotal,
-    pickupExtraUnitPrice,
-    pickupExtraTotal,
     selectedAddons,
     selectedSections,
   };
@@ -676,13 +588,6 @@ export function CartSummarySection({
     return acc + entry.pricing.depositTotal;
   }, 0);
 
-  const pickupPriceTotal =
-    checkoutType === "pickup"
-      ? pricingItems.reduce((acc, entry) => {
-          return acc + entry.pricing.pickupExtraTotal;
-        }, 0)
-      : 0;
-
   const resolvedQuote = quote ?? cartQuote ?? null;
   const quoteSubtotal = toNullableNumber(resolvedQuote?.subtotal);
   const quoteDeliveryFee = toNullableNumber(resolvedQuote?.deliveryFee);
@@ -721,11 +626,11 @@ export function CartSummarySection({
   );
 
   const computedTotalBeforeDiscount =
-    itemTotal + pickupPriceTotal + deliveryFee + taxes + serviceCharge + tipAmount;
+    itemTotal + deliveryFee + taxes + serviceCharge + tipAmount;
 
   const totalBeforeDiscount =
     quoteSubtotal !== null
-      ? quoteSubtotal + pickupPriceTotal + deliveryFee + taxes + serviceCharge + tipAmount
+      ? quoteSubtotal + deliveryFee + taxes + serviceCharge + tipAmount
       : computedTotalBeforeDiscount;
 
   const totalWithoutTip = Math.max(
@@ -905,8 +810,6 @@ export function CartSummarySection({
                 lineTotal,
                 depositUnitAmount,
                 depositTotal,
-                pickupExtraUnitPrice,
-                pickupExtraTotal,
                 selectedAddons,
                 selectedSections,
               } = pricing;
@@ -981,11 +884,6 @@ export function CartSummarySection({
                           </p>
                         ) : null}
 
-                        {checkoutType === "pickup" && pickupExtraUnitPrice > 0 ? (
-                          <p className="mt-1 text-xs font-medium text-primary">
-                            {t("pickupPriceEach", { price: formatCurrency(pickupExtraUnitPrice) })}
-                          </p>
-                        ) : null}
                       </div>
 
                       {isDealItem && includedItems.length > 0 ? (
@@ -1195,15 +1093,6 @@ export function CartSummarySection({
                               {t("each", { price: formatCurrency(unitPriceWithModifiers) })}
                             </p>
 
-                            {checkoutType === "pickup" && pickupExtraTotal > 0 ? (
-                              <p className="text-[11px] text-gray-400">
-                                {t("pickupPriceQuantity", {
-                                  price: formatCurrency(pickupExtraUnitPrice),
-                                  quantity: quantity > 1 ? ` × ${quantity}` : "",
-                                })}
-                              </p>
-                            ) : null}
-
                             {selectedAddons.length > 0 ? (
                               <p className="text-[11px] text-gray-400">
                                 {t("priceWithAddons", {
@@ -1270,16 +1159,6 @@ export function CartSummarySection({
                 <Info size={16} />
               </div>
               <span>{formatCurrency(depositTotal)}</span>
-            </div>
-          ) : null}
-
-          {checkoutType === "pickup" && pickupPriceTotal > 0 ? (
-            <div className="flex items-center justify-between text-primary">
-              <div className="flex items-center gap-1">
-                <span>{t("pickupPrice")}</span>
-                <Info size={16} />
-              </div>
-              <span>{formatCurrency(pickupPriceTotal)}</span>
             </div>
           ) : null}
 

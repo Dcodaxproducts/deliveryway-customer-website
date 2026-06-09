@@ -133,14 +133,6 @@ export function OrderCartSidebar({
     [pricingItems]
   );
 
-  const pickupPriceTotal = useMemo(
-    () =>
-      checkoutType === "pickup"
-        ? pricingItems.reduce((acc, entry) => acc + entry.pricing.pickupExtraTotal, 0)
-        : 0,
-    [checkoutType, pricingItems]
-  );
-
   const taxes = toNumber(cartQuote?.taxAmount, 0);
   const deliveryFee = checkoutType === "delivery" ? toNumber(cartQuote?.deliveryFee, 0) : 0;
   const serviceCharge = Math.max(0, toNumber(cartQuote?.serviceChargeAmount, 0));
@@ -158,7 +150,7 @@ export function OrderCartSidebar({
   const loyaltyDiscount = Math.max(0, toNumber(cartQuote?.loyaltyDiscountAmount, 0));
   const walletAppliedAmount = Math.max(0, toNumber(cartQuote?.walletAppliedAmount, 0));
   const totalBeforeDiscount =
-    quoteSubtotal + pickupPriceTotal + deliveryFee + taxes + serviceCharge + tipAmount;
+    quoteSubtotal + deliveryFee + taxes + serviceCharge + tipAmount;
   const finalTotal = Math.max(
     0,
     toNumber(
@@ -278,8 +270,6 @@ export function OrderCartSidebar({
                 lineTotal,
                 depositUnitAmount,
                 depositTotal: itemDepositTotal,
-                pickupExtraUnitPrice,
-                pickupExtraTotal,
                 selectedAddons,
                 selectedSections,
               } = pricing;
@@ -323,11 +313,6 @@ export function OrderCartSidebar({
                             </p>
                           ) : null}
 
-                          {checkoutType === "pickup" && pickupExtraUnitPrice > 0 ? (
-                            <p className="mt-1 text-xs font-medium text-primary">
-                              {t("pickupPriceEach", { price: formatCurrency(pickupExtraUnitPrice) })}
-                            </p>
-                          ) : null}
                         </div>
 
                         <button
@@ -462,14 +447,6 @@ export function OrderCartSidebar({
                             <p className="text-[11px] text-gray-400">
                               {t("each", { price: formatCurrency(unitPriceWithModifiers) })}
                             </p>
-                            {checkoutType === "pickup" && pickupExtraTotal > 0 ? (
-                              <p className="text-[11px] text-gray-400">
-                                {t("pickupPriceQuantity", {
-                                  price: formatCurrency(pickupExtraUnitPrice),
-                                  quantity: quantity > 1 ? ` × ${quantity}` : "",
-                                })}
-                              </p>
-                            ) : null}
                             {selectedAddons.length > 0 ? (
                               <p className="text-[11px] text-gray-400">
                                 {t("priceWithAddons", {
@@ -529,13 +506,6 @@ export function OrderCartSidebar({
               <div className="flex items-center justify-between text-amber-700">
                 <span>{t("deposit")}</span>
                 <span>{formatCurrency(depositTotal)}</span>
-              </div>
-            ) : null}
-
-            {checkoutType === "pickup" && pickupPriceTotal > 0 ? (
-              <div className="flex items-center justify-between text-primary">
-                <span>{t("pickupPrice")}</span>
-                <span>{formatCurrency(pickupPriceTotal)}</span>
               </div>
             ) : null}
 

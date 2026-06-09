@@ -235,6 +235,37 @@ function CheckoutPageContent() {
     }
   }, [customerId]);
 
+  useEffect(() => {
+    if (!customerId) return;
+
+    let isMounted = true;
+
+    const syncCartOrderType = async () => {
+      const res = await patch(`/v1/cart/order-type?customerId=${customerId}`, {
+        orderType: activeTab === "pickup" ? "TAKEAWAY" : "DELIVERY",
+      });
+
+      if (!isMounted) return;
+
+      if (hasBackendError(res)) {
+        reportBackendError(
+          t("toast.failedSetOrderType"),
+          res,
+          t("toast.failedSetOrderType")
+        );
+        return;
+      }
+
+      await fetchCart();
+    };
+
+    void syncCartOrderType();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [activeTab, customerId]);
+
   const [selectedAddress, setSelectedAddress] = useState<string | null>("");
   const [guestDeliveryAddress, setGuestDeliveryAddress] =
     useState<CheckoutAddressValues>(emptyGuestDeliveryAddress);
