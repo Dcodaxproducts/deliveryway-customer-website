@@ -12,10 +12,17 @@ interface Props {
     phone: string
     email: string
   }) => void
+  editable?: boolean
 }
 
-const CustomerDetailsForm = ({ customer, setCustomer }: Props) => {
+const CustomerDetailsForm = ({ customer, setCustomer, editable = false }: Props) => {
   const t = useTranslations("checkout")
+  const updateCustomerField = (field: keyof Props["customer"], value: string) => {
+    setCustomer({
+      ...customer,
+      [field]: value,
+    })
+  }
 
   return (
     <section className="space-y-[36px] -mt-[20px]">
@@ -31,9 +38,19 @@ const CustomerDetailsForm = ({ customer, setCustomer }: Props) => {
     {t("name")}
   </label>
 
-  <div className="h-[55px] flex items-center px-4 bg-gray-50 border border-gray-200 rounded-md text-gray-900 mt-3">
-    {customer.name || "—"}
-  </div>
+  {editable ? (
+    <input
+      type="text"
+      value={customer.name}
+      onChange={(event) => updateCustomerField("name", event.target.value)}
+      placeholder={t("namePlaceholder")}
+      className="mt-3 flex h-[55px] w-full items-center rounded-md border border-gray-200 bg-white px-4 text-gray-900 outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
+    />
+  ) : (
+    <div className="h-[55px] flex items-center px-4 bg-gray-50 border border-gray-200 rounded-md text-gray-900 mt-3">
+      {customer.name || "—"}
+    </div>
+  )}
 </div>
 
         {/* Contact */}
@@ -42,9 +59,19 @@ const CustomerDetailsForm = ({ customer, setCustomer }: Props) => {
     {t("contact")}
   </label>
 
-  <div className="h-[55px] flex items-center px-4 bg-gray-50 border border-gray-200 rounded-md text-gray-900 mt-3">
-    {customer.phone || "—"}
-  </div>
+  {editable ? (
+    <input
+      type="tel"
+      value={customer.phone}
+      onChange={(event) => updateCustomerField("phone", event.target.value)}
+      placeholder={t("phonePlaceholder")}
+      className="mt-3 flex h-[55px] w-full items-center rounded-md border border-gray-200 bg-white px-4 text-gray-900 outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
+    />
+  ) : (
+    <div className="h-[55px] flex items-center px-4 bg-gray-50 border border-gray-200 rounded-md text-gray-900 mt-3">
+      {customer.phone || "—"}
+    </div>
+  )}
 </div>
         {/* Email */}
       <div className="space-y-[16px]">
@@ -52,13 +79,23 @@ const CustomerDetailsForm = ({ customer, setCustomer }: Props) => {
     {t("email")}
   </label>
 
-  <div className="h-[55px] flex items-center px-4 bg-gray-50 border border-gray-200 rounded-md text-gray-700 mt-3">
-    {customer.email || "—"}
-  </div>
+  {editable ? (
+    <input
+      type="email"
+      value={customer.email}
+      onChange={(event) => updateCustomerField("email", event.target.value)}
+      placeholder={t("emailPlaceholder")}
+      className="mt-3 flex h-[55px] w-full items-center rounded-md border border-gray-200 bg-white px-4 text-gray-900 outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
+    />
+  ) : (
+    <div className="h-[55px] flex items-center px-4 bg-gray-50 border border-gray-200 rounded-md text-gray-700 mt-3">
+      {customer.email || "—"}
+    </div>
+  )}
 </div>
 
 <p className="text-sm text-gray-500 mt-2">
-  {t("customerDetailsAutoFilled")}
+  {editable ? t("guestCustomerDetailsRequired") : t("customerDetailsAutoFilled")}
 </p>
       </div>
     </section>

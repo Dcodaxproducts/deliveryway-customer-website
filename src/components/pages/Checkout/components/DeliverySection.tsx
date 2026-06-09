@@ -5,6 +5,7 @@ import { DeliveryAddressSection } from '@/components/pages/Checkout/components/D
 import NotesSection from '@/components/pages/Checkout/components/NotesSection';
 import CustomerDetailsForm from '@/components/pages/Checkout/components/CustomerDetailsForm';
 import PaymentMethodSection from '@/components/pages/Checkout/components/PaymentMethodSection';
+import type { CheckoutAddressValues } from '@/validations/checkout';
 
 type DeliverySectionProps = {
   selectedAddress: string | null;
@@ -17,6 +18,9 @@ type DeliverySectionProps = {
   setPaymentMethod: (value: string) => void;
   scheduledDeliveryValue: string;
   setScheduledDeliveryValue: (value: string) => void;
+  isGuest?: boolean;
+  guestDeliveryAddress: CheckoutAddressValues;
+  setGuestDeliveryAddress: (value: CheckoutAddressValues) => void;
 };
 
 export function DeliverySection(props: DeliverySectionProps) {
@@ -40,7 +44,7 @@ export function DeliverySection(props: DeliverySectionProps) {
         </p>
       </section>
       <NotesSection note={props.note} setNote={props.setNote} />
-      <CustomerDetailsForm {...props} />
+      <CustomerDetailsForm {...props} editable={props.isGuest} />
       <PaymentMethodSection {...props} />
     </div>
   );

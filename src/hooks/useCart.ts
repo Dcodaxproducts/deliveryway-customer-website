@@ -61,7 +61,7 @@ export type CartApi = DomainApiHook & {
   fetchCustomerCart: (args: { customerId: string }) => Promise<{ response: ApiResult; items: CartItemRecord[]; quote: CartQuote | null }>;
   fetchCustomerCartItem: (args: { customerId: string; cartItemId: string }) => Promise<ApiRecord | null>;
   addCustomerCartItem: (args: { customerId: string; payload: CartMutationPayload }) => Promise<ApiResult>;
-  quoteCustomerCart: (args: { customerId: string }) => Promise<ApiResult>;
+  quoteCustomerCart: (args: { customerId: string; payload?: Record<string, unknown> }) => Promise<ApiResult>;
   updateCustomerCart: (args: { customerId: string; payload: CartUpdatePayload }) => Promise<ApiResult>;
   updateCustomerCartItem: (args: { cartItemId: string; payload: CartMutationPayload }) => Promise<ApiResult>;
   clearCustomerCart: (args: { customerId: string }) => Promise<ApiResult>;
@@ -101,7 +101,8 @@ export const useCart = (token: string | null): CartApi => {
   );
 
   const refreshCartQuote = useCallback(
-    ({ customerId }: { customerId: string }) => quoteCustomerCart({ customerId, token }),
+    ({ customerId, payload }: { customerId: string; payload?: Record<string, unknown> }) =>
+      quoteCustomerCart({ customerId, payload, token }),
     [token]
   );
 

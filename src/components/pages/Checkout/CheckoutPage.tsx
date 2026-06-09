@@ -20,10 +20,76 @@ import {
 import { loadStripe } from "@stripe/stripe-js";
 import { useAuth } from "@/hooks/useAuth";
 import type { ApiRecord, BackendErrorState, CartItem } from "@/components/pages/Checkout/utils/checkout-normalizers";
-import { asRecord, getBackendErrorCode, getBackendErrorMessage, getBackendErrorMeta, hasBackendError, normalizeCartItem, normalizeCartResponse, recalculateCartItemQuantity, toNumber } from "@/components/pages/Checkout/utils/checkout-normalizers";
+import { asRecord, getBackendErrorCode, getBackendErrorMessage, getBackendErrorMeta, hasBackendError, normalizeCartItem, normalizeCartQuote, normalizeCartResponse, recalculateCartItemQuantity, toNumber } from "@/components/pages/Checkout/utils/checkout-normalizers";
 import type { BranchRecord } from "@/types/branch-selector";
 import { useTranslations } from "next-intl";
-import { normalizeCheckoutTipAmount } from "@/validations/checkout";
+import { normalizeCheckoutTipAmount, type CheckoutAddressValues } from "@/validations/checkout";
+
+const emptyGuestDeliveryAddress: CheckoutAddressValues = {
+  street: "",
+  postalCode: "",
+  city: "",
+  state: "",
+  country: "",
+  area: "",
+  lat: "",
+  lng: "",
+  isDefault: false,
+};
+
+const isGuestUser = (user: ReturnType<typeof useAuthContext>["user"]) =>
+  user?.isGuest === true || String(user?.role || "").toUpperCase() === "GUEST";
+
+const trimAddress = (address: CheckoutAddressValues) => ({
+  street: address.street.trim(),
+  area: address.area.trim(),
+  postalCode: address.postalCode.trim(),
+  city: address.city.trim(),
+  state: address.state.trim(),
+  country: address.country.trim(),
+  lat: address.lat.trim(),
+  lng: address.lng.trim(),
+});
+
+const getGuestDeliveryAddressPayload = (address: CheckoutAddressValues) => {
+  const trimmed = trimAddress(address);
+
+  return {
+    street: trimmed.street,
+    area: trimmed.area,
+    postalCode: trimmed.postalCode,
+    city: trimmed.city,
+    state: trimmed.state,
+    country: trimmed.country,
+    lat: trimmed.lat,
+    lng: trimmed.lng,
+  };
+};
+
+const hasGuestDeliveryAddress = (address: CheckoutAddressValues) => {
+  const trimmed = trimAddress(address);
+
+  return Boolean(trimmed.street && trimmed.postalCode && trimmed.city && trimmed.country);
+};
+
+const getGuestContactPayload = (customer: { name: string; phone: string; email: string }) => {
+  const nameParts = customer.name.trim().split(/\s+/).filter(Boolean);
+  const firstName = nameParts[0] || "";
+  const lastName = nameParts.slice(1).join(" ");
+
+  return {
+    firstName,
+    lastName,
+    email: customer.email.trim(),
+    phone: customer.phone.trim(),
+  };
+};
+
+const hasGuestContact = (customer: { name: string; phone: string; email: string }) => {
+  const contact = getGuestContactPayload(customer);
+
+  return Boolean(contact.firstName && contact.email && contact.phone);
+};
 
 function CheckoutPageContent() {
   const t = useTranslations("checkout");
@@ -32,6 +98,7 @@ function CheckoutPageContent() {
   const { user, token } = useAuthContext();
   const preferredCheckoutType = user?.selectedOrderType === "TAKEAWAY" ? "pickup" : "delivery";
   const activeTab = type === "pickup" || type === "delivery" ? type : preferredCheckoutType;
+  const isGuest = isGuestUser(user);
 
   const [couponCode, setCouponCode] = useState("");
   const [couponDiscount, setCouponDiscount] = useState(0);
@@ -39,7 +106,7 @@ function CheckoutPageContent() {
   const [applyingTip, setApplyingTip] = useState(false);
 
   const { get, patch, del, post, checkoutCustomerCart } = useCheckout(token);
-  const { updateCustomerCart } = useCart(token);
+  const { updateCustomerCart, quoteCustomerCart } = useCart(token);
   const { fetchReservationBranch } = useReservations(token);
 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -146,6 +213,8 @@ function CheckoutPageContent() {
   }, [customerId]);
 
   const [selectedAddress, setSelectedAddress] = useState<string | null>("");
+  const [guestDeliveryAddress, setGuestDeliveryAddress] =
+    useState<CheckoutAddressValues>(emptyGuestDeliveryAddress);
   const [note, setNote] = useState("");
   const [customer, setCustomer] = useState({
     name: "",
@@ -172,6 +241,32 @@ function CheckoutPageContent() {
       email: user.email || "",
     }));
   }, [user]);
+
+  useEffect(() => {
+    if (!isGuest || activeTab !== "delivery" || !customerId) return;
+    if (!hasGuestDeliveryAddress(guestDeliveryAddress)) return;
+
+    const quoteTimer = window.setTimeout(async () => {
+      const res = await quoteCustomerCart({
+        customerId,
+        payload: {
+          orderType: "DELIVERY",
+          guestDeliveryAddress: getGuestDeliveryAddressPayload(guestDeliveryAddress),
+        },
+      });
+
+      if (!hasBackendError(res)) {
+        const { quote } = normalizeCartResponse(res);
+        const quoteData = quote ?? normalizeCartQuote(asRecord(res?.data));
+
+        if (quoteData) {
+          setCartQuote(quoteData);
+        }
+      }
+    }, 450);
+
+    return () => window.clearTimeout(quoteTimer);
+  }, [activeTab, customerId, guestDeliveryAddress, isGuest, quoteCustomerCart]);
 
   useEffect(() => {
     const loadPickupBranch = async () => {
@@ -352,6 +447,7 @@ function CheckoutPageContent() {
 
   const setCartAddress = async () => {
     if (activeTab !== "delivery") return true;
+    if (isGuest) return true;
 
     try {
       const res = await patch(`/v1/cart/address?customerId=${customerId}`, {
@@ -519,7 +615,17 @@ function CheckoutPageContent() {
         return;
       }
 
-      if (activeTab === "delivery" && !selectedAddress) {
+      if (isGuest && !hasGuestContact(customer)) {
+        toast.error(t("toast.enterGuestContact"));
+        return;
+      }
+
+      if (activeTab === "delivery" && isGuest && !hasGuestDeliveryAddress(guestDeliveryAddress)) {
+        toast.error(t("toast.enterGuestDeliveryAddress"));
+        return;
+      }
+
+      if (activeTab === "delivery" && !isGuest && !selectedAddress) {
         toast.error(t("toast.selectAddress"));
         return;
       }
@@ -559,6 +665,10 @@ function CheckoutPageContent() {
         payload: {
           ...(scheduledDeliveryAt ? { scheduledDeliveryAt } : {}),
           ...(checkoutTipAmount > 0 ? { tipAmount: checkoutTipAmount } : {}),
+          ...(isGuest ? { guestContact: getGuestContactPayload(customer) } : {}),
+          ...(isGuest && activeTab === "delivery"
+            ? { guestDeliveryAddress: getGuestDeliveryAddressPayload(guestDeliveryAddress) }
+            : {}),
           paymentMethod:
             paymentMethod === "card"
               ? "STRIPE"
@@ -715,6 +825,9 @@ function CheckoutPageContent() {
               setNote={setNote}
               customer={customer}
               setCustomer={setCustomer}
+              isGuest={isGuest}
+              guestDeliveryAddress={guestDeliveryAddress}
+              setGuestDeliveryAddress={setGuestDeliveryAddress}
               paymentMethod={paymentMethod}
               setPaymentMethod={setPaymentMethod}
               scheduledDeliveryValue={scheduledDeliveryValue}
