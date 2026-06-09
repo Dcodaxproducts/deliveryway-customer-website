@@ -9,6 +9,7 @@ import { OrderCartSidebar } from "@/components/pages/Items/components/signature-
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { CART_CHANGED_EVENT } from "@/lib/cart-events";
+import { cn } from "@/lib/utils";
 
 const HIDDEN_CART_PATHS = ["/checkout", "/menu"];
 
@@ -20,6 +21,7 @@ export function SiteFloatingCart() {
   const [isOpen, setIsOpen] = useState(false);
 
   const isHiddenRoute = HIDDEN_CART_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+  const isHomePage = pathname === "/";
   const checkoutType = user?.selectedOrderType === "TAKEAWAY" ? "pickup" : "delivery";
 
   const refreshCart = useCallback(() => {
@@ -44,7 +46,12 @@ export function SiteFloatingCart() {
   }
 
   return (
-    <div className="fixed bottom-5 right-4 z-40 flex items-end justify-end sm:bottom-6 sm:right-6 lg:bottom-8 lg:right-8">
+    <div
+      className={cn(
+        "fixed right-4 z-40 flex items-end justify-end sm:right-6 lg:right-8",
+        isHomePage ? "bottom-20 sm:bottom-24 lg:bottom-28" : "bottom-5 sm:bottom-6 lg:bottom-8"
+      )}
+    >
       {isOpen ? (
         <div className="relative h-[min(720px,calc(100vh-7rem))] w-[min(380px,calc(100vw-2rem))]">
           <Button
@@ -69,7 +76,7 @@ export function SiteFloatingCart() {
         <Button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="h-11 rounded-full border border-black/10 bg-white px-3.5 text-[#222] shadow-[0_14px_38px_rgba(15,23,42,0.16)] hover:bg-[#f7f7f7] sm:h-12 sm:px-4"
+          className="h-11 rounded-full border border-black/10 bg-white pl-2 pr-3.5 text-[#222] shadow-[0_14px_38px_rgba(15,23,42,0.16)] hover:bg-[#f7f7f7] sm:h-12 sm:pl-2.5 sm:pr-4"
           aria-label={t("openCart")}
         >
           <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 sm:h-8 sm:w-8">
