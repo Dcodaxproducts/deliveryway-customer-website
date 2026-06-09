@@ -337,6 +337,8 @@ function CheckoutPageContent() {
         return;
       }
 
+      await fetchCart();
+
       const payload: Record<string, unknown> = {};
 
       if (activeTab === "delivery" && isGuest && hasGuestDeliveryAddress(guestDeliveryAddress)) {
