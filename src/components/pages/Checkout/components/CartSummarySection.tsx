@@ -576,6 +576,22 @@ export const getItemPricing = (item: CartItem, checkoutType: CheckoutType) => {
     selectedSections,
   };
 };
+
+export const getCheckoutPriceAdjustmentTotal = (
+  cartItems: CartItem[],
+  checkoutType: CheckoutType
+) => {
+  return cartItems.reduce((total, item) => {
+    const quantity = Math.max(1, toNumber(item.quantity, 1));
+    const adjustment =
+      checkoutType === "pickup"
+        ? item.takeawayPriceAdjustment ?? item.menuItem?.takeawayPriceAdjustment
+        : item.deliveryPriceAdjustment ?? item.menuItem?.deliveryPriceAdjustment;
+
+    return total + Math.max(0, toNumber(adjustment, 0)) * quantity;
+  }, 0);
+};
+
 export function CartSummarySection({
   title,
   cartItems,
@@ -645,7 +661,15 @@ export function CartSummarySection({
     setTipInput(quoteTipAmount > 0 ? String(quoteTipAmount) : "");
   }, [quoteTipAmount]);
 
-  const deliveryFee = quoteDeliveryFee ?? (checkoutType === "delivery" ? 0 : 0);
+  const checkoutPriceAdjustment = getCheckoutPriceAdjustmentTotal(cartItems, checkoutType);
+  const deliveryAdjustmentFee =
+    checkoutType === "delivery" ? checkoutPriceAdjustment : 0;
+  const deliveryFee =
+    checkoutType === "delivery"
+      ? deliveryAdjustmentFee > 0 ? deliveryAdjustmentFee : quoteDeliveryFee ?? 0
+      : 0;
+  const pickupFee = checkoutType === "pickup" ? checkoutPriceAdjustment : 0;
+  const selectedOrderFee = checkoutType === "pickup" ? pickupFee : deliveryFee;
   const taxes = quoteTaxAmount ?? 0;
   const serviceCharge = Math.max(0, quoteServiceChargeAmount);
   const tipAmount = Math.max(0, quoteTipAmount);
@@ -668,11 +692,11 @@ export function CartSummarySection({
   );
 
   const computedTotalBeforeDiscount =
-    itemTotal + deliveryFee + taxes + serviceCharge + tipAmount;
+    itemTotal + selectedOrderFee + taxes + serviceCharge + tipAmount;
 
   const totalBeforeDiscount =
     quoteSubtotal !== null
-      ? quoteSubtotal + deliveryFee + taxes + serviceCharge + tipAmount
+      ? quoteSubtotal + selectedOrderFee + taxes + serviceCharge + tipAmount
       : computedTotalBeforeDiscount;
 
   const totalWithoutTip = Math.max(
@@ -1205,13 +1229,15 @@ export function CartSummarySection({
             </div>
           ) : null}
 
-          {checkoutType === "delivery" ? (
+          {selectedOrderFee > 0 ? (
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1">
-                <span>{t("deliveryFee")}</span>
+                <span>
+                  {checkoutType === "pickup" ? t("pickupPrice") : t("deliveryFee")}
+                </span>
                 <Info size={16} />
               </div>
-              <span>{formatCurrency(deliveryFee)}</span>
+              <span>{formatCurrency(selectedOrderFee)}</span>
             </div>
           ) : null}
 

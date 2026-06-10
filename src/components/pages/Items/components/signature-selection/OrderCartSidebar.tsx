@@ -19,6 +19,7 @@ import {
   formatCurrency,
   getAddonQuantity,
   getAddonTotal,
+  getCheckoutPriceAdjustmentTotal,
   getItemImage,
   getItemPricing,
   getSelectedVariationName,
@@ -134,7 +135,17 @@ export function OrderCartSidebar({
   );
 
   const taxes = toNumber(cartQuote?.taxAmount, 0);
-  const deliveryFee = checkoutType === "delivery" ? toNumber(cartQuote?.deliveryFee, 0) : 0;
+  const checkoutPriceAdjustment = getCheckoutPriceAdjustmentTotal(cartItems, checkoutType);
+  const deliveryAdjustmentFee =
+    checkoutType === "delivery" ? checkoutPriceAdjustment : 0;
+  const deliveryFee =
+    checkoutType === "delivery"
+      ? deliveryAdjustmentFee > 0
+        ? deliveryAdjustmentFee
+        : toNumber(cartQuote?.deliveryFee, 0)
+      : 0;
+  const pickupFee = checkoutType === "pickup" ? checkoutPriceAdjustment : 0;
+  const selectedOrderFee = checkoutType === "pickup" ? pickupFee : deliveryFee;
   const serviceCharge = Math.max(0, toNumber(cartQuote?.serviceChargeAmount, 0));
   const tipAmount = Math.max(0, toNumber(cartQuote?.tipAmount, 0));
   const quoteSubtotal = cartQuote ? toNumber(cartQuote.subtotal, itemTotal) : itemTotal;
@@ -150,7 +161,7 @@ export function OrderCartSidebar({
   const loyaltyDiscount = Math.max(0, toNumber(cartQuote?.loyaltyDiscountAmount, 0));
   const walletAppliedAmount = Math.max(0, toNumber(cartQuote?.walletAppliedAmount, 0));
   const totalBeforeDiscount =
-    quoteSubtotal + deliveryFee + taxes + serviceCharge + tipAmount;
+    quoteSubtotal + selectedOrderFee + taxes + serviceCharge + tipAmount;
   const finalTotal = Math.max(
     0,
     toNumber(
@@ -514,10 +525,12 @@ export function OrderCartSidebar({
               </div>
             ) : null}
 
-            {checkoutType === "delivery" ? (
+            {selectedOrderFee > 0 ? (
               <div className="flex items-center justify-between">
-                <span>{t("deliveryFee")}</span>
-                <span>{formatCurrency(deliveryFee)}</span>
+                <span>
+                  {checkoutType === "pickup" ? t("pickupPrice") : t("deliveryFee")}
+                </span>
+                <span>{formatCurrency(selectedOrderFee)}</span>
               </div>
             ) : null}
 
