@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  addGroupOrderItem,
   addCustomerCartItem,
   deleteCustomerCartDeal,
   fetchCustomerCart,
@@ -91,6 +92,42 @@ describe("cart service", () => {
       undefined
     );
     expect(postCartMock.mock.calls[0][1]).not.toHaveProperty("modifiers");
+  });
+
+  it("flattens grouped modifier selections before adding group order items", async () => {
+    postCartMock.mockResolvedValue({ success: true });
+
+    await addGroupOrderItem({
+      groupOrderId: "group-order-1",
+      payload: {
+        menuItemId: "burger-id",
+        quantity: 1,
+        modifierSelections: [
+          {
+            modifierGroupId: "group-sauces",
+            modifiers: [
+              { modifierId: "modifier-garlic", quantity: 1 },
+              { modifierId: "modifier-chili", quantity: 2 },
+            ],
+          },
+        ],
+      },
+      token: "customer-token",
+    });
+
+    expect(postCartMock).toHaveBeenCalledWith(
+      "/v1/group-orders/group-order-1/items",
+      {
+        menuItemId: "burger-id",
+        quantity: 1,
+        modifiers: [
+          { modifierId: "modifier-garlic", quantity: 1 },
+          { modifierId: "modifier-chili", quantity: 2 },
+        ],
+      },
+      "customer-token"
+    );
+    expect(postCartMock.mock.calls[0][1]).not.toHaveProperty("modifierSelections");
   });
 
   it("cleans ready-made deal cart payloads before posting", async () => {

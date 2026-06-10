@@ -172,6 +172,30 @@ export const cleanAddCartItemPayload = (payload: CartMutationPayload): CartMutat
   return cleanedPayload;
 };
 
+export const normalizeGroupOrderItemPayload = (payload: CartMutationPayload): CartMutationPayload => {
+  const normalizedPayload: CartMutationPayload = { ...payload };
+  const modifierSelections = normalizeArray<ApiRecord>(payload.modifierSelections);
+
+  if (modifierSelections.length > 0) {
+    const groupedModifiers = modifierSelections.flatMap((selection) =>
+      normalizeArray<ApiRecord>(selection.modifiers)
+        .map((modifier) => ({
+          modifierId: getString(modifier.modifierId),
+          quantity: toNumber(modifier.quantity, 1),
+        }))
+        .filter((modifier) => modifier.modifierId)
+    );
+
+    if (groupedModifiers.length > 0) {
+      normalizedPayload.modifiers = groupedModifiers;
+    }
+  }
+
+  delete normalizedPayload.modifierSelections;
+
+  return normalizedPayload;
+};
+
 export const normalizeCartUpdatePayload = (payload: CartUpdatePayload): CartMutationPayload => {
   const { orderTime, scheduledDeliveryAt, tipAmount, ...rest } = payload;
   const normalizedPayload: CartMutationPayload = { ...rest };
@@ -315,4 +339,4 @@ export const addGroupOrderItem = ({
   groupOrderId: string;
   payload: CartMutationPayload;
   token?: string | null;
-}) => postCart(`/v1/group-orders/${groupOrderId}/items`, payload, token);
+}) => postCart(`/v1/group-orders/${groupOrderId}/items`, normalizeGroupOrderItemPayload(payload), token);
