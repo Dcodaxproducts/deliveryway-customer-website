@@ -13,6 +13,7 @@ import {
   BadgeDollarSign,
   AlertTriangle,
   Loader2,
+  Coins,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
@@ -29,6 +30,7 @@ import {
   type BackendErrorState,
 } from "@/components/pages/Checkout/utils/checkout-normalizers";
 import { useTranslations } from "next-intl";
+import type { LoyaltySummary } from "@/services/loyalty";
 
 interface CartAddon {
   id?: string;
@@ -168,6 +170,11 @@ interface Props {
   appliedTipAmount?: number;
   onApplyTip?: (amount: number) => Promise<void> | void;
   applyingTip?: boolean;
+  loyalty?: LoyaltySummary | null;
+  loyaltyPoints?: string;
+  setLoyaltyPoints?: (value: string) => void;
+  loadingLoyalty?: boolean;
+  isGuest?: boolean;
 }
 
 export type CheckoutType = "delivery" | "pickup";
@@ -618,6 +625,11 @@ export function CartSummarySection({
   appliedTipAmount = 0,
   onApplyTip,
   applyingTip = false,
+  loyalty,
+  loyaltyPoints = "",
+  setLoyaltyPoints,
+  loadingLoyalty = false,
+  isGuest = false,
 }: Props) {
   const t = useTranslations("checkout");
   const router = useRouter();
@@ -661,6 +673,12 @@ export function CartSummarySection({
     Math.max(0, toNumber(appliedTipAmount, 0));
   const quotePayableAmount = resolvedQuote ? getDisplayTotalAmount(resolvedQuote) : null;
   const [tipInput, setTipInput] = useState("");
+  const loyaltyPointsValue = Math.max(0, Math.floor(toNumber(loyaltyPoints, 0)));
+  const loyaltyEstimatedDiscount = loyaltyPointsValue * toNumber(loyalty?.redemptionValuePerPoint, 0);
+  const loyaltyCanRedeem =
+    Boolean(loyalty) &&
+    loyaltyPointsValue >= toNumber(loyalty?.minimumRedeemPoints, 0) &&
+    loyaltyPointsValue <= toNumber(loyalty?.availablePoints, 0);
 
   useEffect(() => {
     setTipInput(quoteTipAmount > 0 ? String(quoteTipAmount) : "");
@@ -1401,6 +1419,66 @@ export function CartSummarySection({
                   : ""}
               </p>
             ) : null}
+          </div>
+        ) : null}
+
+        {canEditCart && !isGuest ? (
+          <div className="rounded-[18px] border border-primary/10 bg-[linear-gradient(135deg,rgba(206,24,27,0.07),rgba(17,24,39,0.03))] p-4">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <Coins size={18} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-950">
+                      {t("loyalty.title")}
+                    </p>
+                    <p className="mt-1 text-xs leading-5 text-gray-500">
+                      {loadingLoyalty
+                        ? t("loyalty.loading")
+                        : loyalty
+                          ? t("loyalty.available", {
+                              points: Math.max(0, Math.round(toNumber(loyalty.availablePoints, 0))),
+                              minimum: Math.max(0, Math.round(toNumber(loyalty.minimumRedeemPoints, 0))),
+                            })
+                          : t("loyalty.unavailable")}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                  <input
+                    type="number"
+                    min="0"
+                    value={loyaltyPoints}
+                    onChange={(event) => setLoyaltyPoints?.(event.target.value)}
+                    disabled={loadingLoyalty || !loyalty}
+                    placeholder={t("loyalty.placeholder")}
+                    className="h-[42px] flex-1 rounded-full border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-primary/50 focus:ring-2 focus:ring-primary/10 disabled:cursor-not-allowed disabled:opacity-60"
+                  />
+                  {loyaltyPointsValue > 0 ? (
+                    <button
+                      type="button"
+                      onClick={() => setLoyaltyPoints?.("")}
+                      className="h-[42px] rounded-full border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-600 transition hover:border-primary/30 hover:text-primary"
+                    >
+                      {t("loyalty.clear")}
+                    </button>
+                  ) : null}
+                </div>
+
+                {loyaltyPointsValue > 0 ? (
+                  <p className={`mt-2 text-xs font-medium ${loyaltyCanRedeem ? "text-green-700" : "text-amber-700"}`}>
+                    {loyaltyCanRedeem
+                      ? t("loyalty.estimatedDiscount", {
+                          amount: formatCurrency(loyaltyEstimatedDiscount),
+                        })
+                      : t("loyalty.requirements")}
+                  </p>
+                ) : null}
+              </div>
+            </div>
           </div>
         ) : null}
 

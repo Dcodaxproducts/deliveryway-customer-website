@@ -8,6 +8,7 @@ import { CartSummarySection } from "@/components/pages/Checkout/components/CartS
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCheckout } from "@/hooks/useCheckout";
 import { useCart } from "@/hooks/useCart";
+import { useLoyalty } from "@/hooks/useLoyalty";
 import useReservations from "@/hooks/useReservations";
 import { toast } from "sonner";
 import { useAuthContext } from "@/hooks/useAuth";
@@ -25,6 +26,7 @@ import type { BranchRecord } from "@/types/branch-selector";
 import { useTranslations } from "next-intl";
 import { normalizeCheckoutTipAmount, type CheckoutAddressValues } from "@/validations/checkout";
 import { getStoredRestaurantMenuId } from "@/lib/timed-menu";
+import type { LoyaltySummary } from "@/services/loyalty";
 
 const emptyGuestDeliveryAddress: CheckoutAddressValues = {
   street: "",
@@ -143,6 +145,7 @@ function CheckoutPageContent() {
 
   const { get, patch, del, post, checkoutCustomerCart } = useCheckout(token);
   const { updateCustomerCart, updateCustomerCartOrderType, quoteCustomerCart } = useCart(token);
+  const { fetchLoyalty } = useLoyalty(token);
   const { fetchReservationBranch } = useReservations(token);
 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -152,6 +155,9 @@ function CheckoutPageContent() {
   const [backendError, setBackendError] = useState<BackendErrorState | null>(
     null
   );
+  const [loyalty, setLoyalty] = useState<LoyaltySummary | null>(null);
+  const [loyaltyPoints, setLoyaltyPoints] = useState("");
+  const [loadingLoyalty, setLoadingLoyalty] = useState(false);
 
   const router = useRouter();
   const customerId = user?.id;
@@ -280,6 +286,41 @@ function CheckoutPageContent() {
       setLoadingCart(false);
     }
   }, [customerId]);
+
+  useEffect(() => {
+    if (!customerId || isGuest || !token) {
+      setLoyalty(null);
+      setLoyaltyPoints("");
+      setLoadingLoyalty(false);
+      return;
+    }
+
+    let isMounted = true;
+
+    const loadLoyalty = async () => {
+      try {
+        setLoadingLoyalty(true);
+        const { loyalty: nextLoyalty } = await fetchLoyalty();
+
+        if (!isMounted) return;
+
+        setLoyalty(nextLoyalty);
+      } catch {
+        if (!isMounted) return;
+        setLoyalty(null);
+      } finally {
+        if (isMounted) {
+          setLoadingLoyalty(false);
+        }
+      }
+    };
+
+    void loadLoyalty();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [customerId, fetchLoyalty, isGuest, token]);
 
   const [selectedAddress, setSelectedAddress] = useState<string | null>("");
   const [guestDeliveryAddress, setGuestDeliveryAddress] =
@@ -786,6 +827,24 @@ function CheckoutPageContent() {
         0,
         toNumber(cartQuote?.tipAmount, appliedTipAmount)
       );
+      const checkoutLoyaltyPoints = Math.max(0, Math.floor(toNumber(loyaltyPoints, 0)));
+
+      if (checkoutLoyaltyPoints > 0) {
+        if (!loyalty) {
+          toast.error(t("toast.loyaltyUnavailable"));
+          return;
+        }
+
+        if (checkoutLoyaltyPoints < loyalty.minimumRedeemPoints) {
+          toast.error(t("toast.minimumLoyaltyPoints", { points: loyalty.minimumRedeemPoints }));
+          return;
+        }
+
+        if (checkoutLoyaltyPoints > loyalty.availablePoints) {
+          toast.error(t("toast.insufficientLoyaltyPoints"));
+          return;
+        }
+      }
 
       const res = await checkoutCustomerCart({
         customerId,
@@ -793,6 +852,7 @@ function CheckoutPageContent() {
           orderType: getCheckoutOrderType(activeTab),
           ...(scheduledDeliveryAt ? { orderTime: scheduledDeliveryAt } : {}),
           ...(checkoutTipAmount > 0 ? { tipAmount: checkoutTipAmount } : {}),
+          ...(checkoutLoyaltyPoints > 0 ? { loyaltyPoints: checkoutLoyaltyPoints } : {}),
           ...(isGuest
             ? { guestContact: getGuestContactPayload(customer, privacyPolicyAccepted) }
             : {}),
@@ -865,6 +925,7 @@ function CheckoutPageContent() {
       if (paymentMethod === "wallet") {
         toast.success(t("toast.paidUsingWallet"));
 
+        window.dispatchEvent(new Event("loyalty-updated"));
         await clearCart();
         router.push(`/order?success=true&orderId=${orderId}`);
         return;
@@ -872,6 +933,7 @@ function CheckoutPageContent() {
 
       toast.success(t("toast.orderPlaced"));
 
+      window.dispatchEvent(new Event("loyalty-updated"));
       await clearCart();
       router.push(`/order?success=true&orderId=${orderId}`);
     } catch (err) {
@@ -1033,6 +1095,11 @@ function CheckoutPageContent() {
             loadingCart={loadingCart}
             onApplyTip={applyTip}
             applyingTip={applyingTip}
+            loyalty={loyalty}
+            loyaltyPoints={loyaltyPoints}
+            setLoyaltyPoints={setLoyaltyPoints}
+            loadingLoyalty={loadingLoyalty}
+            isGuest={isGuest}
           />
         </div>
       </div>
@@ -1057,6 +1124,7 @@ function CheckoutPageContent() {
                     orderId: "",
                   });
 
+                  window.dispatchEvent(new Event("loyalty-updated"));
                   await clearCart();
                   router.push(`/order?success=true&orderId=${stripePayment.orderId}`);
                 }}

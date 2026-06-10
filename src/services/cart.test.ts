@@ -490,6 +490,9 @@ describe("cart service", () => {
       serviceChargeAmount: 100,
       tipAmount: 150,
       discountAmount: 301,
+      loyaltyDiscountAmount: 0,
+      loyaltyPointsRedeemed: 0,
+      walletAppliedAmount: 0,
       totalAmount: 999,
       payableAmount: 999,
       appliedPromotion: {
@@ -515,6 +518,9 @@ describe("cart service", () => {
         serviceChargeAmount: 100,
         tipAmount: 150,
         discountAmount: 301,
+        loyaltyDiscountAmount: 100,
+        loyaltyPointsRedeemed: 100,
+        walletAppliedAmount: 25,
         totalAmount: 999,
         payableAmount: 1400,
         appliedPromotion: {
@@ -532,6 +538,9 @@ describe("cart service", () => {
       serviceChargeAmount: 100,
       tipAmount: 150,
       discountAmount: 301,
+      loyaltyDiscountAmount: 100,
+      loyaltyPointsRedeemed: 100,
+      walletAppliedAmount: 25,
       totalAmount: 999,
       payableAmount: 1400,
       appliedPromotion: {
