@@ -630,8 +630,10 @@
     "notesTitle": "Any Note for us?",
     "notesPlaceholder": "Type your note here",
     "selectPaymentMethod": "Select Payment Method",
-    "cashOnDelivery": "Cash on Delivery",
-    "cardStripe": "Credit / Debit Card (Stripe)",
+    "cashOnDelivery": "Cash on delivery",
+    "paypal": "PayPal",
+    "onlineCard": "Online card",
+    "cardStripe": "Online card",
     "wallet": "Wallet",
     "scheduledDelivery": "Scheduled delivery",
     "scheduledDeliveryOptional": "Optional. Leave empty for immediate delivery.",
@@ -1332,10 +1334,9 @@
         "checkoutDescription": "Complete your order details below.",
         "paymentMethod": "Payment Method",
         "paymentMethods": {
-          "COD": "COD",
-          "BANK_TRANSFER": "Bank Transfer",
-          "EASYPESA": "Easypesa",
-          "JAZZCASH": "JazzCash"
+          "COD": "Cash on delivery",
+          "PAYPAL": "PayPal",
+          "STRIPE": "Online card"
         },
         "couponCode": "Coupon Code",
         "couponPlaceholder": "Enter coupon",
@@ -1417,7 +1418,14 @@
       "technicalDataDescription": "We also automatically collect technical data such as your IP address, browser type, and operating system to improve our service delivery and security protocols.",
       "cookiesTitle": "2. Cookies & Tracking",
       "cookiesDescription": "Our website uses cookies to distinguish you from other users. This helps us provide you with a good experience when you browse our website and also allows us to improve our site.",
-      "cookiesQuote": "Cookies are small text files placed on your computer by websites that you visit. They are widely used to make websites work."
+      "cookiesQuote": "Cookies are small text files placed on your computer by websites that you visit. They are widely used to make websites work.",
+      "loadingPolicy": "Loading restaurant legal details...",
+      "legalProfileTitle": "Restaurant legal details",
+      "legalProfileDescription": "Business and tax details provided by the restaurant.",
+      "legalBusinessName": "Legal business name",
+      "taxNumber": "Tax/VAT number",
+      "businessAddress": "Business address",
+      "contractText": "Legal agreement"
     },
     "terms": {
       "title": "Terms & Conditions",

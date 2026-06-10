@@ -31,9 +31,24 @@ export type CheckoutCartPayload = Record<string, unknown> & {
   };
 };
 
+export const normalizeCheckoutPaymentMethod = (paymentMethod: unknown) => {
+  const normalized = typeof paymentMethod === "string" ? paymentMethod.trim().toUpperCase() : "";
+
+  if (normalized === "CARD" || normalized === "CARD_ON_DELIVERY") {
+    return "STRIPE";
+  }
+
+  if (normalized === "COD" || normalized === "PAYPAL" || normalized === "STRIPE") {
+    return normalized;
+  }
+
+  return typeof paymentMethod === "string" ? paymentMethod : "";
+};
+
 export const normalizeCheckoutPayload = (payload: CheckoutCartPayload): Record<string, unknown> => {
   const { orderTime, scheduledDeliveryAt, ...rest } = payload;
   delete rest.orderType;
+  rest.paymentMethod = normalizeCheckoutPaymentMethod(rest.paymentMethod);
 
   if (scheduledDeliveryAt !== undefined) {
     return {

@@ -336,7 +336,7 @@ function CheckoutPageContent() {
     useState<GuestPrivacyPolicy | null>(null);
   const [privacyPolicyLoading, setPrivacyPolicyLoading] = useState(false);
 
-  const [paymentMethod, setPaymentMethod] = useState("card");
+  const [paymentMethod, setPaymentMethod] = useState("STRIPE");
   const [placingOrder, setPlacingOrder] = useState(false);
   const [pickupDate, setPickupDate] = useState<Date | null>(null);
   const [pickupTime, setPickupTime] = useState<string | null>(null);
@@ -858,12 +858,7 @@ function CheckoutPageContent() {
           ...(isGuest && activeTab === "delivery"
             ? { guestDeliveryAddress: getGuestDeliveryAddressPayload(guestDeliveryAddress) }
             : {}),
-          paymentMethod:
-            paymentMethod === "card"
-              ? "STRIPE"
-              : paymentMethod === "wallet"
-                ? "WALLET"
-                : "COD",
+          paymentMethod,
           customerNote: note,
         },
       });
@@ -891,7 +886,7 @@ function CheckoutPageContent() {
 
       clearBackendError();
 
-      if (paymentMethod === "card") {
+      if (paymentMethod === "STRIPE") {
         const attemptRes = await post(`/v1/payments/orders/${orderId}/attempts`, {
           paymentMethod: "STRIPE",
           currency: "USD",
@@ -918,15 +913,6 @@ function CheckoutPageContent() {
           orderId,
         });
 
-        return;
-      }
-
-      if (paymentMethod === "wallet") {
-        toast.success(t("toast.paidUsingWallet"));
-
-        window.dispatchEvent(new Event("loyalty-updated"));
-        await clearCart();
-        router.push(`/order?success=true&orderId=${orderId}`);
         return;
       }
 

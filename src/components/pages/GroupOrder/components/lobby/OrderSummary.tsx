@@ -303,7 +303,7 @@ clearStoredGroupOrderCode();
       </p>
 
       <div className="grid grid-cols-2 gap-3">
-        {(["COD", "BANK_TRANSFER", "EASYPESA", "JAZZCASH"] as GroupOrderPaymentMethod[]).map((method) => (
+        {(["COD", "PAYPAL", "STRIPE"] as GroupOrderPaymentMethod[]).map((method) => (
           <button
             key={method}
             onClick={() => setPaymentMethod(method as GroupOrderPaymentMethod)}

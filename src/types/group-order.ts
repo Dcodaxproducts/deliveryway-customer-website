@@ -3,7 +3,7 @@ import type { BranchRecord } from "@/types/branch-selector";
 export type GroupOrderStatus = "OPEN" | "LOCKED" | "CHECKED_OUT" | "CANCELLED" | "EXPIRED" | string;
 export type GroupOrderParticipantStatus = "ACTIVE" | "PENDING" | string;
 export type GroupOrderType = "DINE_IN" | "TAKEAWAY" | "DELIVERY" | string;
-export type GroupOrderPaymentMethod = "COD" | "BANK_TRANSFER" | "EASYPESA" | "JAZZCASH" | string;
+export type GroupOrderPaymentMethod = "COD" | "PAYPAL" | "STRIPE";
 
 export type GroupOrderUser = {
   id?: string | number | null;

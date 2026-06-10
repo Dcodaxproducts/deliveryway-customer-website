@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { checkoutCustomerCart, normalizeCheckoutPayload } from "./checkout";
+import { checkoutCustomerCart, normalizeCheckoutPayload, normalizeCheckoutPaymentMethod } from "./checkout";
 
 const postCheckoutMock = vi.hoisted(() => vi.fn());
 
@@ -78,6 +78,33 @@ describe("checkout service", () => {
       {
         paymentMethod: "COD",
         loyaltyPoints: 100,
+      },
+      undefined
+    );
+  });
+
+  it("normalizes supported checkout payment methods", () => {
+    expect(normalizeCheckoutPaymentMethod("cod")).toBe("COD");
+    expect(normalizeCheckoutPaymentMethod("paypal")).toBe("PAYPAL");
+    expect(normalizeCheckoutPaymentMethod("stripe")).toBe("STRIPE");
+    expect(normalizeCheckoutPaymentMethod("card")).toBe("STRIPE");
+    expect(normalizeCheckoutPaymentMethod("CARD_ON_DELIVERY")).toBe("STRIPE");
+  });
+
+  it("does not send legacy card on delivery in cart checkout payload", async () => {
+    postCheckoutMock.mockResolvedValue({ success: true });
+
+    await checkoutCustomerCart({
+      customerId: "customer-1",
+      payload: {
+        paymentMethod: "CARD_ON_DELIVERY",
+      },
+    });
+
+    expect(postCheckoutMock).toHaveBeenCalledWith(
+      "/v1/cart/checkout?customerId=customer-1",
+      {
+        paymentMethod: "STRIPE",
       },
       undefined
     );

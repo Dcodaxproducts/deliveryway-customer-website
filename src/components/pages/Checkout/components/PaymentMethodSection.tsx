@@ -1,4 +1,3 @@
-import { Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 interface Props {
@@ -12,9 +11,9 @@ const PaymentMethodSection = ({
 }: Props) => {
   const t = useTranslations("checkout");
   const options = [
-    { key: "cod", label: t("cashOnDelivery") },
-    { key: "card", label: t("cardStripe") },
-    { key: "wallet", label: t("wallet") },
+    { key: "COD", label: t("cashOnDelivery") },
+    { key: "PAYPAL", label: t("paypal") },
+    { key: "STRIPE", label: t("onlineCard") },
   ];
 
   return (
@@ -56,4 +55,4 @@ const PaymentMethodSection = ({
   );
 };
 
-export default PaymentMethodSection;
+export { PaymentMethodSection };
