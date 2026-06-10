@@ -377,6 +377,24 @@ describe("cart service", () => {
     );
   });
 
+  it("does not send deliveryAddressId in cart quote payload", async () => {
+    postCartMock.mockResolvedValue({ success: true });
+
+    await quoteCustomerCart({
+      customerId: "customer-1",
+      payload: {
+        deliveryAddressId: "address-1",
+        tipAmount: 2,
+      },
+    });
+
+    expect(postCartMock).toHaveBeenCalledWith(
+      "/v1/cart/quote?customerId=customer-1",
+      { tipAmount: 2 },
+      undefined
+    );
+  });
+
   it("updates cart order type through the documented cart endpoint", async () => {
     patchCartMock.mockResolvedValue({ success: true });
 

@@ -196,6 +196,7 @@ export const normalizeCartUpdatePayload = (payload: CartUpdatePayload): CartMuta
 export const normalizeCartQuotePayload = (payload: CartQuotePayload): CartMutationPayload => {
   const allowedPayload: CartMutationPayload = { ...payload };
   delete allowedPayload.orderType;
+  delete allowedPayload.deliveryAddressId;
 
   return allowedPayload;
 };
