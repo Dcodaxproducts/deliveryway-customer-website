@@ -14,6 +14,7 @@ const PaymentMethodSection = ({
     { key: "COD", label: t("cashOnDelivery") },
     { key: "PAYPAL", label: t("paypal") },
     { key: "STRIPE", label: t("onlineCard") },
+    { key: "WALLET", label: t("wallet") },
   ];
 
   return (

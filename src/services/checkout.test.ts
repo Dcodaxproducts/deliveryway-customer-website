@@ -87,8 +87,28 @@ describe("checkout service", () => {
     expect(normalizeCheckoutPaymentMethod("cod")).toBe("COD");
     expect(normalizeCheckoutPaymentMethod("paypal")).toBe("PAYPAL");
     expect(normalizeCheckoutPaymentMethod("stripe")).toBe("STRIPE");
+    expect(normalizeCheckoutPaymentMethod("wallet")).toBe("WALLET");
     expect(normalizeCheckoutPaymentMethod("card")).toBe("STRIPE");
     expect(normalizeCheckoutPaymentMethod("CARD_ON_DELIVERY")).toBe("STRIPE");
+  });
+
+  it("sends wallet as a checkout payment method", async () => {
+    postCheckoutMock.mockResolvedValue({ success: true });
+
+    await checkoutCustomerCart({
+      customerId: "customer-1",
+      payload: {
+        paymentMethod: "wallet",
+      },
+    });
+
+    expect(postCheckoutMock).toHaveBeenCalledWith(
+      "/v1/cart/checkout?customerId=customer-1",
+      {
+        paymentMethod: "WALLET",
+      },
+      undefined
+    );
   });
 
   it("does not send legacy card on delivery in cart checkout payload", async () => {

@@ -38,6 +38,10 @@ export const normalizeCheckoutPaymentMethod = (paymentMethod: unknown) => {
     return "STRIPE";
   }
 
+  if (normalized === "WALLET") {
+    return "WALLET";
+  }
+
   if (normalized === "COD" || normalized === "PAYPAL" || normalized === "STRIPE") {
     return normalized;
   }
