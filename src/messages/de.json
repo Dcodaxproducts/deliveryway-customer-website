@@ -1243,6 +1243,10 @@
       "summary": {
         "leftGroup": "Gruppe erfolgreich verlassen",
         "failedLeaveGroup": "Gruppe konnte nicht verlassen werden",
+        "cancel": "Gruppe abbrechen",
+        "cancelledGroup": "Gruppenbestellung abgebrochen",
+        "failedCancelGroup": "Gruppenbestellung konnte nicht abgebrochen werden",
+        "cannotModifyClosedGroup": "Diese Gruppenbestellung kann nicht mehr geändert werden",
         "checkoutFailed": "Checkout fehlgeschlagen",
         "orderPlaced": "Bestellung erfolgreich aufgegeben",
         "title": "Bestellübersicht",

@@ -1243,6 +1243,10 @@
       "summary": {
         "leftGroup": "Left group successfully",
         "failedLeaveGroup": "Failed to leave group",
+        "cancel": "Cancel group",
+        "cancelledGroup": "Group order cancelled",
+        "failedCancelGroup": "Failed to cancel group order",
+        "cannotModifyClosedGroup": "This group order can no longer be changed",
         "checkoutFailed": "Checkout failed",
         "orderPlaced": "Order placed successfully",
         "title": "Order Summary",

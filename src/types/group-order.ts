@@ -1,6 +1,6 @@
 import type { BranchRecord } from "@/types/branch-selector";
 
-export type GroupOrderStatus = "OPEN" | "CHECKED_OUT" | "CANCELLED" | "EXPIRED" | string;
+export type GroupOrderStatus = "OPEN" | "LOCKED" | "CHECKED_OUT" | "CANCELLED" | "EXPIRED" | string;
 export type GroupOrderParticipantStatus = "ACTIVE" | "PENDING" | string;
 export type GroupOrderType = "DINE_IN" | "TAKEAWAY" | "DELIVERY" | string;
 export type GroupOrderPaymentMethod = "COD" | "BANK_TRANSFER" | "EASYPESA" | "JAZZCASH" | string;
@@ -99,4 +99,5 @@ export type UseGroupOrderResult = {
   participant: GroupOrderParticipant | undefined;
   canEditItems: boolean;
   canCheckout: boolean;
+  canMutateGroupOrder: boolean;
 };
