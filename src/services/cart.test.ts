@@ -252,7 +252,7 @@ describe("cart service", () => {
     );
   });
 
-  it("updates customer cart schedule with scheduledDeliveryAt", async () => {
+  it("updates customer cart schedule with orderTime when scheduledDeliveryAt is provided", async () => {
     patchCartMock.mockResolvedValue({ success: true });
 
     await updateCustomerCart({
@@ -265,7 +265,7 @@ describe("cart service", () => {
     expect(patchCartMock).toHaveBeenCalledWith(
       "/v1/cart?customerId=customer-1",
       {
-        scheduledDeliveryAt: "2026-06-10T19:30:00.000Z",
+        orderTime: "2026-06-10T19:30:00.000Z",
       },
       undefined
     );
@@ -311,7 +311,7 @@ describe("cart service", () => {
     );
   });
 
-  it("maps legacy cart orderTime update to scheduledDeliveryAt", async () => {
+  it("keeps cart orderTime updates as orderTime", async () => {
     patchCartMock.mockResolvedValue({ success: true });
 
     await updateCustomerCart({
@@ -324,11 +324,11 @@ describe("cart service", () => {
     expect(patchCartMock).toHaveBeenCalledWith(
       "/v1/cart?customerId=customer-1",
       {
-        scheduledDeliveryAt: "2026-06-10T19:30:00.000Z",
+        orderTime: "2026-06-10T19:30:00.000Z",
       },
       undefined
     );
-    expect(patchCartMock.mock.calls[0][1]).not.toHaveProperty("orderTime");
+    expect(patchCartMock.mock.calls[0][1]).not.toHaveProperty("scheduledDeliveryAt");
   });
 
   it("refreshes customer cart quote", async () => {

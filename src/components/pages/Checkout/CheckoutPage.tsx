@@ -24,6 +24,7 @@ import { asRecord, getBackendErrorCode, getBackendErrorMessage, getBackendErrorM
 import type { BranchRecord } from "@/types/branch-selector";
 import { useTranslations } from "next-intl";
 import { normalizeCheckoutTipAmount, type CheckoutAddressValues } from "@/validations/checkout";
+import { getStoredRestaurantMenuId } from "@/lib/timed-menu";
 
 const emptyGuestDeliveryAddress: CheckoutAddressValues = {
   street: "",
@@ -45,6 +46,14 @@ type GuestPrivacyPolicy = {
 
 const getCheckoutOrderType = (checkoutType: string) =>
   checkoutType === "pickup" ? "TAKEAWAY" : "DELIVERY";
+
+const getCartRestaurantMenuId = (items: CartItem[]) => {
+  const cartMenuId = items
+    .map((item) => item.restaurantMenuId)
+    .find((restaurantMenuId) => restaurantMenuId !== undefined && restaurantMenuId !== null && String(restaurantMenuId).trim());
+
+  return cartMenuId ? String(cartMenuId) : getStoredRestaurantMenuId();
+};
 
 const isGuestUser = (user: ReturnType<typeof useAuthContext>["user"]) =>
   user?.isGuest === true || String(user?.role || "").toUpperCase() === "GUEST";
@@ -643,10 +652,12 @@ function CheckoutPageContent() {
     if (!customerId || scheduledDeliveryAt === undefined) return true;
 
     try {
+      const restaurantMenuId = getCartRestaurantMenuId(cartItems);
       const res = await updateCustomerCart({
         customerId,
         payload: {
-          scheduledDeliveryAt,
+          orderTime: scheduledDeliveryAt,
+          ...(restaurantMenuId ? { restaurantMenuId } : {}),
         },
       });
 
@@ -780,7 +791,7 @@ function CheckoutPageContent() {
         customerId,
         payload: {
           orderType: getCheckoutOrderType(activeTab),
-          ...(scheduledDeliveryAt ? { scheduledDeliveryAt } : {}),
+          ...(scheduledDeliveryAt ? { orderTime: scheduledDeliveryAt } : {}),
           ...(checkoutTipAmount > 0 ? { tipAmount: checkoutTipAmount } : {}),
           ...(isGuest
             ? { guestContact: getGuestContactPayload(customer, privacyPolicyAccepted) }

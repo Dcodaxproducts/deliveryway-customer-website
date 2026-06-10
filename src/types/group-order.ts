@@ -54,6 +54,7 @@ export type GroupOrder = {
   participants?: GroupOrderParticipant[];
   restaurant?: GroupOrderRestaurant | null;
   summary?: GroupOrderSummary | null;
+  restaurantMenuId?: string | number | null;
   orderTime?: string | null;
   orderType?: GroupOrderType;
   branch?: BranchRecord | null;
@@ -62,6 +63,7 @@ export type GroupOrder = {
 export type CreateGroupOrderPayload = {
   branchId: string | number;
   orderType: GroupOrderType;
+  restaurantMenuId?: string | number;
   deliveryAddressId: string | number | null;
   orderTime: string;
   hostNote: string | null;

@@ -213,14 +213,14 @@ export const normalizeCartUpdatePayload = (payload: CartUpdatePayload): CartMuta
   if (scheduledDeliveryAt !== undefined) {
     return {
       ...normalizedPayload,
-      scheduledDeliveryAt,
+      orderTime: scheduledDeliveryAt,
     };
   }
 
   if (orderTime !== undefined) {
     return {
       ...normalizedPayload,
-      scheduledDeliveryAt: orderTime,
+      orderTime,
     };
   }
 

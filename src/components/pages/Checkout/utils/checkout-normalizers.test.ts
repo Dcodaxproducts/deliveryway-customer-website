@@ -39,6 +39,23 @@ describe("checkout normalizers", () => {
     ]);
   });
 
+  it("preserves restaurantMenuId on normalized cart items", () => {
+    expect(
+      normalizeCartItem({
+        id: "cart-item-1",
+        restaurantMenuId: "menu-breakfast",
+        menuItemId: "item-1",
+        quantity: 1,
+        menuItem: { name: "Omelette" },
+      })
+    ).toMatchObject({
+      id: "cart-item-1",
+      restaurantMenuId: "menu-breakfast",
+      menuItemId: "item-1",
+      name: "Omelette",
+    });
+  });
+
   it("ready-made deal item with empty modifiers has no displayable modifiers", () => {
     expect(
       getSelectedModifiers({

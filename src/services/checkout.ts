@@ -36,14 +36,14 @@ export const normalizeCheckoutPayload = (payload: CheckoutCartPayload): Record<s
   if (scheduledDeliveryAt !== undefined) {
     return {
       ...rest,
-      scheduledDeliveryAt,
+      orderTime: scheduledDeliveryAt,
     };
   }
 
   if (orderTime !== undefined) {
     return {
       ...rest,
-      scheduledDeliveryAt: orderTime,
+      orderTime,
     };
   }
 

@@ -81,6 +81,7 @@ export type CartModifierSelectionInput = {
 export type AddCartItemPayload = {
   branchId: string;
   menuItemId: string;
+  restaurantMenuId?: string;
   dealId?: string;
   variationId?: string;
   quantity: number;

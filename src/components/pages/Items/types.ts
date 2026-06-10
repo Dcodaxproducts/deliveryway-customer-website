@@ -232,6 +232,7 @@ export type CartModifierSelectionInput = {
 export type CartPayload = {
   customerId?: string;
   menuItemId?: string | number;
+  restaurantMenuId?: string | number;
   dealId?: string;
   quantity: number;
   checkoutType?: CheckoutType;

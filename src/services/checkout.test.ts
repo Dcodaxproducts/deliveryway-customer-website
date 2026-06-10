@@ -18,7 +18,7 @@ describe("checkout service", () => {
     postCheckoutMock.mockReset();
   });
 
-  it("sends scheduledDeliveryAt in checkout payload", async () => {
+  it("sends orderTime in checkout payload when scheduledDeliveryAt is provided", async () => {
     postCheckoutMock.mockResolvedValue({ success: true });
 
     await checkoutCustomerCart({
@@ -32,7 +32,7 @@ describe("checkout service", () => {
     expect(postCheckoutMock).toHaveBeenCalledWith(
       "/v1/cart/checkout?customerId=customer-1",
       {
-        scheduledDeliveryAt: "2026-06-10T19:30:00.000Z",
+        orderTime: "2026-06-10T19:30:00.000Z",
         paymentMethod: "COD",
       },
       undefined
@@ -144,14 +144,14 @@ describe("checkout service", () => {
     });
   });
 
-  it("maps legacy orderTime to scheduledDeliveryAt", () => {
+  it("keeps orderTime in checkout payload", () => {
     expect(
       normalizeCheckoutPayload({
         orderTime: "2026-06-10T19:30:00.000Z",
         paymentMethod: "COD",
       })
     ).toEqual({
-      scheduledDeliveryAt: "2026-06-10T19:30:00.000Z",
+      orderTime: "2026-06-10T19:30:00.000Z",
       paymentMethod: "COD",
     });
   });

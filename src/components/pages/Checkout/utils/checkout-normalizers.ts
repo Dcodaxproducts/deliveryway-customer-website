@@ -41,6 +41,7 @@ export type CartItem = {
   id?: string | number;
   type?: string;
   menuItemId?: string | number;
+  restaurantMenuId?: string | number;
   cartItemIds?: string[];
   menuItemIds?: string[];
   categoryId?: string | number;
@@ -340,6 +341,26 @@ const normalizeIncludedDealItem = (itemInput: unknown): CartIncludedItem => {
   };
 };
 
+const getCartItemRestaurantMenuId = (item: ApiRecord, menuItem: ApiRecord) => {
+  const restaurantMenu = asRecord(item.restaurantMenu || menuItem.restaurantMenu);
+  const menuLinks = [
+    ...normalizeArray<ApiRecord>(item.menuLinks),
+    ...normalizeArray<ApiRecord>(menuItem.menuLinks),
+  ];
+  const linkedMenu = menuLinks.find((link) =>
+    link.restaurantMenuId || link.menuId || asRecord(link.restaurantMenu).id
+  );
+
+  return (
+    item.restaurantMenuId ||
+    restaurantMenu.id ||
+    menuItem.restaurantMenuId ||
+    linkedMenu?.restaurantMenuId ||
+    linkedMenu?.menuId ||
+    asRecord(linkedMenu?.restaurantMenu).id
+  ) as string | number | undefined;
+};
+
 export const normalizeCartItem = (itemInput: unknown): CartItem => {
   const item = asRecord(itemInput);
   const type = getStringValue(item.type, "ITEM").toUpperCase();
@@ -374,6 +395,7 @@ export const normalizeCartItem = (itemInput: unknown): CartItem => {
     id: item.id as string | number | undefined,
     type,
     menuItemId: item.menuItemId as string | number | undefined,
+    restaurantMenuId: getCartItemRestaurantMenuId(item, menuItem),
     cartItemIds: normalizeArray<string>(item.cartItemIds),
     menuItemIds: normalizeArray<string>(item.menuItemIds),
     categoryId: category.id as string | number | undefined,
