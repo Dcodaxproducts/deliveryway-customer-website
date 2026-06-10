@@ -5,6 +5,7 @@ import { ArrowDownLeft, ArrowUpRight, Coins, Gift, Loader2, RefreshCcw, Sparkles
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
+import { CARD_PANEL_CLASS } from "@/components/common/common-classes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
@@ -150,29 +151,31 @@ export function LoyaltyProgramCard({ onWalletRedeemed }: LoyaltyProgramCardProps
   const recentHistory = loyalty?.history.slice(0, 5) ?? [];
 
   return (
-    <section className="relative overflow-hidden rounded-[24px] border border-black/5 bg-[#111827] p-6 text-white shadow-[0_22px_70px_rgba(17,24,39,0.18)]">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.18),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.12),transparent)]" />
-
-      <div className="relative">
+    <section className={CARD_PANEL_CLASS}>
+      <div>
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/75">
-              <Sparkles size={13} />
-              {t("eyebrow")}
+          <div className="flex items-start gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <Sparkles size={20} />
             </div>
-            <h3 className="mt-4 text-[28px] font-semibold leading-tight md:text-[34px]">
-              {t("title")}
-            </h3>
-            <p className="mt-2 max-w-[520px] text-sm leading-6 text-white/68">
-              {t("description")}
-            </p>
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
+                {t("eyebrow")}
+              </p>
+              <h3 className="mt-1 text-[22px] font-medium leading-tight text-[#222] md:text-[26px]">
+                {t("title")}
+              </h3>
+              <p className="mt-3 max-w-[620px] text-sm font-normal leading-6 text-[#8A8A8A] md:mt-4">
+                {t("description")}
+              </p>
+            </div>
           </div>
 
           <Button
             type="button"
             onClick={() => void loadLoyalty()}
             disabled={loading}
-            className="h-10 rounded-full border border-white/15 bg-white/10 px-4 text-white hover:bg-white/15"
+            className="h-10 rounded-full bg-[#1A1C1C] px-4 font-medium text-white hover:bg-[#1A1C1C]"
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCcw className="h-4 w-4" />}
             {t("refresh")}
@@ -198,14 +201,14 @@ export function LoyaltyProgramCard({ onWalletRedeemed }: LoyaltyProgramCardProps
         </div>
 
         <div className="mt-5 grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-          <div className="rounded-[20px] border border-white/10 bg-white/[0.07] p-5">
+          <div className="rounded-2xl bg-[#FAFAFA] p-5">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-white">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                 <Coins size={20} />
               </div>
               <div>
-                <p className="text-sm font-semibold">{t("convertTitle")}</p>
-                <p className="mt-1 text-xs leading-5 text-white/60">
+                <p className="text-sm font-semibold text-[#222]">{t("convertTitle")}</p>
+                <p className="mt-1 text-xs leading-5 text-[#8A8A8A]">
                   {t("convertDescription", {
                     minimum: formatPoints(loyalty?.minimumRedeemPoints ?? 0),
                     value: formatCurrency(loyalty?.redemptionValuePerPoint ?? 0, "USD"),
@@ -221,13 +224,13 @@ export function LoyaltyProgramCard({ onWalletRedeemed }: LoyaltyProgramCardProps
                 value={points}
                 onChange={(event) => setPoints(event.target.value)}
                 placeholder={t("pointsPlaceholder")}
-                className="h-12 rounded-full border-white/10 bg-white/95 text-gray-900"
+                className="h-11 rounded-full border-0 bg-white text-[#222] shadow-none focus-visible:ring-1 focus-visible:ring-primary"
               />
               <Button
                 type="button"
                 onClick={handleRedeem}
                 disabled={loading || redeeming || !canRedeem}
-                className="h-12 rounded-full bg-white px-6 font-semibold text-gray-950 hover:bg-white/90"
+                className="h-11 rounded-full bg-primary px-6 font-semibold text-white hover:bg-primary/90"
               >
                 {redeeming ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 {redeeming ? t("redeeming") : t("redeem")}
@@ -235,29 +238,29 @@ export function LoyaltyProgramCard({ onWalletRedeemed }: LoyaltyProgramCardProps
             </div>
 
             {redeemablePoints > 0 ? (
-              <p className="mt-3 text-xs font-medium text-white/75">
+              <p className="mt-3 text-xs font-medium text-[#303030]">
                 {t("estimatedWalletCredit", { amount: formatCurrency(estimatedWalletValue, "USD") })}
               </p>
             ) : null}
           </div>
 
-          <div className="rounded-[20px] border border-white/10 bg-white/[0.07] p-5">
+          <div className="rounded-2xl bg-[#FAFAFA] p-5">
             <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-semibold">{t("recentActivity")}</p>
-              <span className="rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold text-white/70">
+              <p className="text-sm font-semibold text-[#222]">{t("recentActivity")}</p>
+              <span className="rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold text-primary">
                 {t("historyCount", { count: loyalty?.history.length ?? 0 })}
               </span>
             </div>
 
             <div className="mt-4 space-y-3">
               {loading ? (
-                <p className="text-sm text-white/60">{t("loading")}</p>
+                <p className="text-sm text-[#8A8A8A]">{t("loading")}</p>
               ) : recentHistory.length ? (
                 recentHistory.map((transaction) => (
                   <HistoryRow key={transaction.id} transaction={transaction} />
                 ))
               ) : (
-                <p className="rounded-2xl bg-white/8 p-4 text-sm text-white/60">
+                <p className="rounded-2xl bg-white p-4 text-sm text-[#8A8A8A]">
                   {t("emptyHistory")}
                 </p>
               )}
@@ -279,12 +282,12 @@ function MetricCard({
   value: string;
 }) {
   return (
-    <div className="rounded-[18px] border border-white/10 bg-white/[0.08] p-4">
-      <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-white">
+    <div className="rounded-2xl bg-white p-4 shadow-[0_1px_0_rgba(0,0,0,0.03)]">
+      <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
         {icon}
       </div>
-      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/50">{label}</p>
-      <p className="mt-2 text-2xl font-semibold">{value}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#9A9A9A]">{label}</p>
+      <p className="mt-2 text-2xl font-semibold text-[#222]">{value}</p>
     </div>
   );
 }
@@ -295,24 +298,24 @@ function HistoryRow({ transaction }: { transaction: LoyaltyTransaction }) {
   const isDebit = transaction.points < 0;
 
   return (
-    <div className="flex items-center gap-3 rounded-2xl bg-white/[0.08] p-3">
+    <div className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-[0_1px_0_rgba(0,0,0,0.03)]">
       <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
-        isDebit ? "bg-amber-400/15 text-amber-200" : "bg-emerald-400/15 text-emerald-200"
+        isDebit ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"
       }`}>
         <Icon size={16} />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-white">
+        <p className="truncate text-sm font-medium text-[#222]">
           {transaction.note || t(`types.${getTransactionTypeKey(transaction.type)}`)}
         </p>
-        <p className="mt-0.5 text-xs text-white/50">{formatDate(transaction.createdAt)}</p>
+        <p className="mt-0.5 text-xs text-[#8A8A8A]">{formatDate(transaction.createdAt)}</p>
       </div>
       <div className="text-right">
-        <p className={`text-sm font-semibold ${isDebit ? "text-amber-200" : "text-emerald-200"}`}>
+        <p className={`text-sm font-semibold ${isDebit ? "text-amber-700" : "text-emerald-700"}`}>
           {transaction.points > 0 ? "+" : ""}
           {transaction.points}
         </p>
-        <p className="mt-0.5 text-[11px] text-white/45">
+        <p className="mt-0.5 text-[11px] text-[#9A9A9A]">
           {t("balanceAfter", { points: formatPoints(transaction.balanceAfter) })}
         </p>
       </div>
