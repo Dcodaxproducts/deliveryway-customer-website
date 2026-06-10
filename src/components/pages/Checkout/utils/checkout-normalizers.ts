@@ -483,6 +483,8 @@ export const normalizeCartQuote = (value: unknown): NormalizedCartQuote | null =
     return null;
   }
 
+  const couponCode = getStringValue(quote.couponCode);
+
   return {
     subtotal: toNumber(quote.subtotal, 0),
     taxAmount: toNumber(quote.taxAmount, 0),
@@ -494,6 +496,7 @@ export const normalizeCartQuote = (value: unknown): NormalizedCartQuote | null =
     serviceChargeAmount: toNumber(quote.serviceChargeAmount, 0),
     tipAmount: toNumber(quote.tipAmount, 0),
     discountAmount: toNumber(quote.discountAmount, 0),
+    ...(couponCode ? { couponCode } : {}),
     totalAmount: toNumber(quote.totalAmount, 0),
     payableAmount: toNumber(quote.payableAmount, toNumber(quote.totalAmount, 0)),
     appliedPromotion: normalizeCartAppliedPromotion(quote.appliedPromotion),
@@ -534,7 +537,14 @@ export const normalizeCartResponse = (res: unknown): CartResponse => {
   const record = asRecord(res);
   const data = asRecord(record.data);
   const nestedData = asRecord(data.data);
-  const cart = data.items || data.quote ? data : nestedData.items || nestedData.quote ? nestedData : data;
+  const cartData = asRecord(data.cart);
+  const cart = data.items || data.quote
+    ? data
+    : nestedData.items || nestedData.quote
+      ? nestedData
+      : cartData.items || cartData.quote
+        ? cartData
+        : data;
 
   return {
     items: normalizeArray<ApiRecord>(cart.items),

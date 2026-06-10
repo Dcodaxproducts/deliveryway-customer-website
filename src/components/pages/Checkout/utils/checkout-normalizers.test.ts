@@ -394,6 +394,29 @@ describe("checkout normalizers", () => {
     expect(quote?.payableAmount).toBe(899);
   });
 
+  it("preserves saved cart coupon values from wrapped cart response", () => {
+    const { quote } = normalizeCartResponse({
+      data: {
+        cart: {
+          quote: {
+            subtotal: 1300,
+            discountAmount: 100,
+            couponCode: "SAVE10",
+            totalAmount: 1200,
+            payableAmount: 1200,
+          },
+        },
+      },
+    });
+
+    expect(quote).toMatchObject({
+      couponCode: "SAVE10",
+      discountAmount: 100,
+      totalAmount: 1200,
+      payableAmount: 1200,
+    });
+  });
+
   it("quote normalizer preserves service charge tip and payable amount", () => {
     const { quote } = normalizeCartResponse({
       data: {

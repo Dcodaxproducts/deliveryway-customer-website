@@ -64,6 +64,7 @@ export type CartQuote = {
   serviceChargeAmount?: number;
   tipAmount?: number;
   discountAmount?: number;
+  couponCode?: string;
   totalAmount: number;
   payableAmount?: number;
   appliedPromotion?: CartAppliedPromotion | null;

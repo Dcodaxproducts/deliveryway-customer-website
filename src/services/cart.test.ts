@@ -504,4 +504,31 @@ describe("cart service", () => {
       },
     });
   });
+
+  it("normalizes coupon quote values from wrapped cart response", async () => {
+    getCartMock.mockResolvedValue({
+      data: {
+        cart: {
+          items: [{ id: "cart-item-1" }],
+          quote: {
+            subtotal: 1300,
+            discountAmount: 100,
+            couponCode: "SAVE10",
+            totalAmount: 1200,
+            payableAmount: 1200,
+          },
+        },
+      },
+    });
+
+    const cart = await fetchCustomerCart({ customerId: "customer-1" });
+
+    expect(cart.items).toEqual([{ id: "cart-item-1" }]);
+    expect(cart.quote).toMatchObject({
+      couponCode: "SAVE10",
+      discountAmount: 100,
+      totalAmount: 1200,
+      payableAmount: 1200,
+    });
+  });
 });

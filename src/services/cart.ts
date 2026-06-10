@@ -66,6 +66,8 @@ export const normalizeCartQuote = (value: unknown): CartQuote | null => {
     return null;
   }
 
+  const couponCode = getString(quote.couponCode);
+
   return {
     subtotal: toNumber(quote.subtotal, 0),
     taxAmount: toNumber(quote.taxAmount, 0),
@@ -77,6 +79,7 @@ export const normalizeCartQuote = (value: unknown): CartQuote | null => {
     serviceChargeAmount: toNumber(quote.serviceChargeAmount, 0),
     tipAmount: toNumber(quote.tipAmount, 0),
     discountAmount: toNumber(quote.discountAmount, 0),
+    ...(couponCode ? { couponCode } : {}),
     totalAmount: toNumber(quote.totalAmount, 0),
     payableAmount: toNumber(quote.payableAmount, toNumber(quote.totalAmount, 0)),
     appliedPromotion: normalizeCartAppliedPromotion(quote.appliedPromotion),
@@ -86,7 +89,14 @@ export const normalizeCartQuote = (value: unknown): CartQuote | null => {
 const resolveCartRecord = (responseData: unknown) => {
   const resData = getRecord(responseData);
   const nestedData = getRecord(resData?.data);
-  return resData?.items || resData?.quote ? resData : nestedData?.items || nestedData?.quote ? nestedData : resData;
+  const cartData = getRecord(resData?.cart);
+  return resData?.items || resData?.quote
+    ? resData
+    : nestedData?.items || nestedData?.quote
+      ? nestedData
+      : cartData?.items || cartData?.quote
+        ? cartData
+        : resData;
 };
 
 export const fetchCustomerCart = async ({

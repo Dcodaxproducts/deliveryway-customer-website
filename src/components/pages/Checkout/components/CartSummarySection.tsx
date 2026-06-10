@@ -128,6 +128,7 @@ interface CartQuote {
   serviceChargeAmount?: number | string;
   tipAmount?: number | string;
   discountAmount?: number | string;
+  couponCode?: string;
   walletAppliedAmount?: number | string;
   loyaltyDiscountAmount?: number | string;
   loyaltyPointsRedeemed?: number | string;
@@ -159,8 +160,10 @@ interface Props {
   couponCode?: string;
   setCouponCode?: (val: string) => void;
   onApplyCoupon?: () => void;
+  onRemoveCoupon?: () => void;
   couponDiscount?: number;
   validatingCoupon?: boolean;
+  removingCoupon?: boolean;
   loadingCart?: boolean;
   appliedTipAmount?: number;
   onApplyTip?: (amount: number) => Promise<void> | void;
@@ -607,8 +610,10 @@ export function CartSummarySection({
   couponCode,
   setCouponCode,
   onApplyCoupon,
+  onRemoveCoupon,
   couponDiscount = 0,
   validatingCoupon,
+  removingCoupon,
   loadingCart = false,
   appliedTipAmount = 0,
   onApplyTip,
@@ -676,8 +681,14 @@ export function CartSummarySection({
 
   const appliedPromotion = resolvedQuote?.appliedPromotion ?? null;
   const hasAppliedPromotion = Boolean(appliedPromotion?.id || appliedPromotion?.title);
-  const promotionDiscountLine = getAppliedPromotionDiscountLine(resolvedQuote);
-  const quoteDiscount = promotionDiscountLine?.amount ?? 0;
+  const promotionDiscountLine = hasAppliedPromotion
+    ? getAppliedPromotionDiscountLine(resolvedQuote)
+    : null;
+  const appliedCouponCode = hasText(resolvedQuote?.couponCode)
+    ? String(resolvedQuote?.couponCode).trim()
+    : "";
+  const hasAppliedCoupon = Boolean(appliedCouponCode);
+  const quoteDiscount = Math.max(0, toNumber(resolvedQuote?.discountAmount, 0));
   const manualCouponDiscount = Math.max(0, toNumber(couponDiscount, 0));
   const discount = quoteDiscount > 0 ? quoteDiscount : manualCouponDiscount;
 
@@ -1334,28 +1345,42 @@ export function CartSummarySection({
             value={couponCode || ""}
             onChange={(e) => setCouponCode?.(e.target.value)}
             placeholder={t("couponPlaceholder")}
+            disabled={validatingCoupon || removingCoupon}
             className="flex-1 rounded-md border border-gray-200 px-3 py-2 text-sm outline-none transition-colors focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
           />
 
           <Button
             type="button"
             onClick={onApplyCoupon}
-            disabled={validatingCoupon}
+            disabled={validatingCoupon || removingCoupon}
             className="h-[42px] text-white"
           >
             {validatingCoupon ? t("applying") : t("apply")}
           </Button>
         </div>
 
-        {discount > 0 || hasAppliedPromotion ? (
+        {discount > 0 || hasAppliedPromotion || hasAppliedCoupon ? (
           <div className="rounded-md bg-green-100 p-3 text-sm font-medium text-green-700">
-            <div className="flex items-center gap-2">
-              <TicketPercent width={16} height={16} />
-              <span>
-                {hasAppliedPromotion
-                  ? t("appliedDeal")
-                  : t("couponApplied")}
-              </span>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <TicketPercent width={16} height={16} />
+                <span>
+                  {hasAppliedPromotion
+                    ? t("appliedDeal")
+                    : t("couponApplied")}
+                </span>
+              </div>
+
+              {hasAppliedCoupon && onRemoveCoupon ? (
+                <button
+                  type="button"
+                  onClick={onRemoveCoupon}
+                  disabled={removingCoupon}
+                  className="text-xs font-semibold text-green-800 underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {removingCoupon ? t("removing") : t("removeCoupon")}
+                </button>
+              ) : null}
             </div>
 
             {hasAppliedPromotion ? (
@@ -1366,6 +1391,13 @@ export function CartSummarySection({
                   : ""}
                 {promotionDiscountLine && promotionDiscountLine.amount > 0
                   ? ` · ${t("off", { amount: formatCurrency(promotionDiscountLine.amount) })}`
+                  : ""}
+              </p>
+            ) : hasAppliedCoupon ? (
+              <p className="mt-1 pl-6 text-xs font-normal text-green-700/90">
+                {appliedCouponCode}
+                {discount > 0
+                  ? ` · ${t("off", { amount: formatCurrency(discount) })}`
                   : ""}
               </p>
             ) : null}
@@ -1380,7 +1412,13 @@ export function CartSummarySection({
 
           {discount > 0 ? (
             <div className="flex items-center justify-between text-sm text-green-600">
-              <span>{hasAppliedPromotion ? t("appliedDealDiscount") : t("discount")}</span>
+              <span>
+                {hasAppliedPromotion
+                  ? t("appliedDealDiscount")
+                  : hasAppliedCoupon && appliedCouponCode
+                    ? `${t("discount")} (${appliedCouponCode})`
+                    : t("discount")}
+              </span>
               <span>- {formatCurrency(discount)}</span>
             </div>
           ) : null}

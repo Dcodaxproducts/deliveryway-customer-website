@@ -129,6 +129,7 @@ function CheckoutPageContent() {
   const [couponCode, setCouponCode] = useState("");
   const [couponDiscount, setCouponDiscount] = useState(0);
   const [validatingCoupon, setValidatingCoupon] = useState(false);
+  const [removingCoupon, setRemovingCoupon] = useState(false);
   const [applyingTip, setApplyingTip] = useState(false);
 
   const { get, patch, del, post, checkoutCustomerCart } = useCheckout(token);
@@ -162,6 +163,31 @@ function CheckoutPageContent() {
 
   const clearBackendError = () => {
     setBackendError(null);
+  };
+
+  const syncCartFromResponse = (res: unknown) => {
+    const { items, quote } = normalizeCartResponse(res);
+
+    if (items.length) {
+      setCartItems(items.map((item) => normalizeCartItem(item)));
+    }
+
+    if (!quote) {
+      return false;
+    }
+
+    setCartQuote(quote);
+    setAppliedTipAmount((previousTipAmount) =>
+      Math.max(0, toNumber(quote.tipAmount, previousTipAmount))
+    );
+    setCouponCode(
+      typeof quote.couponCode === "string" && quote.couponCode.trim()
+        ? quote.couponCode.trim()
+        : ""
+    );
+    setCouponDiscount(Math.max(0, toNumber(quote.discountAmount, 0)));
+
+    return true;
   };
 
   const applyTipToCurrentQuote = (tipAmount: number) => {
@@ -212,6 +238,12 @@ function CheckoutPageContent() {
 
       setCartItems(formatted);
       setCartQuote(quote);
+      setCouponCode(
+        typeof quote?.couponCode === "string" && quote.couponCode.trim()
+          ? quote.couponCode.trim()
+          : ""
+      );
+      setCouponDiscount(Math.max(0, toNumber(quote?.discountAmount, 0)));
       setAppliedTipAmount((previousTipAmount) =>
         quote ? Math.max(0, toNumber(quote.tipAmount, 0)) : previousTipAmount
       );
@@ -234,6 +266,8 @@ function CheckoutPageContent() {
       setCartItems([]);
       setCartQuote(null);
       setAppliedTipAmount(0);
+      setCouponCode("");
+      setCouponDiscount(0);
       setLoadingCart(false);
     }
   }, [customerId]);
@@ -482,11 +516,15 @@ function CheckoutPageContent() {
     const previousCartItems = cartItems;
     const previousCartQuote = cartQuote;
     const previousAppliedTipAmount = appliedTipAmount;
+    const previousCouponCode = couponCode;
+    const previousCouponDiscount = couponDiscount;
 
     try {
       setCartItems([]);
       setCartQuote(null);
       setAppliedTipAmount(0);
+      setCouponCode("");
+      setCouponDiscount(0);
 
       const res = await del(`/v1/cart?customerId=${customerId}`);
 
@@ -494,6 +532,8 @@ function CheckoutPageContent() {
         setCartItems(previousCartItems);
         setCartQuote(previousCartQuote);
         setAppliedTipAmount(previousAppliedTipAmount);
+        setCouponCode(previousCouponCode);
+        setCouponDiscount(previousCouponDiscount);
         reportBackendError(
           t("toast.failedClearCart"),
           res,
@@ -508,6 +548,8 @@ function CheckoutPageContent() {
       setCartItems(previousCartItems);
       setCartQuote(previousCartQuote);
       setAppliedTipAmount(previousAppliedTipAmount);
+      setCouponCode(previousCouponCode);
+      setCouponDiscount(previousCouponDiscount);
       reportBackendError(
         t("toast.failedClearCart"),
         err,
@@ -832,17 +874,7 @@ function CheckoutPageContent() {
     }
   };
 
-  const subtotal = cartItems.reduce((acc, item) => {
-    return acc + toNumber(item.lineTotal, item.price * item.quantity);
-  }, 0);
-
-  const menuItemIds = cartItems.map((item) => item.menuItemId).filter(Boolean);
-
-  const categoryIds = cartItems
-    .map((item) => item.categoryId)
-    .filter(Boolean);
-
-  const validateCoupon = async () => {
+  const applyCoupon = async () => {
     if (!couponCode.trim()) {
       toast.error(t("toast.enterCouponCode"));
       return;
@@ -851,17 +883,11 @@ function CheckoutPageContent() {
     try {
       setValidatingCoupon(true);
 
-      const res = await post(`/v1/coupons/validate`, {
-        code: couponCode.trim(),
-        branchId: user?.branchId || user?.restaurantId,
-        subtotal,
-        menuItemIds,
-        categoryIds,
-        customerId,
+      const res = await patch(`/v1/cart/coupon`, {
+        couponCode: couponCode.trim(),
       });
 
       if (hasBackendError(res)) {
-        setCouponDiscount(0);
         reportBackendError(
           t("toast.invalidCoupon"),
           res,
@@ -870,14 +896,14 @@ function CheckoutPageContent() {
         return;
       }
 
-      const couponData = asRecord(res?.data);
-      const discount = toNumber(couponData.discountAmount, 0);
+      const synced = syncCartFromResponse(res);
+      if (!synced) {
+        await fetchCart();
+      }
 
-      setCouponDiscount(discount);
       clearBackendError();
       toast.success(t("toast.couponApplied"));
     } catch (err) {
-      setCouponDiscount(0);
       reportBackendError(
         t("toast.couponValidationFailed"),
         err,
@@ -885,6 +911,42 @@ function CheckoutPageContent() {
       );
     } finally {
       setValidatingCoupon(false);
+    }
+  };
+
+  const removeCoupon = async () => {
+    try {
+      setRemovingCoupon(true);
+
+      const res = await del(`/v1/cart/coupon`);
+
+      if (hasBackendError(res)) {
+        reportBackendError(
+          t("toast.couponRemoveFailed"),
+          res,
+          t("toast.couponRemoveFailed")
+        );
+        return;
+      }
+
+      setCouponCode("");
+      setCouponDiscount(0);
+
+      const synced = syncCartFromResponse(res);
+      if (!synced) {
+        await fetchCart();
+      }
+
+      clearBackendError();
+      toast.success(t("toast.couponRemoved"));
+    } catch (err) {
+      reportBackendError(
+        t("toast.couponRemoveFailed"),
+        err,
+        err instanceof Error ? err.message : t("toast.couponRemoveFailed")
+      );
+    } finally {
+      setRemovingCoupon(false);
     }
   };
 
@@ -952,9 +1014,11 @@ function CheckoutPageContent() {
             placingOrder={placingOrder || loadingCart}
             couponCode={couponCode}
             setCouponCode={setCouponCode}
-            onApplyCoupon={validateCoupon}
+            onApplyCoupon={applyCoupon}
+            onRemoveCoupon={removeCoupon}
             couponDiscount={couponDiscount}
             validatingCoupon={validatingCoupon}
+            removingCoupon={removingCoupon}
             loadingCart={loadingCart}
             onApplyTip={applyTip}
             applyingTip={applyingTip}
