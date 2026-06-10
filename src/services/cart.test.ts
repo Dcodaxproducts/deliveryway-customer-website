@@ -404,7 +404,7 @@ describe("cart service", () => {
     });
 
     expect(patchCartMock).toHaveBeenCalledWith(
-      "/v1/cart/order-type?customerId=customer-1",
+      "/v1/cart?customerId=customer-1",
       { orderType: "TAKEAWAY" },
       undefined
     );

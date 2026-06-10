@@ -219,7 +219,7 @@ export const updateCustomerCartOrderType = ({
   customerId: string;
   orderType: CartOrderType;
   token?: string | null;
-}) => patchCart(`/v1/cart/order-type?customerId=${customerId}`, { orderType }, token);
+}) => patchCart(`/v1/cart?customerId=${customerId}`, { orderType }, token);
 
 export const quoteCustomerCart = ({
   customerId,
