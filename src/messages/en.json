@@ -694,6 +694,7 @@
     "discount": "Discount",
     "loyaltyDiscount": "Loyalty Discount",
     "loyaltyDiscountWithPoints": "Loyalty Discount ({points} pts)",
+    "estimatedLoyaltyDiscount": "Estimated loyalty discount",
     "walletApplied": "Wallet Applied",
     "payableTotal": "Payable Total",
     "total": "Total",
@@ -705,7 +706,8 @@
       "placeholder": "Points to redeem",
       "clear": "Clear",
       "estimatedDiscount": "Estimated checkout discount: {amount}",
-      "requirements": "Enter available points above the minimum to redeem at checkout."
+      "requirements": "Enter available points above the minimum to redeem at checkout.",
+      "redeemNotice": "Points are redeemed when you place the order."
     },
     "placingOrder": "Placing Order...",
     "placeOrder": "Place Order",
@@ -724,7 +726,8 @@
       "serviceCharge": "Service Charge",
       "serviceChargeWithPercentage": "Service Charge ({value}%)",
       "tip": "Tip",
-      "payableAmount": "Payable Amount"
+      "payableAmount": "Payable Amount",
+      "estimatedPayableAmount": "Estimated Payable"
     },
     "toast": {
       "failedFetchCart": "Failed to fetch cart",

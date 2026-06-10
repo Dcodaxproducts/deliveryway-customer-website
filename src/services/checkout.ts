@@ -33,6 +33,7 @@ export type CheckoutCartPayload = Record<string, unknown> & {
 
 export const normalizeCheckoutPayload = (payload: CheckoutCartPayload): Record<string, unknown> => {
   const { orderTime, scheduledDeliveryAt, ...rest } = payload;
+  delete rest.orderType;
 
   if (scheduledDeliveryAt !== undefined) {
     return {

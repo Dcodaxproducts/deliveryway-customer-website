@@ -727,6 +727,10 @@ export function CartSummarySection({
     quoteSubtotal !== null
       ? quoteSubtotal + selectedOrderFee + taxes + serviceCharge + tipAmount
       : computedTotalBeforeDiscount;
+  const loyaltyPreviewDiscount =
+    loyaltyDiscount > 0 || !loyaltyCanRedeem
+      ? 0
+      : Math.min(Math.max(0, loyaltyEstimatedDiscount), totalBeforeDiscount - discount);
 
   const totalWithoutTip = Math.max(
     0,
@@ -748,9 +752,10 @@ export function CartSummarySection({
           0,
           totalBeforeDiscount - discount - loyaltyDiscount - walletAppliedAmount
         );
+  const displayedFinalTotal = Math.max(0, finalTotal - loyaltyPreviewDiscount);
 
   const hasAnyDiscount =
-    discount > 0 || loyaltyDiscount > 0 || walletAppliedAmount > 0;
+    discount > 0 || loyaltyDiscount > 0 || loyaltyPreviewDiscount > 0 || walletAppliedAmount > 0;
 
   const handleEditItem = (item: CartItem) => {
     const menuItemId = getMenuItemId(item);
@@ -1477,6 +1482,11 @@ export function CartSummarySection({
                       : t("loyalty.requirements")}
                   </p>
                 ) : null}
+                {loyaltyCanRedeem ? (
+                  <p className="mt-1 text-xs leading-5 text-gray-500">
+                    {t("loyalty.redeemNotice")}
+                  </p>
+                ) : null}
               </div>
             </div>
           </div>
@@ -1514,6 +1524,13 @@ export function CartSummarySection({
             </div>
           ) : null}
 
+          {loyaltyPreviewDiscount > 0 ? (
+            <div className="flex items-center justify-between text-sm text-green-600">
+              <span>{t("estimatedLoyaltyDiscount")}</span>
+              <span>- {formatCurrency(loyaltyPreviewDiscount)}</span>
+            </div>
+          ) : null}
+
           {walletAppliedAmount > 0 ? (
             <div className="flex items-center justify-between pb-[15px] text-sm text-green-600">
               <span>{t("walletApplied")}</span>
@@ -1525,13 +1542,22 @@ export function CartSummarySection({
 
           <div className="flex items-center justify-between text-[24px] font-medium text-gray-900">
             <span>
-              {quotedFinalTotal !== null
+              {loyaltyPreviewDiscount > 0
+                ? t("totals.estimatedPayableAmount")
+                : quotedFinalTotal !== null
                 ? t("totals.payableAmount")
                 : walletAppliedAmount > 0
                   ? t("payableTotal")
                   : t("total")}
             </span>
-            <span>{formatCurrency(finalTotal)}</span>
+            <span className="flex flex-col items-end leading-none">
+              {loyaltyPreviewDiscount > 0 ? (
+                <span className="mb-1 text-sm font-medium text-gray-400 line-through">
+                  {formatCurrency(finalTotal)}
+                </span>
+              ) : null}
+              <span>{formatCurrency(displayedFinalTotal)}</span>
+            </span>
           </div>
         </div>
 

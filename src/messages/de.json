@@ -694,6 +694,7 @@
     "discount": "Rabatt",
     "loyaltyDiscount": "Treuerabatt",
     "loyaltyDiscountWithPoints": "Treuerabatt ({points} Pkt.)",
+    "estimatedLoyaltyDiscount": "Geschätzter Treuerabatt",
     "walletApplied": "Wallet angewendet",
     "payableTotal": "Zu zahlender Gesamtbetrag",
     "total": "Gesamt",
@@ -705,7 +706,8 @@
       "placeholder": "Punkte einlösen",
       "clear": "Leeren",
       "estimatedDiscount": "Geschätzter Checkout-Rabatt: {amount}",
-      "requirements": "Geben Sie verfügbare Punkte über dem Minimum ein, um sie beim Checkout einzulösen."
+      "requirements": "Geben Sie verfügbare Punkte über dem Minimum ein, um sie beim Checkout einzulösen.",
+      "redeemNotice": "Punkte werden eingelöst, wenn Sie die Bestellung aufgeben."
     },
     "placingOrder": "Bestellung wird aufgegeben...",
     "placeOrder": "Bestellung aufgeben",
@@ -724,7 +726,8 @@
       "serviceCharge": "Servicegebühr",
       "serviceChargeWithPercentage": "Servicegebühr ({value}%)",
       "tip": "Trinkgeld",
-      "payableAmount": "Zahlbetrag"
+      "payableAmount": "Zahlbetrag",
+      "estimatedPayableAmount": "Geschätzter Zahlbetrag"
     },
     "toast": {
       "failedFetchCart": "Warenkorb konnte nicht geladen werden",
