@@ -432,6 +432,8 @@
       "restaurantMenuImageAlt": "Restaurant menu",
       "reserveTable": "Reserve Table",
       "servingFrom": "Serving from {name}",
+      "openingHours": "Opening hours",
+      "deliveryHours": "Delivery hours",
       "itemCount": "{count, plural, one {# item} other {# items}}",
       "reviewCount": "{count, plural, one {# review} other {# reviews}}",
       "categoryDescription": "Explore freshly prepared items in this category.",

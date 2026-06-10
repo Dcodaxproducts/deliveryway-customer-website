@@ -300,6 +300,7 @@ export type AuthRestaurantUser = {
   restaurant?: RestaurantInfo | null;
   restaurantId?: string | number | null;
   restaurantName?: string | null;
+  branchId?: string | number | null;
   branch?: RestaurantBranch | null;
   address?: string | AddressRecord | null;
   profile?: {

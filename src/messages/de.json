@@ -432,6 +432,8 @@
       "restaurantMenuImageAlt": "Restaurantmenü",
       "reserveTable": "Tisch reservieren",
       "servingFrom": "Serviert von {name}",
+      "openingHours": "Öffnungszeiten",
+      "deliveryHours": "Lieferzeiten",
       "itemCount": "{count, plural, one {# Artikel} other {# Artikel}}",
       "reviewCount": "{count, plural, one {# Bewertung} other {# Bewertungen}}",
       "categoryDescription": "Entdecken Sie frisch zubereitete Artikel in dieser Kategorie.",
