@@ -3,11 +3,13 @@ import { useTranslations } from "next-intl";
 interface Props {
   paymentMethod: string;
   setPaymentMethod: (value: string) => void;
+  allowCashOnDelivery?: boolean;
 }
 
 const PaymentMethodSection = ({
   paymentMethod,
   setPaymentMethod,
+  allowCashOnDelivery = true,
 }: Props) => {
   const t = useTranslations("checkout");
   const options = [
@@ -15,7 +17,7 @@ const PaymentMethodSection = ({
     { key: "PAYPAL", label: t("paypal") },
     { key: "STRIPE", label: t("onlineCard") },
     { key: "WALLET", label: t("wallet") },
-  ];
+  ].filter((option) => allowCashOnDelivery || option.key !== "COD");
 
   return (
     <section className="space-y-[25px]">

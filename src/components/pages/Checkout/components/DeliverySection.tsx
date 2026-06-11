@@ -53,7 +53,7 @@ export function DeliverySection(props: DeliverySectionProps) {
       </section>
       <NotesSection note={props.note} setNote={props.setNote} />
       <CustomerDetailsForm {...props} editable={props.isGuest} />
-      <PaymentMethodSection {...props} />
+      <PaymentMethodSection {...props} allowCashOnDelivery={false} />
     </div>
   );
 }

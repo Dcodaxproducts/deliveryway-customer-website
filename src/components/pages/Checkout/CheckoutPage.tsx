@@ -342,6 +342,8 @@ function CheckoutPageContent() {
   const [pickupTime, setPickupTime] = useState<string | null>(null);
   const [pickupBranch, setPickupBranch] = useState<BranchRecord | null>(null);
   const [scheduledDeliveryValue, setScheduledDeliveryValue] = useState("");
+  const checkoutPaymentMethod =
+    activeTab === "delivery" && paymentMethod === "COD" ? "STRIPE" : paymentMethod;
 
   useEffect(() => {
     if (!user) return;
@@ -858,7 +860,7 @@ function CheckoutPageContent() {
           ...(isGuest && activeTab === "delivery"
             ? { guestDeliveryAddress: getGuestDeliveryAddressPayload(guestDeliveryAddress) }
             : {}),
-          paymentMethod,
+          paymentMethod: checkoutPaymentMethod,
           customerNote: note,
         },
       });
@@ -886,7 +888,7 @@ function CheckoutPageContent() {
 
       clearBackendError();
 
-      if (paymentMethod === "STRIPE") {
+      if (checkoutPaymentMethod === "STRIPE") {
         const attemptRes = await post(`/v1/payments/orders/${orderId}/attempts`, {
           paymentMethod: "STRIPE",
           currency: "USD",
@@ -1029,7 +1031,7 @@ function CheckoutPageContent() {
               privacyPolicyLoading={privacyPolicyLoading}
               guestDeliveryAddress={guestDeliveryAddress}
               setGuestDeliveryAddress={setGuestDeliveryAddress}
-              paymentMethod={paymentMethod}
+              paymentMethod={checkoutPaymentMethod}
               setPaymentMethod={setPaymentMethod}
               scheduledDeliveryValue={scheduledDeliveryValue}
               setScheduledDeliveryValue={setScheduledDeliveryValue}
@@ -1047,7 +1049,7 @@ function CheckoutPageContent() {
               setPrivacyPolicyAccepted={setPrivacyPolicyAccepted}
               privacyPolicy={guestPrivacyPolicy}
               privacyPolicyLoading={privacyPolicyLoading}
-              paymentMethod={paymentMethod}
+              paymentMethod={checkoutPaymentMethod}
               setPaymentMethod={setPaymentMethod}
               pickupDate={pickupDate}
               setPickupDate={setPickupDate}
