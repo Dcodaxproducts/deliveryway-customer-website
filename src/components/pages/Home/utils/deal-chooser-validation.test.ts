@@ -292,7 +292,7 @@ describe("deal chooser validation", () => {
     });
   });
 
-  it("allows flexible deal item variation selection with backend dealId payload", () => {
+  it("ignores flexible deal item variation selection for backend dealId payload", () => {
     const item: CustomerDealMenuItem = {
       id: "pizza",
       name: "Pizza",
@@ -304,7 +304,6 @@ describe("deal chooser validation", () => {
     };
     const configuration: DealChooserItemConfiguration = {
       menuItemId: "pizza",
-      selectedVariationId: "large",
       modifierSelections: [],
     };
 
@@ -327,14 +326,12 @@ describe("deal chooser validation", () => {
       menuItemId: "pizza",
       dealId: "deal-1",
       quantity: 1,
-      variationId: "large",
     });
   });
 
-  it("sends flexible variation item modifiers with dealId", () => {
+  it("sends flexible variation item modifiers with dealId and no variation", () => {
     const configuration: DealChooserItemConfiguration = {
       menuItemId: "pizza",
-      selectedVariationId: "small",
       modifierSelections: [
         {
           modifierGroupId: "size",
@@ -359,15 +356,13 @@ describe("deal chooser validation", () => {
       menuItemId: "pizza",
       dealId: "deal-1",
       quantity: 1,
-      variationId: "small",
       modifierSelections: configuration.modifierSelections,
     });
   });
 
-  it("allows split-capable flexible items when normal variation and modifier choices are selected", () => {
+  it("allows split-capable flexible items when modifier choices are selected", () => {
     const configuration: DealChooserItemConfiguration = {
       menuItemId: "pizza",
-      selectedVariationId: "small",
       modifierSelections: [
         {
           modifierGroupId: "size",
@@ -402,7 +397,6 @@ describe("deal chooser validation", () => {
       menuItemId: "pizza",
       dealId: "deal-1",
       quantity: 1,
-      variationId: "small",
       modifierSelections: configuration.modifierSelections,
     });
   });

@@ -16,7 +16,6 @@ import {
   getDealActionKind,
   getDealScopedItemIdsForDetails,
   getDealScopedItemCustomizationState,
-  canSelectFlexibleDealItem,
   isFixedItemDeal,
   isFlexibleAllItemsDeal,
   isFlexibleCategoryDeal,
@@ -211,14 +210,6 @@ export const CustomerDealsSection = ({
 
       if (states.includes("UNKNOWN")) {
         toast.warning(t("reviewDealItems"));
-        return;
-      }
-
-      if (
-        states.includes("REQUIRES_UNSUPPORTED_VARIATION") &&
-        deal.scopeMenuItems.some((item) => !canSelectFlexibleDealItem(item))
-      ) {
-        toast.error(t("unsupportedDealCustomization"));
         return;
       }
 

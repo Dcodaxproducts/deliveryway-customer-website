@@ -3,7 +3,6 @@ import {
   buildReadyMadeDealCartItemPayload,
   canSendDealIdForReadyMadeItem,
   canSendDealIdWithModifierSelections,
-  getDealForcedVariationForItem,
 } from "@/components/pages/Home/utils/customer-deal-cart";
 import {
   buildModifierSelections,
@@ -28,13 +27,6 @@ export type DealChooserModifierGroup = {
   modifiers?: DealChooserModifier[];
 };
 
-export type DealChooserVariation = {
-  id?: string | number | null;
-  name?: string | null;
-  displayText?: string | null;
-  isDefault?: boolean | null;
-};
-
 export type DealChooserSelectedModifier = {
   id: string;
   name: string;
@@ -43,7 +35,6 @@ export type DealChooserSelectedModifier = {
 
 export type DealChooserItemConfiguration = {
   menuItemId: string;
-  selectedVariationId?: string | null;
   modifierSelections: CartModifierSelectionInput[];
   note?: string;
 };
@@ -65,18 +56,6 @@ export const getDealChooserNumber = (value: unknown, fallback = 0) => {
 
 export const getDealChooserModifierName = (modifier: DealChooserModifier) =>
   String(modifier.name || "Option").trim();
-
-export const getDealChooserVariations = (
-  item: CustomerDealMenuItem | null
-): DealChooserVariation[] =>
-  Array.isArray(item?.variations)
-    ? item.variations.filter(isRecord).map((variation) => ({
-        id: variation.id as string | number | null | undefined,
-        name: typeof variation.name === "string" ? variation.name : null,
-        displayText: typeof variation.displayText === "string" ? variation.displayText : null,
-        isDefault: typeof variation.isDefault === "boolean" ? variation.isDefault : null,
-      }))
-    : [];
 
 export const getDealChooserModifierGroups = (
   item: CustomerDealMenuItem | null
@@ -222,24 +201,14 @@ export const getDealChooserGroupHelperText = (group: DealChooserModifierGroup) =
 };
 
 export const isDealChooserItemConfigurable = (item: CustomerDealMenuItem) =>
-  getDealChooserModifierGroups(item).length > 0 ||
-  getDealChooserVariations(item).length > 0 ||
-  item.supportsSplitPizza === true;
+  getDealChooserModifierGroups(item).length > 0;
 
 export const canUseBackendDealItemFlow = (
   deal: CustomerDeal,
   item: CustomerDealMenuItem
 ) => {
-  if (getDealForcedVariationForItem(deal, item)) {
-    return true;
-  }
-
   if (deal.dealSelectionMode === "FLEXIBLE_ITEMS") {
     return true;
-  }
-
-  if (getDealChooserVariations(item).length > 0) {
-    return false;
   }
 
   return (
@@ -279,24 +248,6 @@ export const validateDealChooserItemConfiguration = ({
   configuration?: DealChooserItemConfiguration;
 }): DealChooserItemValidationResult => {
   const groups = getDealChooserModifierGroups(item);
-  const forcedVariation = getDealForcedVariationForItem(deal, item);
-  const variations = forcedVariation ? [] : getDealChooserVariations(item);
-  const hasBackendDealFlow = canUseBackendDealItemFlow(deal, item);
-
-  if (variations.length > 0 && hasBackendDealFlow && deal.dealSelectionMode !== "FLEXIBLE_ITEMS") {
-    return {
-      itemError: "Variation selection is not supported for this deal item.",
-      groupErrors: {},
-    };
-  }
-
-  if (variations.length > 0 && !configuration?.selectedVariationId) {
-    return {
-      itemError: "Choose a variation for this deal item.",
-      groupErrors: {},
-    };
-  }
-
   const selectedModifiersByGroup = getSelectedModifiersByGroup(groups, configuration);
   const validation = validateModifierSelections(groups, selectedModifiersByGroup);
 
@@ -318,13 +269,10 @@ export const buildDealCartItemPayload = ({
   configuration?: DealChooserItemConfiguration;
 }): AddCartItemPayload => {
   const modifierSelections = configuration?.modifierSelections ?? [];
-  const forcedVariation = getDealForcedVariationForItem(deal, item);
 
   if (
     modifierSelections.length > 0 &&
-    !configuration?.selectedVariationId &&
-    (forcedVariation ||
-      canSendDealIdWithModifierSelections(deal, item) ||
+    (canSendDealIdWithModifierSelections(deal, item) ||
       deal.dealSelectionMode === "FLEXIBLE_ITEMS")
   ) {
     return buildCustomizableDealCartItemPayload({
@@ -336,10 +284,8 @@ export const buildDealCartItemPayload = ({
   }
 
   if (
-    !configuration?.selectedVariationId &&
-    (forcedVariation ||
-      canSendDealIdForReadyMadeItem(deal, item) ||
-      deal.dealSelectionMode === "FLEXIBLE_ITEMS")
+    canSendDealIdForReadyMadeItem(deal, item) ||
+    deal.dealSelectionMode === "FLEXIBLE_ITEMS"
   ) {
     return buildReadyMadeDealCartItemPayload({
       deal,
@@ -353,7 +299,6 @@ export const buildDealCartItemPayload = ({
     menuItemId: item.id.trim(),
     dealId: deal.id.trim(),
     quantity: 1,
-    ...(!forcedVariation && configuration?.selectedVariationId ? { variationId: configuration.selectedVariationId } : {}),
     ...(modifierSelections.length > 0 ? { modifierSelections } : {}),
     ...(configuration?.note ? { note: configuration.note } : {}),
   };

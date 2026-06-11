@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/dialog";
 import {
   getDealCategoryRuleForItem,
-  getDealForcedVariationForItem,
   getDealTypeLabel,
   isFixedItemDeal,
 } from "@/components/pages/Home/utils/customer-deal-cart";
@@ -29,7 +28,6 @@ import {
   getDealChooserModifierGroups,
   getDealChooserModifierName,
   getDealChooserNumber,
-  getDealChooserVariations,
   getSelectedModifiersByGroup,
   isDealChooserItemConfigurable,
   validateDealChooserItemConfiguration,
@@ -83,9 +81,6 @@ const getRequirementText = (
 
   return t("flexibleRequirement", { count: requiredQuantity });
 };
-
-const getVariationLabel = (variation: { name?: string | null; displayText?: string | null }) =>
-  String(variation.displayText || variation.name || "Variation").trim();
 
 export function DealChooserDrawer({
   deal,
@@ -191,7 +186,6 @@ export function DealChooserDrawer({
       setConfigurationsByItemId((current) => {
         const existing = current[menuItemId] || {
           menuItemId,
-          selectedVariationId: null,
           modifierSelections: [],
         };
 
@@ -297,16 +291,6 @@ export function DealChooserDrawer({
         : [...current, menuItemId]
     );
   }, []);
-
-  const selectVariation = useCallback(
-    (menuItemId: string, variationId: string) => {
-      updateItemConfiguration(menuItemId, (configuration) => ({
-        ...configuration,
-        selectedVariationId: variationId,
-      }));
-    },
-    [updateItemConfiguration]
-  );
 
   const toggleModifier = useCallback(
     (
@@ -599,10 +583,8 @@ export function DealChooserDrawer({
       if (!checked) return null;
 
       const groups = getDealChooserModifierGroups(item);
-      const forcedVariation = getDealForcedVariationForItem(deal, item);
-      const variations = forcedVariation ? [] : getDealChooserVariations(item);
 
-      if (groups.length === 0 && variations.length === 0) return t("statusReady");
+      if (groups.length === 0) return t("statusReady");
 
       const validation = validateDealChooserItemConfiguration({
         deal: deal || {
@@ -627,8 +609,6 @@ export function DealChooserDrawer({
 
   const renderItemConfiguration = (item: CustomerDealMenuItem) => {
     const groups = getDealChooserModifierGroups(item);
-    const forcedVariation = getDealForcedVariationForItem(deal, item);
-    const variations = forcedVariation ? [] : getDealChooserVariations(item);
     const configuration = configurationsByItemId[item.id];
     const selectedModifiersByGroup = getSelectedModifiersByGroup(groups, configuration);
     const itemError = itemErrorsById[item.id];
@@ -648,52 +628,6 @@ export function DealChooserDrawer({
           <p className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs font-medium text-red-600">
             {itemError}
           </p>
-        ) : null}
-
-        {forcedVariation ? (
-          <div className="mb-3 rounded-2xl border border-primary/10 bg-primary/5 p-3">
-            <p className="text-sm font-semibold text-gray-900">{t("variation")}</p>
-            <p className="mt-1 text-xs font-medium text-primary">
-              {t("defaultVariationSelected", {
-                variation: forcedVariation.label || t("forcedVariation"),
-              })}
-            </p>
-          </div>
-        ) : null}
-
-        {variations.length > 0 && !itemError ? (
-          <div className="mb-3 rounded-2xl border border-gray-100 bg-white p-3">
-            <div className="mb-2 flex items-center justify-between gap-3">
-              <p className="text-sm font-semibold text-gray-900">{t("variation")}</p>
-              <span className="text-xs font-medium text-gray-500">{t("chooseOne")}</span>
-            </div>
-            <div className="space-y-2">
-              {variations.map((variation) => {
-                const variationId = getDealChooserId(variation.id);
-                const checked = configuration?.selectedVariationId === variationId;
-
-                return (
-                  <label
-                    key={variationId}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-gray-100 px-3 py-2"
-                  >
-                    <span className="text-sm font-medium text-gray-700">
-                      {getVariationLabel(variation)}
-                    </span>
-                    <Checkbox
-                      className="size-5"
-                      checked={checked}
-                      onCheckedChange={(value) => {
-                        if (value === true) {
-                          selectVariation(item.id, variationId);
-                        }
-                      }}
-                    />
-                  </label>
-                );
-              })}
-            </div>
-          </div>
         ) : null}
 
         {groups.map((group) => {
