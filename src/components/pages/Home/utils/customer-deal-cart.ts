@@ -44,6 +44,12 @@ const hasRequiredOptionRecords = (value: unknown) =>
   Array.isArray(value) && value.some(isRequiredOptionRecord);
 
 const getRequiredQuantity = (deal: CustomerDeal) => {
+  const categoryRuleQuantity = getDealCategoryRulesRequiredQuantity(deal);
+
+  if (categoryRuleQuantity > 0) {
+    return categoryRuleQuantity;
+  }
+
   const parsed = Number(deal.dealRequiredQuantity);
   return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : null;
 };
@@ -61,6 +67,32 @@ export const isFlexibleItemDeal = (deal: CustomerDeal) =>
 export const isFlexibleCategoryDeal = (deal: CustomerDeal) =>
   deal.dealSelectionMode === "FLEXIBLE_ITEMS" &&
   deal.scopeCategories.length > 0;
+
+export const getDealCategoryRulesRequiredQuantity = (deal: CustomerDeal | null) =>
+  (deal?.scopeCategoryRules ?? []).reduce((total, rule) => total + rule.itemLimit, 0);
+
+export const getDealCategoryRuleForItem = (
+  deal: CustomerDeal | null,
+  item: CustomerDealMenuItem | null
+) => {
+  const categoryId = item?.category?.id?.trim();
+
+  if (!deal || !categoryId) {
+    return null;
+  }
+
+  return deal.scopeCategoryRules?.find((rule) => rule.menuCategoryId === categoryId) ?? null;
+};
+
+export const getDealForcedVariationForItem = (
+  deal: CustomerDeal | null,
+  item: CustomerDealMenuItem | null
+) => {
+  const rule = getDealCategoryRuleForItem(deal, item);
+  const variationId = rule?.variationId?.trim();
+
+  return variationId ? { id: variationId, label: rule?.variation?.displayText || rule?.variation?.name || "" } : null;
+};
 
 export const isFlexibleAllItemsDeal = (deal: CustomerDeal) =>
   deal.dealSelectionMode === "FLEXIBLE_ITEMS" &&
@@ -297,6 +329,16 @@ export const getDealTypeLabel = (deal: CustomerDeal) => {
 export const getDealRequirementText = (deal: CustomerDeal) => {
   const requiredQuantity = getRequiredQuantity(deal);
 
+  if (isFlexibleCategoryDeal(deal) && (deal.scopeCategoryRules?.length ?? 0) > 0) {
+    const categoryNamesById = new Map(deal.scopeCategories.map((category) => [category.id, category.name]));
+    return (deal.scopeCategoryRules ?? [])
+      .map((rule) => {
+        const categoryName = categoryNamesById.get(rule.menuCategoryId) || "category";
+        return `${rule.itemLimit} from ${categoryName}`;
+      })
+      .join(", ");
+  }
+
   if (isFlexibleItemDeal(deal)) {
     return requiredQuantity
       ? `Choose any ${requiredQuantity} from ${deal.scopeMenuItems.length} items`
@@ -441,12 +483,13 @@ export const buildSelectedFlexibleDealCartItemsInput = (
     return [];
   }
 
-  return uniqueSelectedIds
+    return uniqueSelectedIds
     .map((menuItemId) => menuItemId.trim())
     .filter((menuItemId) => eligibleIds.has(menuItemId))
     .map((menuItemId) => {
       const item = eligibleItemsById.get(menuItemId);
       const variationId = item ? getDealMenuItemDefaultVariationId(item) : "";
+      const forcedVariation = item ? getDealForcedVariationForItem(deal, item) : null;
 
       if (item && canSendDealIdForReadyMadeItem(deal, item)) {
         return buildReadyMadeDealCartItemPayload({
@@ -459,7 +502,8 @@ export const buildSelectedFlexibleDealCartItemsInput = (
       return {
         branchId: resolvedBranchId,
         menuItemId,
-        ...(variationId ? { variationId } : {}),
+        dealId: trimId(deal.id),
+        ...(!forcedVariation && variationId ? { variationId } : {}),
         quantity: 1,
       };
     });

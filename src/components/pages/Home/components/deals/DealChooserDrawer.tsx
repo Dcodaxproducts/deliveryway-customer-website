@@ -16,7 +16,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { getDealTypeLabel, isFixedItemDeal } from "@/components/pages/Home/utils/customer-deal-cart";
+import {
+  getDealCategoryRuleForItem,
+  getDealForcedVariationForItem,
+  getDealTypeLabel,
+  isFixedItemDeal,
+} from "@/components/pages/Home/utils/customer-deal-cart";
 import {
   buildDealCartItemPayload,
   getDealChooserGroupHelperText,
@@ -126,6 +131,43 @@ export function DealChooserDrawer({
     () => detailedItems.filter((item) => selectedMenuItemIds.includes(item.id)),
     [detailedItems, selectedMenuItemIds]
   );
+  const categoryNamesById = useMemo(
+    () => new Map((deal?.scopeCategories ?? []).map((category) => [category.id, category.name])),
+    [deal?.scopeCategories]
+  );
+  const selectedCountByCategoryId = useMemo(() => {
+    const counts = new Map<string, number>();
+
+    selectedItems.forEach((item) => {
+      const categoryId = item.category?.id?.trim();
+
+      if (categoryId) {
+        counts.set(categoryId, (counts.get(categoryId) ?? 0) + 1);
+      }
+    });
+
+    return counts;
+  }, [selectedItems]);
+  const itemSections = useMemo(() => {
+    if (!deal?.scopeCategoryRules?.length) {
+      return [{
+        id: "all",
+        title: "",
+        helper: "",
+        items: detailedItems,
+      }];
+    }
+
+    return (deal.scopeCategoryRules ?? []).map((rule) => ({
+      id: rule.menuCategoryId,
+      title: categoryNamesById.get(rule.menuCategoryId) || t("category"),
+      helper: t("categoryRuleLimit", {
+        selected: selectedCountByCategoryId.get(rule.menuCategoryId) ?? 0,
+        count: rule.itemLimit,
+      }),
+      items: detailedItems.filter((item) => item.category?.id === rule.menuCategoryId),
+    }));
+  }, [categoryNamesById, deal, detailedItems, selectedCountByCategoryId, t]);
   const canAddSelectedItems = canSubmitDealSelection({
     selectedCount,
     requiredCount: requiredQuantity,
@@ -196,9 +238,26 @@ export function DealChooserDrawer({
 
       const selectedItem = detailedItemsById.get(menuItemId);
       const shouldExpand = selectedItem ? isDealChooserItemConfigurable(selectedItem) : true;
+      const categoryRule = selectedItem ? getDealCategoryRuleForItem(deal, selectedItem) : null;
 
       setSelectedMenuItemIds((current) => {
         if (current.includes(menuItemId)) return current;
+
+        if (categoryRule) {
+          const selectedInCategory = current.filter((id) => {
+            const currentItem = detailedItemsById.get(id);
+
+            return currentItem?.category?.id === categoryRule.menuCategoryId;
+          }).length;
+
+          if (selectedInCategory >= categoryRule.itemLimit) {
+            toast.error(t("maxCategoryItems", {
+              category: categoryNamesById.get(categoryRule.menuCategoryId) || t("category"),
+              count: categoryRule.itemLimit,
+            }));
+            return current;
+          }
+        }
 
         if (current.length >= requiredQuantity) {
           if (requiredQuantity === 1) {
@@ -220,7 +279,15 @@ export function DealChooserDrawer({
       }
       updateItemConfiguration(menuItemId, (configuration) => configuration);
     },
-    [clearItemConfiguration, detailedItemsById, requiredQuantity, t, updateItemConfiguration]
+    [
+      categoryNamesById,
+      clearItemConfiguration,
+      deal,
+      detailedItemsById,
+      requiredQuantity,
+      t,
+      updateItemConfiguration,
+    ]
   );
 
   const toggleExpandedItem = useCallback((menuItemId: string) => {
@@ -405,6 +472,20 @@ export function DealChooserDrawer({
       return;
     }
 
+    const ruleCountError = (deal.scopeCategoryRules ?? []).find((rule) => {
+      const selectedInCategory = selectedCountByCategoryId.get(rule.menuCategoryId) ?? 0;
+
+      return selectedInCategory !== rule.itemLimit;
+    });
+
+    if (ruleCountError) {
+      toast.error(t("categoryRuleRequired", {
+        category: categoryNamesById.get(ruleCountError.menuCategoryId) || t("category"),
+        count: ruleCountError.itemLimit,
+      }));
+      return;
+    }
+
     if (itemDetailsQuery.isLoading) {
       toast.error(t("loadingItemOptions"));
       return;
@@ -486,6 +567,8 @@ export function DealChooserDrawer({
     onOpenChange,
     requiredQuantity,
     selectedCount,
+    categoryNamesById,
+    selectedCountByCategoryId,
     selectedItems,
     selectedMenuItemIds,
     t,
@@ -516,7 +599,8 @@ export function DealChooserDrawer({
       if (!checked) return null;
 
       const groups = getDealChooserModifierGroups(item);
-      const variations = getDealChooserVariations(item);
+      const forcedVariation = getDealForcedVariationForItem(deal, item);
+      const variations = forcedVariation ? [] : getDealChooserVariations(item);
 
       if (groups.length === 0 && variations.length === 0) return t("statusReady");
 
@@ -528,6 +612,7 @@ export function DealChooserDrawer({
           discountValue: 0,
           scopeMenuItems: [],
           scopeCategories: [],
+          scopeCategoryRules: [],
         },
         item,
         configuration: configurationsByItemId[item.id],
@@ -542,7 +627,8 @@ export function DealChooserDrawer({
 
   const renderItemConfiguration = (item: CustomerDealMenuItem) => {
     const groups = getDealChooserModifierGroups(item);
-    const variations = getDealChooserVariations(item);
+    const forcedVariation = getDealForcedVariationForItem(deal, item);
+    const variations = forcedVariation ? [] : getDealChooserVariations(item);
     const configuration = configurationsByItemId[item.id];
     const selectedModifiersByGroup = getSelectedModifiersByGroup(groups, configuration);
     const itemError = itemErrorsById[item.id];
@@ -562,6 +648,17 @@ export function DealChooserDrawer({
           <p className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs font-medium text-red-600">
             {itemError}
           </p>
+        ) : null}
+
+        {forcedVariation ? (
+          <div className="mb-3 rounded-2xl border border-primary/10 bg-primary/5 p-3">
+            <p className="text-sm font-semibold text-gray-900">{t("variation")}</p>
+            <p className="mt-1 text-xs font-medium text-primary">
+              {t("defaultVariationSelected", {
+                variation: forcedVariation.label || t("forcedVariation"),
+              })}
+            </p>
+          </div>
         ) : null}
 
         {variations.length > 0 && !itemError ? (
@@ -779,15 +876,30 @@ export function DealChooserDrawer({
 
         {!isLoading && !error && detailedItems.length > 0 ? (
           <div className="space-y-3">
-            {detailedItems.map((item) => {
+            {itemSections.map((section) => (
+              <div key={section.id} className="space-y-2">
+                {section.title ? (
+                  <div className="flex items-center justify-between gap-3 rounded-2xl bg-gray-50 px-3 py-2">
+                    <p className="text-sm font-semibold text-gray-900">{section.title}</p>
+                    <span className="text-xs font-semibold text-primary">{section.helper}</span>
+                  </div>
+                ) : null}
+
+                {section.items.map((item) => {
               const checked = selectedMenuItemIds.includes(item.id);
               const itemPrice = getMenuItemPrice(item);
               const categoryName = item.category?.name?.trim();
               const description = item.description?.trim();
               const configurable = isDealChooserItemConfigurable(item);
               const status = getItemStatus(item, checked);
+              const categoryRule = getDealCategoryRuleForItem(deal, item);
+              const categorySelectedCount = categoryRule
+                ? selectedCountByCategoryId.get(categoryRule.menuCategoryId) ?? 0
+                : 0;
               const disableUnchecked =
-                !checked && selectedCount >= requiredQuantity && requiredQuantity !== 1;
+                !checked &&
+                ((selectedCount >= requiredQuantity && requiredQuantity !== 1) ||
+                  Boolean(categoryRule && categorySelectedCount >= categoryRule.itemLimit));
 
               return (
                 <div
@@ -822,6 +934,11 @@ export function DealChooserDrawer({
                           </span>
                         ) : null}
                         {categoryName ? <span>{categoryName}</span> : null}
+                        {categoryRule ? (
+                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-primary">
+                            {categorySelectedCount}/{categoryRule.itemLimit}
+                          </span>
+                        ) : null}
                         {status ? (
                           <span className="rounded-full bg-gray-100 px-2 py-0.5 text-gray-600">
                             {status}
@@ -853,7 +970,9 @@ export function DealChooserDrawer({
                   {renderItemConfiguration(item)}
                 </div>
               );
-            })}
+                })}
+              </div>
+            ))}
           </div>
         ) : null}
 

@@ -151,6 +151,7 @@ describe("cart service", () => {
       branchId: "branch-1",
       menuItemId: "deal-item-1",
       dealId: "deal-1",
+      variationId: "large",
       quantity: 1,
     });
   });
@@ -180,6 +181,7 @@ describe("cart service", () => {
       branchId: "branch-1",
       menuItemId: "deal-item-2",
       dealId: "deal-1",
+      variationId: "large",
       quantity: 1,
       modifierSelections: [
         {

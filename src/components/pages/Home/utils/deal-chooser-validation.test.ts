@@ -81,6 +81,7 @@ describe("deal chooser validation", () => {
     ).toEqual({
       branchId: "branch-1",
       menuItemId: "pizza",
+      dealId: "deal-1",
       quantity: 1,
       modifierSelections: configuration.modifierSelections,
     });
@@ -223,7 +224,7 @@ describe("deal chooser validation", () => {
       .toBe("You can select only 1 item for this deal.");
   });
 
-  it("normal flexible auto-applied deal payload does not include dealId", () => {
+  it("normal flexible auto-applied deal payload includes dealId", () => {
     expect(
       buildDealCartItemPayload({
         deal: flexibleDeal,
@@ -233,6 +234,7 @@ describe("deal chooser validation", () => {
     ).toEqual({
       branchId: "branch-1",
       menuItemId: "drink",
+      dealId: "deal-1",
       quantity: 1,
     });
   });
@@ -290,7 +292,7 @@ describe("deal chooser validation", () => {
     });
   });
 
-  it("allows flexible deal item variation selection without backend dealId payload", () => {
+  it("allows flexible deal item variation selection with backend dealId payload", () => {
     const item: CustomerDealMenuItem = {
       id: "pizza",
       name: "Pizza",
@@ -323,12 +325,13 @@ describe("deal chooser validation", () => {
     ).toEqual({
       branchId: "branch-1",
       menuItemId: "pizza",
+      dealId: "deal-1",
       quantity: 1,
       variationId: "large",
     });
   });
 
-  it("sends flexible variation item modifiers without dealId", () => {
+  it("sends flexible variation item modifiers with dealId", () => {
     const configuration: DealChooserItemConfiguration = {
       menuItemId: "pizza",
       selectedVariationId: "small",
@@ -354,6 +357,7 @@ describe("deal chooser validation", () => {
     ).toEqual({
       branchId: "branch-1",
       menuItemId: "pizza",
+      dealId: "deal-1",
       quantity: 1,
       variationId: "small",
       modifierSelections: configuration.modifierSelections,
@@ -396,6 +400,7 @@ describe("deal chooser validation", () => {
     ).toEqual({
       branchId: "branch-1",
       menuItemId: "pizza",
+      dealId: "deal-1",
       quantity: 1,
       variationId: "small",
       modifierSelections: configuration.modifierSelections,

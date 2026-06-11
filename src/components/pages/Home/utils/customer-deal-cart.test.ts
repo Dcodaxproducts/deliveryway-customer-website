@@ -122,8 +122,8 @@ describe("customer deal cart helpers", () => {
         ["drink-id", "unknown-id", "burger-id", "drink-id"]
       )
     ).toEqual([
-      { branchId: "branch-1", menuItemId: "drink-id", quantity: 1 },
-      { branchId: "branch-1", menuItemId: "burger-id", quantity: 1 },
+      { branchId: "branch-1", menuItemId: "drink-id", dealId: "deal-2", quantity: 1 },
+      { branchId: "branch-1", menuItemId: "burger-id", dealId: "deal-2", quantity: 1 },
     ]);
   });
 
@@ -152,20 +152,24 @@ describe("customer deal cart helpers", () => {
         ]
       )
     ).toEqual([
-      { branchId: "branch-1", menuItemId: "pizza-id", quantity: 1 },
-      { branchId: "branch-1", menuItemId: "drink-id", quantity: 1 },
+      { branchId: "branch-1", menuItemId: "pizza-id", dealId: "deal-3", quantity: 1 },
+      { branchId: "branch-1", menuItemId: "drink-id", dealId: "deal-3", quantity: 1 },
     ]);
   });
 
-  it("flexible deal cart payload does not include dealId", () => {
+  it("flexible deal cart payload includes dealId", () => {
     const [payload] = buildSelectedFlexibleDealCartItemsInput(
       flexibleItemDeal,
       "branch-1",
       ["burger-id"]
     );
 
-    expect(payload).toEqual({ branchId: "branch-1", menuItemId: "burger-id", quantity: 1 });
-    expect(payload).not.toHaveProperty("dealId");
+    expect(payload).toEqual({
+      branchId: "branch-1",
+      menuItemId: "burger-id",
+      dealId: "deal-2",
+      quantity: 1,
+    });
   });
 
   it("flexible item deal opens chooser action", () => {
@@ -495,6 +499,7 @@ describe("customer deal cart helpers", () => {
       {
         branchId: "branch-1",
         menuItemId: "deal-item-3",
+        dealId: "deal-2",
         variationId: "large",
         quantity: 1,
       },

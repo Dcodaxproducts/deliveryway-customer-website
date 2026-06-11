@@ -157,7 +157,6 @@ export const cleanAddCartItemPayload = (payload: CartMutationPayload): CartMutat
 
   const cleanedPayload: CartMutationPayload = { ...payload };
 
-  delete cleanedPayload.variationId;
   delete cleanedPayload.modifiers;
   delete cleanedPayload.sections;
   delete cleanedPayload.splitPizza;
