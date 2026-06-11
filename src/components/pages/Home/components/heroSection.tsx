@@ -24,6 +24,7 @@ import type { BranchOrderType, NearbyBranch } from "@/types/branches";
 
 type HeroSectionProps = {
   restaurantName?: string;
+  tagline?: string;
   heroImage?: string | null;
 };
 
@@ -34,6 +35,7 @@ const getOrderType = (mode: BranchSearchMode): BranchOrderType =>
 
 export const HeroSection = ({
   restaurantName,
+  tagline,
   heroImage = "/hero.png",
 }: HeroSectionProps) => {
   const t = useTranslations("home.hero");
@@ -63,6 +65,7 @@ export const HeroSection = ({
   );
 
   const displayRestaurantName = restaurantName || t("defaultTitle");
+  const displayTagline = tagline || t("defaultTagline");
   const selectedBranch = user?.branch ?? null;
   const selectedOrderType = user?.selectedOrderType ?? selectedBranch?.selectedOrderType ?? null;
   const selectedOrderLabel = selectedOrderType === "TAKEAWAY" ? "Pickup" : selectedOrderType === "DELIVERY" ? "Delivery" : "";
@@ -144,9 +147,12 @@ export const HeroSection = ({
       </div>
 
       <div className="relative z-10 ml-0 flex w-full max-w-4xl flex-col items-center px-4 md:ml-20">
-        <h1 className="mb-8 text-5xl font-extrabold text-white drop-shadow-md md:text-7xl">
+        <h1 className="mb-2 text-5xl font-extrabold text-white drop-shadow-md md:text-7xl">
           {displayRestaurantName}
         </h1>
+        <p className="mb-8 text-[22px] font-medium text-white">
+          {displayTagline}
+        </p>
 
         <div className="w-full rounded-2xl bg-white p-6 shadow-xl md:p-8">
           <div className="mb-6 inline-flex rounded-xl bg-[#F5F5F5] p-1">
@@ -198,6 +204,7 @@ export const HeroSection = ({
               onSelectLocation={handleSelectSearchLocation}
               onUseCurrentLocation={handleUseCurrentLocation}
               isLocating={permissionState === "requesting"}
+              showSelectedLabel={false}
             />
 
             {showResults ? (

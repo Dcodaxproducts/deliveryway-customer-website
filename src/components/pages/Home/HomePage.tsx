@@ -45,6 +45,7 @@ const HomePage = () => {
   const resolvedBranch = homeData?.branch ?? user?.branch ?? null;
   const landingPopup = homeData?.landingPopup ?? null;
   const heroTitle = homeData?.restaurant?.name ?? branding.restaurantName ?? t("defaultTitle");
+  const heroTagline = branding.tagline;
   const heroImage = branding.assets.heroImage ?? branding.assets.coverImage ?? DEFAULT_BRANDING.assets.heroImage;
 
   return (
@@ -54,6 +55,7 @@ const HomePage = () => {
       {branding.showHeroBanner ? (
         <HeroSection
           restaurantName={heroTitle}
+          tagline={heroTagline}
           heroImage={heroImage}
         />
       ) : null}
