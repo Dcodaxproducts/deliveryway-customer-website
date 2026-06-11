@@ -34,6 +34,11 @@ const getString = (value: unknown) => (typeof value === "string" ? value : "");
 const getServiceChargeType = (value: unknown) =>
   typeof value === "string" && value.trim() ? value : null;
 
+const getCurrentPathname = () =>
+  typeof window === "undefined" ? "" : window.location.pathname;
+
+const shouldSendRestaurantMenuId = (pathname: string) => pathname === "/menu";
+
 export const normalizeCartAppliedPromotion = (value: unknown): CartAppliedPromotion | null => {
   const promotion = getRecord(value);
 
@@ -150,12 +155,19 @@ export const addCustomerCartItem = ({
   token?: string | null;
 }) => postCart(`/v1/cart/items?customerId=${customerId}`, cleanAddCartItemPayload(payload), token);
 
-export const cleanAddCartItemPayload = (payload: CartMutationPayload): CartMutationPayload => {
-  if (!payload.dealId) {
-    return payload;
+export const cleanAddCartItemPayload = (
+  payload: CartMutationPayload,
+  pathname = getCurrentPathname()
+): CartMutationPayload => {
+  const cleanedPayload: CartMutationPayload = { ...payload };
+
+  if (!shouldSendRestaurantMenuId(pathname)) {
+    delete cleanedPayload.restaurantMenuId;
   }
 
-  const cleanedPayload: CartMutationPayload = { ...payload };
+  if (!cleanedPayload.dealId) {
+    return cleanedPayload;
+  }
 
   delete cleanedPayload.modifiers;
   delete cleanedPayload.sections;

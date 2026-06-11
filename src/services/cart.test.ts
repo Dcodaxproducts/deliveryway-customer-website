@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   addGroupOrderItem,
   addCustomerCartItem,
+  cleanAddCartItemPayload,
   deleteCustomerCartDeal,
   fetchCustomerCart,
   normalizeCartQuote,
@@ -56,6 +57,45 @@ describe("cart service", () => {
       },
       undefined
     );
+  });
+
+  it("strips restaurantMenuId from add item payloads outside menu page", async () => {
+    postCartMock.mockResolvedValue({ success: true });
+
+    await addCustomerCartItem({
+      customerId: "customer-1",
+      payload: {
+        branchId: "branch-1",
+        menuItemId: "burger-id",
+        restaurantMenuId: "menu-1",
+        quantity: 1,
+      },
+    });
+
+    expect(postCartMock.mock.calls[0][1]).toEqual({
+      branchId: "branch-1",
+      menuItemId: "burger-id",
+      quantity: 1,
+    });
+  });
+
+  it("keeps restaurantMenuId when add item payload is created on menu page", () => {
+    expect(
+      cleanAddCartItemPayload(
+        {
+          branchId: "branch-1",
+          menuItemId: "burger-id",
+          restaurantMenuId: "menu-1",
+          quantity: 1,
+        },
+        "/menu"
+      )
+    ).toEqual({
+      branchId: "branch-1",
+      menuItemId: "burger-id",
+      restaurantMenuId: "menu-1",
+      quantity: 1,
+    });
   });
 
   it("adds customer cart item with grouped modifier selections", async () => {
