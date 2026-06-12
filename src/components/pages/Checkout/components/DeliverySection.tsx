@@ -215,7 +215,11 @@ export function DeliverySection(props: DeliverySectionProps) {
       </section>
       <NotesSection note={props.note} setNote={props.setNote} />
       <CustomerDetailsForm {...props} editable={props.isGuest} />
-      <PaymentMethodSection {...props} allowCashOnDelivery={false} />
+      <PaymentMethodSection
+        {...props}
+        allowCashOnDelivery={false}
+        allowCardOnDelivery
+      />
     </div>
   );
 }
