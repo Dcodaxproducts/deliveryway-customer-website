@@ -31,6 +31,7 @@ import {
   buildDeliveryTimeSlots,
   getBranchScheduleForDate,
   getDateValue,
+  isPastDateValue,
 } from "@/components/pages/Checkout/utils/pickup-schedule";
 import type { LoyaltySummary } from "@/services/loyalty";
 
@@ -664,6 +665,11 @@ function CheckoutPageContent() {
 
     try {
       const date = new Date(pickupDate);
+      const dateValue = getDateValue(date);
+
+      if (isPastDateValue(dateValue)) {
+        return null;
+      }
 
       if (pickupTime === "ASAP") {
         return new Date().toISOString();
@@ -706,8 +712,13 @@ function CheckoutPageContent() {
 
     if (Number.isNaN(scheduledDate.getTime())) return null;
 
+    const dateValue = getDateValue(scheduledDate);
+
+    if (isPastDateValue(dateValue)) {
+      return null;
+    }
+
     if (checkoutBranch) {
-      const dateValue = getDateValue(scheduledDate);
       const timeValue = trimmedValue.split("T")[1]?.slice(0, 5) || "";
       const availableSlots = buildDeliveryTimeSlots({
         branch: checkoutBranch,

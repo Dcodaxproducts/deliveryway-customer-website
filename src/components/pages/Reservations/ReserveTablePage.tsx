@@ -1051,12 +1051,15 @@ export function ReserveTablePage() {
                   onChange={(e) => {
                     const nextDate = e.target.value;
 
-                    setValue("date", nextDate, { shouldValidate: true });
-                    setValue("time", "", { shouldValidate: true });
-
                     if (nextDate && isPastDateValue(nextDate)) {
                       toast.error(t("errors.pastDate"));
+                      setValue("date", todayDate, { shouldValidate: true });
+                      setValue("time", "", { shouldValidate: true });
+                      return;
                     }
+
+                    setValue("date", nextDate, { shouldValidate: true });
+                    setValue("time", "", { shouldValidate: true });
                   }}
                   className="mt-2 rounded-full bg-[#FAFAF9] pr-11"
                 />

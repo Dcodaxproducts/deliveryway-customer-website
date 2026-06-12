@@ -40,6 +40,8 @@ const getLocalScheduleDate = (date: string, time: string) => {
   return Number.isNaN(scheduleDate.getTime()) ? null : scheduleDate;
 };
 
+const isPastDateValue = (value: string) => Boolean(value) && value < getCurrentSchedule().date;
+
 export function GroupOrderModal({ open, onClose }: GroupOrderModalProps) {
   const t = useTranslations("groupOrder.modal");
   const commonT = useTranslations("common");
@@ -54,6 +56,7 @@ export function GroupOrderModal({ open, onClose }: GroupOrderModalProps) {
   const [scheduleEditorOpen, setScheduleEditorOpen] = useState(false);
   const [note, setNote] = useState("");
   const [orderType, setOrderType] = useState<GroupOrderType>("DINE_IN");
+  const todayDate = getCurrentSchedule().date;
 
   useEffect(() => {
     if (!open) return;
@@ -91,6 +94,10 @@ export function GroupOrderModal({ open, onClose }: GroupOrderModalProps) {
       if (!branchId) return toast.error(t("selectBranch"));
       if (!date || !time || !selectedScheduleDate) {
         return toast.error(t("selectDateTime"));
+      }
+
+      if (isPastDateValue(date)) {
+        return toast.error(errorT("reservationPastDate"));
       }
 
       const orderTime = selectedScheduleDate.toISOString();
@@ -228,8 +235,18 @@ export function GroupOrderModal({ open, onClose }: GroupOrderModalProps) {
                     <Input
                       type="date"
                       value={date}
-                      min={getCurrentSchedule().date}
-                      onChange={(e) => setDate(e.target.value)}
+                      min={todayDate}
+                      onChange={(e) => {
+                        const nextDate = e.target.value;
+
+                        if (isPastDateValue(nextDate)) {
+                          toast.error(errorT("reservationPastDate"));
+                          setDate(todayDate);
+                          return;
+                        }
+
+                        setDate(nextDate);
+                      }}
                       className="mt-1 h-12 rounded-full border border-gray-200 bg-[#FAFAF9]"
                     />
                   </div>

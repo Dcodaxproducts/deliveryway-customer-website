@@ -1,5 +1,5 @@
 'use client';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Clock } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
@@ -61,6 +61,7 @@ const getScheduledDateValue = (value: string) => value.split("T")[0] || "";
 
 export function DeliverySection(props: DeliverySectionProps) {
   const t = useTranslations("checkout");
+  const { setScheduledDeliveryValue } = props;
   const selectedDateValue = getScheduledDateValue(props.scheduledDeliveryValue);
   const dates = useMemo(() => buildUpcomingDates(), []);
   const timeSlots = useMemo(
@@ -87,6 +88,12 @@ export function DeliverySection(props: DeliverySectionProps) {
       schedule.closeTime || ""
     )}`;
   }, [schedule, selectedDateValue, t]);
+
+  useEffect(() => {
+    if (selectedDateValue && isPastDateValue(selectedDateValue)) {
+      setScheduledDeliveryValue("");
+    }
+  }, [selectedDateValue, setScheduledDeliveryValue]);
 
   return (
     <div className="space-y-[38px]">
