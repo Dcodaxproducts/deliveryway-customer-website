@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildDeliveryTimeSlots,
   buildPickupTimeSlots,
   getPickupScheduleForDate,
 } from "@/components/pages/Checkout/utils/pickup-schedule";
@@ -75,5 +76,66 @@ describe("pickup schedule helpers", () => {
         dateValue: "2026-06-08",
       })
     ).toEqual([]);
+  });
+
+  it("builds delivery slots from delivery hours and skips delivery breaks", () => {
+    const branch: BranchRecord = {
+      id: "branch-1",
+      name: "Main",
+      settings: {
+        openingHours: [
+          {
+            dayOfWeek: "MONDAY",
+            openTime: "09:00",
+            closeTime: "18:00",
+          },
+        ],
+        deliveryHours: [
+          {
+            dayOfWeek: "MONDAY",
+            openTime: "10:00",
+            closeTime: "12:00",
+            breakTimes: [{ startTime: "10:30", endTime: "11:00" }],
+          },
+        ],
+      },
+    };
+
+    expect(
+      buildDeliveryTimeSlots({
+        branch,
+        dateValue: "2026-06-15",
+      })
+    ).toEqual([
+      { value: "10:00", label: "10:00 AM" },
+      { value: "11:00", label: "11:00 AM" },
+      { value: "11:30", label: "11:30 AM" },
+    ]);
+  });
+
+  it("falls back to opening hours for delivery when delivery hours are not configured", () => {
+    const branch: BranchRecord = {
+      id: "branch-1",
+      name: "Main",
+      settings: {
+        openingHours: [
+          {
+            dayOfWeek: "MONDAY",
+            openTime: "10:00",
+            closeTime: "11:00",
+          },
+        ],
+      },
+    };
+
+    expect(
+      buildDeliveryTimeSlots({
+        branch,
+        dateValue: "2026-06-15",
+      })
+    ).toEqual([
+      { value: "10:00", label: "10:00 AM" },
+      { value: "10:30", label: "10:30 AM" },
+    ]);
   });
 });

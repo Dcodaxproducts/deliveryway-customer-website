@@ -16,6 +16,7 @@ type OpeningHours = {
 type PickupSchedule = {
   schedule: OpeningHours | null;
   hasOpeningHours: boolean;
+  source: "opening" | "delivery" | null;
 };
 
 export type PickupTimeSlot = {
@@ -132,37 +133,68 @@ export const getPickupScheduleForDate = ({
   branch?: BranchRecord | null;
   dateValue: string;
 }): PickupSchedule => {
-  const openingHours = normalizeArray<OpeningHours>(branch?.settings?.openingHours);
+  return getBranchScheduleForDate({ branch, dateValue, scheduleType: "pickup" });
+};
 
-  if (!openingHours.length) {
+export const getBranchScheduleForDate = ({
+  branch,
+  dateValue,
+  scheduleType,
+}: {
+  branch?: BranchRecord | null;
+  dateValue: string;
+  scheduleType: "pickup" | "delivery";
+}): PickupSchedule => {
+  const openingHours = normalizeArray<OpeningHours>(branch?.settings?.openingHours);
+  const deliveryHours = normalizeArray<OpeningHours>(branch?.settings?.deliveryHours);
+  const scheduleHours =
+    scheduleType === "delivery" && deliveryHours.length > 0
+      ? deliveryHours
+      : openingHours;
+  const source =
+    scheduleType === "delivery" && deliveryHours.length > 0
+      ? "delivery"
+      : openingHours.length > 0
+        ? "opening"
+        : null;
+
+  if (!scheduleHours.length) {
     return {
       schedule: null,
       hasOpeningHours: false,
+      source,
     };
   }
 
   const selectedDay = getDayOfWeek(dateValue);
   const schedule =
-    openingHours.find((hour) => {
+    scheduleHours.find((hour) => {
       return String(hour?.dayOfWeek || "").trim().toUpperCase() === selectedDay;
     }) || null;
 
   return {
     schedule,
     hasOpeningHours: true,
+    source,
   };
 };
 
-export const buildPickupTimeSlots = ({
+const buildTimeSlots = ({
   branch,
   dateValue,
+  scheduleType,
 }: {
   branch?: BranchRecord | null;
   dateValue: string;
+  scheduleType: "pickup" | "delivery";
 }): PickupTimeSlot[] => {
   if (!dateValue || isPastDateValue(dateValue)) return [];
 
-  const { hasOpeningHours, schedule } = getPickupScheduleForDate({ branch, dateValue });
+  const { hasOpeningHours, schedule } = getBranchScheduleForDate({
+    branch,
+    dateValue,
+    scheduleType,
+  });
 
   if (!hasOpeningHours || !schedule || schedule?.isClosed) return [];
 
@@ -202,3 +234,19 @@ export const buildPickupTimeSlots = ({
 
   return slots;
 };
+
+export const buildPickupTimeSlots = ({
+  branch,
+  dateValue,
+}: {
+  branch?: BranchRecord | null;
+  dateValue: string;
+}): PickupTimeSlot[] => buildTimeSlots({ branch, dateValue, scheduleType: "pickup" });
+
+export const buildDeliveryTimeSlots = ({
+  branch,
+  dateValue,
+}: {
+  branch?: BranchRecord | null;
+  dateValue: string;
+}): PickupTimeSlot[] => buildTimeSlots({ branch, dateValue, scheduleType: "delivery" });

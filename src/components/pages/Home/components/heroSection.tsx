@@ -69,6 +69,16 @@ export const HeroSection = ({
   const selectedBranch = user?.branch ?? null;
   const selectedOrderType = user?.selectedOrderType ?? selectedBranch?.selectedOrderType ?? null;
   const selectedOrderLabel = selectedOrderType === "TAKEAWAY" ? "Pickup" : selectedOrderType === "DELIVERY" ? "Delivery" : "";
+  const hasOrderTypeRules = Boolean(selectedBranch?.settings?.allowedOrderTypes?.length);
+  const showDeliveryOption = !hasOrderTypeRules || (selectedBranch ? branchSupportsDelivery(selectedBranch) : false);
+  const showPickupOption = !hasOrderTypeRules || (selectedBranch ? branchSupportsPickup(selectedBranch) : false);
+  const availableModes = useMemo(
+    () => [
+      ...(showDeliveryOption ? ["delivery" as const] : []),
+      ...(showPickupOption ? ["pickup" as const] : []),
+    ],
+    [showDeliveryOption, showPickupOption]
+  );
 
   const filteredBranches = useMemo(
     () =>
@@ -104,6 +114,12 @@ export const HeroSection = ({
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [showResults]);
+
+  useEffect(() => {
+    if (availableModes.length > 0 && !availableModes.includes(mode)) {
+      setMode(availableModes[0]);
+    }
+  }, [availableModes, mode]);
 
   const handleFindNearbyBranches = () => {
     setShowResults(true);
@@ -155,8 +171,9 @@ export const HeroSection = ({
         </p>
 
         <div className="w-full rounded-2xl bg-white p-6 shadow-xl md:p-8">
-          <div className="mb-6 inline-flex rounded-xl bg-[#F5F5F5] p-1">
-            {(["delivery", "pickup"] as const).map((nextMode) => (
+          {availableModes.length > 0 ? (
+            <div className="mb-6 inline-flex rounded-xl bg-[#F5F5F5] p-1">
+              {availableModes.map((nextMode) => (
               <button
                 key={nextMode}
                 type="button"
@@ -169,8 +186,9 @@ export const HeroSection = ({
               >
                 {nextMode === "delivery" ? "Delivery" : "Pickup"}
               </button>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : null}
 
           {selectedBranch ? (
             <div className="mb-4 flex flex-col gap-3 rounded-xl border border-primary/15 bg-primary/5 p-4 md:flex-row md:items-center md:justify-between">

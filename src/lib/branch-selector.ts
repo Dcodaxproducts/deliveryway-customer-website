@@ -90,7 +90,9 @@ const normalizeBranchSettings = (value: unknown): BranchRecord["settings"] | und
       : undefined,
     deliveryConfig: value.deliveryConfig,
     temporaryClosure: normalizeTemporaryClosure(value.temporaryClosure),
+    tableReservationsEnabled: getBoolean(value.tableReservationsEnabled),
     openingHours: normalizeOpeningHours(value.openingHours),
+    deliveryHours: normalizeOpeningHours(value.deliveryHours),
   };
 };
 

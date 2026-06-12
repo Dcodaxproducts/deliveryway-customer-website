@@ -611,6 +611,7 @@ export function ReserveTablePage() {
   const todaysHours = selectedScheduleState.schedule;
   const selectedDateRule = selectedScheduleState.dateRule;
   const isClosed = Boolean(todaysHours?.isClosed);
+  const reservationsEnabled = selectedBranch?.settings?.tableReservationsEnabled === true;
   const selectedAvailabilityBlock = useMemo(() => {
     return getBranchAvailabilityBlock({
       branch: selectedBranch,
@@ -640,6 +641,7 @@ export function ReserveTablePage() {
     if (!date) return "";
     if (isPastDateValue(date)) return t("errors.pastDate");
     if (!selectedBranch?.id) return t("errors.selectBranchFirst");
+    if (!reservationsEnabled) return t("errors.branchUnavailable");
     if (selectedAvailabilityBlock?.reason === "unavailable") {
       return selectedAvailabilityBlock.message || t("errors.branchUnavailable");
     }
@@ -660,6 +662,7 @@ export function ReserveTablePage() {
   }, [
     date,
     selectedBranch?.id,
+    reservationsEnabled,
     hasOpeningHours,
     selectedDateRule,
     selectedAvailabilityBlock,

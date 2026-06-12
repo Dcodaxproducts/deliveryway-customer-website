@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatAddress, formatPrice, getBranchHoursSummary, getImageUrl, getOperatingHours, getRestaurantName, getSplitPizzaPricingVariation, mergeUniqueById, resolveHasNext, resolvePromotionBadge } from "./restaurant-card-utils";
+import { areBranchSchedulesIdentical, formatAddress, formatPrice, getBranchHoursDetails, getBranchHoursSummary, getImageUrl, getOperatingHours, getRestaurantName, getSplitPizzaPricingVariation, mergeUniqueById, resolveHasNext, resolvePromotionBadge } from "./restaurant-card-utils";
 
 describe("restaurant card utils", () => {
   it("formats price and fallback image", () => {
@@ -36,7 +36,48 @@ describe("restaurant card utils", () => {
         status: "open",
         value: "11:30 AM - 9:45 PM",
       },
+      showDeliveryHours: true,
     });
+  });
+
+  it("hides delivery hours when they are identical to opening hours", () => {
+    const schedule = [
+      {
+        dayOfWeek: "MONDAY",
+        openTime: "09:00",
+        closeTime: "18:00",
+        breakTimes: [{ startTime: "14:00", endTime: "15:00", note: "Lunch" }],
+      },
+    ];
+
+    expect(areBranchSchedulesIdentical(schedule, schedule)).toBe(true);
+    expect(
+      getBranchHoursSummary({
+        settings: {
+          openingHours: schedule,
+          deliveryHours: schedule,
+        },
+      }).showDeliveryHours
+    ).toBe(false);
+  });
+
+  it("formats branch break times for the enriched hours popup", () => {
+    expect(
+      getBranchHoursDetails([
+        {
+          dayOfWeek: "FRIDAY",
+          openTime: "09:00",
+          closeTime: "18:00",
+          breakTimes: [{ startTime: "15:14", endTime: "15:48", note: "lunch break" }],
+        },
+      ])
+    ).toEqual([
+      expect.objectContaining({
+        dayLabel: "Fri",
+        hoursLabel: "9:00 AM - 6:00 PM",
+        breakLabels: ["3:14 PM - 3:48 PM (lunch break)"],
+      }),
+    ]);
   });
 
   it("resolves restaurant and promotion text", () => {

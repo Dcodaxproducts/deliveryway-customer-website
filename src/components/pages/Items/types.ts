@@ -247,6 +247,8 @@ export type CartPayload = {
   splitPizza?: unknown;
 };
 
+import type { BranchSettings } from "@/types/branches";
+
 export type ApiRecord = Record<string, unknown>;
 
 export type AddressRecord = {
@@ -269,6 +271,7 @@ export type RestaurantBranch = {
   closingTime?: string | null;
   closesAt?: string | null;
   isActive?: boolean | null;
+  settings?: BranchSettings | null;
 };
 
 export type RestaurantInfo = {
