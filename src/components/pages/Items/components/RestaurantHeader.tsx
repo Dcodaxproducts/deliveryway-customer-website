@@ -51,24 +51,24 @@ function BranchHoursDialog({
     details: typeof openingDetails,
     variant: "opening" | "delivery",
   ) => (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-      <div className="grid gap-3 px-4 py-3 sm:grid-cols-[120px_100px_1fr] sm:gap-2">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-500">{t("day")}</p>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-500">{t("status")}</p>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-500">{t("hours")}</p>
+    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.05)]">
+      <div className="grid gap-3 border-b border-gray-100 bg-gray-50/80 px-5 py-3 sm:grid-cols-[132px_104px_1fr] sm:gap-2">
+        <p className="text-xs font-semibold text-gray-500">{t("day")}</p>
+        <p className="text-xs font-semibold text-gray-500">{t("status")}</p>
+        <p className="text-xs font-semibold text-gray-500">{t("hours")}</p>
       </div>
 
       <div className="divide-y divide-gray-100">
         {details.map((day, index) => (
           <div
             key={`${variant}-${day.dayOfWeek}`}
-            className={`px-4 py-3 ${index === 0 ? "" : "border-t border-gray-100"}`}
+            className={`px-5 py-4 transition-colors hover:bg-gray-50/70 ${index === 0 ? "" : "border-t border-gray-100"}`}
           >
-            <div className="grid gap-3 sm:grid-cols-[120px_100px_1fr]">
-              <p className="text-sm font-semibold text-gray-950">{day.dayLabel}</p>
+            <div className="grid gap-3 sm:grid-cols-[132px_104px_1fr]">
+              <p className="text-[15px] font-semibold leading-6 text-gray-950">{day.dayLabel}</p>
 
               <span
-                className={`inline-flex w-fit items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
+                className={`inline-flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
                   day.isClosed
                     ? "bg-gray-100 text-gray-600"
                     : variant === "delivery"
@@ -76,11 +76,20 @@ function BranchHoursDialog({
                       : "bg-emerald-50 text-emerald-700"
                 }`}
               >
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    day.isClosed
+                      ? "bg-gray-400"
+                      : variant === "delivery"
+                        ? "bg-blue-600"
+                        : "bg-emerald-600"
+                  }`}
+                />
                 {day.isClosed ? t("closed") : t("open")}
               </span>
 
               <div className="min-w-0">
-                <p className={`text-sm font-semibold ${day.isClosed ? "text-gray-500" : "text-gray-900"}`}>
+                <p className={`text-[15px] font-semibold leading-6 ${day.isClosed ? "text-gray-500" : "text-gray-900"}`}>
                   {day.hoursLabel}
                 </p>
 
@@ -89,7 +98,7 @@ function BranchHoursDialog({
                     {day.breakLabels.map((breakLabel) => (
                       <div
                         key={breakLabel}
-                        className="inline-flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-xs font-medium text-amber-900"
+                        className="inline-flex items-start gap-2 rounded-lg border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 px-2.5 py-1.5 text-xs font-semibold text-amber-950"
                       >
                         <Coffee size={13} className="mt-0.5 shrink-0 text-amber-700" />
                         <span>{t("breakTime", { time: breakLabel })}</span>
@@ -117,44 +126,47 @@ function BranchHoursDialog({
         </button>
       </DialogTrigger>
 
-      <DialogContent className="max-h-[88vh] max-w-[760px] gap-0 overflow-hidden rounded-[28px] border border-gray-200 bg-white p-0 shadow-2xl">
-        <div className="relative overflow-hidden border-b border-gray-200 px-5 py-5 sm:px-6">
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-gray-900/5 via-transparent to-primary/8" />
+      <DialogContent className="max-h-[88vh] max-w-[780px] gap-0 overflow-hidden rounded-[24px] border border-gray-200 bg-white p-0 font-sans shadow-[0_28px_90px_rgba(15,23,42,0.24)]">
+        <div className="relative overflow-hidden border-b border-gray-200 bg-white px-5 py-5 sm:px-7 sm:py-6">
+          <div className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-[radial-gradient(circle_at_32%_32%,rgba(255,159,13,0.48),rgba(206,24,27,0.24)_45%,transparent_72%)] blur-2xl" />
+          <div className="pointer-events-none absolute left-0 top-0 h-40 w-44 bg-gradient-to-br from-yellow/35 via-primary/15 to-transparent" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-yellow via-primary/70 to-transparent" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/30 via-white/75 to-white" />
 
           <DialogHeader className="pr-10 text-left">
             <div className="mb-3 flex items-center gap-3">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-primary shadow-[0_14px_35px_rgba(206,24,27,0.18)] ring-1 ring-primary/10">
                 <CalendarDays size={22} />
               </span>
               <div className="min-w-0">
-                <DialogTitle className="break-words text-2xl font-bold leading-tight text-gray-950">
+                <DialogTitle className="break-words text-[26px] font-semibold leading-[1.18] tracking-normal text-gray-950 sm:text-[30px]">
                   {t("hoursPopupTitle")}
                 </DialogTitle>
-                <DialogDescription className="mt-1 text-sm text-gray-600">
+                <DialogDescription className="mt-1.5 text-[15px] leading-6 text-gray-600">
                   {branchName ? t("hoursPopupSubtitle", { branch: branchName }) : t("hoursPopupSubtitleFallback")}
                 </DialogDescription>
               </div>
             </div>
           </DialogHeader>
 
-          <div className="relative mt-1 rounded-xl border border-gray-200 bg-white/80 px-4 py-3 backdrop-blur">
-            <p className="text-sm leading-6 text-gray-700">{t("hoursPopupNote")}</p>
+          <div className="relative mt-2 rounded-2xl border border-gray-200 bg-white/85 px-4 py-3 shadow-[0_12px_30px_rgba(15,23,42,0.05)] backdrop-blur">
+            <p className="text-[15px] leading-6 text-gray-700">{t("hoursPopupNote")}</p>
           </div>
         </div>
 
-        <div className="max-h-[60vh] overflow-y-auto px-5 py-5 sm:px-6">
+        <div className="max-h-[60vh] overflow-y-auto bg-gradient-to-b from-white to-gray-50/60 px-5 py-5 sm:px-7">
           <div className="grid gap-3 sm:grid-cols-3">
-            <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{t("openDays")}</p>
-              <p className="mt-1 text-3xl font-bold leading-none text-gray-950">{openDaysCount}</p>
+            <div className="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white px-4 py-3.5 shadow-[0_12px_30px_rgba(16,185,129,0.08)]">
+              <p className="text-xs font-semibold text-emerald-700">{t("openDays")}</p>
+              <p className="mt-1 text-[32px] font-semibold leading-none text-gray-950">{openDaysCount}</p>
             </div>
-            <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{t("closedDays")}</p>
-              <p className="mt-1 text-3xl font-bold leading-none text-gray-950">{closedDaysCount}</p>
+            <div className="rounded-2xl border border-gray-200 bg-white px-4 py-3.5 shadow-[0_12px_30px_rgba(15,23,42,0.05)]">
+              <p className="text-xs font-semibold text-gray-500">{t("closedDays")}</p>
+              <p className="mt-1 text-[32px] font-semibold leading-none text-gray-950">{closedDaysCount}</p>
             </div>
-            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">{t("breakWindows")}</p>
-              <p className="mt-1 text-3xl font-bold leading-none text-amber-950">{breakWindowsCount}</p>
+            <div className="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 px-4 py-3.5 shadow-[0_12px_30px_rgba(245,158,11,0.10)]">
+              <p className="text-xs font-semibold text-amber-800">{t("breakWindows")}</p>
+              <p className="mt-1 text-[32px] font-semibold leading-none text-amber-950">{breakWindowsCount}</p>
             </div>
           </div>
 
@@ -166,8 +178,8 @@ function BranchHoursDialog({
                     <Store size={18} />
                   </span>
                   <div className="min-w-0">
-                    <h3 className="text-base font-bold text-gray-950">{t("openingHours")}</h3>
-                    <p className="mt-0.5 text-sm text-gray-500">{t("openingHoursDescription")}</p>
+                    <h3 className="text-lg font-semibold leading-6 text-gray-950">{t("openingHours")}</h3>
+                    <p className="mt-0.5 text-sm leading-5 text-gray-500">{t("openingHoursDescription")}</p>
                   </div>
                 </div>
                 <CircleCheck size={18} className="mt-1 shrink-0 text-emerald-600" />
@@ -187,8 +199,8 @@ function BranchHoursDialog({
                     <Truck size={18} />
                   </span>
                   <div className="min-w-0">
-                    <h3 className="text-base font-bold text-gray-950">{t("deliveryHours")}</h3>
-                    <p className="mt-0.5 text-sm text-gray-500">{t("deliveryHoursDescription")}</p>
+                    <h3 className="text-lg font-semibold leading-6 text-gray-950">{t("deliveryHours")}</h3>
+                    <p className="mt-0.5 text-sm leading-5 text-gray-500">{t("deliveryHoursDescription")}</p>
                   </div>
                 </div>
 
