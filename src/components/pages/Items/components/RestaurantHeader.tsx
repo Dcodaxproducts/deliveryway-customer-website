@@ -52,47 +52,56 @@ function BranchHoursDialog({
     variant: "opening" | "delivery",
   ) => (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-      {details.map((day, index) => (
-        <div
-          key={`${variant}-${day.dayOfWeek}`}
-          className={`grid gap-3 px-4 py-3 sm:grid-cols-[120px_1fr] ${
-            index === 0 ? "" : "border-t border-gray-100"
-          }`}
-        >
-          <div className="flex items-center justify-between gap-3 sm:block">
-            <p className="text-sm font-semibold text-gray-950">{day.dayLabel}</p>
-            <span
-              className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold sm:mt-2 ${
-                day.isClosed
-                  ? "bg-gray-100 text-gray-500"
-                  : "bg-emerald-50 text-emerald-700"
-              }`}
-            >
-              {day.isClosed ? t("closed") : t("open")}
-            </span>
-          </div>
+      <div className="grid gap-3 px-4 py-3 sm:grid-cols-[120px_100px_1fr] sm:gap-2">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-500">{t("day")}</p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-500">{t("status")}</p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-500">{t("hours")}</p>
+      </div>
 
-          <div className="min-w-0">
-            <p className={`text-sm font-semibold ${day.isClosed ? "text-gray-500" : "text-gray-900"}`}>
-              {day.hoursLabel}
-            </p>
+      <div className="divide-y divide-gray-100">
+        {details.map((day, index) => (
+          <div
+            key={`${variant}-${day.dayOfWeek}`}
+            className={`px-4 py-3 ${index === 0 ? "" : "border-t border-gray-100"}`}
+          >
+            <div className="grid gap-3 sm:grid-cols-[120px_100px_1fr]">
+              <p className="text-sm font-semibold text-gray-950">{day.dayLabel}</p>
 
-            {day.breakLabels.length > 0 ? (
-              <div className="mt-2 space-y-1.5">
-                {day.breakLabels.map((breakLabel) => (
-                  <div
-                    key={breakLabel}
-                    className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900"
-                  >
-                    <Coffee size={14} className="mt-0.5 shrink-0 text-amber-700" />
-                    <span>{t("breakTime", { time: breakLabel })}</span>
+              <span
+                className={`inline-flex w-fit items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
+                  day.isClosed
+                    ? "bg-gray-100 text-gray-600"
+                    : variant === "delivery"
+                      ? "bg-blue-50 text-blue-700"
+                      : "bg-emerald-50 text-emerald-700"
+                }`}
+              >
+                {day.isClosed ? t("closed") : t("open")}
+              </span>
+
+              <div className="min-w-0">
+                <p className={`text-sm font-semibold ${day.isClosed ? "text-gray-500" : "text-gray-900"}`}>
+                  {day.hoursLabel}
+                </p>
+
+                {day.breakLabels.length > 0 ? (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {day.breakLabels.map((breakLabel) => (
+                      <div
+                        key={breakLabel}
+                        className="inline-flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-xs font-medium text-amber-900"
+                      >
+                        <Coffee size={13} className="mt-0.5 shrink-0 text-amber-700" />
+                        <span>{t("breakTime", { time: breakLabel })}</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                ) : null}
               </div>
-            ) : null}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 
@@ -108,8 +117,10 @@ function BranchHoursDialog({
         </button>
       </DialogTrigger>
 
-      <DialogContent className="max-h-[88vh] max-w-[760px] gap-0 overflow-hidden rounded-2xl border border-gray-200 bg-white p-0 shadow-2xl">
-        <div className="border-b border-gray-200 px-5 py-5 sm:px-6">
+      <DialogContent className="max-h-[88vh] max-w-[760px] gap-0 overflow-hidden rounded-[28px] border border-gray-200 bg-white p-0 shadow-2xl">
+        <div className="relative overflow-hidden border-b border-gray-200 px-5 py-5 sm:px-6">
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-gray-900/5 via-transparent to-primary/8" />
+
           <DialogHeader className="pr-10 text-left">
             <div className="mb-3 flex items-center gap-3">
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -119,31 +130,31 @@ function BranchHoursDialog({
                 <DialogTitle className="break-words text-2xl font-bold leading-tight text-gray-950">
                   {t("hoursPopupTitle")}
                 </DialogTitle>
-                <DialogDescription className="mt-1 text-sm text-gray-500">
+                <DialogDescription className="mt-1 text-sm text-gray-600">
                   {branchName ? t("hoursPopupSubtitle", { branch: branchName }) : t("hoursPopupSubtitleFallback")}
                 </DialogDescription>
               </div>
             </div>
           </DialogHeader>
 
-          <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
-            <p className="text-sm leading-6 text-gray-600">{t("hoursPopupNote")}</p>
+          <div className="relative mt-1 rounded-xl border border-gray-200 bg-white/80 px-4 py-3 backdrop-blur">
+            <p className="text-sm leading-6 text-gray-700">{t("hoursPopupNote")}</p>
           </div>
         </div>
 
         <div className="max-h-[60vh] overflow-y-auto px-5 py-5 sm:px-6">
           <div className="grid gap-3 sm:grid-cols-3">
-            <div className="rounded-xl border border-gray-200 bg-white px-4 py-3">
+            <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
               <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{t("openDays")}</p>
-              <p className="mt-1 text-2xl font-bold text-gray-950">{openDaysCount}</p>
+              <p className="mt-1 text-3xl font-bold leading-none text-gray-950">{openDaysCount}</p>
             </div>
-            <div className="rounded-xl border border-gray-200 bg-white px-4 py-3">
+            <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
               <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{t("closedDays")}</p>
-              <p className="mt-1 text-2xl font-bold text-gray-950">{closedDaysCount}</p>
+              <p className="mt-1 text-3xl font-bold leading-none text-gray-950">{closedDaysCount}</p>
             </div>
             <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
               <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">{t("breakWindows")}</p>
-              <p className="mt-1 text-2xl font-bold text-amber-950">{breakWindowsCount}</p>
+              <p className="mt-1 text-3xl font-bold leading-none text-amber-950">{breakWindowsCount}</p>
             </div>
           </div>
 
@@ -151,7 +162,7 @@ function BranchHoursDialog({
             <section>
               <div className="mb-3 flex items-start justify-between gap-3">
                 <div className="flex min-w-0 items-start gap-3">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
                     <Store size={18} />
                   </span>
                   <div className="min-w-0">
@@ -172,7 +183,7 @@ function BranchHoursDialog({
             {branchHours.showDeliveryHours ? (
               <section>
                 <div className="mb-3 flex min-w-0 items-start gap-3">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-orange-50 text-primary">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-primary">
                     <Truck size={18} />
                   </span>
                   <div className="min-w-0">
@@ -188,7 +199,7 @@ function BranchHoursDialog({
         </div>
 
         <DialogFooter className="border-t border-gray-200 bg-gray-50 px-5 py-4 sm:px-6">
-          <DialogClose className="inline-flex h-10 items-center justify-center rounded-lg border border-gray-300 bg-white px-5 text-sm font-semibold text-gray-800 transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/20">
+          <DialogClose className="inline-flex h-10 items-center justify-center rounded-lg border border-gray-300 bg-white px-6 text-sm font-semibold text-gray-800 transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/20">
             {t("close")}
           </DialogClose>
         </DialogFooter>
