@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState } from "react";
 import { OrderCartSidebar } from "@/components/pages/Items/components/signature-selection/OrderCartSidebar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { getSelectedOrderType } from "@/lib/branch-selector";
 import { CART_CHANGED_EVENT } from "@/lib/cart-events";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +22,7 @@ export function SiteFloatingCart() {
   const [isOpen, setIsOpen] = useState(false);
 
   const isHiddenRoute = HIDDEN_CART_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
-  const checkoutType = user?.selectedOrderType === "TAKEAWAY" ? "pickup" : "delivery";
+  const checkoutType = getSelectedOrderType(user) === "TAKEAWAY" ? "pickup" : "delivery";
 
   const refreshCart = useCallback(() => {
     setCartRefreshKey((current) => current + 1);

@@ -26,7 +26,7 @@ import type { BranchRecord } from "@/types/branch-selector";
 import { useTranslations } from "next-intl";
 import { normalizeCheckoutTipAmount, type CheckoutAddressValues } from "@/validations/checkout";
 import { getStoredRestaurantMenuId } from "@/lib/timed-menu";
-import { branchSupportsDelivery, branchSupportsPickup } from "@/lib/branch-selector";
+import { branchSupportsDelivery, branchSupportsPickup, getSelectedOrderType } from "@/lib/branch-selector";
 import {
   buildDeliveryTimeSlots,
   getBranchScheduleForDate,
@@ -139,7 +139,7 @@ function CheckoutPageContent() {
   const searchParams = useSearchParams();
   const type = searchParams.get("type");
   const { user, token } = useAuthContext();
-  const preferredCheckoutType = user?.selectedOrderType === "TAKEAWAY" ? "pickup" : "delivery";
+  const preferredCheckoutType = getSelectedOrderType(user) === "TAKEAWAY" ? "pickup" : "delivery";
   const activeTab = type === "pickup" || type === "delivery" ? type : preferredCheckoutType;
   const isGuest = isGuestUser(user);
   const restaurantId = getCheckoutRestaurantId(user);

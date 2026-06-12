@@ -15,6 +15,7 @@ import {
   branchSupportsPickup,
   formatBranchAddress,
   formatBranchDistance,
+  getSelectedOrderType,
   isBranchCurrentlyAvailable,
   nearbyBranchToBranchRecord,
   persistSelectedBranch,
@@ -67,7 +68,7 @@ export const HeroSection = ({
   const displayRestaurantName = restaurantName || t("defaultTitle");
   const displayTagline = tagline || t("defaultTagline");
   const selectedBranch = user?.branch ?? null;
-  const selectedOrderType = user?.selectedOrderType ?? selectedBranch?.selectedOrderType ?? null;
+  const selectedOrderType = getSelectedOrderType(user);
   const selectedOrderLabel = selectedOrderType === "TAKEAWAY" ? "Pickup" : selectedOrderType === "DELIVERY" ? "Delivery" : "";
   const hasOrderTypeRules = Boolean(selectedBranch?.settings?.allowedOrderTypes?.length);
   const showDeliveryOption = !hasOrderTypeRules || (selectedBranch ? branchSupportsDelivery(selectedBranch) : false);

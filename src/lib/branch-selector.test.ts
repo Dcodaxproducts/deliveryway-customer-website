@@ -5,6 +5,7 @@ import {
   branchSupportsPickup,
   formatBranchAddress,
   formatBranchDistance,
+  getSelectedOrderType,
   nearbyBranchToBranchRecord,
   normalizeBranch,
 } from "@/lib/branch-selector";
@@ -68,6 +69,15 @@ describe("branch selector helpers", () => {
       settings: nearbyBranch.settings,
       distanceKm: 1.25,
     });
+  });
+
+  it("falls back to the branch selected order type", () => {
+    expect(
+      getSelectedOrderType({
+        branch: { id: "branch-1", name: "Central", selectedOrderType: "TAKEAWAY" },
+        selectedOrderType: null,
+      })
+    ).toBe("TAKEAWAY");
   });
 
   it("preserves branch availability and temporary closure details", () => {

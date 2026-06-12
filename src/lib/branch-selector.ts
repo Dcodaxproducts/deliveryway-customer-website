@@ -194,6 +194,10 @@ export const normalizeBranchApiResponse = (response: unknown): BranchApiResponse
 export const getActiveBranches = (response: unknown) =>
   normalizeBranchList(response).filter((branch) => branch.isActive !== false);
 
+export const getSelectedOrderType = (
+  user?: Pick<AuthUser, "branch" | "selectedOrderType"> | null
+) => user?.selectedOrderType ?? user?.branch?.selectedOrderType ?? null;
+
 export function persistSelectedBranch(
   branch: BranchRecord,
   setUser?: AuthContextValue["setUser"],
