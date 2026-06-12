@@ -1338,7 +1338,7 @@
         "orderPlaced": "Bestellung erfolgreich aufgegeben",
         "title": "Bestellübersicht",
         "leave": "Verlassen",
-        "platformFee": "Plattformgebühr",
+        "platformFee": "Servicegebühr",
         "onlyHostCanFinalize": "Nur der Gastgeber kann die Bestellung finalisieren",
         "finalizeCheckout": "Finalisieren und auschecken",
         "addRestaurantNote": "Hinweis für das Restaurant hinzufügen",

@@ -1338,7 +1338,7 @@
         "orderPlaced": "Order placed successfully",
         "title": "Order Summary",
         "leave": "Leave",
-        "platformFee": "Platform Fee",
+        "platformFee": "Service charge",
         "onlyHostCanFinalize": "Only host can finalize order",
         "finalizeCheckout": "Finalize and Checkout",
         "addRestaurantNote": "Add a Note for Restaurant",
