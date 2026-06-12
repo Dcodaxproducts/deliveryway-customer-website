@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Star, MapPin, Clock, Utensils, Loader2, Store, Truck, Info } from "lucide-react";
+import { Star, MapPin, Clock, Utensils, Loader2, Store, Truck, Info, CalendarDays, Coffee, CircleCheck } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -9,7 +9,7 @@ import useItems from "@/hooks/useItems";
 import { useAuth } from "@/hooks/useAuth";
 import useBranches from "@/hooks/useBranches";
 import { getStoredAuthState } from "@/lib/auth";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import type { AuthRestaurantUser, ItemsCategory, StoredAuthState } from "@/components/pages/Items/types";
 import { getBranchHoursDetails, getBranchHoursSummary, getImageUrl, getOperatingHours, getRatingInfo, getRestaurantAddress, getRestaurantName, hasText, resolveHasNext } from "@/components/pages/Items/utils/restaurant-card-utils";
 import type { BranchRecord } from "@/types/branch-selector";
@@ -43,6 +43,58 @@ function BranchHoursDialog({
   const openingDetails = getBranchHoursDetails(branchHours.openingSchedule);
   const deliveryDetails = getBranchHoursDetails(branchHours.deliverySchedule);
   const hasOpeningDetails = openingDetails.length > 0;
+  const openDaysCount = openingDetails.filter((day) => !day.isClosed).length;
+  const closedDaysCount = openingDetails.filter((day) => day.isClosed).length;
+  const breakWindowsCount = openingDetails.reduce((total, day) => total + day.breakLabels.length, 0);
+
+  const renderScheduleRows = (
+    details: typeof openingDetails,
+    variant: "opening" | "delivery",
+  ) => (
+    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+      {details.map((day, index) => (
+        <div
+          key={`${variant}-${day.dayOfWeek}`}
+          className={`grid gap-3 px-4 py-3 sm:grid-cols-[120px_1fr] ${
+            index === 0 ? "" : "border-t border-gray-100"
+          }`}
+        >
+          <div className="flex items-center justify-between gap-3 sm:block">
+            <p className="text-sm font-semibold text-gray-950">{day.dayLabel}</p>
+            <span
+              className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold sm:mt-2 ${
+                day.isClosed
+                  ? "bg-gray-100 text-gray-500"
+                  : "bg-emerald-50 text-emerald-700"
+              }`}
+            >
+              {day.isClosed ? t("closed") : t("open")}
+            </span>
+          </div>
+
+          <div className="min-w-0">
+            <p className={`text-sm font-semibold ${day.isClosed ? "text-gray-500" : "text-gray-900"}`}>
+              {day.hoursLabel}
+            </p>
+
+            {day.breakLabels.length > 0 ? (
+              <div className="mt-2 space-y-1.5">
+                {day.breakLabels.map((breakLabel) => (
+                  <div
+                    key={breakLabel}
+                    className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900"
+                  >
+                    <Coffee size={14} className="mt-0.5 shrink-0 text-amber-700" />
+                    <span>{t("breakTime", { time: breakLabel })}</span>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <Dialog>
@@ -56,95 +108,90 @@ function BranchHoursDialog({
         </button>
       </DialogTrigger>
 
-      <DialogContent className="max-h-[86vh] max-w-2xl overflow-y-auto rounded-3xl border-0 p-0 shadow-2xl">
-        <div className="bg-gradient-to-br from-gray-950 via-gray-900 to-primary px-6 py-6 text-white">
-          <DialogHeader className="pr-8 text-left">
-            <DialogTitle className="text-2xl">{t("hoursPopupTitle")}</DialogTitle>
+      <DialogContent className="max-h-[88vh] max-w-[760px] gap-0 overflow-hidden rounded-2xl border border-gray-200 bg-white p-0 shadow-2xl">
+        <div className="border-b border-gray-200 px-5 py-5 sm:px-6">
+          <DialogHeader className="pr-10 text-left">
+            <div className="mb-3 flex items-center gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <CalendarDays size={22} />
+              </span>
+              <div className="min-w-0">
+                <DialogTitle className="break-words text-2xl font-bold leading-tight text-gray-950">
+                  {t("hoursPopupTitle")}
+                </DialogTitle>
+                <DialogDescription className="mt-1 text-sm text-gray-500">
+                  {branchName ? t("hoursPopupSubtitle", { branch: branchName }) : t("hoursPopupSubtitleFallback")}
+                </DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
-          <p className="mt-2 text-sm text-white/75">
-            {branchName ? t("hoursPopupSubtitle", { branch: branchName }) : t("hoursPopupSubtitleFallback")}
-          </p>
+
+          <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+            <p className="text-sm leading-6 text-gray-600">{t("hoursPopupNote")}</p>
+          </div>
         </div>
 
-        <div className="space-y-5 p-5">
-          <div>
-            <div className="mb-3 flex items-center gap-2">
-              <Store size={18} className="text-emerald-600" />
-              <h3 className="text-sm font-bold uppercase tracking-wide text-gray-900">
-                {t("openingHours")}
-              </h3>
+        <div className="max-h-[60vh] overflow-y-auto px-5 py-5 sm:px-6">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="rounded-xl border border-gray-200 bg-white px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{t("openDays")}</p>
+              <p className="mt-1 text-2xl font-bold text-gray-950">{openDaysCount}</p>
             </div>
-
-            {hasOpeningDetails ? (
-              <div className="space-y-2">
-                {openingDetails.map((day) => (
-                  <div
-                    key={`opening-${day.dayOfWeek}`}
-                    className="rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <span className="font-semibold text-gray-900">{day.dayLabel}</span>
-                      <span className={`text-right text-sm font-semibold ${day.isClosed ? "text-gray-400" : "text-gray-700"}`}>
-                        {day.hoursLabel}
-                      </span>
-                    </div>
-
-                    {day.breakLabels.length > 0 ? (
-                      <div className="mt-2 space-y-1 border-t border-gray-200 pt-2">
-                        {day.breakLabels.map((breakLabel) => (
-                          <p key={breakLabel} className="text-xs font-medium text-amber-700">
-                            {t("breakTime", { time: breakLabel })}
-                          </p>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="rounded-2xl bg-gray-50 p-4 text-sm text-gray-500">
-                {t("hoursNotConfigured")}
-              </p>
-            )}
+            <div className="rounded-xl border border-gray-200 bg-white px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{t("closedDays")}</p>
+              <p className="mt-1 text-2xl font-bold text-gray-950">{closedDaysCount}</p>
+            </div>
+            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">{t("breakWindows")}</p>
+              <p className="mt-1 text-2xl font-bold text-amber-950">{breakWindowsCount}</p>
+            </div>
           </div>
 
-          {branchHours.showDeliveryHours ? (
-            <div>
-              <div className="mb-3 flex items-center gap-2">
-                <Truck size={18} className="text-primary" />
-                <h3 className="text-sm font-bold uppercase tracking-wide text-gray-900">
-                  {t("deliveryHours")}
-                </h3>
-              </div>
-
-              <div className="space-y-2">
-                {deliveryDetails.map((day) => (
-                  <div
-                    key={`delivery-${day.dayOfWeek}`}
-                    className="rounded-2xl border border-orange-100 bg-orange-50/50 px-4 py-3"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <span className="font-semibold text-gray-900">{day.dayLabel}</span>
-                      <span className={`text-right text-sm font-semibold ${day.isClosed ? "text-gray-400" : "text-gray-700"}`}>
-                        {day.hoursLabel}
-                      </span>
-                    </div>
-
-                    {day.breakLabels.length > 0 ? (
-                      <div className="mt-2 space-y-1 border-t border-orange-100 pt-2">
-                        {day.breakLabels.map((breakLabel) => (
-                          <p key={breakLabel} className="text-xs font-medium text-amber-700">
-                            {t("breakTime", { time: breakLabel })}
-                          </p>
-                        ))}
-                      </div>
-                    ) : null}
+          <div className="mt-5 space-y-5">
+            <section>
+              <div className="mb-3 flex items-start justify-between gap-3">
+                <div className="flex min-w-0 items-start gap-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
+                    <Store size={18} />
+                  </span>
+                  <div className="min-w-0">
+                    <h3 className="text-base font-bold text-gray-950">{t("openingHours")}</h3>
+                    <p className="mt-0.5 text-sm text-gray-500">{t("openingHoursDescription")}</p>
                   </div>
-                ))}
+                </div>
+                <CircleCheck size={18} className="mt-1 shrink-0 text-emerald-600" />
               </div>
-            </div>
-          ) : null}
+
+              {hasOpeningDetails ? renderScheduleRows(openingDetails, "opening") : (
+                <p className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-500">
+                  {t("hoursNotConfigured")}
+                </p>
+              )}
+            </section>
+
+            {branchHours.showDeliveryHours ? (
+              <section>
+                <div className="mb-3 flex min-w-0 items-start gap-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-orange-50 text-primary">
+                    <Truck size={18} />
+                  </span>
+                  <div className="min-w-0">
+                    <h3 className="text-base font-bold text-gray-950">{t("deliveryHours")}</h3>
+                    <p className="mt-0.5 text-sm text-gray-500">{t("deliveryHoursDescription")}</p>
+                  </div>
+                </div>
+
+                {renderScheduleRows(deliveryDetails, "delivery")}
+              </section>
+            ) : null}
+          </div>
         </div>
+
+        <DialogFooter className="border-t border-gray-200 bg-gray-50 px-5 py-4 sm:px-6">
+          <DialogClose className="inline-flex h-10 items-center justify-center rounded-lg border border-gray-300 bg-white px-5 text-sm font-semibold text-gray-800 transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/20">
+            {t("close")}
+          </DialogClose>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
