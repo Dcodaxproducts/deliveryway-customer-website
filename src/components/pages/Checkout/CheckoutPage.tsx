@@ -692,7 +692,7 @@ function CheckoutPageContent() {
   };
 
   const getOrderTime = () => {
-    if (!pickupDate || !pickupTime) return null;
+    if (!pickupDate || !pickupTime) return undefined;
 
     try {
       const date = new Date(pickupDate);
@@ -899,11 +899,6 @@ function CheckoutPageContent() {
         return;
       }
 
-      if (activeTab === "pickup" && (!pickupDate || !pickupTime)) {
-        toast.error(t("toast.selectPickupDateTime"));
-        return;
-      }
-
       const addressUpdated = await setCartAddress();
       if (!addressUpdated) return;
 
@@ -918,7 +913,11 @@ function CheckoutPageContent() {
         return;
       }
 
-      const scheduleUpdated = await setCartSchedule(scheduledDeliveryAt);
+      const cartOrderTime =
+        activeTab === "pickup" && scheduledDeliveryAt === undefined
+          ? null
+          : scheduledDeliveryAt;
+      const scheduleUpdated = await setCartSchedule(cartOrderTime);
       if (!scheduleUpdated) return;
 
       const checkoutTipAmount = Math.max(
@@ -947,7 +946,7 @@ function CheckoutPageContent() {
       const res = await checkoutCustomerCart({
         customerId,
         payload: {
-          ...(scheduledDeliveryAt ? { orderTime: scheduledDeliveryAt } : {}),
+          ...(cartOrderTime !== undefined ? { orderTime: cartOrderTime } : {}),
           ...(checkoutTipAmount > 0 ? { tipAmount: checkoutTipAmount } : {}),
           ...(checkoutLoyaltyPoints > 0 ? { loyaltyPoints: checkoutLoyaltyPoints } : {}),
           ...(isGuest

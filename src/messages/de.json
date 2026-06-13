@@ -677,6 +677,7 @@
     "noDeliverySlots": "Wählen Sie ein anderes Lieferdatum. Für diesen Tag sind keine Lieferzeiten verfügbar.",
     "deliveryTime": "Lieferzeit",
     "selectPickupTime": "Abholzeit auswählen",
+    "instantPickupHint": "Leer lassen für sofortige Abholung. Wählen Sie Datum und Uhrzeit nur, wenn Sie die Abholung planen möchten.",
     "chooseDate": "Datum auswählen",
     "closed": "Geschlossen",
     "pickupHours": "Abholzeiten: {hours}",

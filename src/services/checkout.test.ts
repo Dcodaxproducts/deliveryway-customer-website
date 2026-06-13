@@ -223,4 +223,16 @@ describe("checkout service", () => {
       paymentMethod: "COD",
     });
   });
+
+  it("keeps null orderTime for instant pickup checkout", () => {
+    expect(
+      normalizeCheckoutPayload({
+        orderTime: null,
+        paymentMethod: "COD",
+      })
+    ).toEqual({
+      orderTime: null,
+      paymentMethod: "COD",
+    });
+  });
 });

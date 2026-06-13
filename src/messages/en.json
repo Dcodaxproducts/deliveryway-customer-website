@@ -677,6 +677,7 @@
     "noDeliverySlots": "Select another delivery date. No available delivery slots for this day.",
     "deliveryTime": "Delivery time",
     "selectPickupTime": "Select Pickup Time",
+    "instantPickupHint": "Leave this empty for instant pickup. Choose a date and time only when you want to schedule pickup.",
     "chooseDate": "Choose date",
     "closed": "Closed",
     "pickupHours": "Pickup hours: {hours}",
