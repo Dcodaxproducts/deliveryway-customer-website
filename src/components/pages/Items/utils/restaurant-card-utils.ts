@@ -300,6 +300,19 @@ export const getBranchHoursDetails = (schedule: BranchHoursEntry[]): BranchHours
       };
     });
 
+export const getCurrentBranchHoursDetail = (details: BranchHoursDetail[]) => {
+  if (details.length === 0) return null;
+
+  const today = DAYS[new Date().getDay()];
+
+  return (
+    details.find((entry) => normalizeDayKey(entry.dayOfWeek) === today) ??
+    details.find((entry) => !entry.isClosed && hasText(entry.hoursLabel)) ??
+    details[0] ??
+    null
+  );
+};
+
 const getScheduleFromSettings = (settings: BranchSettings | null, keys: string[]) => {
   if (!settings) return [];
 

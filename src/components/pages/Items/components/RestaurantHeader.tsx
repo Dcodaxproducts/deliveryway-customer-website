@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Star, MapPin, Clock, Utensils, Loader2, Store, Truck, Info, CalendarDays, Coffee, CircleCheck } from "lucide-react";
+import { Star, MapPin, Clock, Utensils, Loader2, Store, Truck, Coffee } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -9,9 +9,9 @@ import useItems from "@/hooks/useItems";
 import { useAuth } from "@/hooks/useAuth";
 import useBranches from "@/hooks/useBranches";
 import { getStoredAuthState } from "@/lib/auth";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { OpeningHoursDialog } from "@/components/common/popups/OpeningHoursDialog";
 import type { AuthRestaurantUser, ItemsCategory, StoredAuthState } from "@/components/pages/Items/types";
-import { getBranchHoursDetails, getBranchHoursSummary, getImageUrl, getOperatingHours, getRatingInfo, getRestaurantAddress, getRestaurantName, hasText, resolveHasNext } from "@/components/pages/Items/utils/restaurant-card-utils";
+import { getBranchHoursDetails, getBranchHoursSummary, getCurrentBranchHoursDetail, getImageUrl, getOperatingHours, getRatingInfo, getRestaurantAddress, getRestaurantName, hasText, resolveHasNext } from "@/components/pages/Items/utils/restaurant-card-utils";
 import type { BranchRecord } from "@/types/branch-selector";
 
 const CATEGORY_PAGE_LIMIT = 50;
@@ -49,191 +49,65 @@ function BranchHoursDialog({
   const entriesCount = visibleDetails.length;
   const openDaysCount = visibleDetails.filter((day) => !day.isClosed).length;
   const closedDaysCount = visibleDetails.filter((day) => day.isClosed).length;
-  const breakWindowsCount = openingDetails.reduce((total, day) => total + day.breakLabels.length, 0);
-
-  const renderScheduleRows = (
-    details: typeof openingDetails,
-    variant: "opening" | "delivery",
-  ) => (
-    <div className="space-y-3">
-        {details.map((day, index) => (
-          <div
-            key={`${variant}-${day.dayOfWeek}`}
-            className="overflow-visible rounded-[22px] border border-gray-100 bg-white shadow-sm"
-          >
-            <div className="flex items-center justify-between gap-3 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white px-4 py-3">
-              <div className="flex min-w-0 items-center gap-3">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-primary/10 text-sm font-semibold text-primary">
-                  {index + 1}
-                </span>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-gray-950">{day.dayLabel}</p>
-                  <p className="text-xs text-gray-500">{variant === "delivery" ? t("deliveryHours") : t("openingHours")}</p>
-                </div>
-              </div>
-
-              <span className="rounded-full bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-100">
-                {day.isClosed ? t("closed") : t("open")}
-              </span>
-            </div>
-
-            <div className="p-4">
-              {day.isClosed ? (
-                <div className="flex min-h-[76px] flex-col justify-center rounded-[16px] border border-red-100 bg-red-50 px-4">
-                  <p className="text-sm font-semibold text-red-700">{t("closed")}</p>
-                  <p className="mt-1 text-xs leading-5 text-red-500">{t("hoursNotConfigured")}</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="flex h-[44px] items-center gap-3 rounded-[14px] border border-gray-200 bg-[#FAFAFA] px-3 text-sm text-gray-800">
-                    <Clock size={16} className="shrink-0 text-gray-400" />
-                    <span className="font-medium">{day.hoursLabel}</span>
-                  </div>
-
-                  {day.breakLabels.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {day.breakLabels.map((breakLabel) => (
-                        <div
-                          key={breakLabel}
-                          className="inline-flex items-center gap-2 rounded-[14px] border border-gray-200 bg-[#FAFAFA] px-3 py-2 text-xs font-medium text-gray-700"
-                        >
-                          <Coffee size={13} className="shrink-0 text-gray-400" />
-                          <span>{t("breakTime", { time: breakLabel })}</span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-    </div>
-  );
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <button
-          type="button"
-          aria-label={t("viewHours")}
-          className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-sm transition hover:border-primary hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-        >
-          <Info size={16} />
-        </button>
-      </DialogTrigger>
-
-      <DialogContent className="flex max-h-[92vh] w-[calc(100vw-24px)] max-w-[960px] flex-col gap-0 overflow-hidden rounded-[24px] border-0 bg-white p-0 font-sans shadow-2xl sm:w-[calc(100vw-48px)]">
-        <div className="border-b border-gray-100 bg-gradient-to-br from-primary/10 via-white to-orange-50 px-5 py-5 sm:px-6">
-          <DialogHeader className="pr-10 text-left">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div className="flex min-w-0 gap-3">
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[18px] bg-primary text-white shadow-lg shadow-primary/25">
-                  <CalendarDays size={18} />
-                </span>
-                <div className="min-w-0">
-                  <div className="mb-2 inline-flex rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-primary shadow-sm ring-1 ring-primary/10">
-                    {t("hoursAvailable")}
-                  </div>
-                  <DialogTitle className="text-[22px] font-semibold leading-tight tracking-tight text-gray-950 sm:text-[26px]">
-                    {t("hoursPopupTitle")}
-                  </DialogTitle>
-                  <DialogDescription className="mt-2 max-w-[560px] text-sm leading-6 text-gray-600">
-                    {t("hoursPopupNote")}
-                  </DialogDescription>
-                </div>
-              </div>
-
-              <span className="w-fit rounded-full bg-white/80 px-3 py-1 text-xs font-medium text-gray-700 ring-1 ring-gray-100">
-                {branchName ? t("hoursPopupSubtitle", { branch: branchName }) : t("hoursPopupSubtitleFallback")}
-              </span>
-            </div>
-          </DialogHeader>
-
-          <div className="mt-5 grid grid-cols-3 gap-2 sm:max-w-[440px] sm:gap-3">
-            {[
-              { label: t("entries"), value: entriesCount },
-              { label: t("open"), value: openDaysCount },
-              { label: t("closed"), value: closedDaysCount },
-            ].map((item) => (
-              <div
-                key={item.label}
-                className="rounded-[16px] bg-white/90 px-3 py-3 text-center shadow-sm ring-1 ring-gray-100 backdrop-blur"
-              >
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400 sm:text-[11px]">
-                  {item.label}
-                </p>
-                <p className="mt-1 text-lg font-semibold text-gray-900">{item.value}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="min-h-0 flex-1 overflow-y-auto bg-[#F8FAFC] px-5 py-5 sm:px-6">
-          <div className="mb-5 rounded-[18px] border border-blue-100 bg-blue-50/80 p-4">
-            <div className="flex gap-3">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-white text-blue-600 shadow-sm">
-                <Info size={16} />
-              </span>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-gray-900">{t("hoursAvailable")}</p>
-                <p className="mt-1 text-xs leading-5 text-gray-600">
-                  {breakWindowsCount > 0 ? t("breakWindows") : t("openingHoursDescription")}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-5">
-            <section>
-              <div className="mb-3 flex items-start justify-between gap-3">
-                <div className="flex min-w-0 items-start gap-3">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-white text-primary shadow-sm">
-                    <Store size={16} />
-                  </span>
-                  <div className="min-w-0">
-                    <h3 className="text-base font-semibold leading-6 text-gray-950">{t("openingHours")}</h3>
-                    <p className="mt-0.5 text-sm leading-5 text-gray-500">{t("openingHoursDescription")}</p>
-                  </div>
-                </div>
-                <CircleCheck size={18} className="mt-1 shrink-0 text-emerald-600" />
-              </div>
-
-              {hasOpeningDetails ? renderScheduleRows(openingDetails, "opening") : (
-                <div className="min-h-[260px] rounded-[22px] border border-dashed border-gray-200 bg-white p-6 text-center sm:p-8">
-                  <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-[18px] bg-primary/10 text-primary">
-                    <CalendarDays size={18} />
-                  </span>
-                  <p className="mt-4 text-sm font-semibold text-gray-900">{t("hoursNotConfigured")}</p>
-                </div>
-              )}
-            </section>
-
-            {branchHours.showDeliveryHours ? (
-              <section>
-                <div className="mb-3 flex min-w-0 items-start gap-3">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-white text-primary shadow-sm">
-                    <Truck size={16} />
-                  </span>
-                  <div className="min-w-0">
-                    <h3 className="text-base font-semibold leading-6 text-gray-950">{t("deliveryHours")}</h3>
-                    <p className="mt-0.5 text-sm leading-5 text-gray-500">{t("deliveryHoursDescription")}</p>
-                  </div>
-                </div>
-
-                {renderScheduleRows(deliveryDetails, "delivery")}
-              </section>
-            ) : null}
-          </div>
-        </div>
-
-        <DialogFooter className="border-t border-gray-100 bg-white px-5 py-4 sm:px-6">
-          <DialogClose className="inline-flex h-[44px] items-center justify-center rounded-[14px] border border-gray-200 bg-white px-5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20">
-            {t("close")}
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <OpeningHoursDialog
+      triggerLabel={t("viewHours")}
+      badgeLabel={t("hoursAvailable")}
+      title={t("hoursPopupTitle")}
+      description={t("hoursPopupNote")}
+      branchPill={branchName}
+      stats={[
+        { label: t("entries"), value: entriesCount },
+        { label: t("open"), value: openDaysCount },
+        { label: t("closed"), value: closedDaysCount },
+      ]}
+      infoTitle={t("hoursAvailable")}
+      infoDescription={t("hoursPopupNote")}
+      sections={[
+        {
+          id: "opening",
+          title: t("openingHours"),
+          description: t("openingHoursDescription"),
+          icon: Store,
+          rows: openingDetails.map((day) => ({
+            id: `opening-${day.dayOfWeek}`,
+            title: day.dayLabel,
+            subtitle: t("openingHours"),
+            statusLabel: day.isClosed ? t("closed") : t("open"),
+            isClosed: Boolean(day.isClosed),
+            hoursLabel: day.hoursLabel,
+            breakLabels: day.breakLabels,
+            closedTitle: t("closed"),
+            closedDescription: t("hoursNotConfigured"),
+            breakPrefix: t("breakTime", { time: "" }).replace(/\s*$/, ""),
+          })),
+          emptyTitle: t("hoursNotConfigured"),
+        },
+        ...(branchHours.showDeliveryHours
+          ? [{
+              id: "delivery",
+              title: t("deliveryHours"),
+              description: t("deliveryHoursDescription"),
+              icon: Truck,
+              rows: deliveryDetails.map((day) => ({
+                id: `delivery-${day.dayOfWeek}`,
+                title: day.dayLabel,
+                subtitle: t("deliveryHours"),
+                statusLabel: day.isClosed ? t("closed") : t("open"),
+                isClosed: Boolean(day.isClosed),
+                hoursLabel: day.hoursLabel,
+                breakLabels: day.breakLabels,
+                closedTitle: t("closed"),
+                closedDescription: t("hoursNotConfigured"),
+                breakPrefix: t("breakTime", { time: "" }).replace(/\s*$/, ""),
+              })),
+              emptyTitle: t("hoursNotConfigured"),
+            }]
+          : []),
+      ]}
+      closeLabel={t("close")}
+    />
   );
 }
 
@@ -407,10 +281,8 @@ export default function RestaurantHeader() {
   const deliveryDetails = restaurant?.branchHours
     ? getBranchHoursDetails(restaurant.branchHours.deliverySchedule)
     : [];
-  const currentOpeningBreakLabels = openingDetails.find((day) => day.hoursLabel === restaurant?.branchHours.opening.value)
-    ?.breakLabels ?? [];
-  const currentDeliveryBreakLabels = deliveryDetails.find((day) => day.hoursLabel === restaurant?.branchHours.delivery.value)
-    ?.breakLabels ?? [];
+  const currentOpeningBreakLabels = getCurrentBranchHoursDetail(openingDetails)?.breakLabels ?? [];
+  const currentDeliveryBreakLabels = getCurrentBranchHoursDetail(deliveryDetails)?.breakLabels ?? [];
 
   const title = category?.name ? category.name : t("fullMenu");
 
@@ -503,6 +375,9 @@ export default function RestaurantHeader() {
                   </span>
                   {currentOpeningBreakLabels.length > 0 ? (
                     <span className="mt-2 flex flex-col gap-1">
+                      <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                        {t("breakWindows")}
+                      </span>
                       {currentOpeningBreakLabels.map((breakLabel) => (
                         <span
                           key={breakLabel}
@@ -537,6 +412,9 @@ export default function RestaurantHeader() {
                     </span>
                     {currentDeliveryBreakLabels.length > 0 ? (
                       <span className="mt-2 flex flex-col gap-1">
+                        <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                          {t("breakWindows")}
+                        </span>
                         {currentDeliveryBreakLabels.map((breakLabel) => (
                           <span
                             key={breakLabel}
