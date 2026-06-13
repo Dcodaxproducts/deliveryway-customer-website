@@ -278,6 +278,7 @@ export const normalizeGroupOrderItemPayload = (payload: CartMutationPayload): Ca
 export const normalizeCartUpdatePayload = (payload: CartUpdatePayload): CartMutationPayload => {
   const { orderTime, scheduledDeliveryAt, tipAmount, ...rest } = payload;
   const normalizedPayload: CartMutationPayload = { ...rest };
+  delete normalizedPayload.restaurantMenuId;
 
   if (tipAmount !== undefined) {
     const parsedTip = Number(tipAmount);

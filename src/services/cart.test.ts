@@ -373,6 +373,26 @@ describe("cart service", () => {
     expect(patchCartMock.mock.calls[0][1]).not.toHaveProperty("scheduledDeliveryAt");
   });
 
+  it("strips restaurantMenuId from cart schedule updates", async () => {
+    patchCartMock.mockResolvedValue({ success: true });
+
+    await updateCustomerCart({
+      customerId: "customer-1",
+      payload: {
+        orderTime: null,
+        restaurantMenuId: "menu-1",
+      },
+    });
+
+    expect(patchCartMock).toHaveBeenCalledWith(
+      "/v1/cart?customerId=customer-1",
+      {
+        orderTime: null,
+      },
+      undefined
+    );
+  });
+
   it("clears customer cart orderTime with null for instant pickup", async () => {
     patchCartMock.mockResolvedValue({ success: true });
 
