@@ -685,13 +685,16 @@ export function CartSummarySection({
   }, [quoteTipAmount]);
 
   const checkoutPriceAdjustment = getCheckoutPriceAdjustmentTotal(cartItems, checkoutType);
+  const hasResolvedQuote = Boolean(resolvedQuote);
   const deliveryAdjustmentFee =
     checkoutType === "delivery" ? checkoutPriceAdjustment : 0;
   const deliveryFee =
     checkoutType === "delivery"
-      ? deliveryAdjustmentFee > 0 ? deliveryAdjustmentFee : quoteDeliveryFee ?? 0
+      ? hasResolvedQuote
+        ? quoteDeliveryFee ?? 0
+        : deliveryAdjustmentFee > 0 ? deliveryAdjustmentFee : quoteDeliveryFee ?? 0
       : 0;
-  const pickupFee = checkoutType === "pickup" ? checkoutPriceAdjustment : 0;
+  const pickupFee = checkoutType === "pickup" && !hasResolvedQuote ? checkoutPriceAdjustment : 0;
   const selectedOrderFee = checkoutType === "pickup" ? pickupFee : deliveryFee;
   const taxes = quoteTaxAmount ?? 0;
   const serviceCharge = Math.max(0, quoteServiceChargeAmount);
