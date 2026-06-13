@@ -447,6 +447,8 @@
       "hoursPopupNote": "Die Öffnungszeiten legen fest, wann die Filiale Bestellungen und Reservierungen annimmt. Pausen werden separat angezeigt, damit Kunden sehen, wann der Service pausiert.",
       "openingHoursDescription": "Reguläre Verfügbarkeit der Filiale für Vor-Ort-Service, Abholung und Reservierungen.",
       "deliveryHoursDescription": "Die Lieferverfügbarkeit weicht vom regulären Filialplan ab.",
+      "deliverySameAsOpeningTitle": "Lieferzeiten folgen den Öffnungszeiten",
+      "deliverySameAsOpeningDescription": "Heute gibt es kein separates Lieferfenster. Bestellungen können während der oben angezeigten Zeiten geliefert werden.",
       "open": "Geöffnet",
       "closed": "Geschlossen",
       "day": "Tag",

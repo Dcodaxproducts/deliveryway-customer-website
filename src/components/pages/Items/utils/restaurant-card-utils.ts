@@ -323,6 +323,17 @@ export const getCurrentBranchHoursDetail = (details: BranchHoursDetail[]) => {
   );
 };
 
+const areCurrentBranchHoursDetailsIdentical = (
+  firstDetail: BranchHoursDetail | null,
+  secondDetail: BranchHoursDetail | null,
+) => {
+  if (!firstDetail || !secondDetail) return false;
+
+  return firstDetail.isClosed === secondDetail.isClosed &&
+    firstDetail.hoursLabel === secondDetail.hoursLabel &&
+    JSON.stringify(firstDetail.breakLabels) === JSON.stringify(secondDetail.breakLabels);
+};
+
 const getScheduleFromSettings = (settings: BranchSettings | null, keys: string[]) => {
   if (!settings) return [];
 
@@ -418,19 +429,28 @@ export const getBranchHoursSummary = (branch: unknown) => {
     "deliveryOperatingHours",
   ]);
   const opening = summarizeSchedule({ schedule: openingSchedule });
+  const delivery = summarizeSchedule({
+    fallback: opening,
+    schedule: deliverySchedule,
+    useFallbackWhenMissing: true,
+  });
   const deliveryMatchesOpening = areBranchSchedulesIdentical(openingSchedule, deliverySchedule);
+  const deliveryMatchesOpeningToday = areCurrentBranchHoursDetailsIdentical(
+    getCurrentBranchHoursDetail(getBranchHoursDetails(openingSchedule)),
+    getCurrentBranchHoursDetail(getBranchHoursDetails(deliverySchedule)),
+  );
+  const showDeliveryHours = deliverySchedule.length > 0 && !deliveryMatchesOpening;
+  const showDeliveryHoursCard = showDeliveryHours && !deliveryMatchesOpeningToday;
 
   return {
     opening,
-    delivery: summarizeSchedule({
-      fallback: opening,
-      schedule: deliverySchedule,
-      useFallbackWhenMissing: true,
-    }),
+    delivery,
     openingSchedule,
     deliverySchedule,
-    showDeliveryHours: deliverySchedule.length > 0 && !deliveryMatchesOpening,
+    showDeliveryHours,
+    showDeliveryHoursCard,
     deliveryMatchesOpening,
+    deliveryMatchesOpeningToday,
   };
 };
 

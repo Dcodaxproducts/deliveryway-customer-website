@@ -283,6 +283,10 @@ export default function RestaurantHeader() {
     : [];
   const currentOpeningBreakLabels = getCurrentBranchHoursDetail(openingDetails)?.breakLabels ?? [];
   const currentDeliveryBreakLabels = getCurrentBranchHoursDetail(deliveryDetails)?.breakLabels ?? [];
+  const showDeliverySameAsOpeningNote = Boolean(
+    restaurant?.branchHours.deliverySchedule.length &&
+      !restaurant.branchHours.showDeliveryHoursCard
+  );
 
   const title = category?.name ? category.name : t("fullMenu");
 
@@ -393,7 +397,7 @@ export default function RestaurantHeader() {
               </div>
             </div>
 
-            {restaurant?.branchHours.showDeliveryHours ? (
+            {restaurant?.branchHours.showDeliveryHoursCard ? (
               <div className="rounded-[22px] border border-gray-100 bg-white p-4 shadow-sm">
                 <div className="flex items-start gap-3">
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-primary text-white shadow-sm">
@@ -426,6 +430,27 @@ export default function RestaurantHeader() {
                         ))}
                       </span>
                     ) : null}
+                  </span>
+                </div>
+              </div>
+            ) : null}
+
+            {showDeliverySameAsOpeningNote ? (
+              <div className="rounded-[22px] border border-primary/10 bg-primary/5 p-4 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-white text-primary shadow-sm ring-1 ring-primary/10">
+                    <Truck size={18} />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-xs font-semibold uppercase tracking-wide text-primary">
+                      {t("deliveryHours")}
+                    </span>
+                    <span className="mt-1 block text-base font-semibold text-gray-950">
+                      {t("deliverySameAsOpeningTitle")}
+                    </span>
+                    <span className="mt-1 block text-xs leading-5 text-gray-600">
+                      {t("deliverySameAsOpeningDescription")}
+                    </span>
                   </span>
                 </div>
               </div>

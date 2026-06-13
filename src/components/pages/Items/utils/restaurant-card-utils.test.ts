@@ -81,14 +81,35 @@ describe("restaurant card utils", () => {
     ];
 
     expect(areBranchSchedulesIdentical(schedule, schedule)).toBe(true);
-    expect(
-      getBranchHoursSummary({
+    const summary = getBranchHoursSummary({
         settings: {
           openingHours: schedule,
           deliveryHours: schedule,
         },
-      }).showDeliveryHours
-    ).toBe(false);
+      });
+
+    expect(summary.showDeliveryHours).toBe(false);
+    expect(summary.showDeliveryHoursCard).toBe(false);
+    expect(summary.deliveryMatchesOpeningToday).toBe(true);
+  });
+
+  it("hides only the delivery card when today's delivery hours match opening hours", () => {
+    const summary = getBranchHoursSummary({
+      settings: {
+        openingHours: [
+          { dayOfWeek: "MONDAY", openTime: "09:00", closeTime: "18:00" },
+          { dayOfWeek: "TUESDAY", openTime: "09:00", closeTime: "17:00" },
+        ],
+        deliveryHours: [
+          { dayOfWeek: "MONDAY", openTime: "09:00", closeTime: "18:00" },
+          { dayOfWeek: "TUESDAY", openTime: "10:00", closeTime: "17:00" },
+        ],
+      },
+    });
+
+    expect(summary.showDeliveryHours).toBe(true);
+    expect(summary.showDeliveryHoursCard).toBe(false);
+    expect(summary.deliveryMatchesOpeningToday).toBe(true);
   });
 
   it("formats branch break times for the enriched hours popup", () => {
