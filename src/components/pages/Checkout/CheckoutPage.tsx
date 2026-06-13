@@ -28,6 +28,11 @@ import { normalizeCheckoutTipAmount, type CheckoutAddressValues } from "@/valida
 import { getStoredRestaurantMenuId } from "@/lib/timed-menu";
 import { branchSupportsDelivery, branchSupportsPickup, getSelectedOrderType } from "@/lib/branch-selector";
 import {
+  getStoredCheckoutTypePreference,
+  setStoredCheckoutTypePreference,
+  type CheckoutTypePreference,
+} from "@/lib/checkout-type-preference";
+import {
   buildDeliveryTimeSlots,
   getBranchScheduleForDate,
   getDateValue,
@@ -139,7 +144,12 @@ function CheckoutPageContent() {
   const searchParams = useSearchParams();
   const type = searchParams.get("type");
   const { user, token } = useAuthContext();
-  const preferredCheckoutType = getSelectedOrderType(user) === "TAKEAWAY" ? "pickup" : "delivery";
+  const [storedCheckoutType, setStoredCheckoutType] =
+    useState<CheckoutTypePreference | null>(null);
+  const [hasLoadedCheckoutTypePreference, setHasLoadedCheckoutTypePreference] =
+    useState(false);
+  const userCheckoutType = getSelectedOrderType(user) === "TAKEAWAY" ? "pickup" : "delivery";
+  const preferredCheckoutType = storedCheckoutType ?? userCheckoutType;
   const activeTab = type === "pickup" || type === "delivery" ? type : preferredCheckoutType;
   const isGuest = isGuestUser(user);
   const restaurantId = getCheckoutRestaurantId(user);
@@ -182,6 +192,18 @@ function CheckoutPageContent() {
 
     toast.error(message);
   };
+
+  useEffect(() => {
+    setStoredCheckoutType(getStoredCheckoutTypePreference());
+    setHasLoadedCheckoutTypePreference(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hasLoadedCheckoutTypePreference) return;
+
+    setStoredCheckoutTypePreference(activeTab);
+    setStoredCheckoutType(activeTab);
+  }, [activeTab, hasLoadedCheckoutTypePreference]);
 
   const clearBackendError = () => {
     setBackendError(null);

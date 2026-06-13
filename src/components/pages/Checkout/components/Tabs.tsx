@@ -3,6 +3,7 @@
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
+import { setStoredCheckoutTypePreference } from "@/lib/checkout-type-preference";
 
 export default function CheckoutTabs({
     activeTab,
@@ -19,6 +20,7 @@ export default function CheckoutTabs({
     const searchParams = useSearchParams();
 
     const handleTabChange = (type: 'delivery' | 'pickup') => {
+        setStoredCheckoutTypePreference(type);
         const params = new URLSearchParams(searchParams.toString());
         params.set('type', type);
         router.push(`${pathname}?${params.toString()}`, { scroll: false });

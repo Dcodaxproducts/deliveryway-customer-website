@@ -1,4 +1,8 @@
 import { readAuthSession, saveAuthSession } from "@/lib/auth";
+import {
+  orderTypeToCheckoutType,
+  setStoredCheckoutTypePreference,
+} from "@/lib/checkout-type-preference";
 import type { AuthContextValue, AuthUser } from "@/types/auth";
 import type { BranchOrderType, BranchTemporaryClosure, NearbyBranch } from "@/types/branches";
 import type { BranchApiResponse, BranchRecord } from "@/types/branch-selector";
@@ -207,6 +211,11 @@ export function persistSelectedBranch(
   const selectedBranch = options.orderType
     ? { ...branch, selectedOrderType: options.orderType }
     : branch;
+  const checkoutType = orderTypeToCheckoutType(options.orderType);
+
+  if (checkoutType) {
+    setStoredCheckoutTypePreference(checkoutType);
+  }
 
   if (auth?.user) {
     saveAuthSession({

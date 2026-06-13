@@ -10,6 +10,10 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { getSelectedOrderType } from "@/lib/branch-selector";
 import { CART_CHANGED_EVENT } from "@/lib/cart-events";
+import {
+  getStoredCheckoutTypePreference,
+  type CheckoutTypePreference,
+} from "@/lib/checkout-type-preference";
 import { cn } from "@/lib/utils";
 
 const HIDDEN_CART_PATHS = ["/checkout", "/menu"];
@@ -20,16 +24,22 @@ export function SiteFloatingCart() {
   const { user, loading } = useAuth();
   const [cartRefreshKey, setCartRefreshKey] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
+  const [storedCheckoutType, setStoredCheckoutType] =
+    useState<CheckoutTypePreference | null>(null);
 
   const isHiddenRoute = HIDDEN_CART_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
-  const checkoutType = getSelectedOrderType(user) === "TAKEAWAY" ? "pickup" : "delivery";
+  const userCheckoutType = getSelectedOrderType(user) === "TAKEAWAY" ? "pickup" : "delivery";
+  const checkoutType = storedCheckoutType ?? userCheckoutType;
 
   const refreshCart = useCallback(() => {
     setCartRefreshKey((current) => current + 1);
   }, []);
 
   useEffect(() => {
+    setStoredCheckoutType(getStoredCheckoutTypePreference());
+
     const handleCartChanged = () => {
+      setStoredCheckoutType(getStoredCheckoutTypePreference());
       refreshCart();
       setIsOpen(true);
     };

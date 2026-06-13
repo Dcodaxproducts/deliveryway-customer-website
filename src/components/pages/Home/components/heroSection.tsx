@@ -20,6 +20,11 @@ import {
   nearbyBranchToBranchRecord,
   persistSelectedBranch,
 } from "@/lib/branch-selector";
+import {
+  checkoutTypeToOrderType,
+  getStoredCheckoutTypePreference,
+  setStoredCheckoutTypePreference,
+} from "@/lib/checkout-type-preference";
 import { resolveHttpsImageUrl } from "@/lib/image-fallback";
 import type { BranchOrderType, NearbyBranch } from "@/types/branches";
 
@@ -122,6 +127,28 @@ export const HeroSection = ({
     }
   }, [availableModes, mode]);
 
+  useEffect(() => {
+    const storedMode = getStoredCheckoutTypePreference();
+
+    if (!storedMode || !availableModes.includes(storedMode)) return;
+
+    setMode(storedMode);
+  }, [availableModes]);
+
+  const handleModeChange = (nextMode: BranchSearchMode) => {
+    setMode(nextMode);
+    setStoredCheckoutTypePreference(nextMode);
+
+    if (selectedBranch) {
+      persistSelectedBranch({
+        ...selectedBranch,
+        settings: selectedBranch.settings ?? undefined,
+      }, setUser, {
+        orderType: checkoutTypeToOrderType(nextMode),
+      });
+    }
+  };
+
   const handleFindNearbyBranches = () => {
     setShowResults(true);
 
@@ -178,7 +205,7 @@ export const HeroSection = ({
               <button
                 key={nextMode}
                 type="button"
-                onClick={() => setMode(nextMode)}
+                onClick={() => handleModeChange(nextMode)}
                 className={`min-w-[116px] rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
                   mode === nextMode
                     ? "bg-primary text-white shadow-sm"
