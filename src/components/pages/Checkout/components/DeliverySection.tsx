@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useMemo } from 'react';
-import { Clock } from 'lucide-react';
+import { Clock, PauseCircle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 import { DeliveryAddressSection } from '@/components/pages/Checkout/components/DeliveryAddressSection';
@@ -8,6 +8,7 @@ import NotesSection from '@/components/pages/Checkout/components/NotesSection';
 import { CustomerDetailsForm } from '@/components/pages/Checkout/components/CustomerDetailsForm';
 import { PaymentMethodSection } from '@/components/pages/Checkout/components/PaymentMethodSection';
 import {
+  buildScheduleBreakLabels,
   buildDeliveryTimeSlots,
   formatPickupTimeLabel,
   getBranchScheduleForDate,
@@ -80,6 +81,7 @@ export function DeliverySection(props: DeliverySectionProps) {
     [props.selectedBranch, selectedDateValue]
   );
   const schedule = scheduleState.schedule;
+  const breakLabels = useMemo(() => buildScheduleBreakLabels(schedule), [schedule]);
   const scheduleLabel = useMemo(() => {
     if (!selectedDateValue || !schedule) return "";
     if (schedule.isClosed) return t("closed");
@@ -164,6 +166,35 @@ export function DeliverySection(props: DeliverySectionProps) {
               <Clock size={14} />
               {t("deliveryHoursNotConfigured")}
             </p>
+          ) : null}
+
+          {selectedDateValue && breakLabels.length > 0 ? (
+            <div className="mt-3 rounded-[18px] border border-orange-100 bg-orange-50/80 p-4">
+              <div className="flex items-start gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-white text-orange-600 shadow-sm">
+                  <PauseCircle size={18} aria-hidden="true" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-gray-900">
+                    {t("deliveryBreakHoursTitle")}
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-gray-600">
+                    {t("deliveryBreakHoursDescription")}
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {breakLabels.map((breakLabel) => (
+                      <span
+                        key={`${breakLabel.label}-${breakLabel.note || ""}`}
+                        className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-orange-700 shadow-sm ring-1 ring-orange-100"
+                      >
+                        {t("deliveryBreakTime", { time: breakLabel.label })}
+                        {breakLabel.note ? ` · ${breakLabel.note}` : ""}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
           ) : null}
 
           {selectedDateValue ? (

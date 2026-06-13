@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildDeliveryTimeSlots,
   buildPickupTimeSlots,
+  buildScheduleBreakLabels,
   getPickupScheduleForDate,
 } from "@/components/pages/Checkout/utils/pickup-schedule";
 import type { BranchRecord } from "@/types/branch-selector";
@@ -110,6 +111,11 @@ describe("pickup schedule helpers", () => {
       { value: "10:00", label: "10:00 AM" },
       { value: "11:00", label: "11:00 AM" },
       { value: "11:30", label: "11:30 AM" },
+    ]);
+    expect(
+      buildScheduleBreakLabels(branch.settings?.deliveryHours?.[0])
+    ).toEqual([
+      { label: "10:30 AM - 11:00 AM" },
     ]);
   });
 

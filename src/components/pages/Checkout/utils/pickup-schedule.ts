@@ -10,6 +10,7 @@ type OpeningHours = {
   breakTimes?: {
     startTime?: string;
     endTime?: string;
+    note?: string;
   }[];
 };
 
@@ -22,6 +23,11 @@ type PickupSchedule = {
 export type PickupTimeSlot = {
   value: string;
   label: string;
+};
+
+export type ScheduleBreakLabel = {
+  label: string;
+  note?: string;
 };
 
 export const normalizeArray = <T = unknown,>(value: unknown): T[] =>
@@ -93,6 +99,25 @@ export const formatPickupTimeLabel = (value: string) => {
     minute: "2-digit",
   });
 };
+
+export const buildScheduleBreakLabels = (
+  schedule?: OpeningHours | null
+): ScheduleBreakLabel[] =>
+  normalizeArray(schedule?.breakTimes).reduce<ScheduleBreakLabel[]>((labels, breakTime) => {
+    const breakRecord = getRecord(breakTime);
+    const startTime = typeof breakRecord?.startTime === "string" ? breakRecord.startTime : "";
+    const endTime = typeof breakRecord?.endTime === "string" ? breakRecord.endTime : "";
+    const note = typeof breakRecord?.note === "string" ? breakRecord.note.trim() : "";
+
+    if (!startTime || !endTime) return labels;
+
+    labels.push({
+      label: `${formatPickupTimeLabel(startTime)} - ${formatPickupTimeLabel(endTime)}`,
+      ...(note ? { note } : {}),
+    });
+
+    return labels;
+  }, []);
 
 const roundUpToInterval = (minutes: number, interval: number) =>
   Math.ceil(minutes / interval) * interval;
