@@ -13,7 +13,6 @@ import { CalendarDays, Clock3, Loader2, MapPin, PencilLine, RotateCcw, X } from 
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { resolveGroupOrderDeliveryAddressId, setStoredGroupOrderCode } from "@/lib/group-order";
-import { getStoredRestaurantMenuId } from "@/lib/timed-menu";
 import { getBackendErrorMessage, hasBackendError } from "@/components/pages/Checkout/utils/checkout-normalizers";
 import { fetchAddresses as fetchProfileAddresses, type AddressRecord } from "@/services/profile";
 import type { CreateGroupOrderPayload, GroupOrderType } from "@/types/group-order";
@@ -169,13 +168,10 @@ export function GroupOrderModal({ open, onClose }: GroupOrderModalProps) {
       }
 
       const orderTime = selectedScheduleDate.toISOString();
-      const restaurantMenuId = getStoredRestaurantMenuId();
-
       const payload: CreateGroupOrderPayload = {
         branchId,
         orderType,
         deliveryAddressId: orderType === "DELIVERY" ? deliveryAddressId : null,
-        ...(restaurantMenuId ? { restaurantMenuId } : {}),
         orderTime,
         hostNote: note || null,
       };
