@@ -33,8 +33,10 @@ import {
   type CheckoutTypePreference,
 } from "@/lib/checkout-type-preference";
 import {
+  addPreparationMinutesToScheduledDelivery,
   buildDeliveryTimeSlots,
   getBranchScheduleForDate,
+  getScheduledDateTime,
   getDateValue,
   isPastDateValue,
 } from "@/components/pages/Checkout/utils/pickup-schedule";
@@ -139,6 +141,9 @@ const hasGuestContact = (customer: { name: string; phone: string; email: string 
   return Boolean(customer.email.trim() && customer.phone.trim());
 };
 
+const getCartPreparationMinutes = (items: CartItem[]) =>
+  items.reduce((total, item) => total + Math.max(0, Math.floor(toNumber(item.prepTimeMinutes, 0))), 0);
+
 function CheckoutPageContent() {
   const t = useTranslations("checkout");
   const searchParams = useSearchParams();
@@ -175,6 +180,10 @@ function CheckoutPageContent() {
   const [loyalty, setLoyalty] = useState<LoyaltySummary | null>(null);
   const [loyaltyPoints, setLoyaltyPoints] = useState("");
   const [loadingLoyalty, setLoadingLoyalty] = useState(false);
+  const totalPreparationMinutes = useMemo(
+    () => getCartPreparationMinutes(cartItems),
+    [cartItems]
+  );
 
   const router = useRouter();
   const customerId = user?.id;
@@ -730,9 +739,9 @@ function CheckoutPageContent() {
 
     if (!trimmedValue) return undefined;
 
-    const scheduledDate = new Date(trimmedValue);
+    const scheduledDate = getScheduledDateTime(trimmedValue);
 
-    if (Number.isNaN(scheduledDate.getTime())) return null;
+    if (!scheduledDate) return null;
 
     const dateValue = getDateValue(scheduledDate);
 
@@ -760,7 +769,12 @@ function CheckoutPageContent() {
       }
     }
 
-    return scheduledDate.toISOString();
+    const deliveryDate = addPreparationMinutesToScheduledDelivery({
+      scheduledDeliveryValue: trimmedValue,
+      preparationMinutes: totalPreparationMinutes,
+    });
+
+    return (deliveryDate || scheduledDate).toISOString();
   };
 
   const setCartSchedule = async (scheduledDeliveryAt?: string | null) => {
@@ -1122,6 +1136,7 @@ function CheckoutPageContent() {
               scheduledDeliveryValue={scheduledDeliveryValue}
               setScheduledDeliveryValue={setScheduledDeliveryValue}
               selectedBranch={checkoutBranch}
+              totalPreparationMinutes={totalPreparationMinutes}
             />
           ) : (
             <PickupSection

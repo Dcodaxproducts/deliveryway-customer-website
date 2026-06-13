@@ -30,6 +30,13 @@ export type ScheduleBreakLabel = {
   note?: string;
 };
 
+export type ScheduledDeliveryEstimate = {
+  selectedLabel: string;
+  readyLabel: string;
+  preparationMinutes: number;
+  scheduledAt: Date;
+};
+
 export const normalizeArray = <T = unknown,>(value: unknown): T[] =>
   Array.isArray(value) ? value as T[] : [];
 
@@ -86,6 +93,25 @@ const minutesToTime = (value: number) => {
   return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
 };
 
+const formatEstimateTimeLabel = (date: Date) =>
+  date.toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+
+const formatEstimateDateTimeLabel = (date: Date, baseDate: Date) => {
+  const timeLabel = formatEstimateTimeLabel(date);
+
+  if (getDateValue(date) === getDateValue(baseDate)) {
+    return timeLabel;
+  }
+
+  return `${timeLabel}, ${date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  })}`;
+};
+
 export const formatPickupTimeLabel = (value: string) => {
   const minutes = timeToMinutes(value);
 
@@ -118,6 +144,67 @@ export const buildScheduleBreakLabels = (
 
     return labels;
   }, []);
+
+export const getScheduledDateTime = (value: string) => {
+  const trimmedValue = value.trim();
+
+  if (!trimmedValue) return null;
+
+  const scheduledDate = new Date(trimmedValue);
+
+  if (Number.isNaN(scheduledDate.getTime())) return null;
+
+  return scheduledDate;
+};
+
+export const addPreparationMinutesToScheduledDelivery = ({
+  scheduledDeliveryValue,
+  preparationMinutes,
+}: {
+  scheduledDeliveryValue: string;
+  preparationMinutes: number;
+}) => {
+  const scheduledDate = getScheduledDateTime(scheduledDeliveryValue);
+
+  if (!scheduledDate) return null;
+
+  const safePreparationMinutes = Math.max(0, Math.floor(preparationMinutes));
+  const estimatedDate = new Date(scheduledDate);
+
+  estimatedDate.setMinutes(estimatedDate.getMinutes() + safePreparationMinutes);
+
+  return estimatedDate;
+};
+
+export const buildScheduledDeliveryEstimate = ({
+  scheduledDeliveryValue,
+  preparationMinutes,
+}: {
+  scheduledDeliveryValue: string;
+  preparationMinutes: number;
+}): ScheduledDeliveryEstimate | null => {
+  const selectedDate = getScheduledDateTime(scheduledDeliveryValue);
+
+  if (!selectedDate) return null;
+
+  const safePreparationMinutes = Math.max(0, Math.floor(preparationMinutes));
+
+  if (safePreparationMinutes <= 0) return null;
+
+  const scheduledAt = addPreparationMinutesToScheduledDelivery({
+    scheduledDeliveryValue,
+    preparationMinutes: safePreparationMinutes,
+  });
+
+  if (!scheduledAt) return null;
+
+  return {
+    selectedLabel: formatEstimateTimeLabel(selectedDate),
+    readyLabel: formatEstimateDateTimeLabel(scheduledAt, selectedDate),
+    preparationMinutes: safePreparationMinutes,
+    scheduledAt,
+  };
+};
 
 const roundUpToInterval = (minutes: number, interval: number) =>
   Math.ceil(minutes / interval) * interval;

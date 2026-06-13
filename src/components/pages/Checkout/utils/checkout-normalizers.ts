@@ -69,6 +69,7 @@ export type CartItem = {
   sections: CartSection[];
   menuItem?: ApiRecord;
   note: string;
+  prepTimeMinutes: number;
   depositAmount?: unknown;
   depositTotal?: unknown;
   pickupPrice?: unknown;
@@ -381,6 +382,10 @@ export const normalizeCartItem = (itemInput: unknown): CartItem => {
   const quantity = Math.max(1, toNumber(item.quantity, 1));
   const selectedModifiers = getSelectedModifiers(item);
   const selectedSections = getSelectedSections(item);
+  const prepTimeMinutes = Math.max(
+    0,
+    toNumber(item.prepTimeMinutes ?? menuItem.prepTimeMinutes, 0)
+  );
 
   const fallbackModifiersTotal = selectedModifiers.reduce((acc, modifier) => acc + toNumber(modifier.total, 0), 0);
   const highestSplitPizzaHalfPrice = selectedSections.reduce(
@@ -433,6 +438,7 @@ export const normalizeCartItem = (itemInput: unknown): CartItem => {
     sections: selectedSections,
     menuItem,
     note: getStringValue(item.note),
+    prepTimeMinutes,
     depositAmount: item.depositAmount ?? menuItem.depositAmount,
     depositTotal: item.depositTotal,
     pickupPrice: item.pickupPrice ?? menuItem.pickupPrice,

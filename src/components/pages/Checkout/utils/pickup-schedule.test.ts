@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  addPreparationMinutesToScheduledDelivery,
   buildDeliveryTimeSlots,
   buildPickupTimeSlots,
+  buildScheduledDeliveryEstimate,
   buildScheduleBreakLabels,
   getPickupScheduleForDate,
 } from "@/components/pages/Checkout/utils/pickup-schedule";
@@ -143,5 +145,26 @@ describe("pickup schedule helpers", () => {
       { value: "10:00", label: "10:00 AM" },
       { value: "10:30", label: "10:30 AM" },
     ]);
+  });
+
+  it("adds preparation minutes to a selected scheduled delivery time", () => {
+    const scheduledAt = addPreparationMinutesToScheduledDelivery({
+      scheduledDeliveryValue: "2026-06-15T09:30",
+      preparationMinutes: 20,
+    });
+
+    expect(scheduledAt?.getHours()).toBe(9);
+    expect(scheduledAt?.getMinutes()).toBe(50);
+
+    expect(
+      buildScheduledDeliveryEstimate({
+        scheduledDeliveryValue: "2026-06-15T09:30",
+        preparationMinutes: 20,
+      })
+    ).toMatchObject({
+      selectedLabel: "9:30 AM",
+      readyLabel: "9:50 AM",
+      preparationMinutes: 20,
+    });
   });
 });
