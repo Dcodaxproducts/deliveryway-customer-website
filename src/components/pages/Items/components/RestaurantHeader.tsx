@@ -123,7 +123,7 @@ function BranchHoursDialog({
         </button>
       </DialogTrigger>
 
-      <DialogContent className="flex max-h-[92vh] w-[calc(100vw-24px)] max-w-[960px] gap-0 overflow-hidden rounded-[24px] border-0 bg-white p-0 font-sans shadow-2xl sm:w-[calc(100vw-48px)]">
+      <DialogContent className="flex max-h-[92vh] w-[calc(100vw-24px)] max-w-[960px] flex-col gap-0 overflow-hidden rounded-[24px] border-0 bg-white p-0 font-sans shadow-2xl sm:w-[calc(100vw-48px)]">
         <div className="border-b border-gray-100 bg-gradient-to-br from-primary/10 via-white to-orange-50 px-5 py-5 sm:px-6">
           <DialogHeader className="pr-10 text-left">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -401,6 +401,16 @@ export default function RestaurantHeader() {
   const categoryItemCount = category ? getCategoryItemCount(category) : null;
   const ratingInfo = restaurant?.ratingInfo;
   const bannerImage = getImageUrl(category, restaurant);
+  const openingDetails = restaurant?.branchHours
+    ? getBranchHoursDetails(restaurant.branchHours.openingSchedule)
+    : [];
+  const deliveryDetails = restaurant?.branchHours
+    ? getBranchHoursDetails(restaurant.branchHours.deliverySchedule)
+    : [];
+  const currentOpeningBreakLabels = openingDetails.find((day) => day.hoursLabel === restaurant?.branchHours.opening.value)
+    ?.breakLabels ?? [];
+  const currentDeliveryBreakLabels = deliveryDetails.find((day) => day.hoursLabel === restaurant?.branchHours.delivery.value)
+    ?.breakLabels ?? [];
 
   const title = category?.name ? category.name : t("fullMenu");
 
@@ -475,14 +485,13 @@ export default function RestaurantHeader() {
           </div>
 
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            <div className="group relative overflow-hidden rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-white p-4 shadow-[0_14px_40px_rgba(15,23,42,0.06)]">
-              <div className="absolute right-0 top-0 h-20 w-20 translate-x-8 -translate-y-8 rounded-full bg-emerald-200/35" />
-              <div className="relative flex items-start gap-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-sm">
+            <div className="rounded-[22px] border border-gray-100 bg-white p-4 shadow-sm">
+              <div className="flex items-start gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-primary text-white shadow-sm">
                   <Store size={18} />
                 </span>
                 <span className="min-w-0">
-                  <span className="block text-xs font-semibold uppercase tracking-wide text-emerald-700">
+                  <span className="block text-xs font-semibold uppercase tracking-wide text-primary">
                     {t("openingHours")}
                   </span>
                   <span className="mt-1 block text-base font-semibold text-gray-950">
@@ -492,15 +501,27 @@ export default function RestaurantHeader() {
                     {restaurant?.branchHours.opening.label}
                     {restaurant?.branchName ? ` · ${restaurant.branchName}` : ""}
                   </span>
+                  {currentOpeningBreakLabels.length > 0 ? (
+                    <span className="mt-2 flex flex-col gap-1">
+                      {currentOpeningBreakLabels.map((breakLabel) => (
+                        <span
+                          key={breakLabel}
+                          className="inline-flex w-fit items-center gap-1.5 rounded-[12px] border border-gray-200 bg-[#FAFAFA] px-2.5 py-1 text-xs font-medium text-gray-700"
+                        >
+                          <Coffee size={12} className="shrink-0 text-gray-400" />
+                          {t("breakTime", { time: breakLabel })}
+                        </span>
+                      ))}
+                    </span>
+                  ) : null}
                 </span>
               </div>
             </div>
 
             {restaurant?.branchHours.showDeliveryHours ? (
-              <div className="group relative overflow-hidden rounded-2xl border border-orange-100 bg-gradient-to-br from-orange-50 via-white to-white p-4 shadow-[0_14px_40px_rgba(15,23,42,0.06)]">
-                <div className="absolute right-0 top-0 h-20 w-20 translate-x-8 -translate-y-8 rounded-full bg-orange-200/40" />
-                <div className="relative flex items-start gap-3">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-white shadow-sm">
+              <div className="rounded-[22px] border border-gray-100 bg-white p-4 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-primary text-white shadow-sm">
                     <Truck size={18} />
                   </span>
                   <span className="min-w-0">
@@ -514,6 +535,19 @@ export default function RestaurantHeader() {
                       {restaurant.branchHours.delivery.label}
                       {restaurant.branchName ? ` · ${restaurant.branchName}` : ""}
                     </span>
+                    {currentDeliveryBreakLabels.length > 0 ? (
+                      <span className="mt-2 flex flex-col gap-1">
+                        {currentDeliveryBreakLabels.map((breakLabel) => (
+                          <span
+                            key={breakLabel}
+                            className="inline-flex w-fit items-center gap-1.5 rounded-[12px] border border-gray-200 bg-[#FAFAFA] px-2.5 py-1 text-xs font-medium text-gray-700"
+                          >
+                            <Coffee size={12} className="shrink-0 text-gray-400" />
+                            {t("breakTime", { time: breakLabel })}
+                          </span>
+                        ))}
+                      </span>
+                    ) : null}
                   </span>
                 </div>
               </div>
