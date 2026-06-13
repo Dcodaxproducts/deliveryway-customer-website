@@ -1,12 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import { AlertTriangle, CalendarX, Clock, Info, LoaderCircle, Star } from "lucide-react";
+import { AlertTriangle, CalendarDays, CalendarX, CircleCheck, Clock, Coffee, Info, LoaderCircle, Star, Store } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -636,6 +639,12 @@ export function ReserveTablePage() {
 
   const hasOpeningHours = normalizeArray(selectedBranch?.settings?.openingHours).length > 0;
   const dateRangeRules = getDateRangeRules(selectedBranch);
+  const openingHoursRows = normalizeArray<OpeningHours>(selectedBranch?.settings?.openingHours);
+  const entriesCount = openingHoursRows.length + dateRangeRules.length;
+  const openRowsCount = openingHoursRows.filter((hour) => !hour.isClosed).length;
+  const closedRowsCount =
+    openingHoursRows.filter((hour) => hour.isClosed).length +
+    dateRangeRules.filter((rule) => rule?.isClosed).length;
 
   const dateError = useMemo(() => {
     if (!date) return "";
@@ -935,68 +944,209 @@ export function ReserveTablePage() {
                       </button>
                     </DialogTrigger>
 
-                    <DialogContent className="max-h-[85vh] w-[calc(100%-32px)] max-w-[420px] overflow-y-auto rounded-2xl p-5">
-                      <DialogHeader className="pr-8 text-left">
-                        <DialogTitle>{t("openingHours")}</DialogTitle>
-                      </DialogHeader>
+                    <DialogContent className="flex max-h-[92vh] w-[calc(100vw-24px)] max-w-[960px] gap-0 overflow-hidden rounded-[24px] border-0 bg-white p-0 shadow-2xl sm:w-[calc(100vw-48px)]">
+                      <div className="border-b border-gray-100 bg-gradient-to-br from-primary/10 via-white to-orange-50 px-5 py-5 sm:px-6">
+                        <DialogHeader className="pr-10 text-left">
+                          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="flex min-w-0 gap-3">
+                              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[18px] bg-primary text-white shadow-lg shadow-primary/25">
+                                <CalendarDays size={18} />
+                              </span>
+                              <div className="min-w-0">
+                                <div className="mb-2 inline-flex rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-primary shadow-sm ring-1 ring-primary/10">
+                                  {t("openingHours")}
+                                </div>
+                                <DialogTitle className="text-[22px] font-semibold leading-tight tracking-tight text-gray-950 sm:text-[26px]">
+                                  {t("openingHours")}
+                                </DialogTitle>
+                                <DialogDescription className="mt-2 max-w-[560px] text-sm leading-6 text-gray-600">
+                                  {t("openingHoursPopupNote")}
+                                </DialogDescription>
+                              </div>
+                            </div>
 
-                      {hasOpeningHours ? (
-                        <div className="space-y-2 text-sm">
-                          {normalizeArray<OpeningHours>(selectedBranch.settings.openingHours).map((h) => (
+                            {selectedBranch?.name ? (
+                              <span className="w-fit rounded-full bg-white/80 px-3 py-1 text-xs font-medium text-gray-700 ring-1 ring-gray-100">
+                                {selectedBranch.name}
+                              </span>
+                            ) : null}
+                          </div>
+                        </DialogHeader>
+
+                        <div className="mt-5 grid grid-cols-3 gap-2 sm:max-w-[440px] sm:gap-3">
+                          {[
+                            { label: t("entries"), value: entriesCount },
+                            { label: t("open"), value: openRowsCount },
+                            { label: t("closed"), value: closedRowsCount },
+                          ].map((item) => (
                             <div
-                              key={h.dayOfWeek}
-                              className="flex items-center justify-between gap-4 rounded-xl bg-gray-50 px-3 py-2"
+                              key={item.label}
+                              className="rounded-[16px] bg-white/90 px-3 py-3 text-center shadow-sm ring-1 ring-gray-100 backdrop-blur"
                             >
-                              <span className="font-medium text-gray-700">
-                                {String(h.dayOfWeek || "").slice(0, 3)}
-                              </span>
-                              <span className="text-right text-gray-600">
-                                {h.isClosed
-                                  ? t("closed")
-                                  : `${h.openTime} - ${h.closeTime}`}
-                              </span>
+                              <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400 sm:text-[11px]">
+                                {item.label}
+                              </p>
+                              <p className="mt-1 text-lg font-semibold text-gray-900">{item.value}</p>
                             </div>
                           ))}
                         </div>
-                      ) : (
-                        <p className="rounded-xl bg-gray-50 p-3 text-sm text-gray-500">
-                          {t("openingHoursNotConfigured")}
-                        </p>
-                      )}
+                      </div>
 
-                      {dateRangeRules.length > 0 ? (
-                        <div className="border-t pt-4">
-                          <p className="mb-2 text-sm font-semibold text-gray-900">
-                            {t("dateRangeRules")}
-                          </p>
-                          <div className="space-y-2 text-sm">
-                            {dateRangeRules.slice(0, 5).map((rule, index) => {
-                              const { fromDate, toDate } = getDateRangeDates(rule);
-
-                              return (
-                                <div
-                                  key={`date-rule-${index}`}
-                                  className="flex justify-between gap-4 rounded-xl bg-gray-50 px-3 py-2"
-                                >
-                                  <span className="text-gray-700">
-                                    {fromDate}
-                                    {toDate && toDate !== fromDate
-                                      ? ` -> ${toDate}`
-                                      : ""}
-                                  </span>
-                                  <span className="text-right text-gray-600">
-                                    {rule?.isClosed
-                                      ? t("closed")
-                                      : `${rule?.openTime || "--:--"} - ${
-                                          rule?.closeTime || "--:--"
-                                        }`}
-                                  </span>
-                                </div>
-                              );
-                            })}
+                      <div className="min-h-0 flex-1 overflow-y-auto bg-[#F8FAFC] px-5 py-5 sm:px-6">
+                        <div className="mb-5 rounded-[18px] border border-blue-100 bg-blue-50/80 p-4">
+                          <div className="flex gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-white text-blue-600 shadow-sm">
+                              <Info size={16} />
+                            </span>
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold text-gray-900">{t("openingHours")}</p>
+                              <p className="mt-1 text-xs leading-5 text-gray-600">
+                                {t("openingHoursDescription")}
+                              </p>
+                            </div>
                           </div>
                         </div>
-                      ) : null}
+
+                        {hasOpeningHours ? (
+                          <div className="space-y-3">
+                            {openingHoursRows.map((h, index) => (
+                              <div
+                                key={h.dayOfWeek || `opening-hour-${index}`}
+                                className="overflow-visible rounded-[22px] border border-gray-100 bg-white shadow-sm"
+                              >
+                                <div className="flex items-center justify-between gap-3 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white px-4 py-3">
+                                  <div className="flex min-w-0 items-center gap-3">
+                                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-primary/10 text-sm font-semibold text-primary">
+                                      {index + 1}
+                                    </span>
+                                    <div className="min-w-0">
+                                      <p className="truncate text-sm font-semibold text-gray-950">
+                                        {String(h.dayOfWeek || "").slice(0, 3)}
+                                      </p>
+                                      <p className="text-xs text-gray-500">{t("openingHours")}</p>
+                                    </div>
+                                  </div>
+
+                                  <span className="rounded-full bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-100">
+                                    {h.isClosed ? t("closed") : t("open")}
+                                  </span>
+                                </div>
+
+                                <div className="p-4">
+                                  {h.isClosed ? (
+                                    <div className="flex min-h-[76px] flex-col justify-center rounded-[16px] border border-red-100 bg-red-50 px-4">
+                                      <p className="text-sm font-semibold text-red-700">{t("closed")}</p>
+                                      <p className="mt-1 text-xs leading-5 text-red-500">
+                                        {t("openingHoursNotConfigured")}
+                                      </p>
+                                    </div>
+                                  ) : (
+                                    <div className="space-y-3">
+                                      <div className="flex h-[44px] items-center gap-3 rounded-[14px] border border-gray-200 bg-[#FAFAFA] px-3 text-sm text-gray-800">
+                                        <Clock size={16} className="shrink-0 text-gray-400" />
+                                        <span className="font-medium">
+                                          {h.openTime || "--:--"} - {h.closeTime || "--:--"}
+                                        </span>
+                                      </div>
+
+                                      {normalizeArray<NonNullable<OpeningHours["breakTimes"]>[number]>(h.breakTimes).length > 0 ? (
+                                        <div className="flex flex-wrap gap-2">
+                                          {normalizeArray<NonNullable<OpeningHours["breakTimes"]>[number]>(h.breakTimes).map((breakTime, breakIndex) => (
+                                            <div
+                                              key={`${h.dayOfWeek || index}-break-${breakIndex}`}
+                                              className="inline-flex items-center gap-2 rounded-[14px] border border-gray-200 bg-[#FAFAFA] px-3 py-2 text-xs font-medium text-gray-700"
+                                            >
+                                              <Coffee size={13} className="shrink-0 text-gray-400" />
+                                              <span>
+                                                {breakTime.startTime || "--:--"} - {breakTime.endTime || "--:--"}
+                                              </span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      ) : null}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="min-h-[260px] rounded-[22px] border border-dashed border-gray-200 bg-white p-6 text-center sm:p-8">
+                            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-[18px] bg-primary/10 text-primary">
+                              <CalendarDays size={18} />
+                            </span>
+                            <p className="mt-4 text-sm font-semibold text-gray-900">
+                              {t("openingHoursNotConfigured")}
+                            </p>
+                          </div>
+                        )}
+
+                        {dateRangeRules.length > 0 ? (
+                          <div className="mt-5">
+                            <div className="mb-3 flex items-center gap-3">
+                              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-white text-primary shadow-sm">
+                                <CalendarX size={16} />
+                              </span>
+                              <div>
+                                <p className="text-base font-semibold text-gray-950">{t("dateRangeRules")}</p>
+                              </div>
+                            </div>
+
+                            <div className="space-y-3">
+                              {dateRangeRules.slice(0, 5).map((rule, index) => {
+                                const { fromDate, toDate } = getDateRangeDates(rule);
+
+                                return (
+                                  <div
+                                    key={`date-rule-${index}`}
+                                    className="overflow-visible rounded-[22px] border border-gray-100 bg-white shadow-sm"
+                                  >
+                                    <div className="flex items-center justify-between gap-3 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white px-4 py-3">
+                                      <div className="flex min-w-0 items-center gap-3">
+                                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-primary/10 text-sm font-semibold text-primary">
+                                          {index + 1}
+                                        </span>
+                                        <p className="truncate text-sm font-semibold text-gray-950">
+                                          {fromDate}
+                                          {toDate && toDate !== fromDate ? ` - ${toDate}` : ""}
+                                        </p>
+                                      </div>
+
+                                      <span className="rounded-full bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-100">
+                                        {rule?.isClosed ? t("closed") : t("open")}
+                                      </span>
+                                    </div>
+
+                                    <div className="p-4">
+                                      {rule?.isClosed ? (
+                                        <div className="flex min-h-[76px] flex-col justify-center rounded-[16px] border border-red-100 bg-red-50 px-4">
+                                          <p className="text-sm font-semibold text-red-700">{t("closed")}</p>
+                                          <p className="mt-1 text-xs leading-5 text-red-500">
+                                            {rule?.note || t("errors.closedDateRange")}
+                                          </p>
+                                        </div>
+                                      ) : (
+                                        <div className="flex h-[44px] items-center gap-3 rounded-[14px] border border-gray-200 bg-[#FAFAFA] px-3 text-sm text-gray-800">
+                                          <Clock size={16} className="shrink-0 text-gray-400" />
+                                          <span className="font-medium">
+                                            {rule?.openTime || "--:--"} - {rule?.closeTime || "--:--"}
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ) : null}
+                      </div>
+
+                      <DialogFooter className="border-t border-gray-100 bg-white px-5 py-4 sm:px-6">
+                        <DialogClose className="inline-flex h-[44px] items-center justify-center rounded-[14px] border border-gray-200 bg-white px-5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20">
+                          {t("closeModal")}
+                        </DialogClose>
+                      </DialogFooter>
                     </DialogContent>
                   </Dialog>
                 ) : null}
