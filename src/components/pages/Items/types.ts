@@ -253,6 +253,7 @@ export type ApiRecord = Record<string, unknown>;
 
 export type AddressRecord = {
   street?: string | null;
+  houseNumber?: string | null;
   shopNumber?: string | null;
   postalCode?: string | null;
   area?: string | null;

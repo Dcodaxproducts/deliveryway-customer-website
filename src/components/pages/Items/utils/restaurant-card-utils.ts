@@ -117,7 +117,7 @@ export const formatAddress = (value: unknown) => {
     const address = value as ApiRecord;
     return [
       address.street,
-      address.shopNumber,
+      address.houseNumber ?? address.shopNumber,
       address.postalCode,
       address.city,
       address.area,

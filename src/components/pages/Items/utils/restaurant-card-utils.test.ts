@@ -13,7 +13,7 @@ describe("restaurant card utils", () => {
     expect(
       formatAddress({
         street: "21",
-        shopNumber: "dha 5",
+        houseNumber: "House 8",
         postalCode: "46330",
         city: "Rawalpindi",
         area: "dha 5",
@@ -22,7 +22,15 @@ describe("restaurant card utils", () => {
         lat: "33.6135842",
         lng: "73.1321428",
       })
-    ).toBe("21, dha 5, 46330, Rawalpindi, dha 5, Punjab, Pakistan");
+    ).toBe("21, House 8, 46330, Rawalpindi, dha 5, Punjab, Pakistan");
+    expect(
+      formatAddress({
+        street: "21",
+        shopNumber: "dha 5",
+        postalCode: "46330",
+        city: "Rawalpindi",
+      })
+    ).toBe("21, dha 5, 46330, Rawalpindi");
     expect(
       getRestaurantAddress(
         {
