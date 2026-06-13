@@ -451,6 +451,12 @@ describe("checkout normalizers", () => {
           discountAmount: 0,
           totalAmount: 1400,
           payableAmount: 1400,
+          chargeBreakdown: {
+            taxes: [{ code: "STANDARD", label: "Standard tax", percentage: 19, amount: 190 }],
+            serviceCharges: [{ code: "SERVICE", label: "Service charge", percentage: 10, amount: 100 }],
+            totalTaxAmount: 190,
+            totalServiceChargeAmount: 100,
+          },
         },
       },
     });
@@ -465,6 +471,12 @@ describe("checkout normalizers", () => {
       deliveryFee: 150,
       discountAmount: 0,
       totalAmount: 1400,
+      chargeBreakdown: {
+        taxes: [{ code: "STANDARD", label: "Standard tax", percentage: 19, amount: 190 }],
+        serviceCharges: [{ code: "SERVICE", label: "Service charge", percentage: 10, amount: 100 }],
+        totalTaxAmount: 190,
+        totalServiceChargeAmount: 100,
+      },
     });
   });
 });

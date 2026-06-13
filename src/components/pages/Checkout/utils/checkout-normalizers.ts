@@ -1,4 +1,9 @@
-import type { CartAppliedPromotion, CartQuote as NormalizedCartQuote } from "@/types/cart";
+import type {
+  CartAppliedPromotion,
+  CartChargeBreakdown,
+  CartChargeLine,
+  CartQuote as NormalizedCartQuote,
+} from "@/types/cart";
 
 export type ApiRecord = Record<string, unknown>;
 
@@ -498,6 +503,70 @@ export const normalizeCartAppliedPromotion = (value: unknown): CartAppliedPromot
   };
 };
 
+const normalizeChargeLine = (value: unknown): CartChargeLine | null => {
+  const line = asRecord(value);
+
+  if (!Object.keys(line).length) {
+    return null;
+  }
+
+  const code = getStringValue(line.code);
+  const label = getStringValue(line.label);
+
+  return {
+    ...(code ? { code } : {}),
+    ...(label ? { label } : {}),
+    percentage: toNumber(line.percentage, 0),
+    amount: toNumber(line.amount, 0),
+  };
+};
+
+const normalizeChargeLines = (value: unknown) =>
+  Array.isArray(value)
+    ? value.map(normalizeChargeLine).filter((line): line is CartChargeLine => Boolean(line))
+    : [];
+
+const normalizeCartChargeBreakdown = (value: unknown): CartChargeBreakdown | undefined => {
+  const breakdown = asRecord(value);
+
+  if (!Object.keys(breakdown).length) {
+    return undefined;
+  }
+
+  const taxes = normalizeChargeLines(breakdown.taxes);
+  const serviceCharges = normalizeChargeLines(breakdown.serviceCharges);
+  const availableTaxTypes = Array.isArray(breakdown.availableTaxTypes)
+    ? breakdown.availableTaxTypes
+        .map((taxType) => {
+          const record = asRecord(taxType);
+
+          if (!Object.keys(record).length) {
+            return null;
+          }
+
+          const code = getStringValue(record.code);
+          const label = getStringValue(record.label);
+
+          return {
+            ...(code ? { code } : {}),
+            ...(label ? { label } : {}),
+            percentage: toNumber(record.percentage, 0),
+            isActive: typeof record.isActive === "boolean" ? record.isActive : undefined,
+            isDefault: typeof record.isDefault === "boolean" ? record.isDefault : undefined,
+          };
+        })
+        .filter((taxType): taxType is NonNullable<typeof taxType> => Boolean(taxType))
+    : [];
+
+  return {
+    taxes,
+    availableTaxTypes,
+    totalTaxAmount: toNumber(breakdown.totalTaxAmount, 0),
+    serviceCharges,
+    totalServiceChargeAmount: toNumber(breakdown.totalServiceChargeAmount, 0),
+  };
+};
+
 export const normalizeCartQuote = (value: unknown): NormalizedCartQuote | null => {
   const quote = asRecord(value);
 
@@ -525,6 +594,7 @@ export const normalizeCartQuote = (value: unknown): NormalizedCartQuote | null =
     totalAmount: toNumber(quote.totalAmount, 0),
     payableAmount: toNumber(quote.payableAmount, toNumber(quote.totalAmount, 0)),
     appliedPromotion: normalizeCartAppliedPromotion(quote.appliedPromotion),
+    chargeBreakdown: normalizeCartChargeBreakdown(quote.chargeBreakdown),
   };
 };
 

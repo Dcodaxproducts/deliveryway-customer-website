@@ -713,6 +713,8 @@
     "pickupPrice": "Abholpreis",
     "deliveryFee": "Liefergebühr",
     "taxesAndCharges": "Steuern und Gebühren",
+    "includedCharges": "In dieser Rechnung enthalten",
+    "noExtraCharges": "Keine zusätzlichen Steuern oder Anpassungen berechnet",
     "couponPlaceholder": "Gutscheincode eingeben",
     "applying": "Wird angewendet...",
     "removing": "Wird entfernt...",

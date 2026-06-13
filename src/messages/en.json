@@ -713,6 +713,8 @@
     "pickupPrice": "Pickup Price",
     "deliveryFee": "Delivery Fee",
     "taxesAndCharges": "Taxes and Charges",
+    "includedCharges": "Included in this bill",
+    "noExtraCharges": "No extra taxes or adjustments charged",
     "couponPlaceholder": "Enter coupon code",
     "applying": "Applying...",
     "removing": "Removing...",

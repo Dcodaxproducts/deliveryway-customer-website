@@ -565,6 +565,12 @@ describe("cart service", () => {
         walletAppliedAmount: 25,
         totalAmount: 999,
         payableAmount: 1400,
+        chargeBreakdown: {
+          taxes: [{ code: "STANDARD", label: "Standard tax", percentage: 19, amount: 190 }],
+          serviceCharges: [{ code: "SERVICE", label: "Service charge", percentage: 10, amount: 100 }],
+          totalTaxAmount: 190,
+          totalServiceChargeAmount: 100,
+        },
         appliedPromotion: {
           id: "deal-1",
           title: "Any 2 Burgers",
@@ -585,6 +591,12 @@ describe("cart service", () => {
       walletAppliedAmount: 25,
       totalAmount: 999,
       payableAmount: 1400,
+      chargeBreakdown: {
+        taxes: [{ code: "STANDARD", label: "Standard tax", percentage: 19, amount: 190 }],
+        serviceCharges: [{ code: "SERVICE", label: "Service charge", percentage: 10, amount: 100 }],
+        totalTaxAmount: 190,
+        totalServiceChargeAmount: 100,
+      },
       appliedPromotion: {
         id: "deal-1",
         title: "Any 2 Burgers",
