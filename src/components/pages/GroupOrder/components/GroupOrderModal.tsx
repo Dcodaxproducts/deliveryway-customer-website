@@ -12,7 +12,7 @@ import { BranchSelect } from "@/components/ui/BranchSelect";
 import { CalendarDays, Clock3, Loader2, MapPin, PencilLine, RotateCcw, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { setStoredGroupOrderCode } from "@/lib/group-order";
+import { resolveGroupOrderDeliveryAddressId, setStoredGroupOrderCode } from "@/lib/group-order";
 import { getStoredRestaurantMenuId } from "@/lib/timed-menu";
 import { getBackendErrorMessage, hasBackendError } from "@/components/pages/Checkout/utils/checkout-normalizers";
 import { fetchAddresses as fetchProfileAddresses, type AddressRecord } from "@/services/profile";
@@ -78,22 +78,29 @@ export function GroupOrderModal({ open, onClose }: GroupOrderModalProps) {
     try {
       setLoadingDeliveryAddresses(true);
       const addresses = await fetchProfileAddresses({ get });
+      const resolvedAddressId = resolveGroupOrderDeliveryAddressId({
+        addresses,
+        selectedAddressId: selectedDeliveryAddress,
+      });
 
       setDeliveryAddresses(addresses);
-      setSelectedDeliveryAddress((current) => {
-        if (current && addresses.some((address) => address.id === current)) {
-          return current;
-        }
+      setSelectedDeliveryAddress(resolvedAddressId);
 
-        return addresses.find((address) => address.isDefault)?.id || addresses[0]?.id || "";
-      });
+      return {
+        addresses,
+        selectedAddressId: resolvedAddressId,
+      };
     } catch (error) {
       setDeliveryAddresses([]);
       setSelectedDeliveryAddress("");
+      return {
+        addresses: [],
+        selectedAddressId: "",
+      };
     } finally {
       setLoadingDeliveryAddresses(false);
     }
-  }, [get]);
+  }, [get, selectedDeliveryAddress]);
 
   useEffect(() => {
     if (!open) return;
@@ -143,7 +150,21 @@ export function GroupOrderModal({ open, onClose }: GroupOrderModalProps) {
         return toast.error(errorT("reservationPastDate"));
       }
 
-      if (orderType === "DELIVERY" && !selectedDeliveryAddress) {
+      let deliveryAddressId = "";
+
+      if (orderType === "DELIVERY") {
+        deliveryAddressId = resolveGroupOrderDeliveryAddressId({
+          addresses: deliveryAddresses,
+          selectedAddressId: selectedDeliveryAddress,
+        });
+
+        if (!deliveryAddressId) {
+          const deliveryAddressState = await loadDeliveryAddresses();
+          deliveryAddressId = deliveryAddressState.selectedAddressId;
+        }
+      }
+
+      if (orderType === "DELIVERY" && !deliveryAddressId) {
         return toast.error(t("selectDeliveryAddress"));
       }
 
@@ -153,7 +174,7 @@ export function GroupOrderModal({ open, onClose }: GroupOrderModalProps) {
       const payload: CreateGroupOrderPayload = {
         branchId,
         orderType,
-        deliveryAddressId: orderType === "DELIVERY" ? selectedDeliveryAddress : null,
+        deliveryAddressId: orderType === "DELIVERY" ? deliveryAddressId : null,
         ...(restaurantMenuId ? { restaurantMenuId } : {}),
         orderTime,
         hostNote: note || null,
