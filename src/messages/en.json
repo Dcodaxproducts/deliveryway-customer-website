@@ -1294,6 +1294,13 @@
         "TAKEAWAY": "Takeaway",
         "DELIVERY": "Delivery"
       },
+      "deliveryAddress": "Delivery address",
+      "deliveryAddressSubtitle": "Choose where your group order should be delivered.",
+      "selectDeliveryAddress": "Please select a delivery address",
+      "loadingAddresses": "Loading delivery addresses...",
+      "noDeliveryAddresses": "No saved delivery addresses found. Add one in checkout before starting a delivery group order.",
+      "defaultAddress": "Default",
+      "unnamedAddress": "Saved address",
       "date": "Date",
       "time": "Time",
       "scheduleTitle": "Order time",

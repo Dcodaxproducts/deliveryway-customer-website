@@ -1294,6 +1294,13 @@
         "TAKEAWAY": "Zum Mitnehmen",
         "DELIVERY": "Lieferung"
       },
+      "deliveryAddress": "Lieferadresse",
+      "deliveryAddressSubtitle": "Wählen Sie aus, wohin Ihre Gruppenbestellung geliefert werden soll.",
+      "selectDeliveryAddress": "Bitte wählen Sie eine Lieferadresse aus",
+      "loadingAddresses": "Lieferadressen werden geladen...",
+      "noDeliveryAddresses": "Keine gespeicherten Lieferadressen gefunden. Fügen Sie vor dem Start einer Liefer-Gruppenbestellung eine Adresse im Checkout hinzu.",
+      "defaultAddress": "Standard",
+      "unnamedAddress": "Gespeicherte Adresse",
       "date": "Datum",
       "time": "Uhrzeit",
       "scheduleTitle": "Bestellzeit",

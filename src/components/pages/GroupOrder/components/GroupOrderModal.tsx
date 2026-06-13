@@ -1,19 +1,21 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useGroupOrderApi } from "@/hooks/useGroupOrder";
 import { useAuth } from "@/hooks/useAuth";
+import { useCheckout } from "@/hooks/useCheckout";
 import { BranchSelect } from "@/components/ui/BranchSelect";
-import { CalendarDays, Clock3, PencilLine, RotateCcw, X } from "lucide-react";
+import { CalendarDays, Clock3, Loader2, MapPin, PencilLine, RotateCcw, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { setStoredGroupOrderCode } from "@/lib/group-order";
 import { getStoredRestaurantMenuId } from "@/lib/timed-menu";
 import { getBackendErrorMessage, hasBackendError } from "@/components/pages/Checkout/utils/checkout-normalizers";
+import { fetchAddresses as fetchProfileAddresses, type AddressRecord } from "@/services/profile";
 import type { CreateGroupOrderPayload, GroupOrderType } from "@/types/group-order";
 import type { BranchRecord } from "@/types/branch-selector";
 
@@ -42,12 +44,23 @@ const getLocalScheduleDate = (date: string, time: string) => {
 
 const isPastDateValue = (value: string) => Boolean(value) && value < getCurrentSchedule().date;
 
+const formatAddress = (address: AddressRecord) =>
+  [
+    address.street,
+    address.area,
+    address.postalCode,
+    address.city,
+    address.state,
+    address.country,
+  ].filter(Boolean).join(", ");
+
 export function GroupOrderModal({ open, onClose }: GroupOrderModalProps) {
   const t = useTranslations("groupOrder.modal");
   const commonT = useTranslations("common");
   const errorT = useTranslations("errors");
   const { user, token } = useAuth();
   const { createGroupOrder, loading } = useGroupOrderApi(token);
+  const { get } = useCheckout(token);
   const router = useRouter();
   const initialSchedule = useMemo(() => getCurrentSchedule(), []);
   const [selectedBranch, setSelectedBranch] = useState<BranchRecord | null>(null);
@@ -56,7 +69,31 @@ export function GroupOrderModal({ open, onClose }: GroupOrderModalProps) {
   const [scheduleEditorOpen, setScheduleEditorOpen] = useState(false);
   const [note, setNote] = useState("");
   const [orderType, setOrderType] = useState<GroupOrderType>("DINE_IN");
+  const [deliveryAddresses, setDeliveryAddresses] = useState<AddressRecord[]>([]);
+  const [selectedDeliveryAddress, setSelectedDeliveryAddress] = useState("");
+  const [loadingDeliveryAddresses, setLoadingDeliveryAddresses] = useState(false);
   const todayDate = getCurrentSchedule().date;
+
+  const loadDeliveryAddresses = useCallback(async () => {
+    try {
+      setLoadingDeliveryAddresses(true);
+      const addresses = await fetchProfileAddresses({ get });
+
+      setDeliveryAddresses(addresses);
+      setSelectedDeliveryAddress((current) => {
+        if (current && addresses.some((address) => address.id === current)) {
+          return current;
+        }
+
+        return addresses.find((address) => address.isDefault)?.id || addresses[0]?.id || "";
+      });
+    } catch (error) {
+      setDeliveryAddresses([]);
+      setSelectedDeliveryAddress("");
+    } finally {
+      setLoadingDeliveryAddresses(false);
+    }
+  }, [get]);
 
   useEffect(() => {
     if (!open) return;
@@ -66,6 +103,12 @@ export function GroupOrderModal({ open, onClose }: GroupOrderModalProps) {
     setTime(currentSchedule.time);
     setScheduleEditorOpen(false);
   }, [open]);
+
+  useEffect(() => {
+    if (!open || orderType !== "DELIVERY") return;
+
+    void loadDeliveryAddresses();
+  }, [loadDeliveryAddresses, open, orderType]);
 
   const selectedScheduleDate = useMemo(
     () => getLocalScheduleDate(date, time),
@@ -100,13 +143,17 @@ export function GroupOrderModal({ open, onClose }: GroupOrderModalProps) {
         return toast.error(errorT("reservationPastDate"));
       }
 
+      if (orderType === "DELIVERY" && !selectedDeliveryAddress) {
+        return toast.error(t("selectDeliveryAddress"));
+      }
+
       const orderTime = selectedScheduleDate.toISOString();
       const restaurantMenuId = getStoredRestaurantMenuId();
 
       const payload: CreateGroupOrderPayload = {
         branchId,
         orderType,
-        deliveryAddressId: null,
+        deliveryAddressId: orderType === "DELIVERY" ? selectedDeliveryAddress : null,
         ...(restaurantMenuId ? { restaurantMenuId } : {}),
         orderTime,
         hostNote: note || null,
@@ -194,6 +241,65 @@ export function GroupOrderModal({ open, onClose }: GroupOrderModalProps) {
               ))}
             </div>
           </div>
+
+          {orderType === "DELIVERY" ? (
+            <div className="rounded-[22px] border border-gray-100 bg-[#FAFAF9] p-4 shadow-sm">
+              <div className="flex items-start gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                  <MapPin className="h-5 w-5" />
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-gray-900">
+                    {t("deliveryAddress")}
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-gray-500">
+                    {t("deliveryAddressSubtitle")}
+                  </p>
+
+                  {loadingDeliveryAddresses ? (
+                    <div className="mt-4 flex items-center gap-2 rounded-2xl border border-gray-100 bg-white px-4 py-3 text-sm font-medium text-gray-500 shadow-sm">
+                      <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                      {t("loadingAddresses")}
+                    </div>
+                  ) : deliveryAddresses.length > 0 ? (
+                    <div className="mt-4 grid gap-2">
+                      {deliveryAddresses.map((address) => {
+                        const isSelected = selectedDeliveryAddress === address.id;
+                        const addressLabel = formatAddress(address) || t("unnamedAddress");
+
+                        return (
+                          <button
+                            key={address.id}
+                            type="button"
+                            onClick={() => setSelectedDeliveryAddress(address.id)}
+                            className={`w-full rounded-[18px] border px-4 py-3 text-left text-sm transition ${
+                              isSelected
+                                ? "border-primary/30 bg-white text-gray-950 shadow-sm ring-2 ring-primary/10"
+                                : "border-gray-100 bg-white/80 text-gray-600 hover:border-primary/20 hover:bg-white"
+                            }`}
+                          >
+                            <span className="flex items-start justify-between gap-3">
+                              <span className="leading-5">{addressLabel}</span>
+                              {address.isDefault ? (
+                                <span className="shrink-0 rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary">
+                                  {t("defaultAddress")}
+                                </span>
+                              ) : null}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="mt-4 rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm leading-5 text-amber-700">
+                      {t("noDeliveryAddresses")}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : null}
 
           {/* DATE + TIME */}
           <div className="rounded-[22px] border border-gray-100 bg-[#FAFAF9] p-4 shadow-sm">
