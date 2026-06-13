@@ -115,7 +115,15 @@ export const formatAddress = (value: unknown) => {
   if (typeof value === "string") return value.trim();
   if (typeof value === "object" && value !== null && !Array.isArray(value)) {
     const address = value as ApiRecord;
-    return [address.street, address.area, address.city, address.state, address.country]
+    return [
+      address.street,
+      address.shopNumber,
+      address.postalCode,
+      address.city,
+      address.area,
+      address.state,
+      address.country,
+    ]
       .filter(hasText)
       .join(", ");
   }
@@ -137,12 +145,14 @@ export const getRestaurantName = (authUser: AuthRestaurantUser | null | undefine
 
 export const getRestaurantAddress = (authUser: AuthRestaurantUser | null | undefined, storedAuth: StoredAuthState | null | undefined) => {
   const candidates = [
-    authUser?.restaurant?.address,
     authUser?.branch?.address,
+    authUser?.profile?.branch?.address,
+    storedAuth?.user?.branch?.address,
+    storedAuth?.user?.profile?.branch?.address,
+    authUser?.restaurant?.address,
     authUser?.address,
     authUser?.profile?.address,
     storedAuth?.user?.restaurant?.address,
-    storedAuth?.user?.branch?.address,
     storedAuth?.user?.address,
     storedAuth?.user?.profile?.address,
   ];

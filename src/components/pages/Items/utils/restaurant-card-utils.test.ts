@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { areBranchSchedulesIdentical, formatAddress, formatPrice, getBranchHoursDetails, getBranchHoursSummary, getImageUrl, getOperatingHours, getRestaurantName, getSplitPizzaPricingVariation, mergeUniqueById, resolveHasNext, resolvePromotionBadge } from "./restaurant-card-utils";
+import { areBranchSchedulesIdentical, formatAddress, formatPrice, getBranchHoursDetails, getBranchHoursSummary, getImageUrl, getOperatingHours, getRestaurantAddress, getRestaurantName, getSplitPizzaPricingVariation, mergeUniqueById, resolveHasNext, resolvePromotionBadge } from "./restaurant-card-utils";
 
 describe("restaurant card utils", () => {
   it("formats price and fallback image", () => {
@@ -10,6 +10,28 @@ describe("restaurant card utils", () => {
 
   it("formats address and operating hours", () => {
     expect(formatAddress({ street: "A", city: "B", country: "C" })).toBe("A, B, C");
+    expect(
+      formatAddress({
+        street: "21",
+        shopNumber: "dha 5",
+        postalCode: "46330",
+        city: "Rawalpindi",
+        area: "dha 5",
+        state: "Punjab",
+        country: "Pakistan",
+        lat: "33.6135842",
+        lng: "73.1321428",
+      })
+    ).toBe("21, dha 5, 46330, Rawalpindi, dha 5, Punjab, Pakistan");
+    expect(
+      getRestaurantAddress(
+        {
+          branch: { address: { street: "Branch", postalCode: "12345" } },
+          restaurant: { address: { street: "Restaurant" } },
+        },
+        null
+      )
+    ).toBe("Branch, 12345");
     expect(getOperatingHours({ restaurant: { openingTime: "9", closingTime: "5" } }, null)).toBe("9 - 5");
   });
 
