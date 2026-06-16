@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Tabs from "@/components/pages/Checkout/components/Tabs";
 import { DeliverySection } from "@/components/pages/Checkout/components/DeliverySection";
 import { PickupSection } from "@/components/pages/Checkout/components/PickupSection";
@@ -135,6 +135,31 @@ const hasGuestContact = (customer: { name: string; phone: string; email: string 
 const getCartPreparationMinutes = (items: CartItem[]) =>
   items.reduce((total, item) => total + Math.max(0, Math.floor(toNumber(item.prepTimeMinutes, 0))), 0);
 
+const getCheckoutQuoteSignature = ({
+  activeTab,
+  customerId,
+  guestDeliveryAddress,
+  isGuest,
+  selectedAddress,
+}: {
+  activeTab: string;
+  customerId: string;
+  guestDeliveryAddress: CheckoutAddressValues;
+  isGuest: boolean;
+  selectedAddress: string | null;
+}) => {
+  const address = isGuest
+    ? trimAddress(guestDeliveryAddress)
+    : { selectedAddress: selectedAddress ?? "" };
+
+  return JSON.stringify({
+    activeTab,
+    customerId,
+    isGuest,
+    address,
+  });
+};
+
 function CheckoutPageContent() {
   const t = useTranslations("checkout");
   const searchParams = useSearchParams();
@@ -171,6 +196,8 @@ function CheckoutPageContent() {
   const [loyalty, setLoyalty] = useState<LoyaltySummary | null>(null);
   const [loyaltyPoints, setLoyaltyPoints] = useState("");
   const [loadingLoyalty, setLoadingLoyalty] = useState(false);
+  const loadedCartCustomerIdRef = useRef<string | null>(null);
+  const lastQuoteSignatureRef = useRef("");
   const totalPreparationMinutes = useMemo(
     () => getCartPreparationMinutes(cartItems),
     [cartItems]
@@ -305,8 +332,12 @@ function CheckoutPageContent() {
 
   useEffect(() => {
     if (customerId) {
+      if (loadedCartCustomerIdRef.current === customerId) return;
+      loadedCartCustomerIdRef.current = customerId;
       fetchCart();
     } else {
+      loadedCartCustomerIdRef.current = null;
+      lastQuoteSignatureRef.current = "";
       setCartItems([]);
       setCartQuote(null);
       setAppliedTipAmount(0);
@@ -436,9 +467,21 @@ function CheckoutPageContent() {
   }, [get, isGuest, restaurantId]);
 
   useEffect(() => {
-    if (!customerId) return;
+    if (!customerId || loadingCart) return;
+
+    const quoteSignature = getCheckoutQuoteSignature({
+      activeTab,
+      customerId,
+      guestDeliveryAddress,
+      isGuest,
+      selectedAddress,
+    });
+
+    if (lastQuoteSignatureRef.current === quoteSignature) return;
 
     const quoteTimer = window.setTimeout(async () => {
+      lastQuoteSignatureRef.current = quoteSignature;
+
       const orderType = getCheckoutOrderType(activeTab);
       const orderTypeRes = await updateCustomerCartOrderType({
         customerId,
@@ -446,6 +489,7 @@ function CheckoutPageContent() {
       });
 
       if (hasBackendError(orderTypeRes)) {
+        lastQuoteSignatureRef.current = "";
         reportBackendError(
           t("toast.quoteFailed"),
           orderTypeRes,
@@ -454,7 +498,7 @@ function CheckoutPageContent() {
         return;
       }
 
-      await fetchCart();
+      syncCartFromResponse(orderTypeRes);
 
       const payload: Record<string, unknown> = {};
 
@@ -472,17 +516,20 @@ function CheckoutPageContent() {
       });
 
       if (!hasBackendError(res)) {
-        const { quote } = normalizeCartResponse(res);
-        const quoteData = quote ?? normalizeCartQuote(asRecord(res?.data));
+        if (!syncCartFromResponse(res)) {
+          const quoteData = normalizeCartQuote(asRecord(res?.data));
 
-        if (quoteData) {
-          setCartQuote(quoteData);
+          if (quoteData) {
+            setCartQuote(quoteData);
+          }
         }
+      } else {
+        lastQuoteSignatureRef.current = "";
       }
     }, 450);
 
     return () => window.clearTimeout(quoteTimer);
-  }, [activeTab, customerId, guestDeliveryAddress, isGuest, quoteCustomerCart, selectedAddress, updateCustomerCartOrderType]);
+  }, [activeTab, customerId, guestDeliveryAddress, isGuest, loadingCart, quoteCustomerCart, selectedAddress, updateCustomerCartOrderType]);
 
   useEffect(() => {
     const loadCheckoutBranch = async () => {
