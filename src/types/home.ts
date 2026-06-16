@@ -1,4 +1,5 @@
 import type { Branding } from "@/types/branding";
+import type { HomeGiftCards } from "@/types/gift-cards";
 
 export type HomeRestaurant = {
   id?: string | null;
@@ -94,6 +95,7 @@ export type CustomerHomeData = {
   landingPopup?: LandingPopup | null;
   cuisines: HomeCategory[];
   promotionalItems: PromotionCampaign[];
+  giftCards?: HomeGiftCards | null;
   faqs: Record<string, unknown>[];
   branding: Branding;
 };
