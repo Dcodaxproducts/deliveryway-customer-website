@@ -54,6 +54,7 @@ const normalizeOpeningHours = (value: unknown): NonNullable<BranchRecord["settin
 
   return value.filter(isRecord).map((entry) => ({
     dayOfWeek: getString(entry.dayOfWeek),
+    date: getString(entry.date),
     isClosed: getBoolean(entry.isClosed),
     openTime: getString(entry.openTime),
     closeTime: getString(entry.closeTime),
@@ -83,6 +84,7 @@ const normalizeScheduleTimings = (value: unknown): BranchScheduleTimings | null 
       : undefined,
     openingHours: normalizeOpeningHours(value.openingHours),
     deliveryHours: normalizeOpeningHours(value.deliveryHours),
+    holidayOpeningHours: normalizeOpeningHours(value.holidayOpeningHours),
   };
 };
 
@@ -118,6 +120,7 @@ const normalizeBranchSettings = (value: unknown): BranchRecord["settings"] | und
     tableReservationsEnabled: getBoolean(value.tableReservationsEnabled),
     openingHours: normalizeOpeningHours(value.openingHours),
     deliveryHours: normalizeOpeningHours(value.deliveryHours),
+    holidayOpeningHours: normalizeOpeningHours(value.holidayOpeningHours),
   };
 };
 
@@ -163,6 +166,8 @@ export const normalizeBranch = (value: unknown): BranchRecord | null => {
       ...settings,
       openingHours: settings?.openingHours ?? rootScheduleTimings?.openingHours,
       deliveryHours: settings?.deliveryHours ?? rootScheduleTimings?.deliveryHours,
+      holidayOpeningHours:
+        settings?.holidayOpeningHours ?? rootScheduleTimings?.holidayOpeningHours,
       scheduleTimings: settings?.scheduleTimings ?? rootScheduleTimings,
       tableReservationsEnabled:
         settings?.tableReservationsEnabled ?? getBoolean(value.tableReservationsEnabled),
