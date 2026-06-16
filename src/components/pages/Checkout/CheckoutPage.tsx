@@ -62,6 +62,47 @@ type GuestPrivacyPolicy = {
 const getCheckoutOrderType = (checkoutType: string) =>
   checkoutType === "pickup" ? "TAKEAWAY" : "DELIVERY";
 
+const isMeaningfulCartText = (value: unknown) =>
+  typeof value === "string" && value.trim() && value.trim() !== "Untitled Item";
+
+const mergeCartItemsWithExistingDetails = (
+  currentItems: CartItem[],
+  incomingItems: CartItem[]
+) => {
+  if (!currentItems.length || !incomingItems.length) return incomingItems;
+
+  const currentById = new Map(
+    currentItems
+      .filter((item) => item.id !== undefined && item.id !== null)
+      .map((item) => [String(item.id), item])
+  );
+
+  return incomingItems.map((incomingItem) => {
+    const currentItem = incomingItem.id !== undefined && incomingItem.id !== null
+      ? currentById.get(String(incomingItem.id))
+      : undefined;
+
+    if (!currentItem) return incomingItem;
+
+    const incomingMenuItem = asRecord(incomingItem.menuItem);
+    const currentMenuItem = asRecord(currentItem.menuItem);
+    const mergedMenuItem = {
+      ...currentMenuItem,
+      ...incomingMenuItem,
+    };
+
+    return {
+      ...currentItem,
+      ...incomingItem,
+      name: isMeaningfulCartText(incomingItem.name) ? incomingItem.name : currentItem.name,
+      desc: isMeaningfulCartText(incomingItem.desc) ? incomingItem.desc : currentItem.desc,
+      img: isMeaningfulCartText(incomingItem.img) ? incomingItem.img : currentItem.img,
+      slug: isMeaningfulCartText(incomingItem.slug) ? incomingItem.slug : currentItem.slug,
+      menuItem: Object.keys(mergedMenuItem).length ? mergedMenuItem : incomingItem.menuItem,
+    };
+  });
+};
+
 const isGuestUser = (user: ReturnType<typeof useAuthContext>["user"]) =>
   user?.isGuest === true || String(user?.role || "").toUpperCase() === "GUEST";
 
@@ -249,7 +290,10 @@ function CheckoutPageContent() {
     const { items, quote } = normalizeCartResponse(res);
 
     if (items.length) {
-      setCartItems(items.map((item) => normalizeCartItem(item)));
+      const nextItems = items.map((item) => normalizeCartItem(item));
+      setCartItems((currentItems) =>
+        mergeCartItemsWithExistingDetails(currentItems, nextItems)
+      );
     }
 
     if (!quote) {

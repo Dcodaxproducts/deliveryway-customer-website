@@ -413,7 +413,7 @@ export const normalizeCartItem = (itemInput: unknown): CartItem => {
     quantity,
     name: type === "DEAL"
       ? getStringValue(deal.title || item.name, "Deal")
-      : getStringValue(menuItem.name, "Untitled Item"),
+      : getStringValue(menuItem.name || item.name || item.menuItemName, "Untitled Item"),
     price: unitPriceWithModifiers,
     unitPrice: itemUnitPrice,
     itemUnitPrice,
@@ -422,10 +422,10 @@ export const normalizeCartItem = (itemInput: unknown): CartItem => {
     lineTotal,
     desc: type === "DEAL"
       ? getStringValue(deal.description)
-      : getStringValue(menuItem.description),
+      : getStringValue(menuItem.description || item.description),
     img: type === "DEAL"
       ? getStringValue(deal.imageUrl)
-      : getStringValue(menuItem.imageUrl),
+      : getStringValue(menuItem.imageUrl || item.imageUrl),
     selectedVariationName: dealId
       ? ""
       : getStringValue(selectedVariation.displayText || selectedVariation.name),

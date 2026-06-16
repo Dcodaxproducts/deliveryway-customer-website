@@ -174,6 +174,25 @@ describe("checkout normalizers", () => {
     expect(recalculateCartItemQuantity(normalized, 3).lineTotal).toBe(15);
   });
 
+  it("uses cart item fallback fields when mutation responses omit nested menu item details", () => {
+    const normalized = normalizeCartItem({
+      id: "cart-item-1",
+      quantity: 1,
+      unitPrice: 30,
+      unitPriceWithModifiers: 51,
+      lineTotal: 51,
+      name: "Lahori Chicken Pizza",
+      description: "test test test",
+      imageUrl: "/pizza.avif",
+      menuItemId: "menu-item-1",
+    });
+
+    expect(normalized.name).toBe("Lahori Chicken Pizza");
+    expect(normalized.desc).toBe("test test test");
+    expect(normalized.img).toBe("/pizza.avif");
+    expect(normalized.lineTotal).toBe(51);
+  });
+
   it("preserves backend cart item pricing and selected deal fields", () => {
     const normalized = normalizeCartItem({
       id: "cart-item-1",
