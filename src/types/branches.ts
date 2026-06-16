@@ -19,6 +19,8 @@ export type BranchScheduleTimings = {
 export type BranchAddress = {
   id?: string;
   street?: string | null;
+  shopNumber?: string | null;
+  houseNumber?: string | null;
   area?: string | null;
   city?: string | null;
   state?: string | null;

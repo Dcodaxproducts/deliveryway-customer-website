@@ -35,6 +35,8 @@ const normalizeBranchAddress = (value: unknown): BranchRecord["address"] | undef
   return {
     id: getString(value.id),
     street: getNullableString(value.street),
+    shopNumber: getNullableString(value.shopNumber),
+    houseNumber: getNullableString(value.houseNumber),
     area: getNullableString(value.area),
     city: getNullableString(value.city),
     state: getNullableString(value.state),
@@ -286,14 +288,21 @@ export const branchSupportsDelivery = (branch: Pick<BranchRecord, "settings"> | 
   branch.settings?.allowedOrderTypes?.includes("DELIVERY") ?? false;
 
 export function formatBranchAddress(branch: Pick<BranchRecord, "address"> | NearbyBranch) {
+  const shopOrHouse = branch.address?.shopNumber ?? branch.address?.houseNumber;
+  const area =
+    branch.address?.area && branch.address.area !== shopOrHouse
+      ? branch.address.area
+      : null;
+
   return (
     [
       branch.address?.street,
-      branch.address?.area,
+      shopOrHouse,
+      branch.address?.postalCode,
       branch.address?.city,
+      area,
       branch.address?.state,
       branch.address?.country,
-      branch.address?.postalCode,
     ]
       .filter(Boolean)
       .join(", ") || "Branch location available"

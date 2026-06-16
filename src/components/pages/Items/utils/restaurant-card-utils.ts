@@ -115,12 +115,15 @@ export const formatAddress = (value: unknown) => {
   if (typeof value === "string") return value.trim();
   if (typeof value === "object" && value !== null && !Array.isArray(value)) {
     const address = value as ApiRecord;
+    const shopOrHouse = address.houseNumber ?? address.shopNumber;
+    const area = address.area && address.area !== shopOrHouse ? address.area : null;
+
     return [
       address.street,
-      address.houseNumber ?? address.shopNumber,
+      shopOrHouse,
       address.postalCode,
       address.city,
-      address.area,
+      area,
       address.state,
       address.country,
     ]
