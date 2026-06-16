@@ -16,7 +16,7 @@ import { useMemo } from "react";
 
 import { useAuthContext } from "@/hooks/useAuth";
 import { useHome } from "@/hooks/useHome";
-import { formatBranchAddress, normalizeBranch } from "@/lib/branch-selector";
+import { normalizeBranch } from "@/lib/branch-selector";
 import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
 
 type SocialLink = {
@@ -46,6 +46,54 @@ const normalizeExternalHref = (value?: string | null) => {
   }
 
   return href.includes(".") ? `https://${href}` : null;
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const getTextField = (record: unknown, keys: string[]) => {
+  if (!isRecord(record)) return null;
+
+  for (const key of keys) {
+    const value = record[key];
+
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+
+    if (typeof value === "number") {
+      return String(value);
+    }
+  }
+
+  return null;
+};
+
+const getAddressRecord = (value: unknown) => {
+  if (!isRecord(value)) return null;
+
+  if (isRecord(value.address)) return value.address;
+  if (isRecord(value.location)) return value.location;
+  if (isRecord(value.businessAddress)) return value.businessAddress;
+
+  return value;
+};
+
+const formatRealAddress = (value: unknown) => {
+  const address = getAddressRecord(value);
+
+  if (!address) return "";
+
+  return [
+    getTextField(address, ["street", "addressLine1", "line1", "address"]),
+    getTextField(address, ["area", "district", "neighborhood"]),
+    getTextField(address, ["city"]),
+    getTextField(address, ["state", "province", "region"]),
+    getTextField(address, ["country"]),
+    getTextField(address, ["postalCode", "zipCode", "zip"]),
+  ]
+    .filter(Boolean)
+    .join(", ");
 };
 
 const buildSocialLinks = (
@@ -97,7 +145,15 @@ export const Footer = () => {
     homeData?.branding.logo.light ||
     homeData?.branding.logo.default ||
     null;
-  const branchAddress = branch ? formatBranchAddress(branch) : "";
+  const branchAddress =
+    formatRealAddress(homeData?.branch) ||
+    (branch?.address ? formatRealAddress(branch.address) : "");
+  const branchPhone =
+    getTextField(homeData?.branch, ["phone", "phoneNumber", "contactPhone", "contactNumber", "mobile"]) ||
+    getTextField(restaurant, ["phone", "phoneNumber", "contactPhone", "contactNumber", "mobile"]);
+  const branchEmail =
+    getTextField(homeData?.branch, ["email", "contactEmail", "supportEmail"]) ||
+    getTextField(restaurant, ["email", "contactEmail", "supportEmail"]);
   const socialLinks = buildSocialLinks(restaurant?.socialMediaLinks);
   const privacyHref = restaurantId
     ? `/privacy?restaurantId=${encodeURIComponent(restaurantId)}`
@@ -232,11 +288,47 @@ export const Footer = () => {
                 </p>
               ) : null}
 
+              {branchPhone ? (
+                <p className="text-white font-medium">
+                  {t("phone")} :{" "}
+                  <a
+                    href={`tel:${branchPhone.replace(/[^\d+]/g, "")}`}
+                    className="text-gray-300 font-normal transition-colors hover:text-primary"
+                  >
+                    {branchPhone}
+                  </a>
+                </p>
+              ) : null}
+
+              {branchEmail ? (
+                <p className="text-white font-medium">
+                  {t("email")} :{" "}
+                  <a
+                    href={`mailto:${branchEmail}`}
+                    className="text-gray-300 font-normal transition-colors hover:text-primary"
+                  >
+                    {branchEmail}
+                  </a>
+                </p>
+              ) : null}
+
               {socialLinks.length > 0 ? (
                 <p className="text-white font-medium">
                   {t("followUs")} :{" "}
-                  <span className="text-gray-300 font-normal">
-                    {socialLinks.map((link) => link.label).join(", ")}
+                  <span className="inline-flex flex-wrap gap-x-2 gap-y-1 text-gray-300 font-normal">
+                    {socialLinks.map((link, index) => (
+                      <span key={link.key}>
+                        <Link
+                          href={link.href}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="transition-colors hover:text-primary"
+                        >
+                          {link.label}
+                        </Link>
+                        {index < socialLinks.length - 1 ? "," : ""}
+                      </span>
+                    ))}
                   </span>
                 </p>
               ) : null}
