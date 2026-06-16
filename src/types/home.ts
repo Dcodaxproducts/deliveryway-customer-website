@@ -6,10 +6,13 @@ export type HomeRestaurant = {
   id?: string | null;
   name?: string | null;
   tagline?: string | null;
+  bio?: string | null;
   description?: string | null;
   logoUrl?: string | null;
+  coverImage?: string | null;
   coverImageUrl?: string | null;
   heroImageUrl?: string | null;
+  socialMediaLinks?: Record<string, string | null | undefined> | null;
   primaryColor?: string | null;
   secondaryColor?: string | null;
   accentColor?: string | null;

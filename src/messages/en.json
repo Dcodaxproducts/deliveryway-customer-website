@@ -76,8 +76,10 @@
     "call": "Call",
     "email": "Email",
     "address": "Address",
+    "branch": "Branch",
+    "followUs": "Follow us",
     "brandDescription": "A perfect place for perfect food, all kind of parties and any other gathering as well, for our guests to simply unwind and relax in complete serenity.",
-    "copyright": "Copyright © 2026 Food Lovers. All Rights Reserved."
+    "copyright": "Copyright © {year} {name}. All Rights Reserved."
   },
   "auth": {
     "brandHeroAlt": "Brand hero image",

@@ -76,8 +76,10 @@
     "call": "Telefon",
     "email": "E-Mail",
     "address": "Adresse",
+    "branch": "Filiale",
+    "followUs": "Folgen Sie uns",
     "brandDescription": "Ein perfekter Ort für perfektes Essen, Feiern aller Art und andere Zusammenkünfte, an dem unsere Gäste in völliger Ruhe abschalten und entspannen können.",
-    "copyright": "Copyright © 2026 Food Lovers. Alle Rechte vorbehalten."
+    "copyright": "Copyright © {year} {name}. Alle Rechte vorbehalten."
   },
   "auth": {
     "brandHeroAlt": "Marken-Hero-Bild",
