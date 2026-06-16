@@ -26,7 +26,7 @@ import { BranchSwitcher } from "@/components/common/branch-selector/BranchSwitch
 import { BrandLogo } from "@/components/common/BrandLogo"
 import { LanguageSelector } from "@/components/layout/navbar/LanguageSelector"
 import { useHome } from "@/hooks/useHome"
-import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home"
+import { resolveHomeBranchId, resolveHomeRestaurantId, resolveTableReservationsEnabled } from "@/lib/home"
 
 type MenuItem = {
   id: string
@@ -120,11 +120,10 @@ export const Navbar = () => {
 
   const isAuth = !!user
   const userName = `${user?.profile?.firstName || ""} ${user?.profile?.lastName || ""}`.trim()
-  const tableReservationsEnabled =
-    homeQuery.data?.data.branch?.tableReservationsEnabled === true ||
-    homeQuery.data?.data.branch?.settings?.tableReservationsEnabled === true ||
-    user?.branch?.tableReservationsEnabled === true ||
-    user?.branch?.settings?.tableReservationsEnabled === true
+  const tableReservationsEnabled = resolveTableReservationsEnabled(
+    homeQuery.data?.data.branch,
+    user?.branch
+  )
 
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
