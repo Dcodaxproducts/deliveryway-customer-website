@@ -99,6 +99,9 @@ export const Footer = () => {
     null;
   const branchAddress = branch ? formatBranchAddress(branch) : "";
   const socialLinks = buildSocialLinks(restaurant?.socialMediaLinks);
+  const privacyHref = restaurantId
+    ? `/privacy?restaurantId=${encodeURIComponent(restaurantId)}`
+    : "/privacy";
 
   const quickLinks = [
     // { label: "Menu", href: "/menu" },
@@ -110,7 +113,7 @@ export const Footer = () => {
   const companyLinks = [
     { label: t("about"), href: "/about" },
     { label: t("terms"), href: "/terms" },
-    { label: t("privacyPolicy"), href: "/privacy" },
+    { label: t("privacyPolicy"), href: privacyHref },
     { label: t("refundPolicy"), href: "/refund" },
   ];
 

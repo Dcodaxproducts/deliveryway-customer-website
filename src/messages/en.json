@@ -1513,6 +1513,7 @@
       "loadingPolicy": "Loading restaurant legal details...",
       "legalProfileTitle": "Restaurant legal details",
       "legalProfileDescription": "Business and tax details provided by the restaurant.",
+      "ownerName": "Owner name",
       "legalBusinessName": "Legal business name",
       "taxNumber": "Tax/VAT number",
       "businessAddress": "Business address",

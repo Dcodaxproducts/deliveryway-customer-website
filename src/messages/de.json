@@ -1513,6 +1513,7 @@
       "loadingPolicy": "Rechtliche Restaurantdetails werden geladen...",
       "legalProfileTitle": "Rechtliche Restaurantdetails",
       "legalProfileDescription": "Vom Restaurant bereitgestellte Geschäfts- und Steuerdetails.",
+      "ownerName": "Name des Eigentümers",
       "legalBusinessName": "Rechtlicher Geschäftsname",
       "taxNumber": "Steuer-/USt-Nummer",
       "businessAddress": "Geschäftsadresse",
