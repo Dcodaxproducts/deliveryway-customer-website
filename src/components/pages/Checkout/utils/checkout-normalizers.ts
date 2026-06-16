@@ -647,6 +647,25 @@ export const getAppliedPromotionDiscountLine = (
   };
 };
 
+const isQuoteRecord = (record: ApiRecord) =>
+  "subtotal" in record ||
+  "totalAmount" in record ||
+  "payableAmount" in record ||
+  "deliveryFee" in record ||
+  "taxAmount" in record ||
+  "chargeBreakdown" in record ||
+  "appliedPromotion" in record;
+
+const isDisplayCartItemRecord = (item: ApiRecord) =>
+  Boolean(
+    item.id ||
+      item.cartItemId ||
+      item.deal ||
+      item.menuItem ||
+      Array.isArray(item.selectedModifiers) ||
+      Array.isArray(item.selectedSections)
+  );
+
 export const normalizeCartResponse = (res: unknown): CartResponse => {
   const record = asRecord(res);
   const data = asRecord(record.data);
@@ -659,9 +678,11 @@ export const normalizeCartResponse = (res: unknown): CartResponse => {
       : cartData.items || cartData.quote
         ? cartData
         : data;
+  const items = normalizeArray<ApiRecord>(cart.items);
+  const hasDisplayCartItems = items.some(isDisplayCartItemRecord);
 
   return {
-    items: normalizeArray<ApiRecord>(cart.items),
-    quote: normalizeCartQuote(cart.quote),
+    items: hasDisplayCartItems ? items : [],
+    quote: normalizeCartQuote(cart.quote) ?? (isQuoteRecord(cart) ? normalizeCartQuote(cart) : null),
   };
 };

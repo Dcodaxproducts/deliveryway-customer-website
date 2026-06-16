@@ -492,6 +492,44 @@ describe("checkout normalizers", () => {
     expect(quote?.payableAmount).toBe(899);
   });
 
+  it("does not treat quote snapshot rows as display cart items", () => {
+    const { items, quote } = normalizeCartResponse({
+      data: {
+        subtotal: 51,
+        deliveryFee: 2,
+        totalAmount: 53,
+        payableAmount: 53,
+        items: [
+          {
+            menuItemId: "pizza-1",
+            menuItemName: "Lahori Chicken Pizza",
+            variationId: "small",
+            variationName: "Small",
+            quantity: 1,
+            unitPrice: 51,
+            lineTotal: 51,
+            snapshotModifiers: [
+              {
+                modifierId: "modifier-1",
+                name: "Lahori pizza modifier",
+                quantity: 1,
+                unitPrice: 21,
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(items).toEqual([]);
+    expect(quote).toMatchObject({
+      subtotal: 51,
+      deliveryFee: 2,
+      totalAmount: 53,
+      payableAmount: 53,
+    });
+  });
+
   it("preserves saved cart coupon values from wrapped cart response", () => {
     const { quote } = normalizeCartResponse({
       data: {
