@@ -108,7 +108,14 @@ export const Navbar = () => {
   const homeQuery = useHome(
     homeRestaurantId,
     branchId,
-    Boolean(!authLoading && homeRestaurantId && branchId)
+    Boolean(!authLoading && homeRestaurantId && branchId),
+    {
+      staleTime: 0,
+      refetchInterval: 15_000,
+      refetchOnMount: "always",
+      refetchOnReconnect: "always",
+      refetchOnWindowFocus: "always",
+    }
   )
 
   const isAuth = !!user
