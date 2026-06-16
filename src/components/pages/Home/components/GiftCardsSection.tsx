@@ -37,59 +37,50 @@ const GiftCardTicket = ({
   const t = useTranslations("home.giftCards");
 
   return (
-    <article className="group relative overflow-hidden rounded-[22px] border border-gray-100 bg-white shadow-lg shadow-gray-200/70 transition duration-200 hover:-translate-y-1 hover:border-primary/25 hover:shadow-xl hover:shadow-primary/10">
-      <div className="absolute bottom-0 left-[92px] top-0 hidden w-px border-l border-dashed border-gray-200 sm:block" />
-      <div className="grid min-h-[188px] grid-cols-1 sm:grid-cols-[92px_1fr]">
-        <div className="flex items-center justify-between bg-primary px-4 py-4 text-white sm:flex-col sm:justify-center">
-          <Gift size={24} />
-          <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:[writing-mode:vertical-rl]">
-            {t("label")}
-          </span>
-        </div>
-
-        <div className="flex min-w-0 flex-col p-5">
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <p className="text-2xl font-black leading-none text-gray-950">
-                {formatAmount(giftCard.amount, currency ?? "USD")}
-              </p>
-              <h3 className="mt-3 line-clamp-2 text-lg font-bold leading-snug text-gray-900">
-                {giftCard.title}
-              </h3>
-            </div>
-
-            {giftCard.imageUrl ? (
-              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl bg-gray-100">
-                <Image
-                  src={giftCard.imageUrl}
-                  alt={giftCard.title}
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
-              </div>
-            ) : (
-              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                <BadgeCheck size={22} />
-              </span>
-            )}
+    <article className="group relative overflow-hidden rounded-[22px] bg-white shadow-[0_18px_55px_rgba(239,68,68,0.13)] transition duration-200 before:absolute before:inset-x-6 before:-top-10 before:h-20 before:rounded-full before:bg-primary/20 before:blur-3xl hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(239,68,68,0.2)]">
+      <div className="absolute -right-10 -top-12 h-28 w-28 rounded-full bg-primary/10 blur-2xl transition duration-200 group-hover:bg-primary/20" />
+      <div className="relative flex min-h-[188px] min-w-0 flex-col p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-2xl font-black leading-none text-gray-950">
+              {formatAmount(giftCard.amount, currency ?? "USD")}
+            </p>
+            <h3 className="mt-3 line-clamp-2 text-lg font-bold leading-snug text-gray-900">
+              {giftCard.title}
+            </h3>
           </div>
 
-          {giftCard.description ? (
-            <p className="mt-3 line-clamp-2 text-sm leading-5 text-gray-500">
-              {giftCard.description}
-            </p>
-          ) : null}
-
-          <Button
-            type="button"
-            className="mt-auto h-10 rounded-full bg-primary text-white hover:bg-primary/90"
-            onClick={() => onSelect(giftCard)}
-          >
-            {t("buyPreset")}
-            <ArrowRight size={15} />
-          </Button>
+          {giftCard.imageUrl ? (
+            <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl bg-gray-100">
+              <Image
+                src={giftCard.imageUrl}
+                alt={giftCard.title}
+                fill
+                className="object-cover"
+                unoptimized
+              />
+            </div>
+          ) : (
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-lg shadow-primary/10">
+              <BadgeCheck size={22} />
+            </span>
+          )}
         </div>
+
+        {giftCard.description ? (
+          <p className="mt-3 line-clamp-2 text-sm leading-5 text-gray-500">
+            {giftCard.description}
+          </p>
+        ) : null}
+
+        <Button
+          type="button"
+          className="mt-auto h-10 rounded-full bg-primary text-white hover:bg-primary/90"
+          onClick={() => onSelect(giftCard)}
+        >
+          {t("buyPreset")}
+          <ArrowRight size={15} />
+        </Button>
       </div>
     </article>
   );
