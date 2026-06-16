@@ -705,8 +705,6 @@
     "deliveryBreakHoursTitle": "Break hours",
     "deliveryBreakHoursDescription": "These windows are unavailable, so they are intentionally skipped from the delivery time options.",
     "deliveryBreakTime": "Break: {time}",
-    "scheduledDeliveryEstimateTitle": "Scheduled delivery around {time}",
-    "scheduledDeliveryEstimateDescription": "You selected {selectedTime}. We add {minutes} min preparation time, so the expected delivery time is {deliveryTime}.",
     "usingOpeningHours": "Using opening hours.",
     "noDeliverySlots": "Select another delivery date. No available delivery slots for this day.",
     "deliveryTime": "Delivery time",
