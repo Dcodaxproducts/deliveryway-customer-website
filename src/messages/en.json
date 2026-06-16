@@ -481,8 +481,6 @@
       "hoursPopupNote": "Opening hours define when the branch accepts orders and reservations. Break times are shown separately so customers know when service is paused.",
       "openingHoursDescription": "Regular branch availability for dine-in, pickup, and reservations.",
       "deliveryHoursDescription": "Delivery availability differs from the regular branch schedule.",
-      "deliverySameAsOpeningTitle": "Delivery follows opening hours",
-      "deliverySameAsOpeningDescription": "No separate delivery window today. Orders can be delivered during the same hours shown above.",
       "open": "Open",
       "closed": "Closed",
       "day": "Day",
