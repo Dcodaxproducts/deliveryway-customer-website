@@ -30,7 +30,7 @@ describe("pickup schedule helpers", () => {
     expect(
       buildPickupTimeSlots({
         branch,
-        dateValue: "2026-06-15",
+        dateValue: "2030-06-17",
       })
     ).toEqual([
       { value: "10:00", label: "10:00 AM" },
@@ -58,7 +58,7 @@ describe("pickup schedule helpers", () => {
     expect(
       buildPickupTimeSlots({
         branch,
-        dateValue: "2026-06-15",
+        dateValue: "2030-06-17",
       })
     ).toEqual([]);
   });
@@ -67,7 +67,7 @@ describe("pickup schedule helpers", () => {
     expect(
       getPickupScheduleForDate({
         branch: null,
-        dateValue: "2026-06-08",
+        dateValue: "2030-06-10",
       })
     ).toMatchObject({
       hasOpeningHours: false,
@@ -76,7 +76,7 @@ describe("pickup schedule helpers", () => {
     expect(
       buildPickupTimeSlots({
         branch: null,
-        dateValue: "2026-06-08",
+        dateValue: "2030-06-10",
       })
     ).toEqual([]);
   });
@@ -107,7 +107,7 @@ describe("pickup schedule helpers", () => {
     expect(
       buildDeliveryTimeSlots({
         branch,
-        dateValue: "2026-06-15",
+        dateValue: "2030-06-17",
       })
     ).toEqual([
       { value: "10:00", label: "10:00 AM" },
@@ -139,7 +139,99 @@ describe("pickup schedule helpers", () => {
     expect(
       buildDeliveryTimeSlots({
         branch,
-        dateValue: "2026-06-15",
+        dateValue: "2030-06-17",
+      })
+    ).toEqual([
+      { value: "10:00", label: "10:00 AM" },
+      { value: "10:30", label: "10:30 AM" },
+    ]);
+  });
+
+  it("uses branch delivery interval minutes for scheduled delivery slots", () => {
+    const branch: BranchRecord = {
+      id: "branch-1",
+      name: "Main",
+      scheduleTimings: {
+        deliveryIntervalMinutes: 15,
+        pickupIntervalMinutes: 45,
+      },
+      settings: {
+        deliveryHours: [
+          {
+            dayOfWeek: "MONDAY",
+            openTime: "10:00",
+            closeTime: "11:00",
+          },
+        ],
+      },
+    };
+
+    expect(
+      buildDeliveryTimeSlots({
+        branch,
+        dateValue: "2030-06-17",
+      })
+    ).toEqual([
+      { value: "10:00", label: "10:00 AM" },
+      { value: "10:15", label: "10:15 AM" },
+      { value: "10:30", label: "10:30 AM" },
+      { value: "10:45", label: "10:45 AM" },
+    ]);
+  });
+
+  it("uses branch pickup interval minutes for scheduled pickup slots", () => {
+    const branch: BranchRecord = {
+      id: "branch-1",
+      name: "Main",
+      scheduleTimings: {
+        deliveryIntervalMinutes: 15,
+        pickupIntervalMinutes: 45,
+      },
+      settings: {
+        openingHours: [
+          {
+            dayOfWeek: "MONDAY",
+            openTime: "10:00",
+            closeTime: "12:00",
+          },
+        ],
+      },
+    };
+
+    expect(
+      buildPickupTimeSlots({
+        branch,
+        dateValue: "2030-06-17",
+      })
+    ).toEqual([
+      { value: "10:00", label: "10:00 AM" },
+      { value: "10:45", label: "10:45 AM" },
+    ]);
+  });
+
+  it("falls back to 30 minute slots when backend interval is null", () => {
+    const branch: BranchRecord = {
+      id: "branch-1",
+      name: "Main",
+      scheduleTimings: {
+        deliveryIntervalMinutes: null,
+        pickupIntervalMinutes: null,
+      },
+      settings: {
+        openingHours: [
+          {
+            dayOfWeek: "MONDAY",
+            openTime: "10:00",
+            closeTime: "11:00",
+          },
+        ],
+      },
+    };
+
+    expect(
+      buildPickupTimeSlots({
+        branch,
+        dateValue: "2030-06-17",
       })
     ).toEqual([
       { value: "10:00", label: "10:00 AM" },
@@ -149,7 +241,7 @@ describe("pickup schedule helpers", () => {
 
   it("adds preparation minutes to a selected scheduled delivery time", () => {
     const scheduledAt = addPreparationMinutesToScheduledDelivery({
-      scheduledDeliveryValue: "2026-06-15T09:30",
+      scheduledDeliveryValue: "2030-06-17T09:30",
       preparationMinutes: 20,
     });
 
@@ -158,7 +250,7 @@ describe("pickup schedule helpers", () => {
 
     expect(
       buildScheduledDeliveryEstimate({
-        scheduledDeliveryValue: "2026-06-15T09:30",
+        scheduledDeliveryValue: "2030-06-17T09:30",
         preparationMinutes: 20,
       })
     ).toMatchObject({
