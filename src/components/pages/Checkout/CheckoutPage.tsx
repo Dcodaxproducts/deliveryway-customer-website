@@ -8,8 +8,8 @@ import { CartSummarySection } from "@/components/pages/Checkout/components/CartS
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCheckout } from "@/hooks/useCheckout";
 import { useCart } from "@/hooks/useCart";
+import { useHome } from "@/hooks/useHome";
 import { useLoyalty } from "@/hooks/useLoyalty";
-import useReservations from "@/hooks/useReservations";
 import { toast } from "sonner";
 import { useAuthContext } from "@/hooks/useAuth";
 import {
@@ -25,7 +25,7 @@ import { asRecord, getBackendErrorCode, getBackendErrorMessage, getBackendErrorM
 import type { BranchRecord } from "@/types/branch-selector";
 import { useTranslations } from "next-intl";
 import { normalizeCheckoutTipAmount, type CheckoutAddressValues } from "@/validations/checkout";
-import { branchSupportsDelivery, branchSupportsPickup, getSelectedOrderType } from "@/lib/branch-selector";
+import { branchSupportsDelivery, branchSupportsPickup, getSelectedOrderType, normalizeBranch } from "@/lib/branch-selector";
 import {
   getStoredCheckoutTypePreference,
   setStoredCheckoutTypePreference,
@@ -184,7 +184,16 @@ function CheckoutPageContent() {
   const { get, patch, del, post, checkoutCustomerCart } = useCheckout(token);
   const { updateCustomerCart, updateCustomerCartOrderType, quoteCustomerCart } = useCart(token);
   const { fetchLoyalty } = useLoyalty(token);
-  const { fetchReservationBranch } = useReservations(token);
+  const checkoutBranchId = user?.branchId || user?.branch?.id || null;
+  const homeQuery = useHome(
+    restaurantId,
+    checkoutBranchId,
+    Boolean(restaurantId && checkoutBranchId)
+  );
+  const homeBranch = useMemo(
+    () => normalizeBranch(homeQuery.data?.data.branch),
+    [homeQuery.data?.data.branch]
+  );
 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cartQuote, setCartQuote] = useState<ApiRecord | null>(null);
@@ -532,25 +541,15 @@ function CheckoutPageContent() {
   }, [activeTab, customerId, guestDeliveryAddress, isGuest, loadingCart, quoteCustomerCart, selectedAddress, updateCustomerCartOrderType]);
 
   useEffect(() => {
-    const loadCheckoutBranch = async () => {
-      const branchId = user?.branchId || user?.branch?.id;
+    if (!checkoutBranchId) {
+      setCheckoutBranch(null);
+      return;
+    }
 
-      if (!branchId) {
-        setCheckoutBranch(null);
-        return;
-      }
+    const fallbackBranch = normalizeBranch(user?.branch);
 
-      try {
-        const { branch } = await fetchReservationBranch({ branchId: String(branchId) });
-
-        setCheckoutBranch(branch);
-      } catch (error) {
-        setCheckoutBranch((user?.branch || null) as BranchRecord | null);
-      }
-    };
-
-    void loadCheckoutBranch();
-  }, [fetchReservationBranch, user?.branch, user?.branchId]);
+    setCheckoutBranch(homeBranch ?? fallbackBranch);
+  }, [checkoutBranchId, homeBranch, user?.branch]);
 
   useEffect(() => {
     if (!checkoutBranch?.settings?.allowedOrderTypes?.length) return;

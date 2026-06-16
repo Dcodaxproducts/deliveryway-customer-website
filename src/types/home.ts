@@ -1,4 +1,5 @@
 import type { Branding } from "@/types/branding";
+import type { BranchScheduleTimings } from "@/types/branches";
 import type { HomeGiftCards } from "@/types/gift-cards";
 
 export type HomeRestaurant = {
@@ -23,6 +24,8 @@ export type HomeBranch = {
   restaurantId?: string | null;
   address?: Record<string, unknown>;
   settings?: Record<string, unknown>;
+  scheduleTimings?: BranchScheduleTimings | null;
+  tableReservationsEnabled?: boolean;
 };
 
 export type HomeConfig = {

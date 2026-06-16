@@ -285,8 +285,13 @@ export const getBranchScheduleForDate = ({
   dateValue: string;
   scheduleType: "pickup" | "delivery";
 }): PickupSchedule => {
-  const openingHours = normalizeArray<OpeningHours>(branch?.settings?.openingHours);
-  const deliveryHours = normalizeArray<OpeningHours>(branch?.settings?.deliveryHours);
+  const scheduleTimings = getRecord(branch?.scheduleTimings);
+  const openingHours = normalizeArray<OpeningHours>(
+    branch?.settings?.openingHours ?? scheduleTimings?.openingHours
+  );
+  const deliveryHours = normalizeArray<OpeningHours>(
+    branch?.settings?.deliveryHours ?? scheduleTimings?.deliveryHours
+  );
   const scheduleHours =
     scheduleType === "delivery" && deliveryHours.length > 0
       ? deliveryHours

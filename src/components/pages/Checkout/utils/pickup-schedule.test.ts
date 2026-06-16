@@ -209,6 +209,53 @@ describe("pickup schedule helpers", () => {
     ]);
   });
 
+  it("uses home branch scheduleTimings for hours and separate delivery/pickup intervals", () => {
+    const branch: BranchRecord = {
+      id: "branch-1",
+      name: "Main",
+      scheduleTimings: {
+        deliveryIntervalMinutes: 15,
+        pickupIntervalMinutes: 20,
+        openingHours: [
+          {
+            dayOfWeek: "MONDAY",
+            openTime: "09:00",
+            closeTime: "10:00",
+          },
+        ],
+        deliveryHours: [
+          {
+            dayOfWeek: "MONDAY",
+            openTime: "10:00",
+            closeTime: "11:00",
+          },
+        ],
+      },
+    };
+
+    expect(
+      buildPickupTimeSlots({
+        branch,
+        dateValue: "2030-06-17",
+      })
+    ).toEqual([
+      { value: "09:00", label: "9:00 AM" },
+      { value: "09:20", label: "9:20 AM" },
+      { value: "09:40", label: "9:40 AM" },
+    ]);
+    expect(
+      buildDeliveryTimeSlots({
+        branch,
+        dateValue: "2030-06-17",
+      })
+    ).toEqual([
+      { value: "10:00", label: "10:00 AM" },
+      { value: "10:15", label: "10:15 AM" },
+      { value: "10:30", label: "10:30 AM" },
+      { value: "10:45", label: "10:45 AM" },
+    ]);
+  });
+
   it("falls back to 30 minute slots when backend interval is null", () => {
     const branch: BranchRecord = {
       id: "branch-1",
