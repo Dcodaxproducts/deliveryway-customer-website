@@ -193,6 +193,42 @@ describe("checkout normalizers", () => {
     expect(normalized.lineTotal).toBe(51);
   });
 
+  it("resolves modifier names and prices from flat menu item modifiers", () => {
+    const normalized = normalizeCartItem({
+      id: "cart-item-1",
+      quantity: 1,
+      modifiers: [{ modifierId: "modifier-1", quantity: 1 }],
+      menuItem: {
+        name: "Lahori Chicken Pizza",
+        selectedVariation: {
+          id: "small",
+          name: "Small",
+          displayText: "Small",
+        },
+        modifiers: [
+          {
+            id: "modifier-1",
+            name: "Lahori pizza modifier",
+            priceDelta: 21,
+          },
+        ],
+      },
+    });
+
+    expect(normalized.selectedVariationName).toBe("Small");
+    expect(normalized.selectedModifiers).toEqual([
+      {
+        id: "",
+        modifierId: "modifier-1",
+        name: "Lahori pizza modifier",
+        quantity: 1,
+        unitPrice: 21,
+        priceDelta: undefined,
+        total: 21,
+      },
+    ]);
+  });
+
   it("preserves backend cart item pricing and selected deal fields", () => {
     const normalized = normalizeCartItem({
       id: "cart-item-1",

@@ -160,6 +160,19 @@ export const hasBackendError = (res: unknown) => {
 const getModifierPriceFromGroups = (cartItem: ApiRecord, modifierId: string) => {
   const menuItem = asRecord(cartItem.menuItem);
   const category = asRecord(menuItem.category);
+  const flatModifiers = [
+    ...normalizeArray<ApiRecord>(menuItem.modifiers),
+    ...normalizeArray<ApiRecord>(category.modifiers),
+  ];
+  const flatModifier = flatModifiers.find(({ id }) => String(id || "") === modifierId);
+
+  if (flatModifier) {
+    return {
+      name: getStringValue(flatModifier.name, "Add-on"),
+      unitPrice: toNumber(flatModifier.priceDelta, 0),
+    };
+  }
+
   const modifierGroups = [
     ...normalizeArray<ApiRecord>(menuItem.modifierGroups),
     ...normalizeArray<ApiRecord>(category.modifierGroups),

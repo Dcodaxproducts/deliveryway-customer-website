@@ -63,7 +63,60 @@ const getCheckoutOrderType = (checkoutType: string) =>
   checkoutType === "pickup" ? "TAKEAWAY" : "DELIVERY";
 
 const isMeaningfulCartText = (value: unknown) =>
-  typeof value === "string" && value.trim() && value.trim() !== "Untitled Item";
+  typeof value === "string" && value.trim() !== "" && value.trim() !== "Untitled Item";
+
+const hasVariationDetails = (value: unknown) => {
+  const variation = asRecord(value);
+
+  return Boolean(
+    isMeaningfulCartText(variation.displayText) ||
+      isMeaningfulCartText(variation.name) ||
+      variation.id
+  );
+};
+
+const hasModifierDetails = (value: unknown) => {
+  const modifier = asRecord(value);
+
+  return Boolean(
+    isMeaningfulCartText(modifier.name) &&
+      String(modifier.name).trim() !== "Add-on"
+  );
+};
+
+const hasDisplayableModifierDetails = (items: CartItem["selectedModifiers"]) =>
+  items.some(hasModifierDetails);
+
+const getMergedCartMenuItem = (
+  currentItem: CartItem,
+  incomingItem: CartItem
+) => {
+  const incomingMenuItem = asRecord(incomingItem.menuItem);
+  const currentMenuItem = asRecord(currentItem.menuItem);
+  const mergedMenuItem = {
+    ...currentMenuItem,
+    ...incomingMenuItem,
+  };
+
+  return {
+    ...mergedMenuItem,
+    name: isMeaningfulCartText(incomingMenuItem.name)
+      ? incomingMenuItem.name
+      : currentMenuItem.name,
+    slug: isMeaningfulCartText(incomingMenuItem.slug)
+      ? incomingMenuItem.slug
+      : currentMenuItem.slug,
+    description: isMeaningfulCartText(incomingMenuItem.description)
+      ? incomingMenuItem.description
+      : currentMenuItem.description,
+    imageUrl: isMeaningfulCartText(incomingMenuItem.imageUrl)
+      ? incomingMenuItem.imageUrl
+      : currentMenuItem.imageUrl,
+    selectedVariation: hasVariationDetails(incomingMenuItem.selectedVariation)
+      ? incomingMenuItem.selectedVariation
+      : currentMenuItem.selectedVariation,
+  };
+};
 
 const mergeCartItemsWithExistingDetails = (
   currentItems: CartItem[],
@@ -84,12 +137,15 @@ const mergeCartItemsWithExistingDetails = (
 
     if (!currentItem) return incomingItem;
 
-    const incomingMenuItem = asRecord(incomingItem.menuItem);
-    const currentMenuItem = asRecord(currentItem.menuItem);
-    const mergedMenuItem = {
-      ...currentMenuItem,
-      ...incomingMenuItem,
-    };
+    const hasIncomingModifiers =
+      incomingItem.selectedModifiers.length > 0 &&
+      (
+        !currentItem.selectedModifiers.length ||
+        hasDisplayableModifierDetails(incomingItem.selectedModifiers)
+      );
+    const hasIncomingSections = incomingItem.selectedSections.length > 0;
+    const hasIncomingIncludedItems = Boolean(incomingItem.includedItems?.length);
+    const mergedMenuItem = getMergedCartMenuItem(currentItem, incomingItem);
 
     return {
       ...currentItem,
@@ -98,6 +154,21 @@ const mergeCartItemsWithExistingDetails = (
       desc: isMeaningfulCartText(incomingItem.desc) ? incomingItem.desc : currentItem.desc,
       img: isMeaningfulCartText(incomingItem.img) ? incomingItem.img : currentItem.img,
       slug: isMeaningfulCartText(incomingItem.slug) ? incomingItem.slug : currentItem.slug,
+      selectedVariationName: isMeaningfulCartText(incomingItem.selectedVariationName)
+        ? incomingItem.selectedVariationName
+        : currentItem.selectedVariationName,
+      selectedVariation: hasVariationDetails(incomingItem.selectedVariation)
+        ? incomingItem.selectedVariation
+        : currentItem.selectedVariation,
+      variationId: incomingItem.variationId ?? currentItem.variationId,
+      selectedModifiers: hasIncomingModifiers
+        ? incomingItem.selectedModifiers
+        : currentItem.selectedModifiers,
+      selectedSections: hasIncomingSections
+        ? incomingItem.selectedSections
+        : currentItem.selectedSections,
+      sections: hasIncomingSections ? incomingItem.sections : currentItem.sections,
+      includedItems: hasIncomingIncludedItems ? incomingItem.includedItems : currentItem.includedItems,
       menuItem: Object.keys(mergedMenuItem).length ? mergedMenuItem : incomingItem.menuItem,
     };
   });
