@@ -271,8 +271,8 @@ export function FoodCategorySection() {
   };
 
   return (
-    <section className="mx-auto max-w-[1400px] px-4 pt-4 sm:px-6 sm:pt-8">
-      <div className="rounded-[30px] border border-black/5 bg-white p-4 shadow-[0_22px_70px_rgba(17,24,39,0.08)] sm:p-6 lg:p-8">
+    <section className="relative z-20 mx-auto -mt-24 max-w-[1400px] px-4 sm:px-6 lg:-mt-28">
+      <div className="rounded-[30px] border border-black/5 bg-white p-4 sm:p-6 lg:p-8">
         <div className="mb-6 flex items-center justify-between gap-4">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">
@@ -293,11 +293,12 @@ export function FoodCategorySection() {
               <ChevronRight className="h-[16px] w-[10px]" strokeWidth={3} />
             </Button>
 
-            <div className="hidden gap-2 md:flex">
+            <div className="hidden gap-3 md:flex">
               <button
                 type="button"
                 onClick={scrollLeft}
-                className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border border-gray-100 bg-white text-[#212121] shadow-sm transition hover:border-primary/20 hover:bg-primary hover:text-white"
+                className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border border-gray-100 bg-white text-[#212121] transition hover:border-primary/20 hover:bg-primary hover:text-white"
+                aria-label={tCategories("previous")}
               >
                 <ChevronLeft size={20} />
               </button>
@@ -305,7 +306,8 @@ export function FoodCategorySection() {
               <button
                 type="button"
                 onClick={scrollRight}
-                className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border border-gray-100 bg-white text-[#212121] shadow-sm transition hover:border-primary/20 hover:bg-primary hover:text-white"
+                className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border border-gray-100 bg-white text-[#212121] transition hover:border-primary/20 hover:bg-primary hover:text-white"
+                aria-label={tCategories("next")}
               >
                 <ChevronRight size={20} />
               </button>
@@ -331,7 +333,7 @@ export function FoodCategorySection() {
               carouselApi.current = api;
             }}
           >
-            <CarouselContent className="-ml-3">
+            <CarouselContent className="-ml-4">
               {categories.map((item: HomeCategory) => {
                 const image =
                   item.imageUrl && item.imageUrl.startsWith("http")
@@ -341,16 +343,16 @@ export function FoodCategorySection() {
                 return (
                   <CarouselItem
                     key={item.id}
-                    className="basis-1/2 pl-3 sm:basis-1/4 lg:basis-1/6 xl:basis-[12.5%]"
+                    className="basis-1/2 pl-4 sm:basis-1/4 lg:basis-1/6 xl:basis-[12.5%]"
                     onClick={() => router.push(`/items?categoryId=${item.id}`)}
                   >
-                    <div className="group flex min-h-[146px] cursor-pointer flex-col items-center justify-center gap-3 rounded-[24px] border border-gray-100 bg-[#FAFAFA] px-3 py-5 text-center transition hover:-translate-y-1 hover:border-primary/20 hover:bg-white hover:shadow-[0_18px_40px_rgba(17,24,39,0.08)]">
-                      <div className="relative h-20 w-20 overflow-hidden rounded-full bg-white p-2 shadow-sm ring-1 ring-black/5 transition group-hover:scale-105">
+                    <div className="group flex min-h-[150px] cursor-pointer flex-col items-center justify-center gap-3 rounded-[26px] border border-gray-100 bg-[#FAFAFA] px-3 py-5 text-center transition hover:-translate-y-1 hover:border-primary/20 hover:bg-white">
+                      <div className="relative h-20 w-20 overflow-hidden rounded-full bg-white ring-1 ring-black/5 transition group-hover:scale-105">
                         <Image
                           src={image}
                           alt={item.name}
                           fill
-                          className="object-cover p-1"
+                          className="object-cover object-top"
                           unoptimized
                         />
                       </div>
@@ -367,34 +369,7 @@ export function FoodCategorySection() {
         )}
       </div>
 
-      <div className="mb-[50px] mt-[30px] flex flex-col justify-center gap-3 sm:mb-[80px] sm:mt-[60px] sm:flex-row sm:justify-end">
-        <Button
-          variant="ghost"
-          className="w-full rounded-full border border-primary/15 bg-primary/5 text-primary transition hover:bg-primary/10 sm:w-auto"
-          onClick={() => router.push("/group-order")}
-        >
-          {tCategories("groupOrder")}
-        </Button>
-
-        <Button
-          variant="ghost"
-          className="w-full rounded-full border border-gray-200 bg-white text-gray-800 shadow-sm transition hover:border-primary/25 hover:bg-primary/5 hover:text-primary sm:w-auto"
-          onClick={() => router.push("/menu")}
-        >
-          <Store className="h-4 w-4" />
-          {tCategories("menu")}
-        </Button>
-
-        <Button
-          variant="primary"
-          className="w-full sm:w-auto"
-          onClick={() => router.push("/categories")}
-        >
-          {tCategories("orderNow")}
-        </Button>
-      </div>
-
-      <div className="mb-4 flex items-end justify-between gap-4">
+      <div className="mb-4 mt-12 flex items-end justify-between gap-4 sm:mt-16">
         <div>
           <p className="text-sm font-semibold uppercase tracking-wide text-primary">
             {tPromotions("liveOffers")}

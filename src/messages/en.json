@@ -152,8 +152,9 @@
   "home": {
     "hero": {
       "defaultTitle": "Are you starving?",
-      "defaultTagline": "Within a few clicks, find meals that are accessible near you",
+      "defaultTagline": "Good Food, great mood",
       "heroImageAlt": "Hero food background",
+      "deliveryTitle": "Delicious food, delivered to you",
       "description": "Fresh meals, warm service, and easy ordering from your favorite local kitchen.",
       "freshTitle": "Freshly prepared",
       "freshDescription": "Order crowd-pleasing favorites made hot and ready for your table.",
@@ -177,6 +178,8 @@
       "eyebrow": "Top categories",
       "title": "Categories",
       "viewAll": "View All",
+      "previous": "Previous categories",
+      "next": "Next categories",
       "empty": "No categories found",
       "groupOrder": "Group Order",
       "menu": "Menu",

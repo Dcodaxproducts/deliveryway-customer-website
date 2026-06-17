@@ -152,8 +152,9 @@
   "home": {
     "hero": {
       "defaultTitle": "Haben Sie Hunger?",
-      "defaultTagline": "Mit wenigen Klicks finden Sie Mahlzeiten in Ihrer Nähe",
+      "defaultTagline": "Gutes Essen, gute Laune",
       "heroImageAlt": "Hero-Essenshintergrund",
+      "deliveryTitle": "Leckeres Essen, zu Ihnen geliefert",
       "description": "Frische Gerichte, herzlicher Service und einfache Bestellung aus Ihrer Lieblingsküche vor Ort.",
       "freshTitle": "Frisch zubereitet",
       "freshDescription": "Bestellen Sie beliebte Favoriten, heiß und bereit für Ihren Tisch.",
@@ -177,6 +178,8 @@
       "eyebrow": "Top-Kategorien",
       "title": "Kategorien",
       "viewAll": "Alle anzeigen",
+      "previous": "Vorherige Kategorien",
+      "next": "Nächste Kategorien",
       "empty": "Keine Kategorien gefunden",
       "groupOrder": "Gruppenbestellung",
       "menu": "Menü",

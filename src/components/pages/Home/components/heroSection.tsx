@@ -41,7 +41,6 @@ const getOrderType = (mode: BranchSearchMode): BranchOrderType =>
 
 export const HeroSection = ({
   restaurantName,
-  tagline,
   heroImage = "/hero.png",
 }: HeroSectionProps) => {
   const t = useTranslations("home.hero");
@@ -71,7 +70,7 @@ export const HeroSection = ({
   );
 
   const displayRestaurantName = restaurantName || t("defaultTitle");
-  const displayTagline = tagline || t("defaultTagline");
+  const displayTagline = t("defaultTagline");
   const selectedBranch = user?.branch ?? null;
   const selectedOrderType = getSelectedOrderType(user);
   const selectedOrderLabel = selectedOrderType === "TAKEAWAY" ? "Pickup" : selectedOrderType === "DELIVERY" ? "Delivery" : "";
@@ -179,7 +178,7 @@ export const HeroSection = ({
   };
 
   return (
-    <main className="relative flex min-h-[680px] w-full items-center overflow-hidden py-12 md:py-16">
+    <main className="relative flex min-h-[680px] w-full items-center overflow-hidden py-12 md:py-16 lg:min-h-[720px]">
       <div className="absolute inset-0 z-0">
         <Image
           src={resolvedHeroImage}
@@ -189,17 +188,20 @@ export const HeroSection = ({
           priority
         />
       </div>
-      <div className="absolute inset-0 z-0 bg-gradient-to-r from-black/75 via-black/45 to-black/20" />
-      <div className="absolute inset-x-0 bottom-0 z-0 h-28 bg-gradient-to-t from-white via-white/65 to-transparent" />
+      <div className="absolute inset-0 z-0 bg-gradient-to-r from-black/70 via-black/38 to-black/12" />
 
       <div className="relative z-10 mx-auto grid w-full max-w-[1400px] items-center gap-10 px-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_520px] lg:px-8">
         <div className="max-w-[720px] text-white">
-          <p className="mb-5 inline-flex rounded-full bg-white/15 px-4 py-2 text-sm font-bold uppercase tracking-[0.18em] text-white ring-1 ring-white/20 backdrop-blur">
+          <p className="mb-4 text-[17px] font-extrabold tracking-normal text-white sm:text-[20px]">
             {displayTagline}
           </p>
 
-          <h1 className="max-w-[680px] text-[46px] font-black leading-[0.95] tracking-normal text-white drop-shadow-[0_14px_34px_rgba(0,0,0,0.28)] sm:text-[62px] lg:text-[76px]">
+          <p className="mb-5 inline-flex rounded-full bg-white px-4 py-2 text-sm font-extrabold text-primary">
             {displayRestaurantName}
+          </p>
+
+          <h1 className="max-w-[680px] text-[46px] font-black leading-[0.95] tracking-normal text-white sm:text-[62px] lg:text-[76px]">
+            {t("deliveryTitle")}
           </h1>
 
           <p className="mt-6 max-w-[560px] text-lg font-medium leading-8 text-white/86">
