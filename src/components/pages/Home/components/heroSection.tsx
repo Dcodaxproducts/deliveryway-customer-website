@@ -72,7 +72,6 @@ export const HeroSection = ({
   );
 
   const displayRestaurantName = restaurantName || t("defaultTitle");
-  const displayTagline = t("defaultTagline");
   const selectedBranch = user?.branch ?? null;
   const selectedOrderType = getSelectedOrderType(user);
   const selectedOrderLabel = selectedOrderType === "TAKEAWAY" ? "Pickup" : selectedOrderType === "DELIVERY" ? "Delivery" : "";
@@ -198,10 +197,6 @@ export const HeroSection = ({
 
       <div className="relative z-10 mx-auto grid w-full max-w-[1400px] items-center gap-10 px-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_520px] lg:px-8">
         <div className="max-w-[720px] text-white">
-          <p className="mb-4 text-[17px] font-extrabold tracking-normal text-white sm:text-[20px]">
-            {displayTagline}
-          </p>
-
           <p className="mb-5 inline-flex rounded-full bg-white px-4 py-2 text-sm font-extrabold text-primary">
             {displayRestaurantName}
           </p>
@@ -214,39 +209,36 @@ export const HeroSection = ({
             {t("description")}
           </p>
 
-          <div className="mt-8 grid max-w-[680px] gap-3 sm:grid-cols-3">
-            <div className="rounded-[22px] bg-white/13 p-4 ring-1 ring-white/18 backdrop-blur">
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-white text-primary">
-                <Clock3 size={19} />
+          <div className="mt-6 grid max-w-[680px] gap-2.5 sm:grid-cols-3">
+            <div className="rounded-[18px] bg-white/13 p-3 ring-1 ring-white/18 backdrop-blur">
+              <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-white text-primary">
+                <Clock3 size={16} />
               </div>
-              <p className="text-sm font-bold text-white">{t("freshTitle")}</p>
-              <p className="mt-1 text-xs leading-5 text-white/72">{t("freshDescription")}</p>
+              <p className="text-xs font-bold text-white">{t("freshTitle")}</p>
+              <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-white/72">{t("freshDescription")}</p>
             </div>
 
-            <div className="rounded-[22px] bg-white/13 p-4 ring-1 ring-white/18 backdrop-blur">
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-white text-primary">
-                <MapPinned size={19} />
+            <div className="rounded-[18px] bg-white/13 p-3 ring-1 ring-white/18 backdrop-blur">
+              <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-white text-primary">
+                <MapPinned size={16} />
               </div>
-              <p className="text-sm font-bold text-white">{t("trackingTitle")}</p>
-              <p className="mt-1 text-xs leading-5 text-white/72">{t("trackingDescription")}</p>
+              <p className="text-xs font-bold text-white">{t("trackingTitle")}</p>
+              <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-white/72">{t("trackingDescription")}</p>
             </div>
 
-            <div className="rounded-[22px] bg-white/13 p-4 ring-1 ring-white/18 backdrop-blur">
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-white text-primary">
-                <BadgePercent size={19} />
+            <div className="rounded-[18px] bg-white/13 p-3 ring-1 ring-white/18 backdrop-blur">
+              <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-white text-primary">
+                <BadgePercent size={16} />
               </div>
-              <p className="text-sm font-bold text-white">{t("offersTitle")}</p>
-              <p className="mt-1 text-xs leading-5 text-white/72">{t("offersDescription")}</p>
+              <p className="text-xs font-bold text-white">{t("offersTitle")}</p>
+              <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-white/72">{t("offersDescription")}</p>
             </div>
           </div>
         </div>
 
         <div className="w-full rounded-[30px] bg-white p-5 shadow-[0_24px_80px_rgba(17,24,39,0.22)] ring-1 ring-black/5 md:p-7">
           <div className="mb-5">
-            <p className="text-sm font-bold uppercase tracking-[0.18em] text-primary">
-              {t("orderPanelEyebrow")}
-            </p>
-            <h2 className="mt-2 text-2xl font-black tracking-normal text-[#171717]">
+            <h2 className="text-2xl font-black tracking-normal text-[#171717]">
               {t("orderPanelTitle")}
             </h2>
           </div>

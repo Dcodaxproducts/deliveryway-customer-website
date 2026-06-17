@@ -176,8 +176,9 @@
     },
     "categories": {
       "eyebrow": "Top categories",
-      "title": "Categories",
+      "title": "Top categories",
       "viewAll": "View All",
+      "viewAllCategories": "View all categories",
       "previous": "Previous categories",
       "next": "Next categories",
       "empty": "No categories found",

@@ -271,54 +271,29 @@ export function FoodCategorySection() {
   };
 
   return (
-    <section className="relative z-20 mx-auto -mt-24 max-w-[1400px] px-4 sm:px-6 lg:-mt-28">
-      <div className="rounded-[30px] border border-black/5 bg-white p-4 sm:p-6 lg:p-8">
-        <div className="mb-6 flex items-center justify-between gap-4">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">
-              {tCategories("eyebrow")}
-            </p>
-            <h2 className="mt-2 text-[24px] font-black tracking-normal text-[#212121] sm:text-[32px] lg:text-[40px]">
-              {tCategories("title")}
-            </h2>
-          </div>
+    <section className="relative z-20 mx-auto mt-10 max-w-[1400px] px-4 sm:mt-12 sm:px-6">
+      <div className="bg-white py-2 sm:py-4">
+        <div className="mb-5 flex items-center justify-between gap-4">
+          <h2 className="text-[24px] font-black uppercase tracking-normal text-[#212121] sm:text-[32px] lg:text-[38px]">
+            {tCategories("title")}
+          </h2>
 
           <div className="flex items-center gap-3 sm:gap-[16.5px]">
             <Button
               variant="link"
-              className="p-0 text-sm font-bold text-primary sm:text-lg"
+              className="p-0 text-sm font-bold text-primary sm:text-base"
               onClick={() => router.push("/items")}
             >
-              {tCategories("viewAll")}
+              {tCategories("viewAllCategories")}
               <ChevronRight className="h-[16px] w-[10px]" strokeWidth={3} />
             </Button>
-
-            <div className="hidden gap-3 md:flex">
-              <button
-                type="button"
-                onClick={scrollLeft}
-                className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border border-gray-100 bg-white text-[#212121] transition hover:border-primary/20 hover:bg-primary hover:text-white"
-                aria-label={tCategories("previous")}
-              >
-                <ChevronLeft size={20} />
-              </button>
-
-              <button
-                type="button"
-                onClick={scrollRight}
-                className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border border-gray-100 bg-white text-[#212121] transition hover:border-primary/20 hover:bg-primary hover:text-white"
-                aria-label={tCategories("next")}
-              >
-                <ChevronRight size={20} />
-              </button>
-            </div>
           </div>
         </div>
 
         {loading ? (
           <div className="grid grid-cols-2 gap-3 overflow-hidden sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-              <div key={i} className="flex min-h-[142px] flex-col items-center justify-center gap-3 rounded-[24px] border border-gray-100 bg-[#FAFAFA]">
+              <div key={i} className="flex min-h-[128px] flex-col items-center justify-center gap-3 rounded-[24px]">
                 <div className="h-16 w-16 animate-pulse rounded-full bg-gray-200" />
                 <div className="h-4 w-20 animate-pulse rounded bg-gray-200" />
               </div>
@@ -327,45 +302,65 @@ export function FoodCategorySection() {
         ) : categories.length === 0 ? (
           <p className="rounded-2xl bg-[#FAFAFA] px-4 py-6 text-sm text-gray-400">{tCategories("empty")}</p>
         ) : (
-          <Carousel
-            className="w-full"
-            setApi={(api) => {
-              carouselApi.current = api;
-            }}
-          >
-            <CarouselContent className="-ml-4">
-              {categories.map((item: HomeCategory) => {
-                const image =
-                  item.imageUrl && item.imageUrl.startsWith("http")
-                    ? item.imageUrl
-                    : "/burger.png";
+          <div className="relative px-10 md:px-12">
+            <button
+              type="button"
+              onClick={scrollLeft}
+              className="absolute left-0 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white text-[#212121] transition hover:bg-primary hover:text-white md:h-12 md:w-12"
+              aria-label={tCategories("previous")}
+            >
+              <ChevronLeft size={20} />
+            </button>
 
-                return (
-                  <CarouselItem
-                    key={item.id}
-                    className="basis-1/2 pl-4 sm:basis-1/4 lg:basis-1/6 xl:basis-[12.5%]"
-                    onClick={() => router.push(`/items?categoryId=${item.id}`)}
-                  >
-                    <div className="group flex min-h-[150px] cursor-pointer flex-col items-center justify-center gap-3 rounded-[26px] border border-gray-100 bg-[#FAFAFA] px-3 py-5 text-center transition hover:-translate-y-1 hover:border-primary/20 hover:bg-white">
-                      <div className="relative h-20 w-20 overflow-hidden rounded-full bg-white ring-1 ring-black/5 transition group-hover:scale-105">
-                        <Image
-                          src={image}
-                          alt={item.name}
-                          fill
-                          className="object-cover object-top"
-                          unoptimized
-                        />
+            <Carousel
+              className="w-full"
+              setApi={(api) => {
+                carouselApi.current = api;
+              }}
+            >
+              <CarouselContent className="-ml-4">
+                {categories.map((item: HomeCategory) => {
+                  const image =
+                    item.imageUrl && item.imageUrl.startsWith("http")
+                      ? item.imageUrl
+                      : "/burger.png";
+
+                  return (
+                    <CarouselItem
+                      key={item.id}
+                      className="basis-1/2 pl-4 sm:basis-1/4 lg:basis-1/6 xl:basis-[12.5%]"
+                      onClick={() => router.push(`/items?categoryId=${item.id}`)}
+                    >
+                      <div className="group flex min-h-[132px] cursor-pointer flex-col items-center justify-center gap-3 rounded-[22px] px-2 py-3 text-center transition hover:-translate-y-1">
+                        <div className="relative h-20 w-20 overflow-hidden rounded-full transition group-hover:scale-105">
+                          <Image
+                            src={image}
+                            alt={item.name}
+                            fill
+                            className="object-cover object-top"
+                            unoptimized
+                          />
+                        </div>
+
+                        <span className="line-clamp-2 text-center text-sm font-extrabold leading-5 text-gray-900">
+                          {item.name}
+                        </span>
                       </div>
+                    </CarouselItem>
+                  );
+                })}
+              </CarouselContent>
+            </Carousel>
 
-                      <span className="line-clamp-2 text-center text-sm font-extrabold leading-5 text-gray-900">
-                        {item.name}
-                      </span>
-                    </div>
-                  </CarouselItem>
-                );
-              })}
-            </CarouselContent>
-          </Carousel>
+            <button
+              type="button"
+              onClick={scrollRight}
+              className="absolute right-0 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white text-[#212121] transition hover:bg-primary hover:text-white md:h-12 md:w-12"
+              aria-label={tCategories("next")}
+            >
+              <ChevronRight size={20} />
+            </button>
+          </div>
         )}
       </div>
 
