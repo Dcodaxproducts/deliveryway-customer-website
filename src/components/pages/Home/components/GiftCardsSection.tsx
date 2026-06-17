@@ -74,15 +74,15 @@ const GiftCardTicket = ({
           </span>
         </div>
 
-        <div className="mt-8 space-y-2 sm:mt-9">
-          <p className="text-[34px] font-black leading-none tracking-tight text-white">
+        <div className="mt-5 space-y-1.5 sm:mt-6">
+          <p className="text-[30px] font-black leading-none tracking-tight text-white sm:text-[32px]">
             {formatAmount(giftCard.amount, currency ?? "USD")}
           </p>
-          <h3 className="mt-2 line-clamp-2 text-[15px] font-bold leading-tight text-white">
+          <h3 className="line-clamp-1 text-[14px] font-bold leading-tight text-white sm:text-[15px]">
             {giftCard.title}
           </h3>
 
-          <span className="mt-3 inline-flex h-9 w-full items-center justify-center rounded-full bg-white px-4 text-[12px] font-extrabold uppercase tracking-[0.08em] text-primary transition group-hover:bg-white/95">
+          <span className="mt-2 inline-flex h-8 w-fit items-center justify-center rounded-full bg-white px-4 text-[11px] font-extrabold uppercase tracking-[0.08em] text-primary transition group-hover:bg-white/95 sm:h-9 sm:text-[12px]">
             {t("purchase")}
           </span>
         </div>
