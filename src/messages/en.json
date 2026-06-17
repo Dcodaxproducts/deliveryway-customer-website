@@ -42,6 +42,7 @@
   },
   "navigation": {
     "changeLanguage": "Change language",
+    "openMenu": "Open menu",
     "searchFood": "Search Food",
     "reserveTable": "Reserve a Table",
     "cart": "Cart",

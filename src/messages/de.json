@@ -42,6 +42,7 @@
   },
   "navigation": {
     "changeLanguage": "Sprache ändern",
+    "openMenu": "Menü öffnen",
     "searchFood": "Essen suchen",
     "reserveTable": "Tisch reservieren",
     "cart": "Warenkorb",

@@ -621,6 +621,17 @@ export const Navbar = () => {
         </div>
       </div>
 
+      {hideOnMobileHome ? (
+        <button
+          type="button"
+          onClick={() => setMobileOpen(true)}
+          className="fixed left-4 top-4 z-40 flex h-11 w-11 items-center justify-center rounded-full bg-white text-primary shadow-[0_12px_30px_rgba(31,41,55,0.18)] ring-1 ring-black/5 md:hidden"
+          aria-label={tNav("openMenu")}
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+      ) : null}
+
       {/* MOBILE MENU */}
       {mobileOpen && (
         <div className="fixed inset-0 bg-black/40 z-50">
