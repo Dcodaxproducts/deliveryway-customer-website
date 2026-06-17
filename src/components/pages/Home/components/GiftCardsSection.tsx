@@ -1,15 +1,19 @@
 "use client";
 
-import Image from "next/image";
 import {
   ArrowRight,
   CreditCard,
   Gift,
 } from "lucide-react";
-import { useCallback, useMemo, useRef, useState, type WheelEvent } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
 import type { GiftCardAvailableItem, HomeGiftCards } from "@/types/gift-cards";
 import { GiftCardPurchaseModal } from "@/components/pages/Home/components/GiftCardPurchaseModal";
 
@@ -27,181 +31,51 @@ const formatAmount = (amount: number, currency = "USD") =>
     maximumFractionDigits: 0,
   }).format(amount);
 
-type GiftCardVisualStyle = {
-  cardClass: string;
-  textClass: string;
-  mutedClass: string;
-  buttonClass: string;
-  glowClass: string;
-  illustration: "cupcake" | "burger" | "icecream" | "gift";
-};
-
-const giftCardVisualStyles: GiftCardVisualStyle[] = [
-  {
-    cardClass: "bg-[#FFF5E8]",
-    textClass: "text-[#8B321B]",
-    mutedClass: "text-[#8B321B]/70",
-    buttonClass: "bg-primary text-white hover:bg-primary/90",
-    glowClass: "bg-[#F4C568]/70",
-    illustration: "cupcake",
-  },
-  {
-    cardClass: "bg-[#FFF5E8]",
-    textClass: "text-[#8B321B]",
-    mutedClass: "text-[#8B321B]/70",
-    buttonClass: "bg-primary text-white hover:bg-primary/90",
-    glowClass: "bg-[#F47D3D]/55",
-    illustration: "burger",
-  },
-  {
-    cardClass: "bg-[#FFF5E8]",
-    textClass: "text-[#8B321B]",
-    mutedClass: "text-[#8B321B]/70",
-    buttonClass: "bg-primary text-white hover:bg-primary/90",
-    glowClass: "bg-[#F3D979]/75",
-    illustration: "icecream",
-  },
-  {
-    cardClass: "bg-[#FFF5E8]",
-    textClass: "text-[#8B321B]",
-    mutedClass: "text-[#8B321B]/70",
-    buttonClass: "bg-primary text-white hover:bg-primary/90",
-    glowClass: "bg-[#D81F2A]/18",
-    illustration: "gift",
-  },
-];
-
 type GiftCardTicketProps = {
   giftCard: GiftCardAvailableItem;
   currency?: string | null;
-  index: number;
   onSelect: (giftCard: GiftCardAvailableItem) => void;
 };
-
-function GiftCardIllustration({
-  giftCard,
-  style,
-}: {
-  giftCard: GiftCardAvailableItem;
-  style: GiftCardVisualStyle;
-}) {
-  if (giftCard.imageUrl) {
-    return (
-      <div className="absolute -right-5 bottom-0 h-[138px] w-[138px] overflow-hidden rounded-full bg-white/30 sm:h-[152px] sm:w-[152px]">
-        <Image
-          src={giftCard.imageUrl}
-          alt={giftCard.title}
-          fill
-          className="object-cover"
-          unoptimized
-        />
-      </div>
-    );
-  }
-
-  if (style.illustration === "cupcake") {
-    return (
-      <div className="absolute -right-3 bottom-0 h-[150px] w-[150px] sm:h-[164px] sm:w-[164px]">
-        <div className="absolute bottom-5 right-5 h-[94px] w-[104px] rounded-full bg-[#F9F1D5] shadow-[0_18px_35px_rgba(108,55,22,0.18)]" />
-        <div className="absolute bottom-[74px] right-[47px] h-12 w-12 rounded-full bg-[#F9FBF2]" />
-        <div className="absolute bottom-[58px] right-[76px] h-12 w-12 rounded-full bg-[#FFF8E8]" />
-        <div className="absolute bottom-[52px] right-[32px] h-12 w-12 rounded-full bg-[#FFFDF1]" />
-        <div className="absolute bottom-[32px] right-[46px] h-12 w-16 rounded-b-[18px] rounded-t-[8px] bg-[#D35F45]" />
-        <div className="absolute bottom-[33px] right-[57px] h-12 w-[3px] bg-white/35" />
-        <div className="absolute bottom-[33px] right-[74px] h-12 w-[3px] bg-white/35" />
-        <div className="absolute bottom-[104px] right-[68px] h-3 w-3 rounded-full bg-[#D51F2C]" />
-      </div>
-    );
-  }
-
-  if (style.illustration === "burger") {
-    return (
-      <div className="absolute -right-5 bottom-1 h-[150px] w-[166px] sm:h-[164px] sm:w-[178px]">
-        <div className="absolute bottom-[70px] right-3 h-14 w-[132px] rounded-t-full bg-[#F7B34B] shadow-[0_16px_34px_rgba(115,38,14,0.18)]" />
-        <div className="absolute bottom-[67px] right-10 h-1.5 w-1.5 rounded-full bg-white" />
-        <div className="absolute bottom-[80px] right-20 h-1.5 w-1.5 rounded-full bg-white" />
-        <div className="absolute bottom-[61px] right-5 h-4 w-[124px] rounded-full bg-[#65A845]" />
-        <div className="absolute bottom-[49px] right-2 h-6 w-[132px] rounded-full bg-[#7B351A]" />
-        <div className="absolute bottom-[42px] right-6 h-4 w-[118px] rounded-full bg-[#F7D357]" />
-        <div className="absolute bottom-[28px] right-5 h-7 w-[128px] rounded-b-[28px] bg-[#D9893A]" />
-      </div>
-    );
-  }
-
-  if (style.illustration === "icecream") {
-    return (
-      <div className="absolute -right-2 bottom-0 h-[150px] w-[150px] sm:h-[164px] sm:w-[164px]">
-        <div className="absolute bottom-[38px] right-[48px] h-[74px] w-[58px] rotate-[-8deg] rounded-b-[28px] rounded-t-[18px] bg-[#F6E5C1] shadow-[0_18px_34px_rgba(97,63,29,0.16)]" />
-        <div className="absolute bottom-[88px] right-[43px] h-[48px] w-[68px] rounded-full bg-[#EE4C57]" />
-        <div className="absolute bottom-[108px] right-[61px] h-[38px] w-[42px] rounded-full bg-[#FFF5D1]" />
-        <div className="absolute bottom-[72px] right-[32px] h-[42px] w-[44px] rounded-full bg-[#68B06A]" />
-        <div className="absolute bottom-[29px] right-[60px] h-16 w-[32px] rotate-[-8deg] rounded-b-[18px] bg-[#C98944]" />
-        <div className="absolute bottom-[30px] right-[68px] h-14 w-[2px] rotate-[18deg] bg-[#A96E35]/55" />
-        <div className="absolute bottom-[30px] right-[78px] h-14 w-[2px] rotate-[18deg] bg-[#A96E35]/55" />
-      </div>
-    );
-  }
-
-  if (style.illustration === "gift") {
-    return (
-      <div className="absolute -right-2 bottom-0 h-[150px] w-[150px] sm:h-[164px] sm:w-[164px]">
-        <div className="absolute bottom-5 right-5 h-[86px] w-[96px] rotate-[-6deg] rounded-[22px] bg-white shadow-[0_20px_38px_rgba(78,7,12,0.28)]">
-          <div className="absolute left-1/2 top-0 h-full w-4 -translate-x-1/2 bg-[#FFBE32]" />
-          <div className="absolute left-0 top-8 h-4 w-full bg-[#FFBE32]" />
-        </div>
-        <div className="absolute bottom-[107px] right-[32px] h-8 w-16 rounded-t-full border-[9px] border-white border-b-0" />
-        <div className="absolute bottom-[107px] right-[82px] h-8 w-16 rounded-t-full border-[9px] border-white border-b-0" />
-      </div>
-    );
-  }
-
-  return null;
-}
 
 const GiftCardTicket = ({
   giftCard,
   currency,
-  index,
   onSelect,
 }: GiftCardTicketProps) => {
   const t = useTranslations("home.giftCards");
-  const style = giftCardVisualStyles[index % giftCardVisualStyles.length];
 
   return (
-    <article className={`group relative h-[178px] min-w-[218px] snap-start overflow-hidden rounded-[26px] ${style.cardClass} p-4 text-left shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition duration-200 hover:-translate-y-0.5 sm:h-[188px] sm:min-w-[230px] sm:p-5 xl:min-w-[234px]`}>
-      <div className={`absolute -right-12 -top-12 h-36 w-36 rounded-full ${style.glowClass} blur-2xl`} />
-      <div className="absolute -left-10 -bottom-14 h-28 w-28 rounded-full bg-white/70 blur-xl" />
-      <GiftCardIllustration giftCard={giftCard} style={style} />
-
-      <div className="relative z-10 flex h-full max-w-[62%] flex-col">
-        <div>
-          <p className={`text-[10px] font-bold uppercase tracking-[0.16em] ${style.mutedClass}`}>
+    <button
+      type="button"
+      className="group flex h-[174px] w-full cursor-grab flex-col rounded-[24px] bg-[#FFF5E8] p-4 text-left shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition duration-200 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-primary/30 active:cursor-grabbing sm:h-[184px] sm:p-5"
+      onClick={() => onSelect(giftCard)}
+    >
+      <div className="flex h-full flex-col">
+        <div className="flex items-start justify-between gap-3">
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#8B321B]/70">
             {t("label")}
           </p>
-          <p className={`mt-3 text-[34px] font-black leading-none tracking-tight ${style.textClass}`}>
-            {formatAmount(giftCard.amount, currency ?? "USD")}
-          </p>
-          <h3 className={`mt-2 line-clamp-2 text-[15px] font-bold leading-tight ${style.textClass}`}>
-            {giftCard.title}
-          </h3>
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/80 text-primary shadow-sm">
+            <Gift size={18} />
+          </span>
         </div>
 
-        {giftCard.description ? (
-          <p className={`mt-1.5 line-clamp-2 text-[11px] font-medium leading-4 ${style.mutedClass}`}>
-            {giftCard.description}
+        <div className="mt-auto">
+          <p className="text-[34px] font-black leading-none tracking-tight text-[#8B321B]">
+            {formatAmount(giftCard.amount, currency ?? "USD")}
           </p>
-        ) : null}
+          <h3 className="mt-2 line-clamp-2 text-[15px] font-bold leading-tight text-[#8B321B]">
+            {giftCard.title}
+          </h3>
 
-        <Button
-          type="button"
-          className={`mt-auto h-9 w-fit rounded-full px-4 text-xs font-bold shadow-lg shadow-black/10 ${style.buttonClass}`}
-          onClick={() => onSelect(giftCard)}
-        >
-          {t("buy")}
-          <ArrowRight size={14} />
-        </Button>
+          {giftCard.description ? (
+            <p className="mt-1.5 line-clamp-2 text-[11px] font-medium leading-4 text-[#8B321B]/70">
+              {giftCard.description}
+            </p>
+          ) : null}
+        </div>
       </div>
-    </article>
+    </button>
   );
 };
 
@@ -209,11 +83,8 @@ function GiftCardIntroTile({ onBuy }: { onBuy: () => void }) {
   const t = useTranslations("home.giftCards");
 
   return (
-    <article className="relative flex h-[178px] min-w-[238px] snap-start overflow-hidden rounded-[26px] bg-transparent p-1 sm:h-[188px] sm:min-w-[270px] xl:min-w-[280px]">
-      <div className="absolute -right-10 -top-12 h-32 w-32 rounded-full bg-[#F7C05E]/25 blur-2xl" />
-      <div className="absolute -bottom-16 -left-12 h-36 w-36 rounded-full bg-primary/10 blur-2xl" />
-
-      <div className="relative z-10 flex max-w-[245px] flex-col">
+    <article className="flex h-[174px] w-full flex-col bg-transparent p-0 sm:h-[184px]">
+      <div className="flex max-w-[255px] flex-1 flex-col">
         <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">
           {t("label")}
         </p>
@@ -243,24 +114,9 @@ export const GiftCardsSection = ({
   currency,
 }: GiftCardsSectionProps) => {
   const t = useTranslations("home.giftCards");
-  const scrollRef = useRef<HTMLDivElement>(null);
   const [selectedGiftCard, setSelectedGiftCard] = useState<GiftCardAvailableItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const items = useMemo(() => giftCards?.items ?? [], [giftCards?.items]);
-  const handleHorizontalWheel = useCallback((event: WheelEvent<HTMLDivElement>) => {
-    const container = scrollRef.current;
-
-    if (!container || container.scrollWidth <= container.clientWidth) {
-      return;
-    }
-
-    if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) {
-      return;
-    }
-
-    event.preventDefault();
-    container.scrollBy({ left: event.deltaY, behavior: "smooth" });
-  }, []);
 
   if (giftCards?.isEnabled !== true || !restaurantId) {
     return null;
@@ -278,22 +134,28 @@ export const GiftCardsSection = ({
     >
       <div className="rounded-[30px] bg-white px-4 py-5 sm:px-6 sm:py-6">
         {items.length > 0 ? (
-          <div
-            ref={scrollRef}
-            className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain px-4 pb-3 scroll-smooth [scrollbar-width:thin] sm:-mx-6 sm:gap-4 sm:px-6"
-            onWheel={handleHorizontalWheel}
+          <Carousel
+            opts={{ align: "start", dragFree: true }}
+            className="w-full"
           >
-            <GiftCardIntroTile onBuy={() => openPurchaseModal()} />
-            {items.map((giftCard, index) => (
-              <GiftCardTicket
-                key={giftCard.id}
-                giftCard={giftCard}
-                currency={currency}
-                index={index}
-                onSelect={openPurchaseModal}
-              />
-            ))}
-          </div>
+            <CarouselContent className="-ml-4 cursor-grab active:cursor-grabbing">
+              <CarouselItem className="basis-[76%] pl-4 sm:basis-[36%] lg:basis-[22%]">
+                <GiftCardIntroTile onBuy={() => openPurchaseModal()} />
+              </CarouselItem>
+              {items.map((giftCard) => (
+                <CarouselItem
+                  key={giftCard.id}
+                  className="basis-[76%] pl-4 sm:basis-[36%] lg:basis-[19.5%]"
+                >
+                  <GiftCardTicket
+                    giftCard={giftCard}
+                    currency={currency}
+                    onSelect={openPurchaseModal}
+                  />
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+          </Carousel>
         ) : (
           <div className="flex min-h-[258px] flex-col items-center justify-center rounded-[28px] bg-gradient-to-br from-[#EB4D3D] via-[#D93528] to-[#A91216] p-6 text-center text-white">
             <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white text-primary">
