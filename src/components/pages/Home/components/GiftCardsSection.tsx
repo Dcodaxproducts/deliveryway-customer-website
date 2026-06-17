@@ -60,7 +60,6 @@ const GiftCardTicket = ({
       className={`group relative flex h-[174px] w-full cursor-grab flex-col overflow-hidden rounded-[24px] ${background} p-4 text-left transition duration-200 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-primary/30 active:cursor-grabbing sm:h-[184px] sm:p-5`}
       onClick={() => onSelect(giftCard)}
     >
-      <div className="absolute inset-x-4 top-3 h-px bg-white/35" />
       <div className="absolute -right-14 -top-16 h-36 w-36 rounded-full bg-white/20 blur-2xl" />
       <div className="absolute -bottom-14 left-3 h-28 w-28 rounded-full bg-black/10 blur-xl" />
       <div className="absolute bottom-0 right-0 h-20 w-24 rounded-tl-full bg-black/10" />
@@ -75,19 +74,13 @@ const GiftCardTicket = ({
           </span>
         </div>
 
-        <div className="mt-auto space-y-2">
+        <div className="mt-8 space-y-2 sm:mt-9">
           <p className="text-[34px] font-black leading-none tracking-tight text-white">
             {formatAmount(giftCard.amount, currency ?? "USD")}
           </p>
           <h3 className="mt-2 line-clamp-2 text-[15px] font-bold leading-tight text-white">
             {giftCard.title}
           </h3>
-
-          {giftCard.description ? (
-            <p className="mt-1.5 line-clamp-2 text-[11px] font-medium leading-4 text-white/75">
-              {giftCard.description}
-            </p>
-          ) : null}
 
           <span className="mt-3 inline-flex h-9 w-full items-center justify-center rounded-full bg-white px-4 text-[12px] font-extrabold uppercase tracking-[0.08em] text-primary transition group-hover:bg-white/95">
             {t("purchase")}
