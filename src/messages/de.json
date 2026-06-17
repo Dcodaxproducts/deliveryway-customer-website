@@ -275,7 +275,11 @@
       "happyCustomers": "Zufriedene Kunden",
       "customerSatisfaction": "Kundenzufriedenheit",
       "branches": "Unsere Filialen",
-      "employees": "Mitarbeitende insgesamt"
+      "employees": "Mitarbeitende insgesamt",
+      "completedOrders": "Abgeschlossene Bestellungen",
+      "averageRating": "Durchschnittliche Bewertung",
+      "activeMenuItems": "Menüartikel",
+      "fiveStarReviews": "Fünf-Sterne-Bewertungen"
     },
     "blog": {
       "decorativeAlt": "Dekorativer Hintergrund",
@@ -425,6 +429,17 @@
       "titleLineTwo": "redaktionelles Niveau heben.",
       "description": "Wir liefern nicht nur Pakete; wir verwalten Reputation. Jedes Dokument, jedes Protokoll und jedes Support-Ticket wird mit der Präzision einer meisterhaften Garnitur behandelt.",
       "button": "Unsere Compliance-Philosophie ansehen"
+    },
+    "form": {
+      "title": "Nachricht senden",
+      "description": "Fragen, Bestellthemen oder Feedback gehen direkt an das Restaurant-Support-Team.",
+      "name": "Ihr Name",
+      "email": "E-Mail-Adresse",
+      "subject": "Betreff",
+      "message": "Nachricht",
+      "send": "Nachricht senden",
+      "sending": "Wird gesendet...",
+      "success": "Nachricht erfolgreich gesendet"
     },
     "chat": {
       "loadingChat": "Chat wird geladen...",
@@ -874,6 +889,8 @@
     "upload": "Hochladen",
     "previewAlt": "Vorschau",
     "submitReview": "Bewertung senden",
+    "submittingReview": "Wird gesendet...",
+    "reviewSubmitted": "Bewertung erfolgreich gesendet",
     "cancel": "Abbrechen",
     "loadingReviewsPage": "Bewertungsseite wird geladen..."
   },
@@ -1615,6 +1632,7 @@
     "reservationNoteMax": "Der besondere Wunsch darf höchstens 500 Zeichen lang sein",
     "contactNameRequired": "Name ist erforderlich",
     "contactEmailRequired": "Eine gültige E-Mail-Adresse ist erforderlich",
+    "contactSubjectRequired": "Betreff ist erforderlich",
     "contactMessageRequired": "Nachricht ist erforderlich",
     "reviewMax": "Bewertung darf höchstens 1000 Zeichen lang sein"
   },

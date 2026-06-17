@@ -39,6 +39,8 @@ export const queryKeys = {
     detail: (restaurantId?: string | null, branchId?: string | null) => ["customer-home", restaurantId ?? "", branchId ?? ""] as const,
     categories: (restaurantId?: string | null) => ["customer-home", "categories", restaurantId ?? ""] as const,
     promotions: (restaurantId?: string | null, branchId?: string | null) => ["customer-home", "promotions", restaurantId ?? "", branchId ?? ""] as const,
+    branchStats: (restaurantId?: string | null, branchId?: string | null) => ["customer-home", "branch-stats", restaurantId ?? "", branchId ?? ""] as const,
+    about: (restaurantId?: string | null) => ["customer-home", "about", restaurantId ?? ""] as const,
   },
   customerDeals: {
     list: (params: Record<string, unknown>) => ["customer-deals", "list", params] as const,

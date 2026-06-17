@@ -69,6 +69,11 @@ export type DirectOrderPayload = Record<string, unknown> & {
   tipAmount?: number;
 };
 
+export type SubmitOrderReviewPayload = {
+  rating: number;
+  comment?: string;
+};
+
 const ordersService = createDomainApiService();
 
 export const getOrders = ordersService.get;
@@ -139,3 +144,13 @@ export const addCartItemForReorder = ({
   payload: ReorderPayload;
   token?: string | null;
 }) => postOrders(`/v1/cart/items?customerId=${customerId}`, payload, token);
+
+export const submitOrderReview = ({
+  orderId,
+  payload,
+  token,
+}: {
+  orderId: string;
+  payload: SubmitOrderReviewPayload;
+  token?: string | null;
+}) => postOrders(`/v1/orders/${orderId}/review`, payload, token);

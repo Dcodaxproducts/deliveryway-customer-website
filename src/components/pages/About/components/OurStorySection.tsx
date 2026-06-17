@@ -3,8 +3,13 @@
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 
-export default function OurStorySection() {
+type OurStorySectionProps = {
+  content?: string | null;
+};
+
+export default function OurStorySection({ content }: OurStorySectionProps) {
   const t = useTranslations("about.story");
+  const trimmedContent = content?.trim();
 
   return (
     <section className="w-full py-16 md:py-20">
@@ -43,13 +48,22 @@ export default function OurStorySection() {
             {t("titleLineTwo")}
           </h2>
 
-          <p className="mt-4 text-gray-600 text-sm md:text-base leading-relaxed">
-            {t("paragraphOne")}
-          </p>
+          {trimmedContent ? (
+            <div
+              className="mt-4 space-y-4 text-gray-600 text-sm md:text-base leading-relaxed [&_p]:mt-0 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-5"
+              dangerouslySetInnerHTML={{ __html: trimmedContent }}
+            />
+          ) : (
+            <>
+              <p className="mt-4 text-gray-600 text-sm md:text-base leading-relaxed">
+                {t("paragraphOne")}
+              </p>
 
-          <p className="mt-4 text-gray-600 text-sm md:text-base leading-relaxed">
-            {t("paragraphTwo")}
-          </p>
+              <p className="mt-4 text-gray-600 text-sm md:text-base leading-relaxed">
+                {t("paragraphTwo")}
+              </p>
+            </>
+          )}
         </div>
       </div>
     </section>

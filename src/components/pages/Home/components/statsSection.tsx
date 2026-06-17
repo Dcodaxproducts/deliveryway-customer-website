@@ -1,16 +1,50 @@
 import { useTranslations } from "next-intl";
+import { useQuery } from "@tanstack/react-query";
 
+import { queryKeys } from "@/config/query-keys";
+import { useAuth } from "@/hooks/useAuth";
 import { montserrat } from "@/lib/fonts";
+import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
+import { fetchBranchStats } from "@/services/public-content";
 
-const stats = [
-  { labelKey: "happyCustomers", value: "2M+" },
-  { labelKey: "customerSatisfaction", value: "98%" },
-  { labelKey: "branches", value: "20+" },
-  { labelKey: "employees", value: "100+" },
-] as const;
+const compactNumber = (value: number) =>
+  new Intl.NumberFormat("en", {
+    notation: value >= 1000 ? "compact" : "standard",
+    maximumFractionDigits: 1,
+  }).format(value);
 
 export default function Stats() {
   const t = useTranslations("home.stats");
+  const { user, restaurantId: authRestaurantId } = useAuth();
+  const restaurantId = resolveHomeRestaurantId(user, authRestaurantId);
+  const branchId = resolveHomeBranchId(user);
+  const statsQuery = useQuery({
+    queryKey: queryKeys.home.branchStats(restaurantId, branchId),
+    queryFn: () => fetchBranchStats(restaurantId, branchId),
+    enabled: Boolean(restaurantId),
+    staleTime: 5 * 60 * 1000,
+  });
+  const branchStats = statsQuery.data;
+  const stats = [
+    {
+      labelKey: "completedOrders",
+      value: branchStats ? compactNumber(branchStats.completedOrders) : "2M+",
+    },
+    {
+      labelKey: "averageRating",
+      value: branchStats?.averageRating
+        ? branchStats.averageRating.toFixed(1)
+        : "98%",
+    },
+    {
+      labelKey: "activeMenuItems",
+      value: branchStats ? compactNumber(branchStats.activeMenuItems) : "20+",
+    },
+    {
+      labelKey: "fiveStarReviews",
+      value: branchStats ? compactNumber(branchStats.fiveStarReviews) : "100+",
+    },
+  ] as const;
 
   return (
     <section className={`max-w-6xl mx-auto py-12 md:py-16 px-4 ${montserrat.className}`}>

@@ -11,6 +11,8 @@ import { useAuthContext } from "@/hooks/useAuth";
 import { createReviewSchema, type ReviewFormValues } from "@/validations/reviews";
 import type { Order } from "@/services/orders";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
+import { getApiErrorMessage } from "@/lib/errors";
 
 export default function WriteReview() {
   const t = useTranslations("orders");
@@ -20,11 +22,12 @@ export default function WriteReview() {
   const orderId = params.get("orderId");
 
   const { token } = useAuthContext();
-  const { fetchOrderById } = useOrders(token);
+  const { fetchOrderById, submitOrderReview } = useOrders(token);
 
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const translatedReviewSchema = useMemo(
     () => createReviewSchema({ reviewMax: validationT("reviewMax") }),
@@ -85,6 +88,34 @@ export default function WriteReview() {
     const preview = URL.createObjectURL(file);
     setImagePreview(preview);
     setValue("image", file, { shouldValidate: true });
+  };
+
+  const onSubmit = async (values: ReviewFormValues) => {
+    if (!orderId || submitting) return;
+
+    try {
+      setSubmitting(true);
+
+      const response = await submitOrderReview({
+        orderId,
+        payload: {
+          rating: values.rating,
+          comment: values.review?.trim() || undefined,
+        },
+      });
+
+      if (!response || response.success === false) {
+        toast.error(getApiErrorMessage(response));
+        return;
+      }
+
+      toast.success(t("reviewSubmitted"));
+      router.push("/orders-history");
+    } catch (error) {
+      toast.error(getApiErrorMessage(error));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   // ================= STATES =================
@@ -226,10 +257,11 @@ export default function WriteReview() {
         {/* ACTION BUTTONS */}
         <div className="flex gap-3 mt-6">
           <button
-            onClick={handleSubmit(() => undefined)}
-            className="flex-1 bg-[#EC5834] text-white py-3 rounded-lg text-sm font-medium"
+            onClick={handleSubmit(onSubmit)}
+            disabled={submitting}
+            className="flex-1 bg-[#EC5834] text-white py-3 rounded-lg text-sm font-medium disabled:cursor-not-allowed disabled:opacity-70"
           >
-            {t("submitReview")}
+            {submitting ? t("submittingReview") : t("submitReview")}
           </button>
 
           <button

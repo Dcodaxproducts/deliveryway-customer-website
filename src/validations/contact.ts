@@ -3,12 +3,14 @@ import { z } from "zod";
 export type ContactValidationMessages = {
   nameRequired: string;
   emailRequired: string;
+  subjectRequired: string;
   messageRequired: string;
 };
 
 const defaultMessages: ContactValidationMessages = {
   nameRequired: "Name is required",
   emailRequired: "Valid email is required",
+  subjectRequired: "Subject is required",
   messageRequired: "Message is required",
 };
 
@@ -16,6 +18,7 @@ export const createContactMessageSchema = (messages: ContactValidationMessages =
   z.object({
     name: z.string().trim().min(1, messages.nameRequired),
     email: z.string().trim().email(messages.emailRequired),
+    subject: z.string().trim().min(1, messages.subjectRequired).max(160),
     message: z.string().trim().min(1, messages.messageRequired),
   });
 

@@ -275,7 +275,11 @@
       "happyCustomers": "Happy Customers",
       "customerSatisfaction": "Customer Satisfaction",
       "branches": "Our Branches",
-      "employees": "Total Employees"
+      "employees": "Total Employees",
+      "completedOrders": "Completed Orders",
+      "averageRating": "Average Rating",
+      "activeMenuItems": "Menu Items",
+      "fiveStarReviews": "Five-Star Reviews"
     },
     "blog": {
       "decorativeAlt": "Decorative background",
@@ -425,6 +429,17 @@
       "titleLineTwo": "Editorial Standard.",
       "description": "We don't just deliver packages; we manage reputations. Every document, every protocol, and every support ticket is handled with the precision of a master chef's garnish.",
       "button": "View Our Compliance Philosophy"
+    },
+    "form": {
+      "title": "Send us a message",
+      "description": "Questions, order concerns, or feedback go straight to the restaurant support team.",
+      "name": "Your name",
+      "email": "Email address",
+      "subject": "Subject",
+      "message": "Message",
+      "send": "Send message",
+      "sending": "Sending...",
+      "success": "Message sent successfully"
     },
     "chat": {
       "loadingChat": "Loading chat...",
@@ -874,6 +889,8 @@
     "upload": "Upload",
     "previewAlt": "preview",
     "submitReview": "Submit Review",
+    "submittingReview": "Submitting...",
+    "reviewSubmitted": "Review submitted successfully",
     "cancel": "Cancel",
     "loadingReviewsPage": "Loading reviews page..."
   },
@@ -1615,6 +1632,7 @@
     "reservationNoteMax": "Special request must be 500 characters or fewer",
     "contactNameRequired": "Name is required",
     "contactEmailRequired": "Valid email is required",
+    "contactSubjectRequired": "Subject is required",
     "contactMessageRequired": "Message is required",
     "reviewMax": "Review must be 1000 characters or fewer"
   },
