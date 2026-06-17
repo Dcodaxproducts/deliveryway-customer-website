@@ -3,14 +3,8 @@
 import Image from "next/image";
 import {
   ArrowRight,
-  CakeSlice,
   CreditCard,
   Gift,
-  Mail,
-  Sandwich,
-  Sparkles,
-  UtensilsCrossed,
-  type LucideIcon,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
@@ -34,41 +28,41 @@ const formatAmount = (amount: number, currency = "USD") =>
   }).format(amount);
 
 type GiftCardVisualStyle = {
-  accent: string;
-  background: string;
-  button: string;
-  illustration: "cupcake" | "burger" | "pasta" | "gift";
-  Icon: LucideIcon;
+  cardClass: string;
+  textClass: string;
+  mutedClass: string;
+  buttonClass: string;
+  illustration: "cupcake" | "burger" | "icecream" | "gift";
 };
 
 const giftCardVisualStyles: GiftCardVisualStyle[] = [
   {
-    accent: "text-[#7A3D10]",
-    background: "from-[#FFE8C8] via-[#FFC875] to-[#F59D2A]",
-    button: "bg-[#7A3D10] text-white hover:bg-[#5F2F0D]",
+    cardClass: "bg-[#F4C568]",
+    textClass: "text-[#8B321B]",
+    mutedClass: "text-[#8B321B]/70",
+    buttonClass: "bg-[#8B321B] text-white hover:bg-[#6F2715]",
     illustration: "cupcake",
-    Icon: CakeSlice,
   },
   {
-    accent: "text-[#843018]",
-    background: "from-[#FFD9C8] via-[#FF8F61] to-[#EF4B25]",
-    button: "bg-[#843018] text-white hover:bg-[#662412]",
+    cardClass: "bg-[#F47D3D]",
+    textClass: "text-white",
+    mutedClass: "text-white/78",
+    buttonClass: "bg-white text-[#E55322] hover:bg-white/90",
     illustration: "burger",
-    Icon: Sandwich,
   },
   {
-    accent: "text-[#3C4A1D]",
-    background: "from-[#F5E7BC] via-[#D6C174] to-[#8EA64F]",
-    button: "bg-[#3C4A1D] text-white hover:bg-[#2B3614]",
-    illustration: "pasta",
-    Icon: UtensilsCrossed,
+    cardClass: "bg-[#F3D979]",
+    textClass: "text-[#70401E]",
+    mutedClass: "text-[#70401E]/70",
+    buttonClass: "bg-[#70401E] text-white hover:bg-[#5A3218]",
+    illustration: "icecream",
   },
   {
-    accent: "text-white",
-    background: "from-[#EB4D3D] via-[#D93528] to-[#A91216]",
-    button: "bg-white text-primary hover:bg-white/90",
+    cardClass: "bg-[#D81F2A]",
+    textClass: "text-white",
+    mutedClass: "text-white/76",
+    buttonClass: "bg-white text-[#D81F2A] hover:bg-white/90",
     illustration: "gift",
-    Icon: Gift,
   },
 ];
 
@@ -86,11 +80,9 @@ function GiftCardIllustration({
   giftCard: GiftCardAvailableItem;
   style: GiftCardVisualStyle;
 }) {
-  const Icon = style.Icon;
-
   if (giftCard.imageUrl) {
     return (
-      <div className="absolute bottom-0 right-0 h-[150px] w-[150px] translate-x-5 translate-y-5 overflow-hidden rounded-full bg-white/30 sm:h-[170px] sm:w-[170px]">
+      <div className="absolute -right-5 bottom-0 h-[138px] w-[138px] overflow-hidden rounded-full bg-white/30 sm:h-[152px] sm:w-[152px]">
         <Image
           src={giftCard.imageUrl}
           alt={giftCard.title}
@@ -102,26 +94,63 @@ function GiftCardIllustration({
     );
   }
 
-  if (style.illustration === "gift") {
+  if (style.illustration === "cupcake") {
     return (
-      <div className="absolute bottom-0 right-0 h-[150px] w-[150px] translate-x-4 translate-y-6 sm:h-[170px] sm:w-[170px]">
-        <div className="absolute bottom-7 right-6 h-[82px] w-[92px] rounded-[20px] bg-white shadow-2xl shadow-black/20">
-          <div className="absolute left-1/2 top-0 h-full w-4 -translate-x-1/2 bg-[#FFB703]" />
-          <div className="absolute left-0 top-7 h-4 w-full bg-[#FFB703]" />
-        </div>
-        <div className="absolute bottom-[108px] right-[34px] h-9 w-16 rounded-t-full border-[10px] border-white border-b-0" />
-        <div className="absolute bottom-[108px] right-[86px] h-9 w-16 rounded-t-full border-[10px] border-white border-b-0" />
+      <div className="absolute -right-3 bottom-0 h-[150px] w-[150px] sm:h-[164px] sm:w-[164px]">
+        <div className="absolute bottom-5 right-5 h-[94px] w-[104px] rounded-full bg-[#F9F1D5] shadow-[0_18px_35px_rgba(108,55,22,0.18)]" />
+        <div className="absolute bottom-[74px] right-[47px] h-12 w-12 rounded-full bg-[#F9FBF2]" />
+        <div className="absolute bottom-[58px] right-[76px] h-12 w-12 rounded-full bg-[#FFF8E8]" />
+        <div className="absolute bottom-[52px] right-[32px] h-12 w-12 rounded-full bg-[#FFFDF1]" />
+        <div className="absolute bottom-[32px] right-[46px] h-12 w-16 rounded-b-[18px] rounded-t-[8px] bg-[#D35F45]" />
+        <div className="absolute bottom-[33px] right-[57px] h-12 w-[3px] bg-white/35" />
+        <div className="absolute bottom-[33px] right-[74px] h-12 w-[3px] bg-white/35" />
+        <div className="absolute bottom-[104px] right-[68px] h-3 w-3 rounded-full bg-[#D51F2C]" />
       </div>
     );
   }
 
-  return (
-    <div className="absolute bottom-0 right-0 flex h-[150px] w-[150px] translate-x-5 translate-y-6 items-center justify-center rounded-full bg-white/28 text-white shadow-2xl shadow-black/10 sm:h-[170px] sm:w-[170px]">
-      <div className="flex h-[108px] w-[108px] items-center justify-center rounded-full bg-white/30 backdrop-blur">
-        <Icon size={58} strokeWidth={1.7} />
+  if (style.illustration === "burger") {
+    return (
+      <div className="absolute -right-5 bottom-1 h-[150px] w-[166px] sm:h-[164px] sm:w-[178px]">
+        <div className="absolute bottom-[70px] right-3 h-14 w-[132px] rounded-t-full bg-[#F7B34B] shadow-[0_16px_34px_rgba(115,38,14,0.18)]" />
+        <div className="absolute bottom-[67px] right-10 h-1.5 w-1.5 rounded-full bg-white" />
+        <div className="absolute bottom-[80px] right-20 h-1.5 w-1.5 rounded-full bg-white" />
+        <div className="absolute bottom-[61px] right-5 h-4 w-[124px] rounded-full bg-[#65A845]" />
+        <div className="absolute bottom-[49px] right-2 h-6 w-[132px] rounded-full bg-[#7B351A]" />
+        <div className="absolute bottom-[42px] right-6 h-4 w-[118px] rounded-full bg-[#F7D357]" />
+        <div className="absolute bottom-[28px] right-5 h-7 w-[128px] rounded-b-[28px] bg-[#D9893A]" />
       </div>
-    </div>
-  );
+    );
+  }
+
+  if (style.illustration === "icecream") {
+    return (
+      <div className="absolute -right-2 bottom-0 h-[150px] w-[150px] sm:h-[164px] sm:w-[164px]">
+        <div className="absolute bottom-[38px] right-[48px] h-[74px] w-[58px] rotate-[-8deg] rounded-b-[28px] rounded-t-[18px] bg-[#F6E5C1] shadow-[0_18px_34px_rgba(97,63,29,0.16)]" />
+        <div className="absolute bottom-[88px] right-[43px] h-[48px] w-[68px] rounded-full bg-[#EE4C57]" />
+        <div className="absolute bottom-[108px] right-[61px] h-[38px] w-[42px] rounded-full bg-[#FFF5D1]" />
+        <div className="absolute bottom-[72px] right-[32px] h-[42px] w-[44px] rounded-full bg-[#68B06A]" />
+        <div className="absolute bottom-[29px] right-[60px] h-16 w-[32px] rotate-[-8deg] rounded-b-[18px] bg-[#C98944]" />
+        <div className="absolute bottom-[30px] right-[68px] h-14 w-[2px] rotate-[18deg] bg-[#A96E35]/55" />
+        <div className="absolute bottom-[30px] right-[78px] h-14 w-[2px] rotate-[18deg] bg-[#A96E35]/55" />
+      </div>
+    );
+  }
+
+  if (style.illustration === "gift") {
+    return (
+      <div className="absolute -right-2 bottom-0 h-[150px] w-[150px] sm:h-[164px] sm:w-[164px]">
+        <div className="absolute bottom-5 right-5 h-[86px] w-[96px] rotate-[-6deg] rounded-[22px] bg-white shadow-[0_20px_38px_rgba(78,7,12,0.28)]">
+          <div className="absolute left-1/2 top-0 h-full w-4 -translate-x-1/2 bg-[#FFBE32]" />
+          <div className="absolute left-0 top-8 h-4 w-full bg-[#FFBE32]" />
+        </div>
+        <div className="absolute bottom-[107px] right-[32px] h-8 w-16 rounded-t-full border-[9px] border-white border-b-0" />
+        <div className="absolute bottom-[107px] right-[82px] h-8 w-16 rounded-t-full border-[9px] border-white border-b-0" />
+      </div>
+    );
+  }
+
+  return null;
 }
 
 const GiftCardTicket = ({
@@ -134,34 +163,65 @@ const GiftCardTicket = ({
   const style = giftCardVisualStyles[index % giftCardVisualStyles.length];
 
   return (
-    <article className={`group relative min-h-[258px] min-w-[260px] overflow-hidden rounded-[28px] bg-gradient-to-br ${style.background} p-5 text-left shadow-[0_18px_55px_rgba(17,24,39,0.12)] transition duration-200 hover:-translate-y-1 sm:min-w-[300px]`}>
-      <div className="absolute -left-12 -top-14 h-32 w-32 rounded-full bg-white/25 blur-2xl" />
+    <article className={`group relative h-[182px] min-w-[232px] overflow-hidden rounded-[26px] ${style.cardClass} p-4 text-left shadow-[0_18px_42px_rgba(15,23,42,0.10)] transition duration-200 hover:-translate-y-0.5 sm:h-[196px] sm:min-w-[268px] sm:p-5`}>
+      <div className="absolute -left-10 -top-12 h-28 w-28 rounded-full bg-white/22 blur-xl" />
       <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/10 to-transparent" />
       <GiftCardIllustration giftCard={giftCard} style={style} />
 
-      <div className="relative z-10 flex min-h-[218px] max-w-[68%] flex-col">
+      <div className="relative z-10 flex h-full max-w-[62%] flex-col">
         <div>
-          <p className={`text-[11px] font-bold uppercase tracking-[0.18em] ${style.accent} opacity-80`}>
+          <p className={`text-[10px] font-bold uppercase tracking-[0.16em] ${style.mutedClass}`}>
             {t("label")}
           </p>
-          <p className={`mt-4 text-[34px] font-black leading-none ${style.accent}`}>
+          <p className={`mt-3 text-[34px] font-black leading-none tracking-tight ${style.textClass}`}>
             {formatAmount(giftCard.amount, currency ?? "USD")}
           </p>
-          <h3 className={`mt-3 line-clamp-2 text-lg font-extrabold leading-tight ${style.accent}`}>
+          <h3 className={`mt-2 line-clamp-2 text-[15px] font-bold leading-tight ${style.textClass}`}>
             {giftCard.title}
           </h3>
         </div>
 
         {giftCard.description ? (
-          <p className={`mt-2 line-clamp-2 text-xs font-medium leading-5 ${style.accent} opacity-80`}>
+          <p className={`mt-1.5 line-clamp-2 text-[11px] font-medium leading-4 ${style.mutedClass}`}>
             {giftCard.description}
           </p>
         ) : null}
 
         <Button
           type="button"
-          className={`mt-auto h-10 w-fit rounded-full px-5 text-sm font-bold shadow-lg shadow-black/10 ${style.button}`}
+          className={`mt-auto h-9 w-fit rounded-full px-4 text-xs font-bold shadow-lg shadow-black/10 ${style.buttonClass}`}
           onClick={() => onSelect(giftCard)}
+        >
+          {t("buy")}
+          <ArrowRight size={14} />
+        </Button>
+      </div>
+    </article>
+  );
+};
+
+function GiftCardIntroTile({ onBuy }: { onBuy: () => void }) {
+  const t = useTranslations("home.giftCards");
+
+  return (
+    <article className="relative flex h-[182px] min-w-[258px] overflow-hidden rounded-[26px] bg-[#FFF5E8] p-5 shadow-[0_18px_42px_rgba(15,23,42,0.08)] sm:h-[196px] sm:min-w-[304px] sm:p-6">
+      <div className="absolute -right-10 -top-12 h-32 w-32 rounded-full bg-[#F7C05E]/45 blur-2xl" />
+      <div className="absolute -bottom-16 -left-12 h-36 w-36 rounded-full bg-primary/10 blur-2xl" />
+
+      <div className="relative z-10 flex max-w-[230px] flex-col">
+        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">
+          {t("label")}
+        </p>
+        <h2 className="mt-2 text-2xl font-black leading-[1.05] tracking-tight text-gray-950 sm:text-[28px]">
+          {t("buy")}
+        </h2>
+        <p className="mt-2 line-clamp-2 text-sm font-medium leading-5 text-gray-600">
+          {t("description")}
+        </p>
+        <Button
+          type="button"
+          className="mt-auto h-10 w-fit rounded-full bg-primary px-5 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:bg-primary/90"
+          onClick={onBuy}
         >
           {t("buy")}
           <ArrowRight size={15} />
@@ -169,7 +229,7 @@ const GiftCardTicket = ({
       </div>
     </article>
   );
-};
+}
 
 export const GiftCardsSection = ({
   giftCards,
@@ -197,41 +257,9 @@ export const GiftCardsSection = ({
       className="mx-auto max-w-[1400px] px-4 pb-[30px] pt-[30px] sm:px-6 sm:pb-[60px] sm:pt-[60px]"
     >
       <div className="rounded-[30px] bg-white px-4 py-5 sm:px-6 sm:py-6">
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-              {t("label")}
-            </p>
-            <h2 className="mt-1 text-2xl font-bold text-gray-900">
-              {t("buy")}
-            </h2>
-            <p className="mt-2 max-w-[620px] text-sm leading-6 text-gray-500">
-              {t("description")}
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="hidden items-center gap-3 rounded-full bg-[#FFF4EF] px-4 py-2 text-sm font-semibold text-primary sm:flex">
-              <Sparkles size={16} />
-              {t("instantCheckout")}
-            </div>
-            <div className="hidden items-center gap-3 rounded-full bg-[#F8FAFC] px-4 py-2 text-sm font-semibold text-gray-600 lg:flex">
-              <Mail size={16} />
-              {t("emailDelivery")}
-            </div>
-            <Button
-              type="button"
-              className="h-11 rounded-full bg-primary px-5 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:bg-primary/90"
-              onClick={() => openPurchaseModal()}
-            >
-              {t("buy")}
-              <ArrowRight size={16} />
-            </Button>
-          </div>
-        </div>
-
         {items.length > 0 ? (
-          <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-3 [scrollbar-width:none] sm:-mx-6 sm:gap-5 sm:px-6 [&::-webkit-scrollbar]:hidden">
+          <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:-mx-6 sm:gap-5 sm:px-6 [&::-webkit-scrollbar]:hidden">
+            <GiftCardIntroTile onBuy={() => openPurchaseModal()} />
             {items.map((giftCard, index) => (
               <GiftCardTicket
                 key={giftCard.id}
