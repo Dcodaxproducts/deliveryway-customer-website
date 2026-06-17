@@ -154,6 +154,15 @@
       "defaultTitle": "Haben Sie Hunger?",
       "defaultTagline": "Mit wenigen Klicks finden Sie Mahlzeiten in Ihrer Nähe",
       "heroImageAlt": "Hero-Essenshintergrund",
+      "description": "Frische Gerichte, herzlicher Service und einfache Bestellung aus Ihrer Lieblingsküche vor Ort.",
+      "freshTitle": "Frisch zubereitet",
+      "freshDescription": "Bestellen Sie beliebte Favoriten, heiß und bereit für Ihren Tisch.",
+      "trackingTitle": "Live-Verfolgung",
+      "trackingDescription": "Verfolgen Sie Ihre Bestellung von der Küche bis zur Ankunft.",
+      "offersTitle": "Beste Angebote",
+      "offersDescription": "Nutzen Sie Filialangebote und Menüaktionen, sobald sie verfügbar sind.",
+      "orderPanelEyebrow": "Bestellung starten",
+      "orderPanelTitle": "Lieferung oder Abholung",
       "categories": "Kategorien",
       "items": "Artikel",
       "searchCategories": "Kategorien suchen",
@@ -165,6 +174,7 @@
       "menuItemFallback": "Menüartikel"
     },
     "categories": {
+      "eyebrow": "Top-Kategorien",
       "title": "Kategorien",
       "viewAll": "Alle anzeigen",
       "empty": "Keine Kategorien gefunden",

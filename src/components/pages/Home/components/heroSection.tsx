@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Store } from "lucide-react";
+import { BadgePercent, Clock3, MapPinned, Store } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -179,41 +179,85 @@ export const HeroSection = ({
   };
 
   return (
-    <main className="relative flex min-h-[630px] w-full items-center justify-center py-10 md:py-16">
+    <main className="relative flex min-h-[680px] w-full items-center overflow-hidden py-12 md:py-16">
       <div className="absolute inset-0 z-0">
         <Image
           src={resolvedHeroImage}
           alt={t("heroImageAlt")}
           fill
-          className="object-cover brightness-75"
+          className="object-cover"
           priority
         />
       </div>
+      <div className="absolute inset-0 z-0 bg-gradient-to-r from-black/75 via-black/45 to-black/20" />
+      <div className="absolute inset-x-0 bottom-0 z-0 h-28 bg-gradient-to-t from-white via-white/65 to-transparent" />
 
-      <div className="relative z-10 ml-0 flex w-full max-w-4xl flex-col items-center px-4 md:ml-20">
-        <h1 className="mb-2 text-5xl font-extrabold text-white drop-shadow-md md:text-7xl">
-          {displayRestaurantName}
-        </h1>
-        <p className="mb-8 text-[22px] font-medium text-white">
-          {displayTagline}
-        </p>
+      <div className="relative z-10 mx-auto grid w-full max-w-[1400px] items-center gap-10 px-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_520px] lg:px-8">
+        <div className="max-w-[720px] text-white">
+          <p className="mb-5 inline-flex rounded-full bg-white/15 px-4 py-2 text-sm font-bold uppercase tracking-[0.18em] text-white ring-1 ring-white/20 backdrop-blur">
+            {displayTagline}
+          </p>
 
-        <div className="w-full rounded-2xl bg-white p-6 shadow-xl md:p-8">
+          <h1 className="max-w-[680px] text-[46px] font-black leading-[0.95] tracking-normal text-white drop-shadow-[0_14px_34px_rgba(0,0,0,0.28)] sm:text-[62px] lg:text-[76px]">
+            {displayRestaurantName}
+          </h1>
+
+          <p className="mt-6 max-w-[560px] text-lg font-medium leading-8 text-white/86">
+            {t("description")}
+          </p>
+
+          <div className="mt-8 grid max-w-[680px] gap-3 sm:grid-cols-3">
+            <div className="rounded-[22px] bg-white/13 p-4 ring-1 ring-white/18 backdrop-blur">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-white text-primary">
+                <Clock3 size={19} />
+              </div>
+              <p className="text-sm font-bold text-white">{t("freshTitle")}</p>
+              <p className="mt-1 text-xs leading-5 text-white/72">{t("freshDescription")}</p>
+            </div>
+
+            <div className="rounded-[22px] bg-white/13 p-4 ring-1 ring-white/18 backdrop-blur">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-white text-primary">
+                <MapPinned size={19} />
+              </div>
+              <p className="text-sm font-bold text-white">{t("trackingTitle")}</p>
+              <p className="mt-1 text-xs leading-5 text-white/72">{t("trackingDescription")}</p>
+            </div>
+
+            <div className="rounded-[22px] bg-white/13 p-4 ring-1 ring-white/18 backdrop-blur">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-white text-primary">
+                <BadgePercent size={19} />
+              </div>
+              <p className="text-sm font-bold text-white">{t("offersTitle")}</p>
+              <p className="mt-1 text-xs leading-5 text-white/72">{t("offersDescription")}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="w-full rounded-[30px] bg-white p-5 shadow-[0_24px_80px_rgba(17,24,39,0.22)] ring-1 ring-black/5 md:p-7">
+          <div className="mb-5">
+            <p className="text-sm font-bold uppercase tracking-[0.18em] text-primary">
+              {t("orderPanelEyebrow")}
+            </p>
+            <h2 className="mt-2 text-2xl font-black tracking-normal text-[#171717]">
+              {t("orderPanelTitle")}
+            </h2>
+          </div>
+
           {availableModes.length > 0 ? (
-            <div className="mb-6 inline-flex rounded-xl bg-[#F5F5F5] p-1">
+            <div className="mb-6 grid grid-cols-2 rounded-2xl bg-[#F5F5F5] p-1">
               {availableModes.map((nextMode) => (
-              <button
-                key={nextMode}
-                type="button"
-                onClick={() => handleModeChange(nextMode)}
-                className={`min-w-[116px] rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
-                  mode === nextMode
-                    ? "bg-primary text-white shadow-sm"
-                    : "text-[#757575] hover:bg-white"
-                }`}
-              >
-                {nextMode === "delivery" ? "Delivery" : "Pickup"}
-              </button>
+                <button
+                  key={nextMode}
+                  type="button"
+                  onClick={() => handleModeChange(nextMode)}
+                  className={`rounded-xl px-4 py-3 text-sm font-bold transition-all ${
+                    mode === nextMode
+                      ? "bg-primary text-white shadow-sm"
+                      : "text-[#757575] hover:bg-white"
+                  }`}
+                >
+                  {nextMode === "delivery" ? "Delivery" : "Pickup"}
+                </button>
               ))}
             </div>
           ) : null}
@@ -252,6 +296,14 @@ export const HeroSection = ({
               isLocating={permissionState === "requesting"}
               showSelectedLabel={false}
             />
+
+            <button
+              type="button"
+              onClick={handleFindNearbyBranches}
+              className="mt-4 flex h-[52px] w-full items-center justify-center rounded-2xl bg-primary px-5 py-4 text-sm font-black text-white shadow-[0_14px_30px_rgba(239,90,43,0.28)] transition hover:bg-[#d94e24]"
+            >
+              {t("findFood")}
+            </button>
 
             {showResults ? (
               <div className="mt-4 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_18px_45px_rgba(0,0,0,0.14)]">

@@ -154,6 +154,15 @@
       "defaultTitle": "Are you starving?",
       "defaultTagline": "Within a few clicks, find meals that are accessible near you",
       "heroImageAlt": "Hero food background",
+      "description": "Fresh meals, warm service, and easy ordering from your favorite local kitchen.",
+      "freshTitle": "Freshly prepared",
+      "freshDescription": "Order crowd-pleasing favorites made hot and ready for your table.",
+      "trackingTitle": "Live tracking",
+      "trackingDescription": "Follow your order from kitchen prep to arrival.",
+      "offersTitle": "Best offers",
+      "offersDescription": "Unlock branch deals and menu promos whenever they are live.",
+      "orderPanelEyebrow": "Start your order",
+      "orderPanelTitle": "Delivery or pickup",
       "categories": "Categories",
       "items": "Items",
       "searchCategories": "Search categories",
@@ -165,6 +174,7 @@
       "menuItemFallback": "Menu item"
     },
     "categories": {
+      "eyebrow": "Top categories",
       "title": "Categories",
       "viewAll": "View All",
       "empty": "No categories found",
