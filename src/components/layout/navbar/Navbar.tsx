@@ -307,7 +307,7 @@ export const Navbar = () => {
 
           {/* DESKTOP NAV */}
           <div className="hidden min-w-0 flex-1 items-center justify-between gap-4 xl:flex">
-            <div className="flex min-w-0 items-center gap-1 rounded-full bg-[#F7F7F8] p-1 text-sm font-semibold text-[#565C65]">
+            <div className="flex min-w-0 items-center gap-8 text-sm font-semibold text-[#20242A]">
               {NAV_LINKS.map((item) => {
                 const isActive = isNavLinkActive(item.href)
 
@@ -315,10 +315,10 @@ export const Navbar = () => {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`whitespace-nowrap rounded-full px-3.5 py-2.5 transition-colors ${
+                    className={`relative whitespace-nowrap py-2 transition-colors after:absolute after:left-1/2 after:-bottom-1 after:h-[3px] after:-translate-x-1/2 after:rounded-full after:transition-all ${
                       isActive
-                        ? "bg-white text-primary shadow-[0_8px_22px_rgba(15,23,42,0.08)]"
-                        : "hover:bg-white/70 hover:text-primary"
+                        ? "text-primary after:w-6 after:bg-primary"
+                        : "hover:text-primary after:w-0 after:bg-transparent"
                     }`}
                   >
                     {tNav(item.labelKey)}
@@ -337,8 +337,8 @@ export const Navbar = () => {
                 <span className="truncate">{tNav("searchFood")}</span>
               </button>
 
-              <BranchSwitcher className="h-11 rounded-full border-none bg-[#F7F7F8] py-1.5 shadow-none" />
-              <LanguageSelector className="h-11 rounded-full border-none bg-[#F7F7F8] px-4 shadow-none" />
+              <BranchSwitcher presentation="navbar" />
+              <LanguageSelector className="h-11 rounded-full border-none bg-[#F7F7F8] px-4 text-[#20242A] shadow-none hover:bg-[#F1F2F4]" />
 
               <Link
                 href="/checkout"
