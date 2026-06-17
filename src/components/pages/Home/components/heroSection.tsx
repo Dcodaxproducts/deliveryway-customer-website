@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { BadgePercent, Clock3, MapPinned, Store } from "lucide-react";
+import { BadgePercent, Clock3, MapPinned, ShoppingBag, Store, Truck } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -41,7 +41,6 @@ const getOrderType = (mode: BranchSearchMode): BranchOrderType =>
   mode === "pickup" ? "TAKEAWAY" : "DELIVERY";
 
 export const HeroSection = ({
-  restaurantName,
   heroImage = "/hero.png",
 }: HeroSectionProps) => {
   const t = useTranslations("home.hero");
@@ -71,7 +70,6 @@ export const HeroSection = ({
     { enabled: showResults }
   );
 
-  const displayRestaurantName = restaurantName || t("defaultTitle");
   const selectedBranch = user?.branch ?? null;
   const selectedOrderType = getSelectedOrderType(user);
   const selectedOrderLabel = selectedOrderType === "TAKEAWAY" ? "Pickup" : selectedOrderType === "DELIVERY" ? "Delivery" : "";
@@ -183,7 +181,7 @@ export const HeroSection = ({
   };
 
   return (
-    <main className="relative flex min-h-[680px] w-full items-center overflow-hidden py-12 md:py-16 lg:min-h-[720px]">
+    <main className="relative flex min-h-[680px] w-full items-center overflow-hidden pb-12 pt-8 md:pb-16 md:pt-10 lg:min-h-[720px]">
       <div className="absolute inset-0 z-0">
         <Image
           src={resolvedHeroImage}
@@ -197,9 +195,7 @@ export const HeroSection = ({
 
       <div className="relative z-10 mx-auto grid w-full max-w-[1400px] items-center gap-10 px-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_520px] lg:px-8">
         <div className="max-w-[720px] text-white">
-          <p className="mb-5 inline-flex rounded-full bg-white px-4 py-2 text-sm font-extrabold text-primary">
-            {displayRestaurantName}
-          </p>
+          {/* Restaurant name intentionally hidden from the banner per design request. */}
 
           <h1 className="max-w-[680px] text-[46px] font-black leading-[0.95] tracking-normal text-white sm:text-[62px] lg:text-[76px]">
             {t("deliveryTitle")}
@@ -214,24 +210,24 @@ export const HeroSection = ({
               <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-white text-primary">
                 <Clock3 size={16} />
               </div>
-              <p className="text-xs font-bold text-white">{t("freshTitle")}</p>
-              <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-white/72">{t("freshDescription")}</p>
+              <p className="text-sm font-bold text-white">{t("freshTitle")}</p>
+              <p className="mt-1 line-clamp-2 text-xs leading-5 text-white/72">{t("freshDescription")}</p>
             </div>
 
             <div className="rounded-[18px] bg-white/13 p-3 ring-1 ring-white/18 backdrop-blur">
               <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-white text-primary">
                 <MapPinned size={16} />
               </div>
-              <p className="text-xs font-bold text-white">{t("trackingTitle")}</p>
-              <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-white/72">{t("trackingDescription")}</p>
+              <p className="text-sm font-bold text-white">{t("trackingTitle")}</p>
+              <p className="mt-1 line-clamp-2 text-xs leading-5 text-white/72">{t("trackingDescription")}</p>
             </div>
 
             <div className="rounded-[18px] bg-white/13 p-3 ring-1 ring-white/18 backdrop-blur">
               <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-white text-primary">
                 <BadgePercent size={16} />
               </div>
-              <p className="text-xs font-bold text-white">{t("offersTitle")}</p>
-              <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-white/72">{t("offersDescription")}</p>
+              <p className="text-sm font-bold text-white">{t("offersTitle")}</p>
+              <p className="mt-1 line-clamp-2 text-xs leading-5 text-white/72">{t("offersDescription")}</p>
             </div>
           </div>
         </div>
@@ -250,12 +246,13 @@ export const HeroSection = ({
                   key={nextMode}
                   type="button"
                   onClick={() => handleModeChange(nextMode)}
-                  className={`rounded-xl px-4 py-3 text-sm font-medium transition-all ${
+                  className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
                     mode === nextMode
                       ? "bg-primary text-white shadow-sm"
                       : "text-[#757575] hover:bg-white"
                   }`}
                 >
+                  {nextMode === "delivery" ? <Truck size={17} /> : <ShoppingBag size={17} />}
                   {nextMode === "delivery" ? "Delivery" : "Pickup"}
                 </button>
               ))}

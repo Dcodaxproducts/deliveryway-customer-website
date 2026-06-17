@@ -274,7 +274,7 @@ export function FoodCategorySection() {
     <section className="relative z-20 mx-auto -mt-20 max-w-[1400px] px-4 sm:-mt-24 sm:px-6">
       <div className="rounded-[30px] bg-white px-4 py-5 sm:px-6 sm:py-6">
         <div className="mb-5 flex items-center justify-between gap-4">
-          <h2 className="text-[18px] font-semibold uppercase tracking-[0.04em] text-[#212121] sm:text-[22px] lg:text-[26px]">
+          <h2 className="text-2xl font-bold text-gray-900">
             {tCategories("title")}
           </h2>
 
