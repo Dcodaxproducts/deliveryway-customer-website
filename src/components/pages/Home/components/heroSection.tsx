@@ -5,6 +5,7 @@ import { BadgePercent, Clock3, MapPinned, Store } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 
 import { useAuthContext } from "@/hooks/useAuth";
 import { useNearbyBranches } from "@/hooks/useBranches";
@@ -44,6 +45,7 @@ export const HeroSection = ({
   heroImage = "/hero.png",
 }: HeroSectionProps) => {
   const t = useTranslations("home.hero");
+  const router = useRouter();
   const { user, setUser } = useAuthContext();
   const resolvedHeroImage = resolveHttpsImageUrl(heroImage, "/hero.png");
   const branchSearchRef = useRef<HTMLDivElement | null>(null);
@@ -154,6 +156,10 @@ export const HeroSection = ({
     if (!coordinates) {
       requestLocation();
     }
+  };
+
+  const handleFindFood = () => {
+    router.push("/items");
   };
 
   const handleUseCurrentLocation = () => {
@@ -301,7 +307,7 @@ export const HeroSection = ({
 
             <button
               type="button"
-              onClick={handleFindNearbyBranches}
+              onClick={handleFindFood}
               className="mt-4 flex h-[52px] w-full items-center justify-center rounded-2xl bg-primary px-5 py-4 text-sm font-black text-white shadow-[0_14px_30px_rgba(239,90,43,0.28)] transition hover:bg-[#d94e24]"
             >
               {t("findFood")}
