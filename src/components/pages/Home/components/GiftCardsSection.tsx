@@ -6,7 +6,7 @@ import {
   CreditCard,
   Gift,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState, type WheelEvent } from "react";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
@@ -32,36 +32,41 @@ type GiftCardVisualStyle = {
   textClass: string;
   mutedClass: string;
   buttonClass: string;
+  glowClass: string;
   illustration: "cupcake" | "burger" | "icecream" | "gift";
 };
 
 const giftCardVisualStyles: GiftCardVisualStyle[] = [
   {
-    cardClass: "bg-[#F4C568]",
+    cardClass: "bg-[#FFF5E8]",
     textClass: "text-[#8B321B]",
     mutedClass: "text-[#8B321B]/70",
-    buttonClass: "bg-[#8B321B] text-white hover:bg-[#6F2715]",
+    buttonClass: "bg-primary text-white hover:bg-primary/90",
+    glowClass: "bg-[#F4C568]/70",
     illustration: "cupcake",
   },
   {
-    cardClass: "bg-[#F47D3D]",
-    textClass: "text-white",
-    mutedClass: "text-white/78",
-    buttonClass: "bg-white text-[#E55322] hover:bg-white/90",
+    cardClass: "bg-[#FFF5E8]",
+    textClass: "text-[#8B321B]",
+    mutedClass: "text-[#8B321B]/70",
+    buttonClass: "bg-primary text-white hover:bg-primary/90",
+    glowClass: "bg-[#F47D3D]/55",
     illustration: "burger",
   },
   {
-    cardClass: "bg-[#F3D979]",
-    textClass: "text-[#70401E]",
-    mutedClass: "text-[#70401E]/70",
-    buttonClass: "bg-[#70401E] text-white hover:bg-[#5A3218]",
+    cardClass: "bg-[#FFF5E8]",
+    textClass: "text-[#8B321B]",
+    mutedClass: "text-[#8B321B]/70",
+    buttonClass: "bg-primary text-white hover:bg-primary/90",
+    glowClass: "bg-[#F3D979]/75",
     illustration: "icecream",
   },
   {
-    cardClass: "bg-[#D81F2A]",
-    textClass: "text-white",
-    mutedClass: "text-white/76",
-    buttonClass: "bg-white text-[#D81F2A] hover:bg-white/90",
+    cardClass: "bg-[#FFF5E8]",
+    textClass: "text-[#8B321B]",
+    mutedClass: "text-[#8B321B]/70",
+    buttonClass: "bg-primary text-white hover:bg-primary/90",
+    glowClass: "bg-[#D81F2A]/18",
     illustration: "gift",
   },
 ];
@@ -163,9 +168,9 @@ const GiftCardTicket = ({
   const style = giftCardVisualStyles[index % giftCardVisualStyles.length];
 
   return (
-    <article className={`group relative h-[182px] min-w-[232px] overflow-hidden rounded-[26px] ${style.cardClass} p-4 text-left shadow-[0_18px_42px_rgba(15,23,42,0.10)] transition duration-200 hover:-translate-y-0.5 sm:h-[196px] sm:min-w-[268px] sm:p-5`}>
-      <div className="absolute -left-10 -top-12 h-28 w-28 rounded-full bg-white/22 blur-xl" />
-      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/10 to-transparent" />
+    <article className={`group relative h-[178px] min-w-[218px] snap-start overflow-hidden rounded-[26px] ${style.cardClass} p-4 text-left shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition duration-200 hover:-translate-y-0.5 sm:h-[188px] sm:min-w-[230px] sm:p-5 xl:min-w-[234px]`}>
+      <div className={`absolute -right-12 -top-12 h-36 w-36 rounded-full ${style.glowClass} blur-2xl`} />
+      <div className="absolute -left-10 -bottom-14 h-28 w-28 rounded-full bg-white/70 blur-xl" />
       <GiftCardIllustration giftCard={giftCard} style={style} />
 
       <div className="relative z-10 flex h-full max-w-[62%] flex-col">
@@ -204,11 +209,11 @@ function GiftCardIntroTile({ onBuy }: { onBuy: () => void }) {
   const t = useTranslations("home.giftCards");
 
   return (
-    <article className="relative flex h-[182px] min-w-[258px] overflow-hidden rounded-[26px] bg-[#FFF5E8] p-5 shadow-[0_18px_42px_rgba(15,23,42,0.08)] sm:h-[196px] sm:min-w-[304px] sm:p-6">
-      <div className="absolute -right-10 -top-12 h-32 w-32 rounded-full bg-[#F7C05E]/45 blur-2xl" />
+    <article className="relative flex h-[178px] min-w-[238px] snap-start overflow-hidden rounded-[26px] bg-transparent p-1 sm:h-[188px] sm:min-w-[270px] xl:min-w-[280px]">
+      <div className="absolute -right-10 -top-12 h-32 w-32 rounded-full bg-[#F7C05E]/25 blur-2xl" />
       <div className="absolute -bottom-16 -left-12 h-36 w-36 rounded-full bg-primary/10 blur-2xl" />
 
-      <div className="relative z-10 flex max-w-[230px] flex-col">
+      <div className="relative z-10 flex max-w-[245px] flex-col">
         <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">
           {t("label")}
         </p>
@@ -238,9 +243,24 @@ export const GiftCardsSection = ({
   currency,
 }: GiftCardsSectionProps) => {
   const t = useTranslations("home.giftCards");
+  const scrollRef = useRef<HTMLDivElement>(null);
   const [selectedGiftCard, setSelectedGiftCard] = useState<GiftCardAvailableItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const items = useMemo(() => giftCards?.items ?? [], [giftCards?.items]);
+  const handleHorizontalWheel = useCallback((event: WheelEvent<HTMLDivElement>) => {
+    const container = scrollRef.current;
+
+    if (!container || container.scrollWidth <= container.clientWidth) {
+      return;
+    }
+
+    if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) {
+      return;
+    }
+
+    event.preventDefault();
+    container.scrollBy({ left: event.deltaY, behavior: "smooth" });
+  }, []);
 
   if (giftCards?.isEnabled !== true || !restaurantId) {
     return null;
@@ -258,7 +278,11 @@ export const GiftCardsSection = ({
     >
       <div className="rounded-[30px] bg-white px-4 py-5 sm:px-6 sm:py-6">
         {items.length > 0 ? (
-          <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:-mx-6 sm:gap-5 sm:px-6 [&::-webkit-scrollbar]:hidden">
+          <div
+            ref={scrollRef}
+            className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain px-4 pb-3 scroll-smooth [scrollbar-width:thin] sm:-mx-6 sm:gap-4 sm:px-6"
+            onWheel={handleHorizontalWheel}
+          >
             <GiftCardIntroTile onBuy={() => openPurchaseModal()} />
             {items.map((giftCard, index) => (
               <GiftCardTicket
