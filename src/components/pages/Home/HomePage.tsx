@@ -80,7 +80,7 @@ const HomePage = () => {
         <Stats />
       </div>
 
-      <div className="hidden md:block">
+      <div className="hidden bg-white md:block">
         {branding.showHeroBanner ? (
           <HeroSection
             restaurantName={heroTitle}

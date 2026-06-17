@@ -7,17 +7,18 @@ export default function AppPromo() {
 const t = useTranslations("home.appPromo");
 
 return (
-  <section className="px-4 pt-5 pb-[80px]">
+  <section className="px-4 pb-[80px] pt-5">
     <div className="max-w-[1400px] mx-auto">
-      <div className="relative w-full overflow-hidden rounded-[20px]">
+      <div className="relative w-full overflow-hidden rounded-[36px] bg-[#241814] shadow-[0_26px_90px_rgba(36,24,20,0.16)]">
 
         <Image
           src="/banner-bg.png"
           alt={t("bannerAlt")}
           width={1920}
           height={1080}
-          className="w-full h-[560px] md:h-full object-cover"
+          className="h-[560px] w-full object-cover opacity-65 md:h-[520px]"
         />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(255,255,255,0.16),transparent_24%),linear-gradient(90deg,rgba(36,24,20,0.92),rgba(206,24,27,0.72),rgba(36,24,20,0.35))]" />
 
         <div className="
           absolute
@@ -45,7 +46,7 @@ return (
         ">
           <div className="text-white max-w-xl md:max-w-2xl text-center md:text-left">
 
-            <h2 className="text-[22px] sm:text-[28px] md:text-[40px] font-bold mb-4 md:mb-8 leading-tight">
+            <h2 className="mb-4 text-[22px] font-black leading-tight sm:text-[28px] md:mb-8 md:text-[44px]">
               {t("titleLineOne")}<br className="hidden sm:block" />
               {t("titleLineTwo")}
             </h2>
@@ -98,7 +99,7 @@ return (
 
         <div className="
           hidden md:flex
-          flex-col gap-3 absolute right-16 top-1/2 transform -translate-y-1/2
+          flex-col gap-3 absolute right-16 top-1/2 transform -translate-y-1/2 rounded-[28px] bg-white/10 p-4 ring-1 ring-white/15 backdrop-blur
         ">
           <img src="/app-store.png" className="w-[220px] lg:w-[254px]" />
           <img src="/google-play.png" className="w-[220px] lg:w-[254px]" />

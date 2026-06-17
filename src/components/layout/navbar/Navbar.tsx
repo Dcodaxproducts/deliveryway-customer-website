@@ -284,21 +284,25 @@ export const Navbar = () => {
     <>
       <div
         ref={navbarWrapRef}
-        className={`relative z-30 ${hideOnMobileHome ? "hidden md:block" : ""}`}
+        className="relative z-30"
       >
         {/* NAVBAR */}
-        <nav className="flex items-center justify-between px-6 2xl:px-40 py-6">
+        <nav className={`mx-auto flex max-w-[1480px] items-center justify-between px-4 py-4 sm:px-6 2xl:px-10 ${
+          hideOnMobileHome
+            ? "bg-white md:mt-5 md:w-[calc(100%-48px)] md:rounded-[32px] md:border md:border-red-100/80 md:bg-white/90 md:px-7 md:py-4 md:shadow-[0_20px_60px_rgba(206,24,27,0.08)] md:backdrop-blur"
+            : "bg-white md:py-5"
+        }`}>
           {/* LEFT - LOGO */}
           <Link href="/" className="relative w-[160px] h-[32px]">
             <BrandLogo alt="Logo" fill className="object-contain" />
           </Link>
 
           {/* DESKTOP NAV */}
-          <div className="hidden md:flex items-center gap-10 font-medium text-[#555]">
+          <div className="hidden md:flex items-center gap-7 rounded-full bg-[#fff7f4] px-5 py-3 font-medium text-[#5f4b47] ring-1 ring-red-100/70">
             {/* Search */}
             <button
               onClick={handleToggleSearch}
-              className="flex items-center gap-2 hover:text-primary transition-colors"
+              className="flex items-center gap-2 rounded-full px-2 py-1 hover:text-primary transition-colors"
             >
               <Search size={18} className="text-primary font-semibold" />
               <span className="font-semibold">{tNav("searchFood")}</span>
@@ -313,7 +317,7 @@ export const Navbar = () => {
                   event.preventDefault()
                 }
               }}
-              className={`flex items-center gap-2 hover:text-primary ${
+              className={`flex items-center gap-2 rounded-full px-2 py-1 hover:text-primary ${
                 tableReservationsEnabled ? "" : "pointer-events-auto cursor-not-allowed opacity-40"
               }`}
             >
@@ -328,7 +332,7 @@ export const Navbar = () => {
             {/* Cart */}
             <Link
               href="/checkout"
-              className="flex items-center gap-2 hover:text-primary"
+              className="flex items-center gap-2 rounded-full px-2 py-1 hover:text-primary"
             >
               <ShoppingBag size={18} className="text-primary" />
               <span className="text-primary font-semibold">{tNav("cart")}</span>
@@ -476,9 +480,10 @@ export const Navbar = () => {
           {/* MOBILE BUTTON */}
           <button
             onClick={() => setMobileOpen(true)}
-            className="md:hidden"
+            aria-label="Menu"
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-white shadow-lg shadow-primary/20 md:hidden"
           >
-            <Menu />
+            <Menu size={21} />
           </button>
         </nav>
 
@@ -623,11 +628,12 @@ export const Navbar = () => {
 
       {/* MOBILE MENU */}
       {mobileOpen && (
-        <div className="fixed inset-0 bg-black/40 z-50">
-          <div className="fixed right-0 top-0 h-full w-[280px] bg-white p-6 shadow-lg flex flex-col gap-6">
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm">
+          <div className="fixed right-0 top-0 flex h-full w-[min(320px,88vw)] flex-col gap-5 rounded-l-[28px] bg-white p-6 shadow-2xl">
             <button
               onClick={() => setMobileOpen(false)}
-              className="self-end"
+              aria-label={tCommon("close")}
+              className="self-end rounded-full bg-gray-100 p-2 text-gray-700"
             >
               <X />
             </button>

@@ -31,17 +31,17 @@ const FeatureCard = ({
   desc: string;
   img: string;
 }) => (
-  <div className="flex flex-col items-center text-center text-gray-800 p-4">
+  <div className="flex flex-col items-center rounded-[30px] bg-white p-6 text-center text-gray-800 shadow-[0_18px_60px_rgba(206,24,27,0.08)]">
     
     {/* IMAGE */}
-    <div className="relative w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 mb-4">
+    <div className="relative mb-4 h-32 w-32 rounded-full bg-[#fff1ec] p-4 sm:h-40 sm:w-40 md:h-44 md:w-44">
       <Image src={img} alt={title} fill className="object-contain object-top" />
     </div>
 
     {/* TITLE */}
     <h3 className="
-      text-xl sm:text-2xl md:text-[28px] 
-      font-bold 
+      text-xl sm:text-2xl md:text-[26px]
+      font-black
       leading-tight md:leading-[30px] 
       mb-2
     ">
@@ -63,12 +63,12 @@ export default function WhyChooseUs() {
   const t = useTranslations("home.whyChooseUs");
 
   return (
-    <section className="py-12 md:py-[80px] px-4 max-w-[1400px] mx-auto">
+    <section className="mx-auto max-w-[1400px] px-4 py-12 md:py-[80px]">
       
       {/* HEADING */}
       <h2 className="
         text-2xl sm:text-3xl md:text-[42px] 
-        font-semibold 
+        font-black
         text-center 
         leading-tight md:leading-[30px] 
         mb-10 md:mb-[60px]
@@ -79,7 +79,7 @@ export default function WhyChooseUs() {
       {/* GRID */}
       <div className="
         grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 
-        gap-10 sm:gap-12 md:gap-[135px]
+        gap-6 sm:gap-8
       ">
         {features.map((f) => (
           <FeatureCard key={f.id} title={t(f.titleKey)} desc={t(f.descKey)} img={f.img} />
