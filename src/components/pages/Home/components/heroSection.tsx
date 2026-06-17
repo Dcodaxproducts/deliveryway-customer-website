@@ -297,7 +297,7 @@ export const HeroSection = ({
                 <button
                   type="button"
                   onClick={handleFindFood}
-                  className="inline-flex h-[49px] items-center justify-center rounded-xl bg-primary px-3 text-xs font-semibold text-white transition hover:bg-[#d94e24] sm:px-4 sm:text-sm"
+                  className="inline-flex h-[49px] min-w-0 items-center justify-center whitespace-nowrap rounded-xl border border-primary/20 bg-white px-2.5 text-xs font-semibold text-primary transition hover:bg-primary/5 sm:px-4 sm:text-sm"
                 >
                   {t("findFood")}
                 </button>
