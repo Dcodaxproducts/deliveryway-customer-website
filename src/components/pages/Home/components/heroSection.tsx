@@ -179,29 +179,37 @@ export const HeroSection = ({
   };
 
   return (
-    <main className="relative overflow-hidden bg-[#fff8f4] px-4 pb-14 pt-10 sm:px-6 md:pb-20 md:pt-12">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_18%,rgba(255,210,190,0.55),transparent_30%),radial-gradient(circle_at_82%_12%,rgba(206,24,27,0.12),transparent_28%),linear-gradient(180deg,#fff8f4_0%,#ffffff_86%)]" />
-      <div className="relative mx-auto grid max-w-[1400px] items-center gap-12 lg:grid-cols-[0.95fr_1.05fr]">
-        <div className="max-w-2xl">
-          <h1 className="text-[48px] font-black leading-[0.98] tracking-normal text-[#241814] md:text-[72px] xl:text-[88px]">
-            {displayRestaurantName}
-          </h1>
-          <p className="mt-5 max-w-xl text-lg font-medium leading-8 text-[#6b5650] md:text-xl">
-            {displayTagline}
-          </p>
+    <main className="relative flex min-h-[630px] w-full items-center justify-center py-10 md:py-16">
+      <div className="absolute inset-0 z-0">
+        <Image
+          src={resolvedHeroImage}
+          alt={t("heroImageAlt")}
+          fill
+          className="object-cover brightness-75"
+          priority
+        />
+      </div>
 
-          <div className="mt-8 w-full max-w-[720px] rounded-[30px] border border-red-100/80 bg-white p-4 shadow-[0_28px_80px_rgba(206,24,27,0.12)] md:p-5">
+      <div className="relative z-10 ml-0 flex w-full max-w-4xl flex-col items-center px-4 md:ml-20">
+        <h1 className="mb-2 text-5xl font-extrabold text-white drop-shadow-md md:text-7xl">
+          {displayRestaurantName}
+        </h1>
+        <p className="mb-8 text-[22px] font-medium text-white">
+          {displayTagline}
+        </p>
+
+        <div className="w-full rounded-2xl bg-white p-6 shadow-xl md:p-8">
           {availableModes.length > 0 ? (
-            <div className="mb-5 inline-flex rounded-full bg-[#fff1ec] p-1">
+            <div className="mb-6 inline-flex rounded-xl bg-[#F5F5F5] p-1">
               {availableModes.map((nextMode) => (
               <button
                 key={nextMode}
                 type="button"
                 onClick={() => handleModeChange(nextMode)}
-                className={`min-w-[116px] rounded-full px-5 py-2.5 text-sm font-bold transition-all ${
+                className={`min-w-[116px] rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
                   mode === nextMode
                     ? "bg-primary text-white shadow-sm"
-                    : "text-[#7b625a] hover:bg-white"
+                    : "text-[#757575] hover:bg-white"
                 }`}
               >
                 {nextMode === "delivery" ? "Delivery" : "Pickup"}
@@ -211,9 +219,9 @@ export const HeroSection = ({
           ) : null}
 
           {selectedBranch ? (
-            <div className="mb-4 flex flex-col gap-3 rounded-[22px] border border-primary/15 bg-primary/5 p-4 md:flex-row md:items-center md:justify-between">
+            <div className="mb-4 flex flex-col gap-3 rounded-xl border border-primary/15 bg-primary/5 p-4 md:flex-row md:items-center md:justify-between">
               <div className="flex min-w-0 items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-primary">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-primary">
                   <Store size={18} />
                 </div>
                 <div className="min-w-0">
@@ -228,7 +236,7 @@ export const HeroSection = ({
               <button
                 type="button"
                 onClick={handleFindNearbyBranches}
-                className="h-10 rounded-full border border-primary/20 bg-white px-4 text-sm font-bold text-primary transition hover:bg-primary/5"
+                className="h-10 rounded-xl border border-primary/20 bg-white px-4 text-sm font-semibold text-primary transition hover:bg-primary/5"
               >
                 Change
               </button>
@@ -246,7 +254,7 @@ export const HeroSection = ({
             />
 
             {showResults ? (
-              <div className="mt-4 overflow-hidden rounded-[24px] border border-gray-100 bg-white shadow-[0_18px_45px_rgba(0,0,0,0.14)]">
+              <div className="mt-4 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_18px_45px_rgba(0,0,0,0.14)]">
                 {errorMessage ? (
                   <div className="px-5 py-6 text-sm text-gray-600">
                     {errorMessage || "Location is unavailable. Please choose a branch from the branch selector."}
@@ -295,30 +303,6 @@ export const HeroSection = ({
                 )}
               </div>
             ) : null}
-          </div>
-          </div>
-        </div>
-
-        <div className="relative hidden min-h-[560px] lg:block">
-          <div className="absolute right-0 top-8 h-[500px] w-[500px] rounded-full bg-primary/10" />
-          <div className="absolute right-12 top-0 h-[520px] w-[520px] overflow-hidden rounded-full border-[18px] border-white bg-white shadow-[0_30px_100px_rgba(80,25,16,0.14)]">
-            <Image
-              src={resolvedHeroImage}
-              alt={t("heroImageAlt")}
-              fill
-              className="object-cover"
-              priority
-            />
-          </div>
-          <div className="absolute bottom-14 left-8 rounded-[28px] bg-white p-4 shadow-[0_24px_70px_rgba(80,25,16,0.14)]">
-            <div className="relative h-[120px] w-[180px] overflow-hidden rounded-[22px] bg-[#fff1ec]">
-              <Image
-                src="/pizza.png"
-                alt={t("heroImageAlt")}
-                fill
-                className="object-contain p-4"
-              />
-            </div>
           </div>
         </div>
       </div>

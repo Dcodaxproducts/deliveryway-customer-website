@@ -13,15 +13,15 @@ export default function Stats() {
   const t = useTranslations("home.stats");
 
   return (
-    <section className={`mx-auto max-w-[1400px] px-4 py-12 md:py-16 ${montserrat.className}`}>
-      <div className="grid grid-cols-2 gap-4 rounded-[34px] border border-red-100/80 bg-[#fff8f4] p-4 text-center text-primary shadow-[0_22px_70px_rgba(206,24,27,0.08)] md:grid-cols-4 md:gap-6 md:p-6">
+    <section className={`max-w-6xl mx-auto py-12 md:py-16 px-4 ${montserrat.className}`}>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 text-center text-primary">
         {stats.map((stat, idx) => (
-          <div key={idx} className="flex flex-col items-center gap-2 rounded-[26px] bg-white px-4 py-6 shadow-sm md:gap-3">
+          <div key={idx} className="flex flex-col items-center gap-2 md:gap-3">
             
             {/* VALUE */}
             <span className="
-              text-3xl sm:text-4xl md:text-[50px]
-              font-bold
+              text-3xl sm:text-4xl md:text-[56px] 
+              font-bold 
               leading-tight md:leading-[66%]
               h-auto md:h-[66px]
             ">

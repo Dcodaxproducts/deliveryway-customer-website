@@ -195,13 +195,12 @@ export const Footer = () => {
 
   return (
     <footer
-      className={`bg-[#241814] px-4 pb-8 pt-[80px] transition-colors duration-300 ${
+      className={`bg-[#111116] pt-[94.39px] pb-8 px-4 transition-colors duration-300 ${
         hideOnMobileHome ? "hidden md:block" : ""
       }`}
     >
-      <div className="mx-auto max-w-[1400px]">
-        <div className="mb-14 overflow-hidden rounded-[34px] border border-white/10 bg-white/[0.06] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.18)] backdrop-blur md:p-8">
-        <div className="grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-4">
+      <div className="max-w-[1400px] mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
 
           {/* BRAND */}
           <div className="flex flex-col">
@@ -243,7 +242,7 @@ export const Footer = () => {
                     target="_blank"
                     rel="noreferrer"
                     aria-label={label}
-                    className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition-colors hover:bg-primary"
+                    className="w-10 h-10 rounded-full bg-[#29292D] flex items-center justify-center hover:bg-[#F15A2B15] transition-colors"
                   >
                     <Icon size={18} className="text-white" />
                   </Link>
@@ -328,10 +327,9 @@ export const Footer = () => {
             </div>
           </div>
         </div>
-        </div>
 
         {/* BOTTOM */}
-        <div className="border-t border-white/10 pt-8">
+        <div className="border-t border-gray-800 pt-8 mt-8">
           <p className="text-center text-gray-300 text-sm md:text-base">
             {t("copyright", { year: new Date().getFullYear(), name: restaurantName })}
           </p>

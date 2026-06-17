@@ -37,7 +37,7 @@ const GiftCardTicket = ({
   const t = useTranslations("home.giftCards");
 
   return (
-    <article className="group relative overflow-hidden rounded-[26px] bg-white shadow-[0_18px_55px_rgba(239,68,68,0.13)] transition duration-200 before:absolute before:inset-x-6 before:-top-10 before:h-20 before:rounded-full before:bg-primary/20 before:blur-3xl hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(239,68,68,0.2)]">
+    <article className="group relative overflow-hidden rounded-[22px] bg-white shadow-[0_18px_55px_rgba(239,68,68,0.13)] transition duration-200 before:absolute before:inset-x-6 before:-top-10 before:h-20 before:rounded-full before:bg-primary/20 before:blur-3xl hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(239,68,68,0.2)]">
       <div className="absolute -right-10 -top-12 h-28 w-28 rounded-full bg-primary/10 blur-2xl transition duration-200 group-hover:bg-primary/20" />
       <div className="relative flex min-h-[188px] min-w-0 flex-col p-5">
         <div className="flex items-start justify-between gap-4">
@@ -109,29 +109,27 @@ export const GiftCardsSection = ({
   return (
     <section
       id="gift-cards"
-      className="mx-auto max-w-[1400px] px-4 pb-[30px] pt-[30px] sm:px-6 sm:pb-[70px] sm:pt-[70px]"
+      className="mx-auto max-w-[1400px] px-4 pb-[30px] pt-[30px] sm:px-6 sm:pb-[60px] sm:pt-[60px]"
     >
-      <div className="overflow-hidden rounded-[36px] border border-red-100/80 bg-white shadow-[0_26px_90px_rgba(206,24,27,0.10)]">
+      <div className="overflow-hidden rounded-[28px] border border-gray-100 bg-white shadow-xl shadow-primary/5">
         <div className="grid gap-0 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="relative min-h-[520px] overflow-hidden bg-[#241814] p-6 text-white sm:p-8 lg:p-10">
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(255,255,255,0.20),transparent_24%),radial-gradient(circle_at_86%_80%,rgba(206,24,27,0.55),transparent_32%)]" />
-            <div className="pointer-events-none absolute -right-24 top-24 h-72 w-72 rounded-full bg-primary/25 blur-3xl" />
-            <div className="relative max-w-xl">
-              <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-white ring-1 ring-white/15">
+          <div className="relative min-h-[520px] bg-[#fbfbfb] p-6 sm:p-8 lg:p-10">
+            <div className="max-w-xl">
+              <p className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-primary">
                 <Gift size={14} />
                 {t("label")}
               </p>
-              <h2 className="mt-4 text-3xl font-black leading-tight text-white sm:text-4xl">
+              <h2 className="mt-4 text-3xl font-bold leading-tight text-gray-950 sm:text-4xl">
                 {t("title")}
               </h2>
-              <p className="mt-4 text-sm leading-6 text-white/75 sm:text-base">
+              <p className="mt-4 text-sm leading-6 text-gray-500 sm:text-base">
                 {t("description")}
               </p>
             </div>
 
             <div className="relative mt-10 h-[230px] max-w-[430px]">
-              <div className="absolute left-4 top-6 h-[170px] w-[86%] max-w-[360px] rotate-[-8deg] rounded-[26px] bg-white/15 shadow-2xl" />
-              <div className="absolute left-1 top-2 h-[178px] w-[88%] max-w-[368px] rotate-[4deg] rounded-[26px] border border-white/20 bg-white shadow-2xl shadow-primary/10" />
+              <div className="absolute left-4 top-6 h-[170px] w-[86%] max-w-[360px] rotate-[-8deg] rounded-[26px] bg-gray-950 shadow-2xl shadow-gray-300/70" />
+              <div className="absolute left-1 top-2 h-[178px] w-[88%] max-w-[368px] rotate-[4deg] rounded-[26px] border border-primary/15 bg-white shadow-2xl shadow-primary/10" />
               <div className="absolute left-0 top-0 flex h-[188px] w-[90%] max-w-[376px] flex-col justify-between rounded-[26px] bg-primary p-5 text-white shadow-2xl shadow-primary/25">
                 <div className="flex items-start justify-between">
                   <div>
@@ -153,15 +151,15 @@ export const GiftCardsSection = ({
               </div>
             </div>
 
-            <div className="relative mt-6 grid gap-3 text-sm font-medium text-white sm:grid-cols-2">
-              <div className="flex items-center gap-3 rounded-2xl bg-white/10 px-4 py-3 ring-1 ring-white/10">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-primary">
+            <div className="mt-6 grid gap-3 text-sm font-medium text-gray-700 sm:grid-cols-2">
+              <div className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 shadow-sm shadow-gray-200/70">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                   <Sparkles size={16} />
                 </span>
                 {t("instantCheckout")}
               </div>
-              <div className="flex items-center gap-3 rounded-2xl bg-white/10 px-4 py-3 ring-1 ring-white/10">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-primary">
+              <div className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 shadow-sm shadow-gray-200/70">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                   <Mail size={16} />
                 </span>
                 {t("emailDelivery")}
@@ -170,7 +168,7 @@ export const GiftCardsSection = ({
 
             <Button
               type="button"
-              className="relative mt-6 h-11 w-full rounded-full bg-white px-5 text-primary shadow-lg shadow-black/10 hover:bg-white/90 sm:w-fit"
+              className="mt-6 h-11 w-full rounded-full bg-primary px-5 text-white shadow-lg shadow-primary/20 hover:bg-primary/90 sm:w-fit"
               onClick={() => openPurchaseModal()}
             >
               {t("customAmount")}
@@ -178,7 +176,7 @@ export const GiftCardsSection = ({
             </Button>
           </div>
 
-          <div className="border-t border-gray-100 bg-[#fff9f6] p-5 sm:p-6 lg:border-l lg:border-t-0 lg:p-8">
+          <div className="border-t border-gray-100 p-5 sm:p-6 lg:border-l lg:border-t-0 lg:p-8">
             {items.length > 0 ? (
               <div className="grid gap-4 xl:grid-cols-2">
                 {items.slice(0, 6).map((giftCard) => (

@@ -144,9 +144,9 @@ function PromotionBannerCard({
   const maxDiscount = formatAmount(promotion.maxDiscountAmount);
 
   const gradients = [
-    "from-primary via-[#e64a2f] to-[#ffb36d]",
-    "from-[#2c211f] via-primary to-[#f2764a]",
-    "from-[#b91518] via-primary to-[#ffd3a6]",
+    "from-primary via-primary/90 to-[#111827]",
+    "from-[#111827] via-primary to-primary/70",
+    "from-primary/90 via-[#7C3AED] to-[#111827]",
   ];
 
   const gradientClass = gradients[index % gradients.length];
@@ -172,7 +172,7 @@ function PromotionBannerCard({
     <button
       type="button"
       onClick={handleOpenPromotion}
-      className={`group relative min-h-[250px] overflow-hidden rounded-[30px] bg-gradient-to-br ${gradientClass} p-5 text-left text-white shadow-xl shadow-primary/10 transition hover:-translate-y-1 hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-primary/40`}
+      className={`group relative min-h-[250px] overflow-hidden rounded-[24px] bg-gradient-to-br ${gradientClass} p-5 text-left text-white shadow-xl shadow-primary/10 transition hover:-translate-y-1 hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-primary/40`}
     >
       <div className="absolute inset-0 opacity-20">
         <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-white" />
@@ -180,7 +180,7 @@ function PromotionBannerCard({
       </div>
 
       {image ? (
-          <div className="absolute bottom-4 right-4 h-[110px] w-[110px] overflow-hidden rounded-full border-[7px] border-white/40 bg-white/10 shadow-2xl transition group-hover:scale-105">
+        <div className="absolute bottom-4 right-4 h-[110px] w-[110px] overflow-hidden rounded-[24px] border border-white/20 bg-white/10 shadow-2xl transition group-hover:scale-105">
           <Image
             src={image}
             alt={promotion.title || t("specialPromotion")}
@@ -190,7 +190,7 @@ function PromotionBannerCard({
           />
         </div>
       ) : (
-        <div className="absolute bottom-4 right-4 flex h-[110px] w-[110px] items-center justify-center rounded-full border border-white/20 bg-white/10 shadow-2xl transition group-hover:scale-105">
+        <div className="absolute bottom-4 right-4 flex h-[110px] w-[110px] items-center justify-center rounded-[24px] border border-white/20 bg-white/10 shadow-2xl transition group-hover:scale-105">
           <BadgePercent size={44} />
         </div>
       )}
@@ -271,7 +271,7 @@ export function FoodCategorySection() {
   };
 
   return (
-    <section className="mx-auto max-w-[1400px] px-4 pt-[50px] sm:px-6 sm:pt-[84px]">
+    <section className="mx-auto max-w-[1400px] px-4 pt-[40px] sm:px-6 sm:pt-[80px]">
       <div className="mb-[30px] flex items-center justify-between sm:mb-[60px]">
         <h2 className="text-[24px] font-semibold text-[#212121] sm:text-[32px] lg:text-[42px]">
           {tCategories("title")}
@@ -280,7 +280,7 @@ export function FoodCategorySection() {
         <div className="flex items-center gap-3 sm:gap-[16.5px]">
           <Button
             variant="link"
-              className="rounded-full bg-primary/10 px-4 py-2 text-sm font-bold text-primary hover:bg-primary/15 sm:text-base"
+            className="p-0 text-sm font-bold text-primary sm:text-lg"
             onClick={() => router.push("/items")}
           >
             {tCategories("viewAll")}
@@ -291,7 +291,7 @@ export function FoodCategorySection() {
             <button
               type="button"
               onClick={scrollLeft}
-              className="flex h-[50px] w-[50px] cursor-pointer items-center justify-center rounded-full bg-white text-primary shadow-lg shadow-primary/10 ring-1 ring-red-100 transition hover:bg-primary hover:text-white lg:h-[62px] lg:w-[62px]"
+              className="flex h-[50px] w-[50px] cursor-pointer items-center justify-center rounded-full bg-primary text-white shadow-lg shadow-primary/20 lg:h-[76px] lg:w-[76px]"
             >
               <ChevronLeft size={24} className="lg:h-[40px] lg:w-[40px]" />
             </button>
@@ -299,7 +299,7 @@ export function FoodCategorySection() {
             <button
               type="button"
               onClick={scrollRight}
-              className="flex h-[50px] w-[50px] cursor-pointer items-center justify-center rounded-full bg-primary text-white shadow-lg shadow-primary/20 transition hover:bg-primary/90 lg:h-[62px] lg:w-[62px]"
+              className="flex h-[50px] w-[50px] cursor-pointer items-center justify-center rounded-full bg-primary text-white shadow-lg shadow-primary/20 lg:h-[76px] lg:w-[76px]"
             >
               <ChevronRight size={24} className="lg:h-[40px] lg:w-[40px]" />
             </button>
@@ -338,8 +338,8 @@ export function FoodCategorySection() {
                   className="basis-1/2 pl-3 sm:basis-1/3 md:basis-1/4 lg:basis-1/5"
                   onClick={() => router.push(`/items?categoryId=${item.id}`)}
                 >
-                  <div className="group flex cursor-pointer flex-col items-center gap-3 rounded-[30px] bg-[#fff8f4] p-4 transition-all hover:-translate-y-1 hover:bg-white hover:shadow-[0_22px_60px_rgba(206,24,27,0.10)] sm:gap-4">
-                    <div className="relative h-[120px] w-[120px] overflow-hidden rounded-full border-[8px] border-white bg-white shadow-lg shadow-red-100/70 transition-all group-hover:border-primary/10 sm:h-[150px] sm:w-[150px] lg:h-[170px] lg:w-[170px]">
+                  <div className="group flex cursor-pointer flex-col items-center gap-3 sm:gap-4">
+                    <div className="relative h-[120px] w-[120px] overflow-hidden rounded-full border-2 border-transparent transition-all group-hover:border-primary sm:h-[160px] sm:w-[160px] sm:border-4 lg:h-[200px] lg:w-[200px]">
                       <Image
                         src={image}
                         alt={item.name}
@@ -349,7 +349,7 @@ export function FoodCategorySection() {
                       />
                     </div>
 
-                    <span className="text-center text-sm font-extrabold text-[#2c211f] sm:text-base lg:text-lg">
+                    <span className="text-center text-sm font-bold text-gray-800 sm:text-base lg:text-lg">
                       {item.name}
                     </span>
                   </div>
@@ -360,7 +360,7 @@ export function FoodCategorySection() {
         </Carousel>
       )}
 
-      <div className="mb-[50px] mt-[30px] flex flex-col justify-center gap-3 sm:mb-[80px] sm:mt-[44px] sm:flex-row sm:justify-end">
+      <div className="mb-[50px] mt-[30px] flex flex-col justify-center gap-3 sm:mb-[80px] sm:mt-[60px] sm:flex-row sm:justify-end">
         <Button
           variant="ghost"
           className="w-full rounded-full border border-primary/15 bg-primary/5 text-primary transition hover:bg-primary/10 sm:w-auto"
@@ -380,14 +380,14 @@ export function FoodCategorySection() {
 
         <Button
           variant="primary"
-          className="w-full rounded-full px-6 shadow-lg shadow-primary/20 sm:w-auto"
+          className="w-full sm:w-auto"
           onClick={() => router.push("/categories")}
         >
           {tCategories("orderNow")}
         </Button>
       </div>
 
-      <div className="mb-5 flex items-end justify-between gap-4 rounded-[28px] bg-[#fff8f4] px-5 py-4">
+      <div className="mb-4 flex items-end justify-between gap-4">
         <div>
           <p className="text-sm font-semibold uppercase tracking-wide text-primary">
             {tPromotions("liveOffers")}

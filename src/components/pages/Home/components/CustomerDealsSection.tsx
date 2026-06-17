@@ -44,7 +44,7 @@ const CustomerDealsSkeleton = () => (
     {[1, 2, 3].map((item) => (
       <div
         key={item}
-        className="h-[430px] animate-pulse rounded-[30px] bg-red-50"
+        className="h-[430px] animate-pulse rounded-[24px] bg-gray-100"
       />
     ))}
   </div>
@@ -177,8 +177,8 @@ const CustomerDealCard = ({
         : t("addDeal");
 
   return (
-    <article className="flex h-full min-h-[430px] flex-col overflow-hidden rounded-[30px] border border-red-100/70 bg-white shadow-[0_22px_70px_rgba(206,24,27,0.08)] transition hover:-translate-y-1 hover:shadow-[0_28px_80px_rgba(206,24,27,0.13)]">
-      <div className="relative h-[168px] bg-[#fff2ec]">
+    <article className="flex h-full min-h-[430px] flex-col overflow-hidden rounded-[24px] border border-gray-100 bg-white shadow-xl shadow-primary/5">
+      <div className="relative h-[150px] bg-primary/5">
         {image ? (
           <Image
             src={image}
@@ -196,20 +196,20 @@ const CustomerDealCard = ({
 
       <div className="flex flex-1 flex-col p-5">
         <div className="mb-3 flex items-center justify-between gap-3">
-          <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide text-primary">
+          <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-primary">
             <PackageCheck size={12} />
             {formatDealPrice(deal.discountValue)}
           </span>
 
           {dateRange ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-[#fff6f2] px-2.5 py-1 text-[11px] font-semibold text-[#7b625a]">
+            <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-medium text-gray-600">
               <CalendarDays size={12} />
               {dateRange}
             </span>
           ) : null}
         </div>
 
-        <h3 className="line-clamp-2 text-xl font-black leading-tight text-[#241814]">
+        <h3 className="line-clamp-2 text-lg font-bold text-gray-900">
           {deal.title}
         </h3>
 
@@ -243,7 +243,7 @@ const CustomerDealCard = ({
         <div className="mt-auto pt-5">
           <Button
             variant="primary"
-            className="h-11 w-full rounded-full px-3 text-xs shadow-lg shadow-primary/15"
+            className="h-10 w-full px-3 text-xs"
             disabled={!hasDealItems || isAdding}
             onClick={handleAddDeal}
           >
@@ -373,15 +373,13 @@ export const CustomerDealsSection = ({
   }
 
   return (
-    <section className="relative overflow-hidden bg-[#fffaf7] px-4 py-14 sm:px-6 md:py-20">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_12%,rgba(255,209,185,0.45),transparent_28%),radial-gradient(circle_at_90%_84%,rgba(206,24,27,0.08),transparent_28%)]" />
-      <div className="relative mx-auto max-w-[1400px]">
-      <div className="mb-7 flex items-end justify-between gap-4">
+    <section className="mx-auto max-w-[1400px] px-4 pb-[30px] pt-[30px] sm:px-6 sm:pb-[60px] sm:pt-[60px]">
+      <div className="mb-4 flex items-end justify-between gap-4">
         <div>
           <p className="text-sm font-semibold uppercase tracking-wide text-primary">
             {t("label")}
           </p>
-          <h3 className="mt-1 text-3xl font-black text-[#241814] md:text-[42px]">
+          <h3 className="mt-1 text-2xl font-bold text-gray-900">
             {t("available")}
           </h3>
         </div>
@@ -408,7 +406,6 @@ export const CustomerDealsSection = ({
           }
         }}
       />
-      </div>
     </section>
   );
 };
