@@ -15,7 +15,7 @@ import {
   Coffee,
 } from "lucide-react"
 import Link from "next/link"
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { usePathname, useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
@@ -26,7 +26,9 @@ import { BranchSwitcher } from "@/components/common/branch-selector/BranchSwitch
 import { BrandLogo } from "@/components/common/BrandLogo"
 import { LanguageSelector } from "@/components/layout/navbar/LanguageSelector"
 import { useHome } from "@/hooks/useHome"
+import { CART_CHANGED_EVENT } from "@/lib/cart-events"
 import { resolveHomeBranchId, resolveHomeRestaurantId, resolveTableReservationsEnabled } from "@/lib/home"
+import { fetchCustomerCart } from "@/services/cart"
 
 type MenuItem = {
   id: string
@@ -106,6 +108,11 @@ const NAV_LINKS = [
   { href: "/reservetable", labelKey: "reservations" },
 ] as const
 
+const toCartQuantity = (value: unknown) => {
+  const quantity = Number(value)
+  return Number.isFinite(quantity) ? Math.max(0, Math.floor(quantity)) : 0
+}
+
 export const Navbar = () => {
   const { user, logout } = useAuthContext()
   const { token, loading: authLoading, restaurantId } = useAuth()
@@ -126,6 +133,7 @@ export const Navbar = () => {
   )
 
   const isAuth = !!user
+  const userId = user?.id
   const userName = `${user?.profile?.firstName || ""} ${user?.profile?.lastName || ""}`.trim()
   const tableReservationsEnabled = resolveTableReservationsEnabled(
     homeQuery.data?.data.branch,
@@ -140,6 +148,7 @@ export const Navbar = () => {
   const [searchLoading, setSearchLoading] = useState(false)
   const [searchResults, setSearchResults] = useState<MenuItem[]>([])
   const [searchMeta, setSearchMeta] = useState<SearchResponse["meta"] | null>(null)
+  const [cartItemCount, setCartItemCount] = useState(0)
 
   const dropdownRef = useRef<HTMLDivElement | null>(null)
   const navbarWrapRef = useRef<HTMLDivElement | null>(null)
@@ -267,6 +276,36 @@ export const Navbar = () => {
     }
   }
 
+  const refreshCartItemCount = useCallback(async () => {
+    if (!userId || authLoading) {
+      setCartItemCount(0)
+      return
+    }
+
+    try {
+      const { items } = await fetchCustomerCart({ customerId: userId, token })
+      setCartItemCount(items.reduce((total, item) => total + toCartQuantity(item.quantity), 0))
+    } catch {
+      setCartItemCount(0)
+    }
+  }, [authLoading, token, userId])
+
+  useEffect(() => {
+    refreshCartItemCount()
+  }, [refreshCartItemCount])
+
+  useEffect(() => {
+    const handleCartChanged = () => {
+      refreshCartItemCount()
+    }
+
+    window.addEventListener(CART_CHANGED_EVENT, handleCartChanged)
+
+    return () => {
+      window.removeEventListener(CART_CHANGED_EVENT, handleCartChanged)
+    }
+  }, [refreshCartItemCount])
+
   useEffect(() => {
     if (!searchOpen) return
 
@@ -346,7 +385,11 @@ export const Navbar = () => {
                 aria-label={tNav("cart")}
               >
                 <ShoppingBag size={19} />
-                <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full border-2 border-[#F7F7F8] bg-primary" />
+                {cartItemCount > 0 ? (
+                  <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold leading-none text-white ring-2 ring-white">
+                    {cartItemCount > 99 ? "99+" : cartItemCount}
+                  </span>
+                ) : null}
               </Link>
               {/* USER */}
               {isAuth ? (
@@ -713,7 +756,15 @@ export const Navbar = () => {
             </Link>
 
             <Link href="/checkout" className="flex items-center gap-3">
-              <ShoppingBag /> {tNav("cart")}
+              <span className="relative">
+                <ShoppingBag />
+                {cartItemCount > 0 ? (
+                  <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold leading-none text-white ring-2 ring-white">
+                    {cartItemCount > 99 ? "99+" : cartItemCount}
+                  </span>
+                ) : null}
+              </span>
+              {tNav("cart")}
             </Link>
 
             <LanguageSelector className="w-full justify-between" />
