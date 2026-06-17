@@ -166,6 +166,9 @@ export const Navbar = () => {
     return pathname === href || pathname.startsWith(`${href}/`)
   }
 
+  const isNavLinkDisabled = (href: string) =>
+    href === "/reservetable" && !tableReservationsEnabled
+
   const getSafeImageSrc = (src?: string | null) => {
     if (!src || typeof src !== "string") return "/placeholder-food.png"
 
@@ -349,13 +352,23 @@ export const Navbar = () => {
             <div className="flex min-w-0 items-center gap-8 text-sm font-semibold text-[#20242A]">
               {NAV_LINKS.map((item) => {
                 const isActive = isNavLinkActive(item.href)
+                const isDisabled = isNavLinkDisabled(item.href)
 
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
+                    aria-disabled={isDisabled}
+                    tabIndex={isDisabled ? -1 : undefined}
+                    onClick={(event) => {
+                      if (isDisabled) {
+                        event.preventDefault()
+                      }
+                    }}
                     className={`relative whitespace-nowrap py-2 transition-colors after:absolute after:left-1/2 after:-bottom-1 after:h-[3px] after:-translate-x-1/2 after:rounded-full after:transition-all ${
-                      isActive
+                      isDisabled
+                        ? "pointer-events-none cursor-not-allowed text-gray-300 after:w-0 after:bg-transparent"
+                        : isActive
                         ? "text-primary after:w-6 after:bg-primary"
                         : "hover:text-primary after:w-0 after:bg-transparent"
                     }`}
@@ -714,14 +727,28 @@ export const Navbar = () => {
             <div className="flex flex-col gap-2">
               {NAV_LINKS.map((item) => {
                 const isActive = isNavLinkActive(item.href)
+                const isDisabled = isNavLinkDisabled(item.href)
 
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
-                    onClick={() => setMobileOpen(false)}
+                    aria-disabled={isDisabled}
+                    tabIndex={isDisabled ? -1 : undefined}
+                    onClick={(event) => {
+                      if (isDisabled) {
+                        event.preventDefault()
+                        return
+                      }
+
+                      setMobileOpen(false)
+                    }}
                     className={`rounded-2xl px-4 py-3 text-sm font-semibold transition-colors ${
-                      isActive ? "bg-primary text-white" : "bg-gray-50 text-gray-800 hover:bg-primary/10"
+                      isDisabled
+                        ? "pointer-events-none cursor-not-allowed bg-gray-50 text-gray-300"
+                        : isActive
+                          ? "bg-primary text-white"
+                          : "bg-gray-50 text-gray-800 hover:bg-primary/10"
                     }`}
                   >
                     {tNav(item.labelKey)}

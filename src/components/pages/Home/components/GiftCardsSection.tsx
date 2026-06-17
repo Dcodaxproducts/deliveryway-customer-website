@@ -34,42 +34,53 @@ const formatAmount = (amount: number, currency = "USD") =>
 type GiftCardTicketProps = {
   giftCard: GiftCardAvailableItem;
   currency?: string | null;
+  index: number;
   onSelect: (giftCard: GiftCardAvailableItem) => void;
 };
+
+const giftCardBackgrounds = [
+  "bg-[linear-gradient(135deg,rgba(209,188,154,0.98)_0%,rgba(173,134,87,0.95)_100%)]",
+  "bg-[linear-gradient(135deg,rgba(123,80,53,0.98)_0%,rgba(71,42,31,0.98)_100%)]",
+  "bg-[linear-gradient(135deg,rgba(82,79,76,0.98)_0%,rgba(29,29,31,0.98)_100%)]",
+  "bg-[linear-gradient(135deg,rgba(226,92,103,0.98)_0%,rgba(154,38,47,0.98)_100%)]",
+] as const;
 
 const GiftCardTicket = ({
   giftCard,
   currency,
+  index,
   onSelect,
 }: GiftCardTicketProps) => {
   const t = useTranslations("home.giftCards");
+  const background = giftCardBackgrounds[index % giftCardBackgrounds.length];
 
   return (
     <button
       type="button"
-      className="group flex h-[174px] w-full cursor-grab flex-col rounded-[24px] bg-[#FFF5E8] p-4 text-left shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition duration-200 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-primary/30 active:cursor-grabbing sm:h-[184px] sm:p-5"
+      className={`group relative flex h-[174px] w-full cursor-grab flex-col overflow-hidden rounded-[24px] ${background} p-4 text-left transition duration-200 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-primary/30 active:cursor-grabbing sm:h-[184px] sm:p-5`}
       onClick={() => onSelect(giftCard)}
     >
-      <div className="flex h-full flex-col">
-        <div className="flex items-start justify-between gap-3">
-          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#8B321B]/70">
+      <div className="absolute inset-x-4 top-3 h-px bg-white/35" />
+      <div className="absolute -right-14 -top-16 h-36 w-36 rounded-full bg-white/20 blur-2xl" />
+      <div className="absolute -bottom-14 left-3 h-28 w-28 rounded-full bg-white/10 blur-xl" />
+
+      <div className="relative z-10 flex h-full flex-col">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/70">
             {t("label")}
           </p>
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/80 text-primary shadow-sm">
-            <Gift size={18} />
-          </span>
         </div>
 
         <div className="mt-auto">
-          <p className="text-[34px] font-black leading-none tracking-tight text-[#8B321B]">
+          <p className="text-[34px] font-black leading-none tracking-tight text-white">
             {formatAmount(giftCard.amount, currency ?? "USD")}
           </p>
-          <h3 className="mt-2 line-clamp-2 text-[15px] font-bold leading-tight text-[#8B321B]">
+          <h3 className="mt-2 line-clamp-2 text-[15px] font-bold leading-tight text-white">
             {giftCard.title}
           </h3>
 
           {giftCard.description ? (
-            <p className="mt-1.5 line-clamp-2 text-[11px] font-medium leading-4 text-[#8B321B]/70">
+            <p className="mt-1.5 line-clamp-2 text-[11px] font-medium leading-4 text-white/75">
               {giftCard.description}
             </p>
           ) : null}
@@ -134,28 +145,32 @@ export const GiftCardsSection = ({
     >
       <div className="rounded-[30px] bg-white px-4 py-5 sm:px-6 sm:py-6">
         {items.length > 0 ? (
-          <Carousel
-            opts={{ align: "start", dragFree: true }}
-            className="w-full"
-          >
-            <CarouselContent className="-ml-4 cursor-grab active:cursor-grabbing">
-              <CarouselItem className="basis-[76%] pl-4 sm:basis-[36%] lg:basis-[22%]">
-                <GiftCardIntroTile onBuy={() => openPurchaseModal()} />
-              </CarouselItem>
-              {items.map((giftCard) => (
-                <CarouselItem
-                  key={giftCard.id}
-                  className="basis-[76%] pl-4 sm:basis-[36%] lg:basis-[19.5%]"
-                >
-                  <GiftCardTicket
-                    giftCard={giftCard}
-                    currency={currency}
-                    onSelect={openPurchaseModal}
-                  />
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-          </Carousel>
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-stretch">
+            <div className="lg:w-[280px] lg:shrink-0">
+              <GiftCardIntroTile onBuy={() => openPurchaseModal()} />
+            </div>
+
+            <Carousel
+              opts={{ align: "start", dragFree: true }}
+              className="min-w-0 flex-1"
+            >
+              <CarouselContent className="-ml-4 cursor-grab active:cursor-grabbing">
+                {items.map((giftCard, index) => (
+                  <CarouselItem
+                    key={giftCard.id}
+                    className="basis-[76%] pl-4 sm:basis-[36%] lg:basis-1/4"
+                  >
+                    <GiftCardTicket
+                      giftCard={giftCard}
+                      currency={currency}
+                      index={index}
+                      onSelect={openPurchaseModal}
+                    />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+            </Carousel>
+          </div>
         ) : (
           <div className="flex min-h-[258px] flex-col items-center justify-center rounded-[28px] bg-gradient-to-br from-[#EB4D3D] via-[#D93528] to-[#A91216] p-6 text-center text-white">
             <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white text-primary">
