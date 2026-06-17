@@ -17,7 +17,7 @@ import {
 import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
 import { useAuthContext } from "@/hooks/useAuth"
 import { useAuth } from "@/hooks/useAuth"
@@ -140,8 +140,10 @@ export const Navbar = () => {
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const router = useRouter()
+  const pathname = usePathname()
   const tNav = useTranslations("navigation")
   const tCommon = useTranslations("common")
+  const hideOnMobileHome = pathname === "/"
 
   const getSafeImageSrc = (src?: string | null) => {
     if (!src || typeof src !== "string") return "/placeholder-food.png"
@@ -280,7 +282,10 @@ export const Navbar = () => {
 
   return (
     <>
-      <div ref={navbarWrapRef} className="relative z-30">
+      <div
+        ref={navbarWrapRef}
+        className={`relative z-30 ${hideOnMobileHome ? "hidden md:block" : ""}`}
+      >
         {/* NAVBAR */}
         <nav className="flex items-center justify-between px-6 2xl:px-40 py-6">
           {/* LEFT - LOGO */}
