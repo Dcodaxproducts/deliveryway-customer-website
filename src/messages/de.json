@@ -43,6 +43,10 @@
   "navigation": {
     "changeLanguage": "Sprache ändern",
     "openMenu": "Menü öffnen",
+    "home": "Startseite",
+    "menus": "Menüs",
+    "groupOrder": "Gruppenbestellung",
+    "reservations": "Reservierungen",
     "searchFood": "Essen suchen",
     "reserveTable": "Tisch reservieren",
     "cart": "Warenkorb",

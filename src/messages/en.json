@@ -43,6 +43,10 @@
   "navigation": {
     "changeLanguage": "Change language",
     "openMenu": "Open menu",
+    "home": "Home",
+    "menus": "Menus",
+    "groupOrder": "Group order",
+    "reservations": "Reservations",
     "searchFood": "Search Food",
     "reserveTable": "Reserve a Table",
     "cart": "Cart",
