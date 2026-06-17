@@ -39,10 +39,10 @@ type GiftCardTicketProps = {
 };
 
 const giftCardBackgrounds = [
-  "bg-[linear-gradient(135deg,rgba(209,188,154,0.98)_0%,rgba(173,134,87,0.95)_100%)]",
-  "bg-[linear-gradient(135deg,rgba(123,80,53,0.98)_0%,rgba(71,42,31,0.98)_100%)]",
-  "bg-[linear-gradient(135deg,rgba(82,79,76,0.98)_0%,rgba(29,29,31,0.98)_100%)]",
-  "bg-[linear-gradient(135deg,rgba(226,92,103,0.98)_0%,rgba(154,38,47,0.98)_100%)]",
+  "bg-[radial-gradient(circle_at_88%_12%,rgba(255,255,255,0.32)_0_18%,transparent_19%),linear-gradient(135deg,#ff8a7a_0%,#ef3f32_46%,#a90f17_100%)]",
+  "bg-[radial-gradient(circle_at_86%_14%,rgba(255,215,196,0.34)_0_17%,transparent_18%),linear-gradient(135deg,#ff6b57_0%,#d9272c_48%,#7f1017_100%)]",
+  "bg-[radial-gradient(circle_at_90%_10%,rgba(255,255,255,0.24)_0_18%,transparent_19%),linear-gradient(135deg,#f45264_0%,#be1726_48%,#5f0d14_100%)]",
+  "bg-[radial-gradient(circle_at_88%_12%,rgba(255,226,226,0.38)_0_18%,transparent_19%),linear-gradient(135deg,#ff9a9a_0%,#e3263e_45%,#97101d_100%)]",
 ] as const;
 
 const GiftCardTicket = ({
@@ -62,16 +62,20 @@ const GiftCardTicket = ({
     >
       <div className="absolute inset-x-4 top-3 h-px bg-white/35" />
       <div className="absolute -right-14 -top-16 h-36 w-36 rounded-full bg-white/20 blur-2xl" />
-      <div className="absolute -bottom-14 left-3 h-28 w-28 rounded-full bg-white/10 blur-xl" />
+      <div className="absolute -bottom-14 left-3 h-28 w-28 rounded-full bg-black/10 blur-xl" />
+      <div className="absolute bottom-0 right-0 h-20 w-24 rounded-tl-full bg-black/10" />
 
       <div className="relative z-10 flex h-full flex-col">
-        <div>
+        <div className="flex items-start justify-between gap-3">
           <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/70">
             {t("label")}
           </p>
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/20 text-white ring-1 ring-white/35 backdrop-blur">
+            <Gift size={18} strokeWidth={2.3} />
+          </span>
         </div>
 
-        <div className="mt-auto">
+        <div className="mt-auto space-y-2">
           <p className="text-[34px] font-black leading-none tracking-tight text-white">
             {formatAmount(giftCard.amount, currency ?? "USD")}
           </p>
@@ -84,6 +88,10 @@ const GiftCardTicket = ({
               {giftCard.description}
             </p>
           ) : null}
+
+          <span className="mt-3 inline-flex h-9 w-full items-center justify-center rounded-full bg-white px-4 text-[12px] font-extrabold uppercase tracking-[0.08em] text-primary transition group-hover:bg-white/95">
+            {t("purchase")}
+          </span>
         </div>
       </div>
     </button>
