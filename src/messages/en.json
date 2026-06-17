@@ -253,6 +253,7 @@
       "instantCheckout": "Secure Stripe checkout",
       "emailDelivery": "Sent after payment confirmation",
       "customAmount": "Custom amount",
+      "buy": "Buy Gift Card",
       "buyPreset": "Buy this card",
       "customOnlyTitle": "Create a custom gift card",
       "customOnlyDescription": "Pick an amount, add your details, and complete payment by card.",
