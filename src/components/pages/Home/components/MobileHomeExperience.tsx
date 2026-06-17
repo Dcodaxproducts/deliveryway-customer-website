@@ -175,7 +175,7 @@ export function MobileHomeExperience({
                       unoptimized
                     />
                   </span>
-                  <span className="line-clamp-2 text-center text-[12px] font-bold leading-4 text-gray-900">
+                  <span className="line-clamp-2 text-center text-[12px] font-medium leading-4 text-gray-900">
                     {category.name}
                   </span>
                 </button>

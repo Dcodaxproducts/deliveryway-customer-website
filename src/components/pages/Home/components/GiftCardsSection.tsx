@@ -37,7 +37,7 @@ const GiftCardTicket = ({
   const t = useTranslations("home.giftCards");
 
   return (
-    <article className="group relative overflow-hidden rounded-[22px] bg-white shadow-[0_18px_55px_rgba(239,68,68,0.13)] transition duration-200 before:absolute before:inset-x-6 before:-top-10 before:h-20 before:rounded-full before:bg-primary/20 before:blur-3xl hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(239,68,68,0.2)]">
+    <article className="group relative min-w-[260px] overflow-hidden rounded-[22px] bg-white shadow-[0_18px_55px_rgba(239,68,68,0.13)] transition duration-200 before:absolute before:inset-x-6 before:-top-10 before:h-20 before:rounded-full before:bg-primary/20 before:blur-3xl hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(239,68,68,0.2)] sm:min-w-[300px] lg:min-w-0">
       <div className="absolute -right-10 -top-12 h-28 w-28 rounded-full bg-primary/10 blur-2xl transition duration-200 group-hover:bg-primary/20" />
       <div className="relative flex min-h-[188px] min-w-0 flex-col p-5">
         <div className="flex items-start justify-between gap-4">
@@ -178,7 +178,7 @@ export const GiftCardsSection = ({
 
           <div className="border-t border-gray-100 p-5 sm:p-6 lg:border-l lg:border-t-0 lg:p-8">
             {items.length > 0 ? (
-              <div className="grid gap-4 xl:grid-cols-2">
+              <div className="-mx-5 flex gap-4 overflow-x-auto px-5 pb-2 [scrollbar-width:none] lg:mx-0 lg:grid lg:grid-cols-1 lg:overflow-visible lg:px-0 lg:pb-0 xl:grid-cols-2 [&::-webkit-scrollbar]:hidden">
                 {items.slice(0, 6).map((giftCard) => (
                   <GiftCardTicket
                     key={giftCard.id}

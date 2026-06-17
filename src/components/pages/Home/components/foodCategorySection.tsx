@@ -271,17 +271,17 @@ export function FoodCategorySection() {
   };
 
   return (
-    <section className="relative z-20 mx-auto mt-10 max-w-[1400px] px-4 sm:mt-12 sm:px-6">
-      <div className="bg-white py-2 sm:py-4">
+    <section className="relative z-20 mx-auto -mt-20 max-w-[1400px] px-4 sm:-mt-24 sm:px-6">
+      <div className="rounded-[30px] bg-white px-4 py-5 sm:px-6 sm:py-6">
         <div className="mb-5 flex items-center justify-between gap-4">
-          <h2 className="text-[24px] font-black uppercase tracking-normal text-[#212121] sm:text-[32px] lg:text-[38px]">
+          <h2 className="text-[18px] font-semibold uppercase tracking-[0.04em] text-[#212121] sm:text-[22px] lg:text-[26px]">
             {tCategories("title")}
           </h2>
 
           <div className="flex items-center gap-3 sm:gap-[16.5px]">
             <Button
               variant="link"
-              className="p-0 text-sm font-bold text-primary sm:text-base"
+              className="p-0 text-sm font-medium text-primary sm:text-base"
               onClick={() => router.push("/items")}
             >
               {tCategories("viewAllCategories")}
@@ -342,7 +342,7 @@ export function FoodCategorySection() {
                           />
                         </div>
 
-                        <span className="line-clamp-2 text-center text-sm font-extrabold leading-5 text-gray-900">
+                        <span className="line-clamp-2 text-center text-sm font-medium leading-5 text-gray-900">
                           {item.name}
                         </span>
                       </div>

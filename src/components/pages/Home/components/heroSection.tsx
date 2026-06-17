@@ -250,7 +250,7 @@ export const HeroSection = ({
                   key={nextMode}
                   type="button"
                   onClick={() => handleModeChange(nextMode)}
-                  className={`rounded-xl px-4 py-3 text-sm font-bold transition-all ${
+                  className={`rounded-xl px-4 py-3 text-sm font-medium transition-all ${
                     mode === nextMode
                       ? "bg-primary text-white shadow-sm"
                       : "text-[#757575] hover:bg-white"
@@ -295,15 +295,17 @@ export const HeroSection = ({
               onUseCurrentLocation={handleUseCurrentLocation}
               isLocating={permissionState === "requesting"}
               showSelectedLabel={false}
+              actionsBelow
+              trailingAction={
+                <button
+                  type="button"
+                  onClick={handleFindFood}
+                  className="inline-flex h-[49px] items-center justify-center rounded-xl bg-primary px-3 text-xs font-semibold text-white transition hover:bg-[#d94e24] sm:px-4 sm:text-sm"
+                >
+                  {t("findFood")}
+                </button>
+              }
             />
-
-            <button
-              type="button"
-              onClick={handleFindFood}
-              className="mt-4 flex h-[52px] w-full items-center justify-center rounded-2xl bg-primary px-5 py-4 text-sm font-black text-white shadow-[0_14px_30px_rgba(239,90,43,0.28)] transition hover:bg-[#d94e24]"
-            >
-              {t("findFood")}
-            </button>
 
             {showResults ? (
               <div className="mt-4 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_18px_45px_rgba(0,0,0,0.14)]">

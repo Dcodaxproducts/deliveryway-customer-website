@@ -693,7 +693,7 @@ export const Navbar = () => {
         <button
           type="button"
           onClick={() => setMobileOpen(true)}
-          className="fixed left-4 top-4 z-40 flex h-11 w-11 items-center justify-center rounded-full bg-white text-primary shadow-[0_12px_30px_rgba(31,41,55,0.18)] ring-1 ring-black/5 md:hidden"
+          className="fixed right-16 top-5 z-40 flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white ring-1 ring-white/20 md:hidden"
           aria-label={tNav("openMenu")}
         >
           <Menu className="h-5 w-5" />
