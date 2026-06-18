@@ -57,7 +57,7 @@ const GiftCardTicket = ({
   return (
     <button
       type="button"
-      className={`group relative flex h-[206px] w-full cursor-grab flex-col overflow-hidden rounded-[24px] ${background} p-5 text-left shadow-[0_18px_45px_rgba(169,15,23,0.22)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_22px_52px_rgba(169,15,23,0.28)] focus:outline-none focus:ring-2 focus:ring-primary/30 active:cursor-grabbing sm:h-[236px] sm:p-5`}
+      className={`group relative flex h-[206px] w-full cursor-grab flex-col overflow-hidden rounded-[24px] ${background} p-5 text-left  transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_22px_52px_rgba(169,15,23,0.28)] focus:outline-none focus:ring-2 focus:ring-primary/30 active:cursor-grabbing sm:h-[236px] sm:p-5`}
       onClick={() => onSelect(giftCard)}
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_88%_12%,rgba(255,255,255,0.26)_0_17%,transparent_18%)]" />
