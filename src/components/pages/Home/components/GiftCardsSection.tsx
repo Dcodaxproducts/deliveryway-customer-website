@@ -5,7 +5,6 @@ import {
   CreditCard,
   Gift,
 } from "lucide-react";
-import Image from "next/image";
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 
@@ -46,13 +45,6 @@ const giftCardBackgrounds = [
   "bg-[linear-gradient(135deg,#ff9b92_0%,#e2243a_45%,#90101d_100%)]",
 ] as const;
 
-const giftCardImages = [
-  "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=640&q=80",
-  "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=640&q=80",
-  "https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=640&q=80",
-  "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=640&q=80",
-] as const;
-
 const GiftCardTicket = ({
   giftCard,
   currency,
@@ -61,7 +53,6 @@ const GiftCardTicket = ({
 }: GiftCardTicketProps) => {
   const t = useTranslations("home.giftCards");
   const background = giftCardBackgrounds[index % giftCardBackgrounds.length];
-  const image = giftCardImages[index % giftCardImages.length];
 
   return (
     <button
@@ -70,27 +61,15 @@ const GiftCardTicket = ({
       onClick={() => onSelect(giftCard)}
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_88%_12%,rgba(255,255,255,0.26)_0_17%,transparent_18%)]" />
-      <div className="absolute -right-8 top-8 h-32 w-32 rotate-12 overflow-hidden rounded-[28px] border border-white/30 bg-white/15 shadow-2xl shadow-black/20 transition duration-200 group-hover:rotate-6">
-        <Image
-          src={image}
-          alt=""
-          fill
-          sizes="128px"
-          className="object-cover opacity-80"
-          unoptimized
-        />
-        <div className="absolute inset-0 bg-primary/20" />
+      <div className="absolute -right-8 top-8 flex h-32 w-32 rotate-12 items-center justify-center rounded-[28px] border border-white/30 bg-white/15 text-white/55 shadow-2xl shadow-black/20 transition duration-200 group-hover:rotate-6">
+        <Gift size={54} strokeWidth={1.8} />
+        <span className="absolute left-1/2 top-0 h-full w-3 -translate-x-1/2 bg-white/10" />
+        <span className="absolute left-0 top-1/2 h-3 w-full -translate-y-1/2 bg-white/10" />
       </div>
-      <div className="absolute right-14 top-4 h-20 w-24 -rotate-6 overflow-hidden rounded-[22px] border border-white/20 bg-white/10 shadow-xl shadow-black/10 transition duration-200 group-hover:-translate-y-1">
-        <Image
-          src={giftCardImages[(index + 1) % giftCardImages.length]}
-          alt=""
-          fill
-          sizes="96px"
-          className="object-cover opacity-45"
-          unoptimized
-        />
-        <div className="absolute inset-0 bg-red-950/35" />
+      <div className="absolute right-14 top-4 flex h-20 w-24 -rotate-6 items-center justify-center overflow-hidden rounded-[22px] border border-white/20 bg-white/10 text-white/35 shadow-xl shadow-black/10 transition duration-200 group-hover:-translate-y-1">
+        <Gift size={32} strokeWidth={1.8} />
+        <span className="absolute -right-6 -top-6 h-16 w-16 rounded-full bg-white/10" />
+        <span className="absolute -bottom-8 left-3 h-20 w-20 rounded-full bg-black/10" />
       </div>
       <div className="absolute -bottom-14 left-3 h-28 w-28 rounded-full bg-black/10 blur-xl" />
       <div className="absolute bottom-0 right-0 h-20 w-24 rounded-tl-full bg-black/10" />
