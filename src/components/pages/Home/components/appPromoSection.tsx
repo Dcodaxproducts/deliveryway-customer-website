@@ -1,5 +1,4 @@
 // @refresh reset
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 
 const ASSET_BASE = "/app-promo";
@@ -38,24 +37,24 @@ export default function AppPromo() {
           <div className="absolute bottom-[-160px] right-[-140px] -z-10 h-[460px] w-[760px] rounded-full bg-[#ffecec]/85 blur-3xl" />
           <div className="pointer-events-none absolute inset-0 rounded-[20px] ring-1 ring-inset ring-[#ffe9e9]" />
 
-          <Image
+          <img
             src={INGREDIENTS_IMAGE}
             alt=""
             width={960}
             height={410}
             aria-hidden="true"
-            priority={false}
-            unoptimized
+            loading="lazy"
+            decoding="async"
             className="pointer-events-none absolute left-[1.4%] top-[10%] z-10 hidden h-auto w-[45%] max-w-[760px] select-none lg:block xl:left-[1.8%] 2xl:left-[2.2%]"
           />
 
-          <Image
+          <img
             src={PHONE_IMAGE}
             alt={tSafe("appPreviewAlt", "App preview")}
             width={820}
             height={610}
-            priority={false}
-            unoptimized
+            loading="lazy"
+            decoding="async"
             className="pointer-events-none absolute left-[4.1%] top-[5.8%] z-20 hidden h-auto w-[30.5%] max-w-[520px] select-none lg:block xl:left-[4.4%] xl:w-[29.5%] 2xl:left-[4.8%] 2xl:w-[28.7%]"
           />
 
@@ -106,22 +105,22 @@ export default function AppPromo() {
             </div>
 
             <div className="flex w-full min-w-0 flex-col gap-4 justify-self-end xl:gap-5">
-              <Image
+              <img
                 src={APP_STORE_BADGE_IMAGE}
                 alt={tSafe("appStoreAlt", "Download on the App Store")}
                 width={320}
                 height={96}
-                priority={false}
-                unoptimized
+                loading="lazy"
+                decoding="async"
                 className="h-auto w-full select-none rounded-[8px]"
               />
-              <Image
+              <img
                 src={GOOGLE_PLAY_BADGE_IMAGE}
                 alt={tSafe("googlePlayAlt", "Get it on Google Play")}
                 width={320}
                 height={96}
-                priority={false}
-                unoptimized
+                loading="lazy"
+                decoding="async"
                 className="h-auto w-full select-none rounded-[8px]"
               />
             </div>
@@ -130,23 +129,23 @@ export default function AppPromo() {
           {/* Mobile / tablet layout */}
           <div className="relative z-20 flex flex-col items-center text-center lg:hidden">
             <div className="relative mb-5 h-[270px] w-full max-w-[430px] sm:h-[310px]">
-              <Image
+              <img
                 src={INGREDIENTS_IMAGE}
                 alt=""
                 width={960}
                 height={410}
                 aria-hidden="true"
-                priority={false}
-                unoptimized
+                loading="lazy"
+                decoding="async"
                 className="pointer-events-none absolute left-1/2 top-2 h-auto w-[520px] max-w-none -translate-x-1/2 opacity-85"
               />
-              <Image
+              <img
                 src={MOBILE_PHONE_IMAGE}
                 alt={tSafe("appPreviewAlt", "App preview")}
                 width={820}
                 height={610}
-                priority={false}
-                unoptimized
+                loading="lazy"
+                decoding="async"
                 className="pointer-events-none absolute left-1/2 top-0 h-auto w-[360px] max-w-none -translate-x-1/2 select-none sm:w-[420px]"
               />
             </div>
@@ -190,22 +189,22 @@ export default function AppPromo() {
             </div>
 
             <div className="mt-8 flex w-full max-w-[340px] flex-col gap-3 sm:max-w-[420px] sm:flex-row sm:justify-center">
-              <Image
+              <img
                 src={APP_STORE_BADGE_IMAGE}
                 alt={tSafe("appStoreAlt", "Download on the App Store")}
                 width={320}
                 height={96}
-                priority={false}
-                unoptimized
+                loading="lazy"
+                decoding="async"
                 className="mx-auto h-auto w-[170px] select-none sm:w-[190px]"
               />
-              <Image
+              <img
                 src={GOOGLE_PLAY_BADGE_IMAGE}
                 alt={tSafe("googlePlayAlt", "Get it on Google Play")}
                 width={320}
                 height={96}
-                priority={false}
-                unoptimized
+                loading="lazy"
+                decoding="async"
                 className="mx-auto h-auto w-[170px] select-none sm:w-[190px]"
               />
             </div>
