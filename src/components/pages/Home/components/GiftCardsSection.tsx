@@ -57,20 +57,11 @@ const GiftCardTicket = ({
   return (
     <button
       type="button"
-      className={`group relative flex h-[226px] w-full cursor-grab flex-col overflow-hidden rounded-[24px] ${background} p-5 text-left shadow-[0_18px_45px_rgba(169,15,23,0.22)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_22px_52px_rgba(169,15,23,0.28)] focus:outline-none focus:ring-2 focus:ring-primary/30 active:cursor-grabbing sm:h-[236px] sm:p-5`}
+      className={`group relative flex h-[206px] w-full cursor-grab flex-col overflow-hidden rounded-[24px] ${background} p-5 text-left shadow-[0_18px_45px_rgba(169,15,23,0.22)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_22px_52px_rgba(169,15,23,0.28)] focus:outline-none focus:ring-2 focus:ring-primary/30 active:cursor-grabbing sm:h-[236px] sm:p-5`}
       onClick={() => onSelect(giftCard)}
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_88%_12%,rgba(255,255,255,0.26)_0_17%,transparent_18%)]" />
-      <div className="absolute -right-8 top-8 flex h-32 w-32 rotate-12 items-center justify-center rounded-[28px] border border-white/30 bg-white/15 text-white/55 shadow-2xl shadow-black/20 transition duration-200 group-hover:rotate-6">
-        <Gift size={54} strokeWidth={1.8} />
-        <span className="absolute left-1/2 top-0 h-full w-3 -translate-x-1/2 bg-white/10" />
-        <span className="absolute left-0 top-1/2 h-3 w-full -translate-y-1/2 bg-white/10" />
-      </div>
-      <div className="absolute right-14 top-4 flex h-20 w-24 -rotate-6 items-center justify-center overflow-hidden rounded-[22px] border border-white/20 bg-white/10 text-white/35 shadow-xl shadow-black/10 transition duration-200 group-hover:-translate-y-1">
-        <Gift size={32} strokeWidth={1.8} />
-        <span className="absolute -right-6 -top-6 h-16 w-16 rounded-full bg-white/10" />
-        <span className="absolute -bottom-8 left-3 h-20 w-20 rounded-full bg-black/10" />
-      </div>
+      
       <div className="absolute -bottom-14 left-3 h-28 w-28 rounded-full bg-black/10 blur-xl" />
       <div className="absolute bottom-0 right-0 h-20 w-24 rounded-tl-full bg-black/10" />
 
