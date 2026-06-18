@@ -365,36 +365,33 @@ export function BranchSelectorModal({
               onUseCurrentLocation={handleUseCurrentLocation}
               isLocating={permissionState === "requesting"}
               compact
+              actionsBelow
             />
 
-            {branchMode === "delivery" ? (
-              <p className="mb-4 mt-4 text-xs leading-5 text-[#8A8A8A]">
-                Delivery coverage is confirmed at checkout based on your address.
-              </p>
-            ) : null}
-
             {errorMessage ? (
-              <p className="mb-4 rounded-2xl bg-[#F9FAFB] px-4 py-3 text-xs leading-5 text-[#6B7280]">
+              <p className="mt-4 rounded-2xl bg-[#F9FAFB] px-4 py-3 text-xs leading-5 text-[#6B7280]">
                 {errorMessage || "Location is unavailable right now. You can still search and choose a branch manually."}
               </p>
             ) : null}
-
-            <div className="relative">
-              <FaSearch className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-[#9CA3AF]" />
-              <input
-                type="text"
-                value={searchInput}
-                onChange={(e) => {
-                  setUseNearbyResults(false);
-                  setSearchInput(e.target.value);
-                }}
-                placeholder="Manual branch fallback search"
-                className="h-12 w-full rounded-2xl border border-[#E5E7EB] bg-[#F9FAFB] pl-11 pr-4 text-sm text-[#111827] outline-none transition-all duration-200 placeholder:text-[#9CA3AF] focus:border-[var(--primary)] focus:bg-white focus:ring-4 focus:ring-[color:rgba(206,24,27,0.08)]"
-              />
-            </div>
           </div>
 
           <div className="flex min-h-0 flex-col">
+            <div className="border-b border-[#EEF1F4] bg-white px-6 py-4 md:px-8">
+              <div className="relative">
+                <FaSearch className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-[#9CA3AF]" />
+                <input
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => {
+                    setUseNearbyResults(false);
+                    setSearchInput(e.target.value);
+                  }}
+                  placeholder="Manual branch fallback search"
+                  className="h-12 w-full rounded-2xl border border-[#E5E7EB] bg-[#F9FAFB] pl-11 pr-4 text-sm text-[#111827] outline-none transition-all duration-200 placeholder:text-[#9CA3AF] focus:border-[var(--primary)] focus:bg-white focus:ring-4 focus:ring-[color:rgba(206,24,27,0.08)]"
+                />
+              </div>
+            </div>
+
             <div className="flex-1 overflow-y-auto px-6 py-6 md:px-8">
               {isLoadingBranches ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">

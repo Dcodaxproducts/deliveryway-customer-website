@@ -303,7 +303,7 @@ export function AddressLocationPicker({
           )}
         </div>
 
-        <div className={actionsBelow ? "grid grid-cols-3 gap-2 sm:gap-3" : "contents"}>
+        <div className={actionsBelow ? `grid gap-2 sm:gap-3 ${trailingAction ? "grid-cols-3" : "grid-cols-2"}` : "contents"}>
           <button
             type="button"
             onClick={onUseCurrentLocation}
