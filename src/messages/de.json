@@ -208,6 +208,7 @@
     "deals": {
       "label": "Angebote",
       "available": "Verfügbare Angebote",
+      "bestSeller": "Bestseller",
       "includes": "Enthält {items}",
       "noAvailableItems": "Dieses Angebot enthält keine verfügbaren Artikel.",
       "adding": "Wird hinzugefügt...",

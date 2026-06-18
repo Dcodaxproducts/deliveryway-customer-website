@@ -4,10 +4,8 @@ import {
   ArrowRight,
   CreditCard,
   Gift,
-  IceCreamBowl,
-  PartyPopper,
-  Sandwich,
 } from "lucide-react";
+import Image from "next/image";
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 
@@ -42,13 +40,18 @@ type GiftCardTicketProps = {
 };
 
 const giftCardBackgrounds = [
-  "bg-[radial-gradient(circle_at_88%_12%,rgba(255,255,255,0.32)_0_18%,transparent_19%),linear-gradient(135deg,#ff8a7a_0%,#ef3f32_46%,#a90f17_100%)]",
-  "bg-[radial-gradient(circle_at_86%_14%,rgba(255,215,196,0.34)_0_17%,transparent_18%),linear-gradient(135deg,#ff6b57_0%,#d9272c_48%,#7f1017_100%)]",
-  "bg-[radial-gradient(circle_at_90%_10%,rgba(255,255,255,0.24)_0_18%,transparent_19%),linear-gradient(135deg,#f45264_0%,#be1726_48%,#5f0d14_100%)]",
-  "bg-[radial-gradient(circle_at_88%_12%,rgba(255,226,226,0.38)_0_18%,transparent_19%),linear-gradient(135deg,#ff9a9a_0%,#e3263e_45%,#97101d_100%)]",
+  "bg-[linear-gradient(135deg,#ff7a68_0%,#df202b_48%,#8f0e18_100%)]",
+  "bg-[linear-gradient(135deg,#ff8f5e_0%,#d71d2b_46%,#71101a_100%)]",
+  "bg-[linear-gradient(135deg,#f84e61_0%,#bd1424_48%,#5f0d14_100%)]",
+  "bg-[linear-gradient(135deg,#ff9b92_0%,#e2243a_45%,#90101d_100%)]",
 ] as const;
 
-const giftCardAccentIcons = [Sandwich, PartyPopper, IceCreamBowl, Gift] as const;
+const giftCardImages = [
+  "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=640&q=80",
+  "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=640&q=80",
+  "https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=640&q=80",
+  "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=640&q=80",
+] as const;
 
 const GiftCardTicket = ({
   giftCard,
@@ -58,27 +61,39 @@ const GiftCardTicket = ({
 }: GiftCardTicketProps) => {
   const t = useTranslations("home.giftCards");
   const background = giftCardBackgrounds[index % giftCardBackgrounds.length];
-  const AccentIcon = giftCardAccentIcons[index % giftCardAccentIcons.length];
+  const image = giftCardImages[index % giftCardImages.length];
 
   return (
     <button
       type="button"
-      className={`group relative flex h-[208px] w-full cursor-grab flex-col overflow-hidden rounded-[24px] ${background} p-5 text-left shadow-[0_18px_45px_rgba(169,15,23,0.22)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_22px_52px_rgba(169,15,23,0.28)] focus:outline-none focus:ring-2 focus:ring-primary/30 active:cursor-grabbing sm:h-[218px] sm:p-5`}
+      className={`group relative flex h-[226px] w-full cursor-grab flex-col overflow-hidden rounded-[24px] ${background} p-5 text-left shadow-[0_18px_45px_rgba(169,15,23,0.22)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_22px_52px_rgba(169,15,23,0.28)] focus:outline-none focus:ring-2 focus:ring-primary/30 active:cursor-grabbing sm:h-[236px] sm:p-5`}
       onClick={() => onSelect(giftCard)}
     >
-      <div className="absolute -right-14 -top-16 h-36 w-36 rounded-full bg-white/20 blur-2xl" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_88%_12%,rgba(255,255,255,0.26)_0_17%,transparent_18%)]" />
+      <div className="absolute -right-8 top-8 h-32 w-32 rotate-12 overflow-hidden rounded-[28px] border border-white/30 bg-white/15 shadow-2xl shadow-black/20 transition duration-200 group-hover:rotate-6">
+        <Image
+          src={image}
+          alt=""
+          fill
+          sizes="128px"
+          className="object-cover opacity-80"
+          unoptimized
+        />
+        <div className="absolute inset-0 bg-primary/20" />
+      </div>
+      <div className="absolute right-14 top-4 h-20 w-24 -rotate-6 overflow-hidden rounded-[22px] border border-white/20 bg-white/10 shadow-xl shadow-black/10 transition duration-200 group-hover:-translate-y-1">
+        <Image
+          src={giftCardImages[(index + 1) % giftCardImages.length]}
+          alt=""
+          fill
+          sizes="96px"
+          className="object-cover opacity-45"
+          unoptimized
+        />
+        <div className="absolute inset-0 bg-red-950/35" />
+      </div>
       <div className="absolute -bottom-14 left-3 h-28 w-28 rounded-full bg-black/10 blur-xl" />
       <div className="absolute bottom-0 right-0 h-20 w-24 rounded-tl-full bg-black/10" />
-      <AccentIcon
-        aria-hidden="true"
-        className="absolute -right-3 bottom-9 h-24 w-24 rotate-[-12deg] text-white/10 transition duration-200 group-hover:text-white/14"
-        strokeWidth={1.6}
-      />
-      <Gift
-        aria-hidden="true"
-        className="absolute left-4 top-[58%] h-12 w-12 rotate-12 text-white/8"
-        strokeWidth={1.8}
-      />
 
       <div className="relative z-10 flex h-full flex-col">
         <div className="flex items-start justify-between gap-3">
@@ -90,11 +105,11 @@ const GiftCardTicket = ({
           </span>
         </div>
 
-        <div className="mt-5 min-h-0 flex-1 space-y-1.5 sm:mt-6">
+        <div className="mt-5 min-h-0 flex-1 space-y-1.5 pr-20 sm:mt-6">
           <p className="text-[30px] font-black leading-none tracking-tight text-white sm:text-[32px]">
             {formatAmount(giftCard.amount, currency ?? "USD")}
           </p>
-          <h3 className="line-clamp-2 pr-10 text-[14px] font-bold leading-tight text-white sm:text-[15px]">
+          <h3 className="line-clamp-2 text-[14px] font-bold leading-tight text-white sm:text-[15px]">
             {giftCard.title}
           </h3>
         </div>
