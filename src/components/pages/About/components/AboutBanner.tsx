@@ -4,22 +4,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 
-type AboutBannerProps = {
-  imageUrl?: string | null;
-  title?: string | null;
-};
-
-export default function AboutBanner({ imageUrl, title }: AboutBannerProps) {
+export default function AboutBanner() {
   const t = useTranslations("about.banner");
   const commonT = useTranslations("common");
-  const bannerImage = imageUrl?.trim() || "/about/banner.png";
-  const bannerTitle = title?.trim() || t("title");
 
   return (
     <section className="relative w-full h-[450px] md:h-[550px] overflow-hidden">
       {/* Background Image */}
       <Image
-        src={bannerImage}
+        src="/about/banner.png"
         alt={t("imageAlt")}
         fill
         priority
@@ -33,7 +26,7 @@ export default function AboutBanner({ imageUrl, title }: AboutBannerProps) {
       <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-4">
 
         <h1 className="text-white text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight">
-          {bannerTitle}
+          {t("title")}
         </h1>
 
         <p className="text-white/80 mt-4 text-base md:text-lg lg:text-xl max-w-2xl">
