@@ -32,6 +32,68 @@ export type AboutContent = {
   restaurantCoverImage: string | null;
   title: string;
   content: string | null;
+  pageContent: AboutPageContent | null;
+};
+
+export type AboutHeroContent = {
+  title: string;
+  subtitle: string;
+  imageUrl: string | null;
+  ctaLabel: string;
+  ctaHref: string;
+};
+
+export type AboutStoryContent = {
+  eyebrow: string;
+  title: string;
+  paragraphs: string;
+  imageUrl: string | null;
+  badge: string | null;
+};
+
+export type AboutTextCard = {
+  title: string;
+  description: string;
+};
+
+export type AboutStat = {
+  value: string;
+  label: string;
+};
+
+export type AboutTeamMember = {
+  name: string;
+  role: string;
+  imageUrl: string | null;
+};
+
+export type AboutTestimonial = {
+  name: string;
+  role: string;
+  imageUrl: string | null;
+  quote: string;
+  rating: number;
+};
+
+export type AboutCtaContent = {
+  title: string;
+  description: string;
+  imageUrl: string | null;
+  appStoreUrl: string | null;
+  playStoreUrl: string | null;
+  subscribeTitle: string;
+  subscribeDescription: string;
+};
+
+export type AboutPageContent = {
+  hero?: AboutHeroContent;
+  story?: AboutStoryContent;
+  missionVisionValues?: AboutTextCard[];
+  whyChooseUs?: AboutTextCard[];
+  stats?: AboutStat[];
+  team?: AboutTeamMember[];
+  testimonials?: AboutTestimonial[];
+  cta?: AboutCtaContent;
 };
 
 export type BranchStats = {
@@ -97,8 +159,126 @@ export type ContactFormPayload = {
   message: string;
 };
 
+const normalizeOptionalUrl = (value: unknown) => getString(value) ?? null;
+
+const normalizeTextCard = (value: unknown): AboutTextCard | null => {
+  const record = isRecord(value) ? value : {};
+  const title = getString(record.title);
+  const description = getString(record.description);
+
+  if (!title && !description) {
+    return null;
+  }
+
+  return {
+    title: title ?? "",
+    description: description ?? "",
+  };
+};
+
+const normalizeTextCardList = (value: unknown) =>
+  Array.isArray(value)
+    ? value.map(normalizeTextCard).filter((item): item is AboutTextCard => Boolean(item))
+    : [];
+
+const normalizeAboutPageContent = (value: unknown): AboutPageContent | null => {
+  const record = isRecord(value) ? value : null;
+
+  if (!record) {
+    return null;
+  }
+
+  const hero = isRecord(record.hero) ? record.hero : null;
+  const story = isRecord(record.story) ? record.story : null;
+  const cta = isRecord(record.cta) ? record.cta : null;
+  const team = Array.isArray(record.team)
+    ? record.team
+      .filter(isRecord)
+      .map((member) => ({
+        name: getString(member.name) ?? "",
+        role: getString(member.role) ?? "",
+        imageUrl: normalizeOptionalUrl(member.imageUrl),
+      }))
+      .filter((member) => member.name || member.role)
+    : [];
+  const testimonials = Array.isArray(record.testimonials)
+    ? record.testimonials
+      .filter(isRecord)
+      .map((testimonial) => ({
+        name: getString(testimonial.name) ?? "",
+        role: getString(testimonial.role) ?? "",
+        imageUrl: normalizeOptionalUrl(testimonial.imageUrl),
+        quote: getString(testimonial.quote) ?? "",
+        rating: Math.round(Math.min(5, Math.max(0, getNumber(testimonial.rating)))),
+      }))
+      .filter((testimonial) => testimonial.name || testimonial.quote)
+    : [];
+  const stats = Array.isArray(record.stats)
+    ? record.stats
+      .filter(isRecord)
+      .map((stat) => ({
+        value: getString(stat.value) ?? "",
+        label: getString(stat.label) ?? "",
+      }))
+      .filter((stat) => stat.value || stat.label)
+    : [];
+
+  return {
+    hero: hero
+      ? {
+          title: getString(hero.title) ?? "",
+          subtitle: getString(hero.subtitle) ?? "",
+          imageUrl: normalizeOptionalUrl(hero.imageUrl),
+          ctaLabel: getString(hero.ctaLabel) ?? "",
+          ctaHref: getString(hero.ctaHref) ?? "",
+        }
+      : undefined,
+    story: story
+      ? {
+          eyebrow: getString(story.eyebrow) ?? "",
+          title: getString(story.title) ?? "",
+          paragraphs: getString(story.paragraphs) ?? "",
+          imageUrl: normalizeOptionalUrl(story.imageUrl),
+          badge: getString(story.badge) ?? null,
+        }
+      : undefined,
+    missionVisionValues: normalizeTextCardList(record.missionVisionValues),
+    whyChooseUs: normalizeTextCardList(record.whyChooseUs),
+    stats,
+    team,
+    testimonials,
+    cta: cta
+      ? {
+          title: getString(cta.title) ?? "",
+          description: getString(cta.description) ?? "",
+          imageUrl: normalizeOptionalUrl(cta.imageUrl),
+          appStoreUrl: normalizeOptionalUrl(cta.appStoreUrl),
+          playStoreUrl: normalizeOptionalUrl(cta.playStoreUrl),
+          subscribeTitle: getString(cta.subscribeTitle) ?? "",
+          subscribeDescription: getString(cta.subscribeDescription) ?? "",
+        }
+      : undefined,
+  };
+};
+
+export const parseAboutPageContent = (content?: string | null): AboutPageContent | null => {
+  const match = content?.match(/<!--\s*deliveryway-about-page:([\s\S]*?)-->/i);
+  const encodedContent = match?.[1]?.trim();
+
+  if (!encodedContent) {
+    return null;
+  }
+
+  try {
+    return normalizeAboutPageContent(JSON.parse(decodeURIComponent(encodedContent)));
+  } catch {
+    return null;
+  }
+};
+
 export const normalizeAboutContent = (value: unknown): AboutContent => {
   const record = isRecord(value) ? value : {};
+  const content = getString(record.content) ?? null;
 
   return {
     restaurantId: getString(record.restaurantId) ?? "",
@@ -107,7 +287,8 @@ export const normalizeAboutContent = (value: unknown): AboutContent => {
     tenantName: getString(record.tenantName) ?? "",
     restaurantCoverImage: getString(record.restaurantCoverImage) ?? null,
     title: getString(record.title) ?? "About Us",
-    content: getString(record.content) ?? null,
+    content,
+    pageContent: parseAboutPageContent(content),
   };
 };
 

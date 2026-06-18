@@ -3,9 +3,11 @@
 import Image from "next/image";
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
+import type { AboutStoryContent } from "@/services/public-content";
 
 type OurStorySectionProps = {
   content?: string | null;
+  story?: AboutStoryContent;
 };
 
 const ALLOWED_ABOUT_TAGS = new Set([
@@ -79,9 +81,26 @@ const sanitizeAboutHtml = (value: string) => {
   return sanitized;
 };
 
-export default function OurStorySection({ content }: OurStorySectionProps) {
+const stripAboutMetadataComment = (value: string) =>
+  value.replace(/<!--\s*deliveryway-about-page:[\s\S]*?-->/i, "").trim();
+
+const getStoryParagraphs = (value: string) =>
+  value
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+
+export default function OurStorySection({ content, story }: OurStorySectionProps) {
   const t = useTranslations("about.story");
-  const safeContent = useMemo(() => sanitizeAboutHtml(content?.trim() ?? ""), [content]);
+  const safeContent = useMemo(
+    () => sanitizeAboutHtml(story ? "" : stripAboutMetadataComment(content?.trim() ?? "")),
+    [content, story]
+  );
+  const storyParagraphs = useMemo(() => getStoryParagraphs(story?.paragraphs ?? ""), [story?.paragraphs]);
+  const imageUrl = story?.imageUrl || "/about/delivery_service.png";
+  const badge = story?.badge || t("established");
+  const eyebrow = story?.eyebrow || t("eyebrow");
+  const title = story?.title;
 
   return (
     <section className="w-full py-16 md:py-20">
@@ -91,7 +110,7 @@ export default function OurStorySection({ content }: OurStorySectionProps) {
         <div className="relative">
           <div className="relative rounded-xl overflow-hidden">
             <Image
-              src="/about/delivery_service.png"
+              src={imageUrl}
               alt={t("imageAlt")}
               width={500}
               height={500}
@@ -103,7 +122,7 @@ export default function OurStorySection({ content }: OurStorySectionProps) {
           <div className="absolute bottom-[30px] right-[10px]">
             <div className="bg-[#FF5A2C] text-white px-6 py-4 rounded-md shadow-lg">
             <span className="text-lg md:text-xl font-semibold">
-                {t("established")}
+                {badge}
               </span>
             </div>
           </div>
@@ -112,15 +131,27 @@ export default function OurStorySection({ content }: OurStorySectionProps) {
         {/* RIGHT: Content */}
         <div>
           <p className="text-[#FF5A2C] text-sm font-semibold tracking-wider uppercase">
-            {t("eyebrow")}
+            {eyebrow}
           </p>
 
           <h2 className="mt-3 text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
-            {t("titleLineOne")} <br className="hidden md:block" />
-            {t("titleLineTwo")}
+            {title || (
+              <>
+                {t("titleLineOne")} <br className="hidden md:block" />
+                {t("titleLineTwo")}
+              </>
+            )}
           </h2>
 
-          {safeContent ? (
+          {storyParagraphs.length ? (
+            <div className="mt-4 space-y-4 text-gray-600 text-sm md:text-base leading-relaxed">
+              {storyParagraphs.map((paragraph) => (
+                <p key={paragraph} className="whitespace-pre-line">
+                  {paragraph}
+                </p>
+              ))}
+            </div>
+          ) : safeContent ? (
             <div
               className="mt-4 space-y-4 text-gray-600 text-sm md:text-base leading-relaxed [&_p]:mt-0 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-5"
               dangerouslySetInnerHTML={{ __html: safeContent }}

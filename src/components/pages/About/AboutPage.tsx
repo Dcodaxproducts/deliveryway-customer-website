@@ -22,16 +22,18 @@ const AboutPage = () => {
     enabled: Boolean(restaurantId),
     staleTime: 5 * 60 * 1000,
   })
+  const aboutContent = aboutQuery.data
+  const pageContent = aboutContent?.pageContent
 
   return (
     <>
-    <AboutBanner />
-    <OurStorySection content={aboutQuery.data?.content} />
-    <MissionVisionValues />
-    <WhyChooseUsSection />
-    <TeamSection />
-    <TestimonialsSection />
-    <CTASection />
+    <AboutBanner content={pageContent?.hero} coverImage={aboutContent?.restaurantCoverImage} />
+    <OurStorySection content={aboutContent?.content} story={pageContent?.story} />
+    <MissionVisionValues items={pageContent?.missionVisionValues} />
+    <WhyChooseUsSection features={pageContent?.whyChooseUs} stats={pageContent?.stats} />
+    <TeamSection team={pageContent?.team} />
+    <TestimonialsSection testimonials={pageContent?.testimonials} />
+    <CTASection content={pageContent?.cta} />
     </>
   )
 }

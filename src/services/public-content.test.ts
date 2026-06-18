@@ -7,6 +7,7 @@ import {
   normalizeAboutContent,
   normalizeBranchStats,
   normalizeCustomerReviewsResponse,
+  parseAboutPageContent,
   submitContactForm,
 } from "./public-content";
 
@@ -43,6 +44,52 @@ describe("public content service", () => {
       restaurantCoverImage: null,
       title: "About",
       content: "<p>Fresh food.</p>",
+    });
+  });
+
+  it("parses structured about page content from the backend HTML comment", () => {
+    const encoded = encodeURIComponent(JSON.stringify({
+      hero: {
+        title: "About Us",
+        subtitle: "Fresh food",
+        imageUrl: "",
+        ctaLabel: "Order Now",
+        ctaHref: "/items",
+      },
+      story: {
+        eyebrow: "Our Story",
+        title: "Serving with care",
+        paragraphs: "About Us\nFresh food.",
+        imageUrl: "",
+        badge: "Established with passion",
+      },
+      missionVisionValues: [{ title: "Mission", description: "Make every order memorable." }],
+      whyChooseUs: [{ title: "Fast delivery", description: "Prepared with care." }],
+      stats: [{ value: "10k+", label: "Happy customers" }],
+      team: [{ name: "Team Member", role: "Founder", imageUrl: "" }],
+      testimonials: [{ name: "Customer", role: "Regular", imageUrl: "", quote: "Great food.", rating: "5" }],
+      cta: {
+        title: "Order from our app",
+        description: "Download the app.",
+        imageUrl: "",
+        appStoreUrl: "",
+        playStoreUrl: "",
+        subscribeTitle: "Stay updated",
+        subscribeDescription: "Subscribe for offers.",
+      },
+    }));
+
+    const parsed = parseAboutPageContent(`<!-- deliveryway-about-page:${encoded} --><section />`);
+
+    expect(parsed).toMatchObject({
+      hero: { title: "About Us", subtitle: "Fresh food", imageUrl: null },
+      story: { title: "Serving with care", badge: "Established with passion" },
+      missionVisionValues: [{ title: "Mission" }],
+      whyChooseUs: [{ title: "Fast delivery" }],
+      stats: [{ value: "10k+", label: "Happy customers" }],
+      team: [{ name: "Team Member", imageUrl: null }],
+      testimonials: [{ name: "Customer", rating: 5 }],
+      cta: { title: "Order from our app", appStoreUrl: null },
     });
   });
 
