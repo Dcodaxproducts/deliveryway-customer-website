@@ -912,6 +912,10 @@
     "submitReview": "Bewertung senden",
     "submittingReview": "Wird gesendet...",
     "reviewSubmitted": "Bewertung erfolgreich gesendet",
+    "alreadyReviewedTitle": "Bewertung bereits gesendet",
+    "reviewAlreadySubmitted": "Sie haben diese Bestellung bereits bewertet.",
+    "reviewUnavailableTitle": "Bewertung noch nicht verfügbar",
+    "reviewUnavailableDescription": "Sie können diese Bestellung bewerten, sobald sie abgeschlossen ist.",
     "cancel": "Abbrechen",
     "loadingReviewsPage": "Bewertungsseite wird geladen..."
   },
@@ -939,7 +943,8 @@
       "processing": "In Bearbeitung",
       "confirmed": "Bestätigt",
       "preparing": "In Zubereitung",
-      "pickedUp": "Abgeholt"
+      "pickedUp": "Abgeholt",
+      "served": "Serviert"
     }
   },
   "payments": {
@@ -1309,7 +1314,11 @@
       "delivery": "Lieferung",
       "pickup": "Abholung",
       "takeaway": "Abholung"
-    }
+    },
+    "youRatedThisOrder": "Sie haben diese Bestellung bewertet",
+    "howWasYourFood": "Wie war Ihr Essen?",
+    "reviewCompletedOrder": "Teilen Sie Feedback zu dieser abgeschlossenen Bestellung.",
+    "writeReview": "Bewertung schreiben"
   },
   "notifications": {
     "title": "Benachrichtigungen",

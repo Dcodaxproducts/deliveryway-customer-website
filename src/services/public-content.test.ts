@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  fetchCustomerReviews,
   fetchBranchStats,
   normalizeAboutContent,
   normalizeBranchStats,
+  normalizeCustomerReviewsResponse,
   submitContactForm,
 } from "./public-content";
 
@@ -64,6 +66,68 @@ describe("public content service", () => {
 
     expect(getRequestMock).toHaveBeenCalledWith(
       "/customer-app/branch-stats?restaurantId=restaurant-1&branchId=branch-1"
+    );
+  });
+
+  it("normalizes customer reviews response", () => {
+    expect(
+      normalizeCustomerReviewsResponse({
+        data: {
+          items: [
+            {
+              id: "review-1",
+              restaurantId: "restaurant-1",
+              branchId: "branch-1",
+              orderId: "order-1",
+              rating: "5",
+              comment: "Great",
+              createdAt: "2026-06-18T00:00:00.000Z",
+              customer: {
+                id: "customer-1",
+                firstName: "Ada",
+                lastName: null,
+                avatarUrl: null,
+              },
+              branch: { id: "branch-1", name: "Main" },
+            },
+          ],
+          summary: {
+            reviewCount: "1",
+            averageRating: "5",
+          },
+        },
+        meta: {
+          page: "1",
+          limit: "10",
+          total: "1",
+          totalPages: "1",
+          hasNext: false,
+          hasPrevious: false,
+        },
+      })
+    ).toMatchObject({
+      items: [{ id: "review-1", rating: 5, comment: "Great" }],
+      summary: { reviewCount: 1, averageRating: 5 },
+      meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
+    });
+  });
+
+  it("fetches customer reviews with restaurant, branch, pagination, and rating params", async () => {
+    getRequestMock.mockResolvedValue({
+      data: { data: { items: [], summary: { reviewCount: 0, averageRating: null } } },
+      meta: { page: 2, limit: 5, total: 0, totalPages: 0 },
+    });
+
+    await fetchCustomerReviews({
+      restaurantId: "restaurant-1",
+      branchId: "branch-1",
+      page: 2,
+      limit: 5,
+      rating: 5,
+    });
+
+    expect(getRequestMock).toHaveBeenCalledWith(
+      "/customer-app/reviews?page=2&limit=5&restaurantId=restaurant-1&branchId=branch-1&rating=5"
     );
   });
 

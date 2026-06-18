@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { Star } from "lucide-react";
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import useOrders from "@/hooks/useOrders";
 import { useAuthContext } from "@/hooks/useAuth";
 import OrderSummary from "@/components/pages/Order/components/OrderSummary";
+import { canReviewOrder, type Order } from "@/services/orders";
 import { useTranslations } from "next-intl";
 import {
   getOrderProgressStep,
@@ -21,7 +23,7 @@ function OrderStatusContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
 
-  const [order, setOrder] = useState<import("@/services/orders").Order | null>(null);
+  const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
@@ -192,6 +194,53 @@ function OrderStatusContent() {
           {/* RIGHT */}
           <div className="lg:col-span-5">
             <OrderSummary order={order} />
+
+            {!loading && order && (order.review || canReviewOrder(order)) ? (
+              <div className="mt-5 rounded-[10px] border border-gray-100 bg-white p-5 shadow-lg">
+                {order.review ? (
+                  <>
+                    <p className="text-sm font-semibold text-gray-900">
+                      {t("youRatedThisOrder")}
+                    </p>
+                    <div className="mt-3 flex gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          size={18}
+                          className={
+                            star <= (order.review?.rating ?? 0)
+                              ? "text-[#EC5834] fill-[#EC5834]"
+                              : "text-gray-300"
+                          }
+                        />
+                      ))}
+                    </div>
+                    {order.review.comment ? (
+                      <p className="mt-3 rounded-lg bg-gray-50 p-3 text-sm text-gray-600">
+                        {order.review.comment}
+                      </p>
+                    ) : null}
+                  </>
+                ) : (
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">
+                        {t("howWasYourFood")}
+                      </p>
+                      <p className="mt-1 text-xs text-gray-500">
+                        {t("reviewCompletedOrder")}
+                      </p>
+                    </div>
+                    <Link
+                      href={`/order/write-review?orderId=${order.id}`}
+                      className="shrink-0 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-primary/90"
+                    >
+                      {t("writeReview")}
+                    </Link>
+                  </div>
+                )}
+              </div>
+            ) : null}
 
           </div>
 

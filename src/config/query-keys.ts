@@ -45,6 +45,9 @@ export const queryKeys = {
   customerDeals: {
     list: (params: Record<string, unknown>) => ["customer-deals", "list", params] as const,
   },
+  customerReviews: {
+    list: (params: Record<string, unknown>) => ["customer-reviews", "list", params] as const,
+  },
   orders: {
     all: ["orders"] as const,
     request: (endpoint: string) => ["orders", "request", endpoint] as const,

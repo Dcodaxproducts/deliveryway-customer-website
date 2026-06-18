@@ -912,6 +912,10 @@
     "submitReview": "Submit Review",
     "submittingReview": "Submitting...",
     "reviewSubmitted": "Review submitted successfully",
+    "alreadyReviewedTitle": "Review already submitted",
+    "reviewAlreadySubmitted": "You have already reviewed this order.",
+    "reviewUnavailableTitle": "Review not available yet",
+    "reviewUnavailableDescription": "You can review this order once it has been completed.",
     "cancel": "Cancel",
     "loadingReviewsPage": "Loading reviews page..."
   },
@@ -939,7 +943,8 @@
       "processing": "Processing",
       "confirmed": "Confirmed",
       "preparing": "Preparing",
-      "pickedUp": "Picked up"
+      "pickedUp": "Picked up",
+      "served": "Served"
     }
   },
   "payments": {
@@ -1309,7 +1314,11 @@
       "delivery": "Delivery",
       "pickup": "Pickup",
       "takeaway": "Pickup"
-    }
+    },
+    "youRatedThisOrder": "You rated this order",
+    "howWasYourFood": "How was your food?",
+    "reviewCompletedOrder": "Share feedback for this completed order.",
+    "writeReview": "Write Review"
   },
   "notifications": {
     "title": "Notifications",

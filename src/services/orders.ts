@@ -1,7 +1,15 @@
 import { createDomainApiService } from "@/services/domain-api";
 import type { ApiResult } from "@/services/http";
 
-export type OrderStatus = "PLACED" | "CONFIRMED" | "PREPARING" | "PICKED_UP" | "DELIVERED" | "CANCELLED" | string;
+export type OrderStatus =
+  | "PLACED"
+  | "CONFIRMED"
+  | "PREPARING"
+  | "PICKED_UP"
+  | "DELIVERED"
+  | "SERVED"
+  | "CANCELLED"
+  | string;
 
 export type OrderMenuItem = {
   id?: string | number | null;
@@ -21,7 +29,12 @@ export type OrderItem = {
 };
 
 export type OrderReview = {
+  id?: string;
+  orderId?: string;
   rating: number;
+  comment?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export type OrderBranch = {
@@ -72,6 +85,29 @@ export type DirectOrderPayload = Record<string, unknown> & {
 export type SubmitOrderReviewPayload = {
   rating: number;
   comment?: string;
+};
+
+export const canReviewOrder = (order: Pick<Order, "orderType" | "status" | "review">) => {
+  if (order.review) {
+    return false;
+  }
+
+  const orderType = String(order.orderType || "").toUpperCase();
+  const status = String(order.status || "").toUpperCase();
+
+  if (orderType === "DELIVERY") {
+    return status === "DELIVERED";
+  }
+
+  if (orderType === "TAKEAWAY" || orderType === "PICKUP") {
+    return status === "PICKED_UP";
+  }
+
+  if (orderType === "DINE_IN" || orderType === "DINEIN" || orderType === "TABLE") {
+    return status === "SERVED";
+  }
+
+  return false;
 };
 
 const ordersService = createDomainApiService();
