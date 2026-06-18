@@ -897,6 +897,24 @@
     "discountApplied": "Rabatt angewendet",
     "discount": "Rabatt",
     "total": "Gesamt",
+    "paymentDetails": "Zahlungsdetails",
+    "paymentDescription": "Zahlungsinformationen für diese Bestellung.",
+    "paymentPendingDescription": "Ihre Bestellung wurde aufgegeben, aber die Zahlung ist noch ausstehend. Sie können sie jetzt abschließen oder später fortsetzen.",
+    "paymentMethod": "Zahlungsmethode",
+    "amountDue": "Fälliger Betrag",
+    "paymentReference": "Zahlungsreferenz",
+    "scheduledFor": "Geplant für",
+    "deliveryAddress": "Lieferadresse",
+    "continuePayment": "Zahlung fortsetzen",
+    "retryPayment": "Zahlung erneut versuchen",
+    "notAvailable": "Nicht verfügbar",
+    "paymentStatus": {
+      "paid": "Bezahlt",
+      "pending": "Ausstehend",
+      "failed": "Fehlgeschlagen",
+      "cancelled": "Storniert",
+      "unknown": "Unbekannt"
+    },
     "chatAboutOrder": "Über diese Bestellung chatten",
     "orderNotFound": "Bestellung nicht gefunden",
     "reviewOrderNotFoundDescription": "Wir konnten die Bestellung, die Sie bewerten möchten, nicht finden.",
@@ -1319,7 +1337,16 @@
     "youRatedThisOrder": "Sie haben diese Bestellung bewertet",
     "howWasYourFood": "Wie war Ihr Essen?",
     "reviewCompletedOrder": "Teilen Sie Feedback zu dieser abgeschlossenen Bestellung.",
-    "writeReview": "Bewertung schreiben"
+    "writeReview": "Bewertung schreiben",
+    "successNotice": {
+      "title": "Bestellung erfolgreich aufgegeben",
+      "description": "Wir haben Ihre Bestellung erhalten. Den aktuellen Status können Sie unten verfolgen.",
+      "paymentPendingTitle": "Bestellung aufgegeben, Zahlung ausstehend",
+      "paymentPendingDescription": "Ihre Bestellung wurde erstellt. Schließen Sie die Stripe-Zahlung im Zahlungsbereich ab, um den Checkout zu beenden."
+    },
+    "completePayment": "Zahlung abschließen",
+    "completePaymentDescription": "Dies startet den ausstehenden Stripe-Zahlungsversuch für dieselbe Bestellung erneut.",
+    "closePaymentPopup": "Zahlungspopup schließen"
   },
   "notifications": {
     "title": "Benachrichtigungen",

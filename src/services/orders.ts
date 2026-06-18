@@ -40,12 +40,51 @@ export type OrderReview = {
 export type OrderBranch = {
   id?: string | number | null;
   name?: string | null;
+  logoUrl?: string | null;
+  coverImage?: string | null;
+};
+
+export type OrderRestaurant = {
+  id?: string | number | null;
+  name?: string | null;
+  slug?: string | null;
+  logoUrl?: string | null;
+  coverImage?: string | null;
+};
+
+export type OrderDeliveryAddress = {
+  id?: string | number | null;
+  street?: string | null;
+  area?: string | null;
+  postalCode?: string | null;
+  city?: string | null;
+  state?: string | null;
+  country?: string | null;
+  houseNumber?: string | null;
+};
+
+export type OrderTransaction = {
+  id: string;
+  orderId?: string | null;
+  paymentMethod?: string | null;
+  type?: string | null;
+  status?: string | null;
+  amount?: number | string | null;
+  currency?: string | null;
+  providerRef?: string | null;
+  note?: string | null;
+  processedAt?: string | null;
+  createdAt?: string | null;
 };
 
 export type Order = {
   id: string;
   orderType?: string | null;
   status: OrderStatus;
+  paymentStatus?: string | null;
+  paymentMethod?: string | null;
+  orderTime?: string | null;
+  isScheduled?: boolean | null;
   subtotal?: number | string | null;
   deliveryFee?: number | string | null;
   taxAmount?: number | string | null;
@@ -58,7 +97,10 @@ export type Order = {
   totalAmount?: number | string | null;
   items?: OrderItem[];
   itemsPreview?: OrderItem[];
+  restaurant?: OrderRestaurant | null;
   branch?: OrderBranch | null;
+  deliveryAddress?: OrderDeliveryAddress | null;
+  transactions?: OrderTransaction[];
   createdAt: string;
   review?: OrderReview | null;
 };

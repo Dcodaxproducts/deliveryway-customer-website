@@ -897,6 +897,24 @@
     "discountApplied": "Discount Applied",
     "discount": "Discount",
     "total": "Total",
+    "paymentDetails": "Payment Details",
+    "paymentDescription": "Payment information for this order.",
+    "paymentPendingDescription": "Your order is placed, but payment is still pending. You can complete it now or come back later.",
+    "paymentMethod": "Payment method",
+    "amountDue": "Amount due",
+    "paymentReference": "Payment reference",
+    "scheduledFor": "Scheduled for",
+    "deliveryAddress": "Delivery address",
+    "continuePayment": "Continue Payment",
+    "retryPayment": "Retry Payment",
+    "notAvailable": "Not available",
+    "paymentStatus": {
+      "paid": "Paid",
+      "pending": "Pending",
+      "failed": "Failed",
+      "cancelled": "Cancelled",
+      "unknown": "Unknown"
+    },
     "chatAboutOrder": "Chat about this order",
     "orderNotFound": "Order not found",
     "reviewOrderNotFoundDescription": "We couldn't find the order you're trying to review.",
@@ -1319,7 +1337,16 @@
     "youRatedThisOrder": "You rated this order",
     "howWasYourFood": "How was your food?",
     "reviewCompletedOrder": "Share feedback for this completed order.",
-    "writeReview": "Write Review"
+    "writeReview": "Write Review",
+    "successNotice": {
+      "title": "Order placed successfully",
+      "description": "We have received your order. You can track the latest status below.",
+      "paymentPendingTitle": "Order placed, payment pending",
+      "paymentPendingDescription": "Your order has been created. Complete the Stripe payment from the payment panel to finish checkout."
+    },
+    "completePayment": "Complete payment",
+    "completePaymentDescription": "This will retry the pending Stripe payment attempt for the same order.",
+    "closePaymentPopup": "Close payment popup"
   },
   "notifications": {
     "title": "Notifications",
