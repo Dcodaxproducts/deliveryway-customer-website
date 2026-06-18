@@ -326,7 +326,26 @@
       "titleLineOne": "Great food and lots",
       "titleLineTwo": "of discounted prices",
       "happyCustomer": "Our Happy Customer",
-      "review": "(1.9k Review)"
+      "review": "(1.9k Review)",
+      "eyebrow": "Deliveryway mobile app",
+      "headline": "Great food, greater deals on the app.",
+      "headlineLineOne": "Great food, greater deals",
+      "headlineLineTwo": "on the app",
+      "description": "Order faster, track every meal, and unlock app-only offers from your favorite local restaurants.",
+      "appStoreAlt": "Download on the App Store",
+      "googlePlayAlt": "Get it on Google Play",
+      "dealCardEyebrow": "App exclusive",
+      "dealCardTitle": "Save more today",
+      "features": {
+        "offers": "Exclusive offers",
+        "faster": "Faster ordering",
+        "tracking": "Real-time tracking",
+        "reorder": "Easy reordering",
+        "exclusiveOffers": "Exclusive app offers",
+        "realTimeTracking": "Real-time tracking",
+        "fasterOrdering": "Faster ordering",
+        "easyReordering": "Easy reordering"
+      }
     },
     "branchOpeningHours": {
       "temporaryUnavailable": "Temporarily unavailable",

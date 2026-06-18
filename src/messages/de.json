@@ -326,7 +326,26 @@
       "titleLineOne": "Großartiges Essen und viele",
       "titleLineTwo": "reduzierte Preise",
       "happyCustomer": "Unsere zufriedenen Kunden",
-      "review": "(1,9k Bewertungen)"
+      "review": "(1,9k Bewertungen)",
+      "eyebrow": "Deliveryway Mobile App",
+      "headline": "Großartiges Essen, bessere Angebote in der App.",
+      "headlineLineOne": "Großartiges Essen, bessere Angebote",
+      "headlineLineTwo": "in der App",
+      "description": "Bestellen Sie schneller, verfolgen Sie jede Mahlzeit und sichern Sie sich exklusive App-Angebote Ihrer Lieblingsrestaurants.",
+      "appStoreAlt": "Im App Store herunterladen",
+      "googlePlayAlt": "Bei Google Play erhalten",
+      "dealCardEyebrow": "App-exklusiv",
+      "dealCardTitle": "Heute mehr sparen",
+      "features": {
+        "offers": "Exklusive Angebote",
+        "faster": "Schneller bestellen",
+        "tracking": "Echtzeitverfolgung",
+        "reorder": "Einfach erneut bestellen",
+        "exclusiveOffers": "Exklusive App-Angebote",
+        "realTimeTracking": "Echtzeitverfolgung",
+        "fasterOrdering": "Schneller bestellen",
+        "easyReordering": "Einfach erneut bestellen"
+      }
     },
     "branchOpeningHours": {
       "temporaryUnavailable": "Vorübergehend nicht verfügbar",
