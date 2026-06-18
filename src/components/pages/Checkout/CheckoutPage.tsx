@@ -31,6 +31,7 @@ import {
   setStoredCheckoutTypePreference,
   type CheckoutTypePreference,
 } from "@/lib/checkout-type-preference";
+import { dispatchCartChanged } from "@/lib/cart-events";
 import {
   addPreparationMinutesToScheduledDelivery,
   buildDeliveryTimeSlots,
@@ -819,6 +820,7 @@ function CheckoutPageContent() {
       }
 
       clearBackendError();
+      dispatchCartChanged();
       return true;
     } catch (err) {
       setCartItems(previousCartItems);
