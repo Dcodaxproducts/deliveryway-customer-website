@@ -2,15 +2,22 @@
 
 import { MousePointerClick, Zap, ShieldCheck } from "lucide-react";
 import { useTranslations } from "next-intl";
-import type { AboutStat, AboutTextCard } from "@/services/public-content";
+import type { AboutTextCard, BranchStats } from "@/services/public-content";
 
 type WhyChooseUsSectionProps = {
   features?: AboutTextCard[];
-  stats?: AboutStat[];
+  branchStats?: BranchStats;
 };
 
-export default function WhyChooseUsSection({ features: dynamicFeatures, stats: dynamicStats }: WhyChooseUsSectionProps) {
+const compactNumber = (value: number) =>
+  new Intl.NumberFormat("en", {
+    notation: value >= 1000 ? "compact" : "standard",
+    maximumFractionDigits: 1,
+  }).format(value);
+
+export default function WhyChooseUsSection({ features: dynamicFeatures, branchStats }: WhyChooseUsSectionProps) {
   const t = useTranslations("about.whyChooseUs");
+  const homeStatsT = useTranslations("home.stats");
 
   const fallbackFeatures = [
     {
@@ -33,9 +40,29 @@ export default function WhyChooseUsSection({ features: dynamicFeatures, stats: d
     { value: "20+", label: t("branches") },
     { value: "100+", label: t("employees") },
   ];
+  const branchStatItems = branchStats
+    ? [
+        {
+          value: `${compactNumber(branchStats.completedOrders)}+`,
+          label: homeStatsT("completedOrders"),
+        },
+        {
+          value: branchStats.averageRating ? `${branchStats.averageRating.toFixed(1)}/5` : "0/5",
+          label: homeStatsT("averageRating"),
+        },
+        {
+          value: `${compactNumber(branchStats.activeMenuItems)}+`,
+          label: homeStatsT("activeMenuItems"),
+        },
+        {
+          value: `${compactNumber(branchStats.fiveStarReviews)}+`,
+          label: homeStatsT("fiveStarReviews"),
+        },
+      ]
+    : null;
   const icons = [MousePointerClick, Zap, ShieldCheck];
   const features = dynamicFeatures?.length ? dynamicFeatures.slice(0, 3) : fallbackFeatures;
-  const stats = dynamicStats?.length ? dynamicStats.slice(0, 4) : fallbackStats;
+  const stats = branchStatItems ?? fallbackStats;
 
   return (
     <section className="w-full">

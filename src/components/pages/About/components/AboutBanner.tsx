@@ -10,10 +10,13 @@ type AboutBannerProps = {
   coverImage?: string | null;
 };
 
+const getHttpsImageUrl = (...values: Array<string | null | undefined>) =>
+  values.find((value) => value?.startsWith("https://")) ?? "/about/banner.png";
+
 export default function AboutBanner({ content, coverImage }: AboutBannerProps) {
   const t = useTranslations("about.banner");
   const commonT = useTranslations("common");
-  const imageUrl = content?.imageUrl || coverImage || "/about/banner.png";
+  const imageUrl = getHttpsImageUrl(content?.imageUrl, coverImage);
   const title = content?.title || t("title");
   const description = content?.subtitle || t("description");
   const ctaLabel = content?.ctaLabel || commonT("orderNow");
