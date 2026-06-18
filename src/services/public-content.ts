@@ -152,6 +152,34 @@ export type CustomerReviewsParams = {
   rating?: number | null;
 };
 
+export type HelpSupportContent = {
+  restaurantId: string;
+  restaurantCoverImage: string | null;
+  branchId: string | null;
+  title: string;
+  content: string | null;
+  contacts: {
+    phone: string | null;
+    whatsapp: string | null;
+    email: string | null;
+  };
+};
+
+export type CustomerFaqItem = {
+  id: string;
+  question: string;
+  answer: string;
+  category: string | null;
+};
+
+export type CustomerFaqsResponse = {
+  restaurantId: string;
+  restaurantCoverImage: string | null;
+  branchId: string | null;
+  categories: string[];
+  items: CustomerFaqItem[];
+};
+
 export type ContactFormPayload = {
   name: string;
   email: string;
@@ -365,6 +393,65 @@ export const normalizeCustomerReviewsResponse = (
   };
 };
 
+export const normalizeHelpSupportContent = (value: unknown): HelpSupportContent => {
+  const record = isRecord(value) ? value : {};
+  const contacts = isRecord(record.contacts) ? record.contacts : {};
+
+  return {
+    restaurantId: getString(record.restaurantId) ?? "",
+    restaurantCoverImage: getString(record.restaurantCoverImage) ?? null,
+    branchId: getString(record.branchId) ?? null,
+    title: getString(record.title) ?? "Help & Support",
+    content: getString(record.content) ?? null,
+    contacts: {
+      phone: getString(contacts.phone) ?? null,
+      whatsapp: getString(contacts.whatsapp) ?? null,
+      email: getString(contacts.email) ?? null,
+    },
+  };
+};
+
+const normalizeCustomerFaqItem = (value: unknown): CustomerFaqItem | null => {
+  const record = isRecord(value) ? value : null;
+
+  if (!record) {
+    return null;
+  }
+
+  const question = getString(record.question);
+  const answer = getString(record.answer);
+
+  if (!question || !answer) {
+    return null;
+  }
+
+  return {
+    id: getString(record.id) ?? question,
+    question,
+    answer,
+    category: getString(record.category) ?? null,
+  };
+};
+
+export const normalizeCustomerFaqsResponse = (value: unknown): CustomerFaqsResponse => {
+  const data = unwrapData(value);
+  const record = isRecord(data) ? data : {};
+  const categories = Array.isArray(record.categories)
+    ? record.categories.map(getString).filter((item): item is string => Boolean(item))
+    : [];
+  const items = Array.isArray(record.items)
+    ? record.items.map(normalizeCustomerFaqItem).filter((item): item is CustomerFaqItem => Boolean(item))
+    : [];
+
+  return {
+    restaurantId: getString(record.restaurantId) ?? "",
+    restaurantCoverImage: getString(record.restaurantCoverImage) ?? null,
+    branchId: getString(record.branchId) ?? null,
+    categories,
+    items,
+  };
+};
+
 export const fetchAboutContent = async (restaurantId: string) => {
   const response = await getRequest(
     `/v1/public-content/about-us?restaurantId=${encodeURIComponent(restaurantId)}`
@@ -424,6 +511,38 @@ export const fetchCustomerReviews = async ({
   }
 
   return normalizeCustomerReviewsResponse(response.data, response.meta);
+};
+
+export const fetchHelpSupportContent = async (restaurantId: string, branchId?: string | null) => {
+  const params = new URLSearchParams({ restaurantId });
+
+  if (branchId) {
+    params.set("branchId", branchId);
+  }
+
+  const response = await getRequest(`/v1/public-content/help-support?${params.toString()}`);
+
+  if (response.error) {
+    throw new Error(typeof response.error === "string" ? response.error : "Failed to load support content");
+  }
+
+  return normalizeHelpSupportContent(response.data);
+};
+
+export const fetchCustomerFaqs = async (restaurantId: string, branchId?: string | null) => {
+  const params = new URLSearchParams({ restaurantId });
+
+  if (branchId) {
+    params.set("branchId", branchId);
+  }
+
+  const response = await getRequest(`/v1/public-content/faqs?${params.toString()}`);
+
+  if (response.error) {
+    throw new Error(typeof response.error === "string" ? response.error : "Failed to load FAQs");
+  }
+
+  return normalizeCustomerFaqsResponse(response.data);
 };
 
 export const submitContactForm = async (

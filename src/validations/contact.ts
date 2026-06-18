@@ -16,10 +16,10 @@ const defaultMessages: ContactValidationMessages = {
 
 export const createContactMessageSchema = (messages: ContactValidationMessages = defaultMessages) =>
   z.object({
-    name: z.string().trim().min(1, messages.nameRequired),
-    email: z.string().trim().email(messages.emailRequired),
+    name: z.string().trim().min(1, messages.nameRequired).max(120),
+    email: z.string().trim().email(messages.emailRequired).max(254),
     subject: z.string().trim().min(1, messages.subjectRequired).max(160),
-    message: z.string().trim().min(1, messages.messageRequired),
+    message: z.string().trim().min(1, messages.messageRequired).max(4000),
   });
 
 export const createNewsletterSchema = (

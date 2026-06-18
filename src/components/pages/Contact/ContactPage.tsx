@@ -4,14 +4,16 @@ import EditorialSection from '@/components/pages/Contact/components/EditorialSec
 import FAQSection from '@/components/pages/Contact/components/FAQSection'
 import HelpCenterSection from '@/components/pages/Contact/components/HelpCenterSection'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState, type ReactNode } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
+import { queryKeys } from '@/config/query-keys'
 import { useAuth } from '@/hooks/useAuth'
 import { getApiErrorMessage } from '@/lib/errors'
 import { resolveHomeBranchId, resolveHomeRestaurantId } from '@/lib/home'
-import { submitContactForm } from '@/services/public-content'
+import { fetchCustomerFaqs, fetchHelpSupportContent, submitContactForm } from '@/services/public-content'
 import { createContactMessageSchema, type ContactMessageFormValues } from '@/validations/contact'
 
 const ContactPage = () => {
@@ -21,6 +23,18 @@ const ContactPage = () => {
   const restaurantId = resolveHomeRestaurantId(user, authRestaurantId)
   const branchId = resolveHomeBranchId(user)
   const [submitting, setSubmitting] = useState(false)
+  const helpSupportQuery = useQuery({
+    queryKey: queryKeys.home.helpSupport(restaurantId, branchId),
+    queryFn: () => fetchHelpSupportContent(restaurantId, branchId),
+    enabled: Boolean(restaurantId),
+    staleTime: 5 * 60 * 1000,
+  })
+  const faqsQuery = useQuery({
+    queryKey: queryKeys.home.faqs(restaurantId, branchId),
+    queryFn: () => fetchCustomerFaqs(restaurantId, branchId),
+    enabled: Boolean(restaurantId),
+    staleTime: 5 * 60 * 1000,
+  })
   const schema = useMemo(
     () =>
       createContactMessageSchema({
@@ -37,7 +51,12 @@ const ContactPage = () => {
   })
 
   const onSubmit = async (values: ContactMessageFormValues) => {
-    if (!restaurantId || submitting) return
+    if (submitting) return
+
+    if (!restaurantId) {
+      toast.error(t("missingRestaurant"))
+      return
+    }
 
     try {
       setSubmitting(true)
@@ -59,7 +78,7 @@ const ContactPage = () => {
 
   return (
     <>
-    <HelpCenterSection />
+    <HelpCenterSection supportContent={helpSupportQuery.data} />
     <section className="bg-[#F4F4F4] px-6 md:px-12 lg:px-20 pb-16">
       <div className="max-w-[760px] mx-auto bg-white border border-gray-100 rounded-2xl p-6 md:p-8 shadow-sm">
         <h2 className="text-2xl font-semibold text-gray-900">{t("title")}</h2>
@@ -86,7 +105,7 @@ const ContactPage = () => {
         </form>
       </div>
     </section>
-    <FAQSection />
+    <FAQSection supportContent={helpSupportQuery.data} faqs={faqsQuery.data?.items} />
     <EditorialSection />
     </>
   )

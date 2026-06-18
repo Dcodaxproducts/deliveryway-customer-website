@@ -460,7 +460,8 @@
       "message": "Message",
       "send": "Send message",
       "sending": "Sending...",
-      "success": "Message sent successfully"
+      "success": "Message sent successfully",
+      "missingRestaurant": "Restaurant context is still loading. Please try again in a moment."
     },
     "chat": {
       "loadingChat": "Loading chat...",

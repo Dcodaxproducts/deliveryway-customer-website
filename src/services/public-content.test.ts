@@ -2,11 +2,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   fetchAboutContent,
+  fetchCustomerFaqs,
   fetchCustomerReviews,
   fetchBranchStats,
+  fetchHelpSupportContent,
   normalizeAboutContent,
   normalizeBranchStats,
+  normalizeCustomerFaqsResponse,
   normalizeCustomerReviewsResponse,
+  normalizeHelpSupportContent,
   parseAboutPageContent,
   submitContactForm,
 } from "./public-content";
@@ -202,6 +206,84 @@ describe("public content service", () => {
 
     expect(getRequestMock).toHaveBeenCalledWith(
       "/customer-app/reviews?page=2&limit=5&restaurantId=restaurant-1&branchId=branch-1&rating=5"
+    );
+  });
+
+  it("normalizes help support content", () => {
+    expect(
+      normalizeHelpSupportContent({
+        restaurantId: "restaurant-1",
+        restaurantCoverImage: null,
+        branchId: "branch-1",
+        title: "Help & Support",
+        content: "<p>Need help?</p>",
+        contacts: {
+          phone: "+923001234567",
+          whatsapp: "+923001234567",
+          email: "support@example.com",
+        },
+      })
+    ).toEqual({
+      restaurantId: "restaurant-1",
+      restaurantCoverImage: null,
+      branchId: "branch-1",
+      title: "Help & Support",
+      content: "<p>Need help?</p>",
+      contacts: {
+        phone: "+923001234567",
+        whatsapp: "+923001234567",
+        email: "support@example.com",
+      },
+    });
+  });
+
+  it("fetches help support content with restaurant and branch params", async () => {
+    getRequestMock.mockResolvedValue({
+      data: { restaurantId: "restaurant-1", contacts: {} },
+    });
+
+    await fetchHelpSupportContent("restaurant-1", "branch-1");
+
+    expect(getRequestMock).toHaveBeenCalledWith(
+      "/v1/public-content/help-support?restaurantId=restaurant-1&branchId=branch-1"
+    );
+  });
+
+  it("normalizes customer FAQs response", () => {
+    expect(
+      normalizeCustomerFaqsResponse({
+        data: {
+          restaurantId: "restaurant-1",
+          branchId: "branch-1",
+          categories: ["Orders"],
+          items: [
+            {
+              id: "faq-1",
+              question: "Where is my order?",
+              answer: "Track it from order history.",
+              category: "Orders",
+            },
+            { id: "bad-faq", question: "", answer: "" },
+          ],
+        },
+      })
+    ).toMatchObject({
+      restaurantId: "restaurant-1",
+      branchId: "branch-1",
+      categories: ["Orders"],
+      items: [{ id: "faq-1", question: "Where is my order?" }],
+    });
+  });
+
+  it("fetches customer FAQs with restaurant and branch params", async () => {
+    getRequestMock.mockResolvedValue({
+      data: { data: { items: [] } },
+    });
+
+    await fetchCustomerFaqs("restaurant-1", "branch-1");
+
+    expect(getRequestMock).toHaveBeenCalledWith(
+      "/v1/public-content/faqs?restaurantId=restaurant-1&branchId=branch-1"
     );
   });
 
