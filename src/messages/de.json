@@ -326,7 +326,20 @@
       "titleLineOne": "Großartiges Essen und viele",
       "titleLineTwo": "reduzierte Preise",
       "happyCustomer": "Unsere zufriedenen Kunden",
-      "review": "(1,9k Bewertungen)"
+      "review": "(1,9k Bewertungen)",
+      "eyebrow": "Deliveryway Mobile-App",
+      "headline": "Tolles Essen, bessere Deals in der App.",
+      "description": "Bestelle deine Favoriten schneller, sichere dir exklusive App-Angebote und verfolge jede Lieferung ab Küchenstart.",
+      "appStoreAlt": "Im App Store laden",
+      "googlePlayAlt": "Bei Google Play herunterladen",
+      "dealCardEyebrow": "Nur in der App",
+      "dealCardTitle": "Bis zu 30% sparen",
+      "features": {
+        "offers": "Exklusive Angebote",
+        "faster": "Schneller bestellen",
+        "tracking": "Live-Tracking",
+        "reorder": "Einfach nachbestellen"
+      }
     },
     "branchOpeningHours": {
       "temporaryUnavailable": "Vorübergehend nicht verfügbar",
