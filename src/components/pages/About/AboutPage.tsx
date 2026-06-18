@@ -4,6 +4,7 @@ import AboutBanner from '@/components/pages/About/components/AboutBanner'
 import CTASection from '@/components/pages/About/components/CTASection'
 import MissionVisionValues from '@/components/pages/About/components/MissionVisionValues'
 import OurStorySection from '@/components/pages/About/components/OurStorySection'
+import StatsBarSection from '@/components/pages/About/components/StatsBarSection'
 import TeamSection from '@/components/pages/About/components/TeamSection'
 import TestimonialsSection from '@/components/pages/About/components/TestimonialsSection'
 import WhyChooseUsSection from '@/components/pages/About/components/WhyChooseUsSection'
@@ -25,10 +26,14 @@ const AboutPage = () => {
 
   return (
     <>
-    <AboutBanner />
+    <AboutBanner
+      imageUrl={aboutQuery.data?.restaurantCoverImage}
+      title={aboutQuery.data?.title}
+    />
     <OurStorySection content={aboutQuery.data?.content} />
     <MissionVisionValues />
     <WhyChooseUsSection />
+    <StatsBarSection />
     <TeamSection />
     <TestimonialsSection />
     <CTASection />
