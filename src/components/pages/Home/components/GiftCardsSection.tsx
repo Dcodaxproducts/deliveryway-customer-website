@@ -4,7 +4,6 @@ import {
   ArrowRight,
   CreditCard,
   Gift,
-  Sparkles,
 } from "lucide-react";
 import Image from "next/image";
 import { useMemo, useState } from "react";
@@ -40,23 +39,11 @@ type GiftCardTicketProps = {
   onSelect: (giftCard: GiftCardAvailableItem) => void;
 };
 
-const giftCardThemes = [
-  {
-    accent: "from-[#fff1df] via-[#ffe5d3] to-[#ffd9c2]",
-    card: "from-[#f74b42] via-[#d91f2b] to-[#9a111d]",
-  },
-  {
-    accent: "from-[#fff5e8] via-[#ffe1cf] to-[#ffd2bb]",
-    card: "from-[#ff704d] via-[#df252c] to-[#8b101a]",
-  },
-  {
-    accent: "from-[#fff1e6] via-[#ffe6d8] to-[#ffd8c9]",
-    card: "from-[#f9566a] via-[#d72032] to-[#83101b]",
-  },
-  {
-    accent: "from-[#fff6e9] via-[#ffe3ce] to-[#ffcfb7]",
-    card: "from-[#ff6958] via-[#dd2538] to-[#951421]",
-  },
+const giftCardBackgrounds = [
+  "bg-[linear-gradient(135deg,#ff7a68_0%,#df202b_48%,#8f0e18_100%)]",
+  "bg-[linear-gradient(135deg,#ff8f5e_0%,#d71d2b_46%,#71101a_100%)]",
+  "bg-[linear-gradient(135deg,#f84e61_0%,#bd1424_48%,#5f0d14_100%)]",
+  "bg-[linear-gradient(135deg,#ff9b92_0%,#e2243a_45%,#90101d_100%)]",
 ] as const;
 
 const giftCardImages = [
@@ -73,89 +60,66 @@ const GiftCardTicket = ({
   onSelect,
 }: GiftCardTicketProps) => {
   const t = useTranslations("home.giftCards");
-  const theme = giftCardThemes[index % giftCardThemes.length];
+  const background = giftCardBackgrounds[index % giftCardBackgrounds.length];
   const image = giftCardImages[index % giftCardImages.length];
-  const secondaryImage = giftCardImages[(index + 1) % giftCardImages.length];
-  const tertiaryImage = giftCardImages[(index + 2) % giftCardImages.length];
 
   return (
     <button
       type="button"
-      className={`group relative h-[258px] w-full cursor-grab overflow-hidden rounded-[30px] bg-gradient-to-br ${theme.accent} p-5 text-left shadow-[0_20px_55px_rgba(126,44,29,0.14)] ring-1 ring-[#f2c9b6] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_24px_60px_rgba(126,44,29,0.18)] focus:outline-none focus:ring-2 focus:ring-primary/30 active:cursor-grabbing sm:h-[270px] sm:p-6`}
+      className={`group relative flex h-[226px] w-full cursor-grab flex-col overflow-hidden rounded-[24px] ${background} p-5 text-left shadow-[0_18px_45px_rgba(169,15,23,0.22)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_22px_52px_rgba(169,15,23,0.28)] focus:outline-none focus:ring-2 focus:ring-primary/30 active:cursor-grabbing sm:h-[236px] sm:p-5`}
       onClick={() => onSelect(giftCard)}
     >
-      <div className="absolute -right-14 -top-14 h-40 w-40 rounded-full bg-white/55" />
-      <div className="absolute -bottom-16 left-16 h-40 w-40 rounded-full bg-[#fbc7a9]/45 blur-2xl" />
-
-      <div className="relative z-10 flex h-full max-w-[48%] flex-col sm:max-w-[50%]">
-        <span className="inline-flex h-8 w-fit items-center gap-1.5 rounded-full bg-white/80 px-3 text-[10px] font-extrabold uppercase text-primary shadow-sm ring-1 ring-white">
-          <Sparkles size={12} strokeWidth={2.4} />
-          {t("label")}
-        </span>
-
-        <h3 className="mt-4 line-clamp-2 text-[19px] font-black leading-[1.05] text-gray-950 sm:text-[23px]">
-          {giftCard.title}
-        </h3>
-        <div className="mt-auto flex flex-col items-start gap-2">
-          <span className="inline-flex h-10 items-center whitespace-nowrap rounded-full bg-primary px-3 text-[11px] font-extrabold text-white shadow-lg shadow-primary/20 sm:h-11 sm:px-4 sm:text-[12px]">
-            {t("buy")}
-          </span>
-          <span className="text-[22px] font-black leading-none text-primary sm:text-[24px]">
-            {formatAmount(giftCard.amount, currency ?? "USD")}
-          </span>
-        </div>
-      </div>
-
-      <div className="absolute bottom-7 right-5 h-[148px] w-[128px] rotate-[10deg] overflow-hidden rounded-[22px] bg-white p-2 shadow-[0_22px_45px_rgba(91,18,14,0.28)] transition duration-200 group-hover:rotate-[7deg] sm:right-8 sm:h-[162px] sm:w-[142px]">
-        <div className={`relative h-full overflow-hidden rounded-[17px] bg-gradient-to-br ${theme.card} p-3 text-white`}>
-          <div className="absolute -right-6 -top-5 h-24 w-24 rounded-full bg-white/15" />
-          <div className="absolute bottom-3 right-3 h-16 w-16 overflow-hidden rounded-full border-4 border-white/35">
-            <Image
-              src={image}
-              alt=""
-              fill
-              sizes="72px"
-              className="object-cover"
-              unoptimized
-            />
-          </div>
-          <p className="relative text-[10px] font-extrabold uppercase text-white/75">
-            {t("label")}
-          </p>
-          <p className="relative mt-1 text-[30px] font-black leading-none">
-            {formatAmount(giftCard.amount, currency ?? "USD")}
-          </p>
-          <Gift className="relative mt-8 text-white/90" size={28} strokeWidth={2.2} />
-        </div>
-      </div>
-
-      <div className="absolute right-14 top-5 hidden h-[104px] w-[92px] -rotate-[13deg] overflow-hidden rounded-[18px] bg-white p-1.5 shadow-[0_18px_35px_rgba(91,18,14,0.18)] transition duration-200 group-hover:-translate-y-1 sm:block">
-        <div className={`relative h-full overflow-hidden rounded-[14px] bg-gradient-to-br ${theme.card}`}>
-          <Image
-            src={secondaryImage}
-            alt=""
-            fill
-            sizes="92px"
-            className="object-cover opacity-70"
-            unoptimized
-          />
-          <div className="absolute inset-0 bg-primary/35" />
-          <p className="absolute bottom-3 left-3 text-xl font-black text-white">
-            {formatAmount(Math.max(10, Math.round(giftCard.amount / 2)), currency ?? "USD")}
-          </p>
-        </div>
-      </div>
-
-      <div className="absolute right-3 top-9 h-[96px] w-[104px] rotate-[20deg] overflow-hidden rounded-[18px] bg-white p-1.5 shadow-[0_18px_35px_rgba(91,18,14,0.16)] sm:right-5">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_88%_12%,rgba(255,255,255,0.26)_0_17%,transparent_18%)]" />
+      <div className="absolute -right-8 top-8 h-32 w-32 rotate-12 overflow-hidden rounded-[28px] border border-white/30 bg-white/15 shadow-2xl shadow-black/20 transition duration-200 group-hover:rotate-6">
         <Image
-          src={tertiaryImage}
+          src={image}
           alt=""
           fill
-          sizes="104px"
-          className="object-cover"
+          sizes="128px"
+          className="object-cover opacity-80"
           unoptimized
         />
-        <div className="absolute inset-0 bg-primary/10" />
+        <div className="absolute inset-0 bg-primary/20" />
+      </div>
+      <div className="absolute right-14 top-4 h-20 w-24 -rotate-6 overflow-hidden rounded-[22px] border border-white/20 bg-white/10 shadow-xl shadow-black/10 transition duration-200 group-hover:-translate-y-1">
+        <Image
+          src={giftCardImages[(index + 1) % giftCardImages.length]}
+          alt=""
+          fill
+          sizes="96px"
+          className="object-cover opacity-45"
+          unoptimized
+        />
+        <div className="absolute inset-0 bg-red-950/35" />
+      </div>
+      <div className="absolute -bottom-14 left-3 h-28 w-28 rounded-full bg-black/10 blur-xl" />
+      <div className="absolute bottom-0 right-0 h-20 w-24 rounded-tl-full bg-black/10" />
+
+      <div className="relative z-10 flex h-full flex-col">
+        <div className="flex items-start justify-between gap-3">
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/70">
+            {t("label")}
+          </p>
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/20 text-white ring-1 ring-white/35 backdrop-blur">
+            <Gift size={18} strokeWidth={2.3} />
+          </span>
+        </div>
+
+        <div className="mt-5 min-h-0 flex-1 space-y-1.5 pr-20 sm:mt-6">
+          <p className="text-[30px] font-black leading-none tracking-tight text-white sm:text-[32px]">
+            {formatAmount(giftCard.amount, currency ?? "USD")}
+          </p>
+          <h3 className="line-clamp-2 text-[14px] font-bold leading-tight text-white sm:text-[15px]">
+            {giftCard.title}
+          </h3>
+        </div>
+
+        <div className="mt-4 flex items-center justify-between gap-3">
+          <span className="inline-flex h-9 min-w-[118px] items-center justify-center rounded-full bg-white px-4 text-[11px] font-extrabold uppercase tracking-[0.08em] text-primary shadow-sm transition group-hover:bg-white/95 sm:h-10 sm:text-[12px]">
+            {t("purchase")}
+          </span>
+          <span className="h-px flex-1 bg-white/20" />
+        </div>
       </div>
     </button>
   );
@@ -165,20 +129,20 @@ function GiftCardIntroTile({ onBuy }: { onBuy: () => void }) {
   const t = useTranslations("home.giftCards");
 
   return (
-    <article className="flex h-[258px] w-full flex-col justify-center rounded-[30px] bg-[#fff7ef] p-6 ring-1 ring-[#f2c9b6] sm:h-[270px]">
-      <div className="flex max-w-[290px] flex-1 flex-col justify-center">
-        <p className="text-[11px] font-bold uppercase text-primary">
+    <article className="flex h-[208px] w-full flex-col bg-transparent p-0 sm:h-[218px]">
+      <div className="flex max-w-[255px] flex-1 flex-col">
+        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">
           {t("label")}
         </p>
-        <h2 className="mt-2 text-3xl font-black leading-[1.02] text-gray-950 sm:text-[34px]">
+        <h2 className="mt-2 text-2xl font-black leading-[1.05] tracking-tight text-gray-950 sm:text-[28px]">
           {t("buy")}
         </h2>
-        <p className="mt-3 text-sm font-medium leading-6 text-gray-600">
+        <p className="mt-2 line-clamp-2 text-sm font-medium leading-5 text-gray-600">
           {t("description")}
         </p>
         <Button
           type="button"
-          className="mt-5 h-11 w-fit rounded-full bg-primary px-5 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:bg-primary/90"
+          className="mt-auto h-10 w-fit rounded-full bg-primary px-5 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:bg-primary/90"
           onClick={onBuy}
         >
           {t("buy")}
@@ -214,10 +178,10 @@ export const GiftCardsSection = ({
       id="gift-cards"
       className="mx-auto max-w-[1400px] px-4 pb-[30px] pt-[30px] sm:px-6 sm:pb-[60px] sm:pt-[60px]"
     >
-      <div className="rounded-[34px] bg-white px-4 py-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-6 sm:py-6">
+      <div className="rounded-[30px] bg-white px-4 py-5 sm:px-6 sm:py-6">
         {items.length > 0 ? (
           <div className="flex flex-col gap-5 lg:flex-row lg:items-stretch">
-            <div className="lg:w-[320px] lg:shrink-0">
+            <div className="lg:w-[280px] lg:shrink-0">
               <GiftCardIntroTile onBuy={() => openPurchaseModal()} />
             </div>
 
@@ -229,7 +193,7 @@ export const GiftCardsSection = ({
                 {items.map((giftCard, index) => (
                   <CarouselItem
                     key={giftCard.id}
-                    className="basis-[88%] pl-4 sm:basis-[58%] lg:basis-[38%] xl:basis-[34%]"
+                    className="basis-[76%] pl-4 sm:basis-[36%] lg:basis-1/4"
                   >
                     <GiftCardTicket
                       giftCard={giftCard}
