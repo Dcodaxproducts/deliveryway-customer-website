@@ -99,7 +99,7 @@ const ContactPage = () => {
           <FieldError message={errors.message?.message}>
             <textarea {...register("message")} placeholder={t("message")} rows={5} className="w-full resize-none rounded-lg border border-gray-200 px-4 py-3 text-sm outline-none focus:border-primary" />
           </FieldError>
-          <button disabled={submitting || !restaurantId} className="rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-70">
+          <button disabled={submitting} className="rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-70">
             {submitting ? t("sending") : t("send")}
           </button>
         </form>
