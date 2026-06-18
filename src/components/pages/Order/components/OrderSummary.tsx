@@ -1,9 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { Info, MessageCircle, TicketPercent } from "lucide-react";
+import { Info, MessageCircle, Star, TicketPercent } from "lucide-react";
 import Link from "next/link";
-import type { Order, OrderItem } from "@/services/orders";
+import { canReviewOrder, type Order, type OrderItem } from "@/services/orders";
 import { useTranslations } from "next-intl";
 
 export default function OrderSummary({
@@ -14,6 +14,7 @@ export default function OrderSummary({
   order?: Order | null;
 }) {
   const t = useTranslations("orders");
+  const orderStatusT = useTranslations("orderStatus");
   const orderItems = order?.items || [];
   const resolvedTitle = title ?? t("orderDetails");
 
@@ -111,13 +112,62 @@ export default function OrderSummary({
       </section>
 
       {order?.id ? (
-        <Link
-          href={`/contact/chat?orderId=${order.id}`}
-          className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(193,0,10,0.22)] transition hover:bg-primary/90"
-        >
-          <MessageCircle size={18} />
-          {t("chatAboutOrder")}
-        </Link>
+        <section className="space-y-3">
+          <Link
+            href={`/contact/chat?orderId=${order.id}`}
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(193,0,10,0.22)] transition hover:bg-primary/90"
+          >
+            <MessageCircle size={18} />
+            {t("chatAboutOrder")}
+          </Link>
+
+          {order.review || canReviewOrder(order) ? (
+            <div className="rounded-[10px] border border-gray-100 bg-white p-5 shadow-lg">
+              {order.review ? (
+                <>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {orderStatusT("youRatedThisOrder")}
+                  </p>
+                  <div className="mt-3 flex gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        size={18}
+                        className={
+                          star <= (order.review?.rating ?? 0)
+                            ? "text-[#EC5834] fill-[#EC5834]"
+                            : "text-gray-300"
+                        }
+                      />
+                    ))}
+                  </div>
+                  {order.review.comment ? (
+                    <p className="mt-3 rounded-lg bg-gray-50 p-3 text-sm text-gray-600">
+                      {order.review.comment}
+                    </p>
+                  ) : null}
+                </>
+              ) : (
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">
+                      {orderStatusT("howWasYourFood")}
+                    </p>
+                    <p className="mt-1 text-xs text-gray-500">
+                      {orderStatusT("reviewCompletedOrder")}
+                    </p>
+                  </div>
+                  <Link
+                    href={`/order/write-review?orderId=${order.id}`}
+                    className="shrink-0 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-primary/90"
+                  >
+                    {orderStatusT("writeReview")}
+                  </Link>
+                </div>
+              )}
+            </div>
+          ) : null}
+        </section>
       ) : null}
     </div>
   );
