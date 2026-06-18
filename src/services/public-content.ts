@@ -25,11 +25,13 @@ const getNullableNumber = (value: unknown) => {
 const unwrapData = (value: unknown) => (isRecord(value) && isRecord(value.data) ? value.data : value);
 
 export type AboutContent = {
-  restaurantId?: string;
-  restaurantName?: string;
-  restaurantCoverImage?: string;
+  restaurantId: string;
+  restaurantName: string;
+  tenantId: string;
+  tenantName: string;
+  restaurantCoverImage: string | null;
   title: string;
-  content: string;
+  content: string | null;
 };
 
 export type BranchStats = {
@@ -99,11 +101,13 @@ export const normalizeAboutContent = (value: unknown): AboutContent => {
   const record = isRecord(value) ? value : {};
 
   return {
-    restaurantId: getString(record.restaurantId),
-    restaurantName: getString(record.restaurantName),
-    restaurantCoverImage: getString(record.restaurantCoverImage),
+    restaurantId: getString(record.restaurantId) ?? "",
+    restaurantName: getString(record.restaurantName) ?? "",
+    tenantId: getString(record.tenantId) ?? "",
+    tenantName: getString(record.tenantName) ?? "",
+    restaurantCoverImage: getString(record.restaurantCoverImage) ?? null,
     title: getString(record.title) ?? "About Us",
-    content: getString(record.content) ?? "",
+    content: getString(record.content) ?? null,
   };
 };
 

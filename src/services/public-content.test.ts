@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  fetchAboutContent,
   fetchCustomerReviews,
   fetchBranchStats,
   normalizeAboutContent,
@@ -28,15 +29,41 @@ describe("public content service", () => {
       normalizeAboutContent({
         restaurantId: "restaurant-1",
         restaurantName: "Demo",
+        tenantId: "tenant-1",
+        tenantName: "Demo Tenant",
+        restaurantCoverImage: null,
         title: "About",
         content: "<p>Fresh food.</p>",
       })
     ).toMatchObject({
       restaurantId: "restaurant-1",
       restaurantName: "Demo",
+      tenantId: "tenant-1",
+      tenantName: "Demo Tenant",
+      restaurantCoverImage: null,
       title: "About",
       content: "<p>Fresh food.</p>",
     });
+  });
+
+  it("fetches about content from the backend-supported public endpoint", async () => {
+    getRequestMock.mockResolvedValue({
+      data: {
+        restaurantId: "restaurant-1",
+        restaurantName: "Demo",
+        tenantId: "tenant-1",
+        tenantName: "Demo Tenant",
+        restaurantCoverImage: null,
+        title: "About Us",
+        content: "<p>Managed about content.</p>",
+      },
+    });
+
+    await fetchAboutContent("restaurant-1");
+
+    expect(getRequestMock).toHaveBeenCalledWith(
+      "/v1/public-content/about-us?restaurantId=restaurant-1"
+    );
   });
 
   it("normalizes branch stats numbers", () => {
