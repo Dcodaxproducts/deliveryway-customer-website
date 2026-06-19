@@ -2,7 +2,7 @@
 import { useTranslations } from "next-intl";
 
 const ASSET_BASE = "/app-promo";
-const INGREDIENTS_IMAGE = `${ASSET_BASE}/ingredients.png`;
+const INGREDIENTS_IMAGE = `${ASSET_BASE}/ingredients-Photoroom.png`;
 const PHONE_IMAGE = `${ASSET_BASE}/phone.png`;
 const MOBILE_PHONE_IMAGE = `${ASSET_BASE}/promo-phones.png`;
 const APP_STORE_BADGE_IMAGE = "/app-store-badge.png";
@@ -68,8 +68,7 @@ export default function AppPromo() {
               </p>
 
               <h2 className="mt-4 max-w-[720px] text-[30px] font-black leading-[1.08] tracking-[-0.045em] text-[#101014] xl:text-[38px] 2xl:text-[42px]">
-                {tSafe("headlineLineOne", "Great food, greater deals")}
-                <br />
+                {tSafe("headlineLineOne", "Great food,greater deals ")}&nbsp;
                 {tSafe("headlineLineTwo", "on the app")}
               </h2>
 
@@ -155,8 +154,7 @@ export default function AppPromo() {
             </p>
 
             <h2 className="mt-4 max-w-[460px] text-[31px] font-black leading-[1.08] tracking-[-0.045em] text-[#101014] sm:text-[38px]">
-              {tSafe("headlineLineOne", "Great food, greater deals")}
-              <br />
+              {tSafe("headlineLineOne", "Great food, greater deals")}&nbsp;
               {tSafe("headlineLineTwo", "on the app")}
             </h2>
 
