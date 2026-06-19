@@ -181,6 +181,9 @@ describe("restaurant card utils", () => {
     expect(summary.openingSchedule).toEqual([
       { date: todayValue, openTime: "10:00", closeTime: "14:00" },
     ]);
+    expect(summary.holidaySchedule).toEqual([
+      { date: todayValue, openTime: "10:00", closeTime: "14:00" },
+    ]);
     expect(summary.showDeliveryHoursCard).toBe(false);
   });
 

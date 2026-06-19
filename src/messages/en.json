@@ -533,6 +533,7 @@
       "servingFrom": "Serving from {name}",
       "openingHours": "Opening hours",
       "deliveryHours": "Delivery hours",
+      "holidayHours": "Holiday hours",
       "hoursAvailable": "Opening hours and breaks",
       "viewHours": "View opening hours and breaks",
       "hoursPopupTitle": "Hours and break times",

@@ -533,6 +533,7 @@
       "servingFrom": "Serviert von {name}",
       "openingHours": "Öffnungszeiten",
       "deliveryHours": "Lieferzeiten",
+      "holidayHours": "Feiertagszeiten",
       "hoursAvailable": "Öffnungszeiten und Pausen",
       "viewHours": "Öffnungszeiten und Pausen anzeigen",
       "hoursPopupTitle": "Zeiten und Pausen",

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Star, MapPin, Clock, Utensils, Loader2, Store, Truck, Coffee } from "lucide-react";
+import { CalendarDays, Star, MapPin, Clock, Utensils, Loader2, Store, Truck, Coffee } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -42,6 +42,7 @@ function BranchHoursDialog({
   const t = useTranslations("items.common");
   const openingDetails = getBranchHoursDetails(branchHours.regularOpeningSchedule);
   const deliveryDetails = getBranchHoursDetails(branchHours.regularDeliverySchedule);
+  const holidayDetails = getBranchHoursDetails(branchHours.holidaySchedule);
   const showDeliveryDetails = deliveryDetails.length > 0 && !branchHours.deliveryMatchesOpening;
 
   return (
@@ -80,6 +81,26 @@ function BranchHoursDialog({
                 id: `delivery-${day.dayOfWeek}`,
                 title: day.dayLabel,
                 subtitle: t("deliveryHours"),
+                statusLabel: day.isClosed ? t("closed") : t("open"),
+                isClosed: Boolean(day.isClosed),
+                hoursLabel: day.hoursLabel,
+                breakLabels: day.breakLabels,
+                closedTitle: t("closed"),
+                closedDescription: t("hoursNotConfigured"),
+                breakPrefix: t("breakTime", { time: "" }).replace(/\s*$/, ""),
+              })),
+              emptyTitle: t("hoursNotConfigured"),
+            }]
+          : []),
+        ...(holidayDetails.length > 0
+          ? [{
+              id: "holiday",
+              title: t("holidayHours"),
+              icon: CalendarDays,
+              rows: holidayDetails.map((day, index) => ({
+                id: `holiday-${day.date || day.dayOfWeek || index}`,
+                title: day.dayLabel,
+                subtitle: t("holidayHours"),
                 statusLabel: day.isClosed ? t("closed") : t("open"),
                 isClosed: Boolean(day.isClosed),
                 hoursLabel: day.hoursLabel,
