@@ -16,12 +16,16 @@ type AddressLocationPickerProps = {
   coordinates: GoogleLatLngLiteral | null;
   locationLabel?: string;
   onSelectLocation: (coordinates: GoogleLatLngLiteral, label?: string) => void;
-  onUseCurrentLocation: () => void;
+  onUseCurrentLocation?: () => void;
   isLocating?: boolean;
   compact?: boolean;
   showSelectedLabel?: boolean;
   actionsBelow?: boolean;
   trailingAction?: ReactNode;
+  mapOpen?: boolean;
+  onMapOpenChange?: (open: boolean) => void;
+  showCurrentLocationAction?: boolean;
+  showMapToggle?: boolean;
 };
 
 const DEFAULT_MAP_CENTER: GoogleLatLngLiteral = {
@@ -41,13 +45,17 @@ export function AddressLocationPicker({
   showSelectedLabel = true,
   actionsBelow = false,
   trailingAction,
+  mapOpen,
+  onMapOpenChange,
+  showCurrentLocationAction = true,
+  showMapToggle = true,
 }: AddressLocationPickerProps) {
   const { googleMaps, status, errorMessage, isReady } = useGoogleMaps();
   const [query, setQuery] = useState(locationLabel ?? "");
   const [predictions, setPredictions] = useState<GooglePlacePrediction[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isPredictionPanelOpen, setIsPredictionPanelOpen] = useState(false);
-  const [mapOpen, setMapOpen] = useState(false);
+  const [internalMapOpen, setInternalMapOpen] = useState(false);
   const pickerRef = useRef<HTMLDivElement | null>(null);
   const mapElementRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<GoogleMapInstance | null>(null);
@@ -56,6 +64,19 @@ export function AddressLocationPicker({
   const trimmedQuery = query.trim();
   const selectedLabel = locationLabel || (coordinates ? "Selected map location" : "");
   const center = useMemo(() => coordinates ?? DEFAULT_MAP_CENTER, [coordinates]);
+  const isMapOpen = mapOpen ?? internalMapOpen;
+  const setMapOpenState = useCallback(
+    (nextOpen: boolean | ((current: boolean) => boolean)) => {
+      const resolvedOpen = typeof nextOpen === "function" ? nextOpen(isMapOpen) : nextOpen;
+
+      if (mapOpen === undefined) {
+        setInternalMapOpen(resolvedOpen);
+      }
+
+      onMapOpenChange?.(resolvedOpen);
+    },
+    [isMapOpen, mapOpen, onMapOpenChange]
+  );
 
   useEffect(() => {
     setQuery(locationLabel ?? "");
@@ -104,9 +125,6 @@ export function AddressLocationPicker({
         {
           input: trimmedQuery,
           types: ["geocode"],
-          componentRestrictions: {
-            country: "pk",
-          },
         },
         (results, serviceStatus) => {
           if (!active) return;
@@ -178,7 +196,7 @@ export function AddressLocationPicker({
   );
 
   useEffect(() => {
-    if (!mapOpen || !isReady || !googleMaps || !mapElementRef.current) {
+    if (!isMapOpen || !isReady || !googleMaps || !mapElementRef.current) {
       return;
     }
 
@@ -212,7 +230,7 @@ export function AddressLocationPicker({
     if (coordinates) {
       syncMarker(coordinates);
     }
-  }, [center, coordinates, googleMaps, isReady, mapOpen, reverseGeocode, syncMarker]);
+  }, [center, coordinates, googleMaps, isReady, isMapOpen, reverseGeocode, syncMarker]);
 
   const handlePredictionSelect = (prediction: GooglePlacePrediction) => {
     if (!googleMaps) return;
@@ -240,7 +258,7 @@ export function AddressLocationPicker({
         };
 
         onSelectLocation(nextCoordinates, place.formatted_address ?? prediction.description);
-        setMapOpen(true);
+        setMapOpenState(true);
       }
     );
   };
@@ -303,26 +321,36 @@ export function AddressLocationPicker({
           )}
         </div>
 
-        <div className={actionsBelow ? `grid gap-2 sm:gap-3 ${trailingAction ? "grid-cols-3" : "grid-cols-2"}` : "contents"}>
-          <button
-            type="button"
-            onClick={onUseCurrentLocation}
-            disabled={isLocating}
-            className="inline-flex h-[49px] min-w-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-primary/20 bg-white px-2.5 text-xs font-semibold text-primary transition hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-70 sm:px-4 sm:text-sm"
-          >
-            {isLocating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Navigation className="h-4 w-4" />}
-            Current location
-          </button>
+        <div
+          className={
+            actionsBelow
+              ? `grid gap-2 sm:gap-3 ${trailingAction ? "grid-cols-3" : showCurrentLocationAction && showMapToggle ? "grid-cols-2" : "grid-cols-1"}`
+              : "contents"
+          }
+        >
+          {showCurrentLocationAction && onUseCurrentLocation ? (
+            <button
+              type="button"
+              onClick={onUseCurrentLocation}
+              disabled={isLocating}
+              className="inline-flex h-[49px] min-w-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-primary/20 bg-white px-2.5 text-xs font-semibold text-primary transition hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-70 sm:px-4 sm:text-sm"
+            >
+              {isLocating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Navigation className="h-4 w-4" />}
+              Current location
+            </button>
+          ) : null}
 
-          <button
-            type="button"
-            onClick={() => setMapOpen((current) => !current)}
-            disabled={status === "missing-key" || status === "error"}
-            className="inline-flex h-[49px] min-w-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-primary/20 bg-white px-2.5 text-xs font-semibold text-primary transition hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-70 sm:px-4 sm:text-sm"
-          >
-            <MousePointer2 className="h-4 w-4" />
-            {mapOpen ? "Hide map" : "Pick on map"}
-          </button>
+          {showMapToggle ? (
+            <button
+              type="button"
+              onClick={() => setMapOpenState((current) => !current)}
+              disabled={status === "missing-key" || status === "error"}
+              className="inline-flex h-[49px] min-w-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-primary/20 bg-white px-2.5 text-xs font-semibold text-primary transition hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-70 sm:px-4 sm:text-sm"
+            >
+              <MousePointer2 className="h-4 w-4" />
+              {isMapOpen ? "Hide map" : "Pick on map"}
+            </button>
+          ) : null}
 
           {trailingAction}
         </div>
@@ -341,7 +369,7 @@ export function AddressLocationPicker({
         </p>
       ) : null}
 
-      {mapOpen ? (
+      {isMapOpen ? (
         <div className={`overflow-hidden rounded-2xl border border-[#E5E7EB] bg-[#F9FAFB] ${compact ? "h-[220px]" : "h-[280px]"}`}>
           {isReady ? (
             <div ref={mapElementRef} className="h-full w-full" />
