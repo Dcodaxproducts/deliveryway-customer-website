@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Check, Loader2, MapPin, Navigation, X } from "lucide-react";
+import { Check, ChevronDown, Loader2, MapPin, Navigation, X } from "lucide-react";
+import { AddressLocationPicker } from "@/components/common/branch-selector/AddressLocationPicker";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +20,7 @@ import { useCheckout } from "@/hooks/useCheckout";
 import { reverseGeocode } from "@/services/geocoding";
 import { useAuth } from "@/hooks/useAuth";
 import { createCheckoutAddressSchema, type CheckoutAddressValues } from "@/validations/checkout";
+import type { GoogleLatLngLiteral } from "@/types/google-maps";
 import { useTranslations } from "next-intl";
 
 type AddressModalProps = {
@@ -30,6 +32,7 @@ type AddressModalProps = {
 
 const initialForm: CheckoutAddressValues = {
   street: "",
+  houseNumber: "",
   postalCode: "",
   city: "",
   state: "",
@@ -80,18 +83,31 @@ export function AddressModal({
         streetRequired: validationT("streetRequired"),
         postalCodeRequired: validationT("postalCodeRequired"),
         cityRequired: validationT("cityRequired"),
+        stateRequired: validationT("stateRequired"),
         countryRequired: validationT("countryRequired"),
+        latitudeRequired: validationT("latitudeRequired"),
+        longitudeRequired: validationT("longitudeRequired"),
       }),
     [validationT]
   );
 
   const [loading, setLoading] = useState(false);
   const [locating, setLocating] = useState(false);
-  const { register, reset, setValue, getValues, handleSubmit, watch } = useForm<CheckoutAddressValues>({
+  const [locationPickerOpen, setLocationPickerOpen] = useState(false);
+  const { register, reset, setValue, getValues, handleSubmit, watch, formState: { errors } } = useForm<CheckoutAddressValues>({
     resolver: zodResolver(checkoutAddressSchema),
     defaultValues: initialForm,
   });
   const isDefaultSelected = watch("isDefault");
+  const selectedStreet = watch("street");
+  const selectedLat = watch("lat");
+  const selectedLng = watch("lng");
+  const selectedCoordinates = useMemo<GoogleLatLngLiteral | null>(() => {
+    const lat = Number(selectedLat);
+    const lng = Number(selectedLng);
+
+    return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
+  }, [selectedLat, selectedLng]);
 
   useEffect(() => {
     if (!open) return;
@@ -99,11 +115,12 @@ export function AddressModal({
     if (editData) {
       reset({
         street: editData.street || "",
+        houseNumber: editData.houseNumber || editData.area || "",
         postalCode: editData.postalCode || "",
         city: editData.city || "",
         state: editData.state || "",
         country: editData.country || "",
-        area: editData.area || "",
+        area: editData.houseNumber || editData.area || "",
         lat: editData.lat ? String(editData.lat) : "",
         lng: editData.lng ? String(editData.lng) : "",
         isDefault: Boolean(editData.isDefault),
@@ -112,6 +129,30 @@ export function AddressModal({
       reset(initialForm);
     }
   }, [editData, open, reset]);
+
+  const setAddressValue = useCallback(
+    (field: keyof CheckoutAddressValues, value: string | boolean) => {
+      setValue(field, value, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true,
+      });
+    },
+    [setValue]
+  );
+
+  const handleLocationSelect = useCallback(
+    (coordinates: GoogleLatLngLiteral, label?: string) => {
+      setAddressValue("lat", String(coordinates.lat));
+      setAddressValue("lng", String(coordinates.lng));
+
+      if (label) {
+        const currentStreet = getValues("street").trim();
+        setAddressValue("street", currentStreet || label);
+      }
+    },
+    [getValues, setAddressValue]
+  );
 
   const handleGetCurrentLocation = async () => {
     if (!navigator.geolocation) {
@@ -133,8 +174,8 @@ export function AddressModal({
       const lat = position.coords.latitude.toString();
       const lng = position.coords.longitude.toString();
 
-      setValue("lat", lat);
-      setValue("lng", lng);
+      setAddressValue("lat", lat);
+      setAddressValue("lng", lng);
 
       // Reverse geocoding using OpenStreetMap Nominatim
       // Good for quick integration, but for production use your own geocoding provider/keyed API.
@@ -149,8 +190,8 @@ export function AddressModal({
       const getAddressValue = (value: unknown) => typeof value === "string" ? value : "";
 
       const currentValues = getValues();
-      setValue("street", data.displayName || currentValues.street || "");
-      setValue(
+      setAddressValue("street", data.displayName || currentValues.street || "");
+      setAddressValue(
         "area",
         getAddressValue(address.suburb) ||
           getAddressValue(address.neighbourhood) ||
@@ -159,7 +200,8 @@ export function AddressModal({
           currentValues.area ||
           ""
       );
-      setValue(
+      setAddressValue("houseNumber", currentValues.houseNumber || currentValues.area || "");
+      setAddressValue(
         "city",
         getAddressValue(address.city) ||
           getAddressValue(address.town) ||
@@ -168,11 +210,11 @@ export function AddressModal({
           currentValues.city ||
           ""
       );
-      setValue("state", getAddressValue(address.state) || currentValues.state || "");
-      setValue("postalCode", getAddressValue(address.postcode) || currentValues.postalCode || "");
-      setValue("country", getAddressValue(address.country) || currentValues.country || "");
-      setValue("lat", lat);
-      setValue("lng", lng);
+      setAddressValue("state", getAddressValue(address.state) || currentValues.state || "");
+      setAddressValue("postalCode", getAddressValue(address.postcode) || currentValues.postalCode || "");
+      setAddressValue("country", getAddressValue(address.country) || currentValues.country || "");
+      setAddressValue("lat", lat);
+      setAddressValue("lng", lng);
 
       toast.success(t("locationFetched"));
     } catch (error) {
@@ -198,17 +240,18 @@ export function AddressModal({
     try {
       setLoading(true);
 
+      const houseNumber = form.houseNumber.trim();
       const payload = {
         street: form.street.trim(),
         city: form.city.trim(),
         state: form.state.trim(),
         country: form.country.trim(),
-        houseNumber: form.area.trim(),
-        area: form.area.trim(),
-        postalCode: form.postalCode.trim(),
+        houseNumber,
+        area: houseNumber,
+        postalCode: form.postalCode.trim() || undefined,
         lat: form.lat.trim(),
         lng: form.lng.trim(),
-        isDefault: form.isDefault,
+        isDefault: Boolean(form.isDefault),
       };
 
       const res = editData
@@ -329,7 +372,6 @@ export function AddressModal({
               </span>
             </button>
 
-            {/* STREET */}
             <div className="space-y-2">
               <label className={LABEL_TEXT_CLASS}>
                 {t("streetAddress")}
@@ -342,22 +384,39 @@ export function AddressModal({
                   className="h-[56px] rounded-[16px] border-0 bg-[#F6F6F6] pl-11 pr-4 text-[15px] shadow-none focus-visible:ring-1 focus-visible:ring-[#D91F26]"
                 />
               </div>
+              {errors.street?.message ? (
+                <p className="text-xs font-medium text-[#D91F26]">{errors.street.message}</p>
+              ) : null}
             </div>
 
-            {/* AREA */}
-            <div className="space-y-2">
-              <label className={LABEL_TEXT_CLASS}>
-                {t("area")}
-              </label>
-              <Input
-                placeholder={t("areaPlaceholder")}
-                {...register("area")}
-                className={INPUT_BASE_CLASS}
-              />
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_1fr]">
+              <div className="space-y-2">
+                <label className={LABEL_TEXT_CLASS}>
+                  {t("houseNumber")}
+                </label>
+                <Input
+                  placeholder={t("houseNumberPlaceholder")}
+                  {...register("houseNumber")}
+                  className={INPUT_BASE_CLASS}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className={LABEL_TEXT_CLASS}>
+                  {t("postalCode")}
+                </label>
+                <Input
+                  placeholder={t("postalCodePlaceholder")}
+                  {...register("postalCode")}
+                  className={INPUT_BASE_CLASS}
+                />
+                {errors.postalCode?.message ? (
+                  <p className="text-xs font-medium text-[#D91F26]">{errors.postalCode.message}</p>
+                ) : null}
+              </div>
             </div>
 
-            {/* CITY / STATE */}
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-[1.4fr_1fr]">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-[1.25fr_1fr]">
               <div className="space-y-2">
                 <label className={LABEL_TEXT_CLASS}>
                   {t("city")}
@@ -367,6 +426,9 @@ export function AddressModal({
                   {...register("city")}
                   className={INPUT_BASE_CLASS}
                 />
+                {errors.city?.message ? (
+                  <p className="text-xs font-medium text-[#D91F26]">{errors.city.message}</p>
+                ) : null}
               </div>
 
               <div className="space-y-2">
@@ -378,57 +440,79 @@ export function AddressModal({
                   {...register("state")}
                   className={INPUT_BASE_CLASS}
                 />
+                {errors.state?.message ? (
+                  <p className="text-xs font-medium text-[#D91F26]">{errors.state.message}</p>
+                ) : null}
               </div>
             </div>
 
-            {/* POSTAL CODE / COUNTRY */}
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_1.4fr]">
-              <div className="space-y-2">
-                <label className={LABEL_TEXT_CLASS}>
-                  {t("postalCode")}
-                </label>
-                <Input
-                  placeholder={t("postalCodePlaceholder")}
-                  {...register("postalCode")}
-                  className={INPUT_BASE_CLASS}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className={LABEL_TEXT_CLASS}>
-                  {t("country")}
-                </label>
-                <Input
-                  placeholder={t("countryPlaceholder")}
-                  {...register("country")}
-                  className={INPUT_BASE_CLASS}
-                />
-              </div>
+            <div className="space-y-2">
+              <label className={LABEL_TEXT_CLASS}>
+                {t("country")}
+              </label>
+              <Input
+                placeholder={t("countryPlaceholder")}
+                {...register("country")}
+                className={INPUT_BASE_CLASS}
+              />
+              {errors.country?.message ? (
+                <p className="text-xs font-medium text-[#D91F26]">{errors.country.message}</p>
+              ) : null}
             </div>
 
-            {/* LAT / LNG */}
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <label className={LABEL_TEXT_CLASS}>
-                  {t("latitude")}
-                </label>
-                <Input
-                  placeholder={t("latitude")}
-                  {...register("lat")}
-                  className={INPUT_BASE_CLASS}
-                />
-              </div>
+            <input type="hidden" {...register("area")} />
+            <input type="hidden" {...register("lat")} />
+            <input type="hidden" {...register("lng")} />
 
-              <div className="space-y-2">
-                <label className={LABEL_TEXT_CLASS}>
-                  {t("longitude")}
-                </label>
-                <Input
-                  placeholder={t("longitude")}
-                  {...register("lng")}
-                  className={INPUT_BASE_CLASS}
+            <div className="rounded-[22px] border border-[#ECECEC] bg-[#FAFAFA] p-4">
+              <button
+                type="button"
+                onClick={() => setLocationPickerOpen((current) => !current)}
+                className="flex w-full items-center justify-between gap-4 text-left"
+              >
+                <span className="flex min-w-0 items-start gap-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#D91F26]/10 text-[#D91F26]">
+                    <MapPin className="h-5 w-5" />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-[14px] font-semibold text-[#202020]">
+                      {t("mapLocation")}
+                    </span>
+                    <span className="mt-1 block text-[12px] leading-5 text-[#7A7A7A]">
+                      {selectedCoordinates
+                        ? t("mapLocationSelected", {
+                            lat: selectedCoordinates.lat.toFixed(5),
+                            lng: selectedCoordinates.lng.toFixed(5),
+                          })
+                        : t("mapLocationDescription")}
+                    </span>
+                  </span>
+                </span>
+                <ChevronDown
+                  className={`h-5 w-5 shrink-0 text-[#7A7A7A] transition ${locationPickerOpen ? "rotate-180" : ""}`}
                 />
-              </div>
+              </button>
+
+              {errors.lat?.message || errors.lng?.message ? (
+                <p className="mt-3 text-xs font-medium text-[#D91F26]">
+                  {errors.lat?.message || errors.lng?.message}
+                </p>
+              ) : null}
+
+              {locationPickerOpen ? (
+                <div className="mt-4 rounded-[18px] border border-white bg-white p-3 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
+                  <AddressLocationPicker
+                    coordinates={selectedCoordinates}
+                    locationLabel={selectedStreet}
+                    onSelectLocation={handleLocationSelect}
+                    onUseCurrentLocation={handleGetCurrentLocation}
+                    isLocating={locating}
+                    compact
+                    actionsBelow
+                    showSelectedLabel
+                  />
+                </div>
+              ) : null}
             </div>
 
             <div className="flex flex-col-reverse gap-3 border-t border-[#ECECEC] pt-6 sm:flex-row sm:items-center sm:justify-end">

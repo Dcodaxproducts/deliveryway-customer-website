@@ -102,6 +102,7 @@ export function DeliveryAddressSection({
       setGuestDeliveryAddress({
         ...guestDeliveryAddress,
         street: geocode.displayName || guestDeliveryAddress.street,
+        houseNumber: guestDeliveryAddress.houseNumber,
         area:
           getAddressValue(address.suburb) ||
           getAddressValue(address.neighbourhood) ||
@@ -183,11 +184,11 @@ export function DeliveryAddressSection({
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">{t("area")}</label>
+              <label className="text-sm font-medium text-gray-700">{addressT("houseNumber")}</label>
               <Input
-                value={guestDeliveryAddress.area}
-                onChange={(event) => updateGuestAddressField("area", event.target.value)}
-                placeholder={t("areaPlaceholder")}
+                value={guestDeliveryAddress.houseNumber}
+                onChange={(event) => updateGuestAddressField("houseNumber", event.target.value)}
+                placeholder={addressT("houseNumberPlaceholder")}
                 className="h-12 rounded-xl border-gray-200"
               />
             </div>
