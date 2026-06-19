@@ -5,7 +5,6 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
-import { FaFacebook } from "react-icons/fa"
 import { FcGoogle } from "react-icons/fc"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
@@ -257,15 +256,7 @@ setTimeout(() => {
 
       {/* SOCIAL + GUEST TOGGLE */}
       <div className="space-y-5 flex flex-col items-center">
-        <button
-          type="button"
-          className="w-[345px] flex items-center justify-center h-[54px] bg-blue text-white rounded-[10px]"
-        >
-          <FaFacebook className="w-[23px] h-[23px] mr-[15px]" />
-          <span className={`${roboto.className} text-xl`}>
-            {t("signInWithFacebook")}
-          </span>
-        </button>
+        
 
         <button
           type="button"
