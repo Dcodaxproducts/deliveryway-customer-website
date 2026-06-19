@@ -20,7 +20,7 @@ import { useCheckout } from "@/hooks/useCheckout";
 import { reverseGeocode } from "@/services/geocoding";
 import { useAuth } from "@/hooks/useAuth";
 import { createCheckoutAddressSchema, type CheckoutAddressValues } from "@/validations/checkout";
-import type { GoogleLatLngLiteral } from "@/types/google-maps";
+import type { GoogleAddressDetails, GoogleLatLngLiteral } from "@/types/google-maps";
 import { useTranslations } from "next-intl";
 
 type AddressModalProps = {
@@ -142,13 +142,43 @@ export function AddressModal({
   );
 
   const handleLocationSelect = useCallback(
-    (coordinates: GoogleLatLngLiteral, label?: string) => {
+    (coordinates: GoogleLatLngLiteral, label?: string, details?: GoogleAddressDetails) => {
       setAddressValue("lat", String(coordinates.lat));
       setAddressValue("lng", String(coordinates.lng));
 
-      if (label) {
-        const currentStreet = getValues("street").trim();
-        setAddressValue("street", currentStreet || label);
+      const currentValues = getValues();
+      const street = details?.street?.trim() || label?.trim() || "";
+      const houseNumber = details?.houseNumber?.trim() || "";
+      const postalCode = details?.postalCode?.trim() || "";
+      const city = details?.city?.trim() || "";
+      const state = details?.state?.trim() || "";
+      const country = details?.country?.trim() || "";
+
+      if (street) {
+        setAddressValue("street", street);
+      }
+
+      if (houseNumber) {
+        setAddressValue("houseNumber", houseNumber);
+        setAddressValue("area", houseNumber);
+      } else if (!currentValues.houseNumber && currentValues.area) {
+        setAddressValue("houseNumber", currentValues.area);
+      }
+
+      if (postalCode) {
+        setAddressValue("postalCode", postalCode);
+      }
+
+      if (city) {
+        setAddressValue("city", city);
+      }
+
+      if (state) {
+        setAddressValue("state", state);
+      }
+
+      if (country) {
+        setAddressValue("country", country);
       }
 
       setLocationPickerOpen(false);
@@ -279,7 +309,7 @@ export function AddressModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={`flex max-h-[92vh] w-[calc(100vw-24px)] flex-col gap-0 overflow-hidden rounded-[24px] border-0 bg-white p-0 shadow-2xl sm:w-[calc(100vw-48px)] ${
-          locationPickerOpen ? "max-w-[1120px]" : "max-w-[960px]"
+          locationPickerOpen ? "!max-w-[1120px]" : "!max-w-[760px]"
         }`}
         showCloseButton={false}
       >
@@ -315,22 +345,27 @@ export function AddressModal({
 
         <form noValidate className="flex min-h-0 flex-1 flex-col">
           <div className="min-h-0 flex-1 overflow-y-auto bg-[#F8FAFC] px-5 py-5 sm:px-6">
-            <div className={`grid gap-5 ${locationPickerOpen ? "lg:grid-cols-[minmax(0,1fr)_440px]" : ""}`}>
+            <div className={`grid gap-5 ${locationPickerOpen ? "xl:grid-cols-[minmax(0,1fr)_460px]" : ""}`}>
               <div className="space-y-5">
-                <div className="grid gap-3 sm:grid-cols-3">
+                <div className="rounded-[22px] border border-gray-100 bg-white p-2 shadow-sm">
+                  <div className="grid gap-2 md:grid-cols-3">
                   <button
                     type="button"
                     onClick={() => setLocationPickerOpen(true)}
-                    className={`flex min-h-[76px] items-center gap-3 rounded-[18px] border bg-white p-4 text-left shadow-sm transition ${
+                    className={`flex min-h-[58px] items-center gap-3 rounded-[16px] px-3 py-2.5 text-left transition ${
                       locationPickerOpen
-                        ? "border-primary/30 ring-2 ring-primary/10"
-                        : "border-gray-100 hover:border-primary/20"
+                        ? "bg-primary text-white shadow-lg shadow-primary/20"
+                        : "bg-transparent text-gray-700 hover:bg-gray-50"
                     }`}
                   >
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-primary/10 text-primary">
+                    <span
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-[13px] ${
+                        locationPickerOpen ? "bg-white/15 text-white" : "bg-primary/10 text-primary"
+                      }`}
+                    >
                       <MousePointer2 className="h-4 w-4" />
                     </span>
-                    <span className="min-w-0 text-sm font-semibold text-gray-950">
+                    <span className="min-w-0 text-sm font-semibold">
                       {t("pickFromMap")}
                     </span>
                   </button>
@@ -339,12 +374,12 @@ export function AddressModal({
                     type="button"
                     onClick={handleGetCurrentLocation}
                     disabled={locating}
-                    className="flex min-h-[76px] items-center gap-3 rounded-[18px] border border-gray-100 bg-white p-4 text-left shadow-sm transition hover:border-primary/20 disabled:cursor-not-allowed disabled:opacity-70"
+                    className="flex min-h-[58px] items-center gap-3 rounded-[16px] px-3 py-2.5 text-left text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-70"
                   >
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-primary/10 text-primary">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[13px] bg-primary/10 text-primary">
                       {locating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Navigation className="h-4 w-4" />}
                     </span>
-                    <span className="min-w-0 text-sm font-semibold text-gray-950">
+                    <span className="min-w-0 text-sm font-semibold">
                       {locating ? t("gettingLocation") : t("getCurrentLocation")}
                     </span>
                   </button>
@@ -352,19 +387,24 @@ export function AddressModal({
                   <button
                     type="button"
                     onClick={() => setLocationPickerOpen(false)}
-                    className={`flex min-h-[76px] items-center gap-3 rounded-[18px] border bg-white p-4 text-left shadow-sm transition ${
+                    className={`flex min-h-[58px] items-center gap-3 rounded-[16px] px-3 py-2.5 text-left transition ${
                       !locationPickerOpen
-                        ? "border-primary/30 ring-2 ring-primary/10"
-                        : "border-gray-100 hover:border-primary/20"
+                        ? "bg-primary text-white shadow-lg shadow-primary/20"
+                        : "bg-transparent text-gray-700 hover:bg-gray-50"
                     }`}
                   >
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-primary/10 text-primary">
+                    <span
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-[13px] ${
+                        !locationPickerOpen ? "bg-white/15 text-white" : "bg-primary/10 text-primary"
+                      }`}
+                    >
                       <PencilLine className="h-4 w-4" />
                     </span>
-                    <span className="min-w-0 text-sm font-semibold text-gray-950">
+                    <span className="min-w-0 text-sm font-semibold">
                       {t("typeManually")}
                     </span>
                   </button>
+                  </div>
                 </div>
 
                 <button

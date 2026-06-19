@@ -6,6 +6,8 @@ import type { ReactNode } from "react";
 
 import { useGoogleMaps } from "@/hooks/useGoogleMaps";
 import type {
+  GoogleAddressComponent,
+  GoogleAddressDetails,
   GoogleLatLngLiteral,
   GoogleMapInstance,
   GoogleMarkerInstance,
@@ -15,7 +17,11 @@ import type {
 type AddressLocationPickerProps = {
   coordinates: GoogleLatLngLiteral | null;
   locationLabel?: string;
-  onSelectLocation: (coordinates: GoogleLatLngLiteral, label?: string) => void;
+  onSelectLocation: (
+    coordinates: GoogleLatLngLiteral,
+    label?: string,
+    details?: GoogleAddressDetails
+  ) => void;
   onUseCurrentLocation?: () => void;
   isLocating?: boolean;
   compact?: boolean;
@@ -34,6 +40,34 @@ const DEFAULT_MAP_CENTER: GoogleLatLngLiteral = {
 };
 
 const MIN_QUERY_LENGTH = 3;
+
+const getAddressComponent = (
+  components: GoogleAddressComponent[] | undefined,
+  type: string,
+  name: "long_name" | "short_name" = "long_name"
+) => components?.find((component) => component.types.includes(type))?.[name] ?? "";
+
+const parseAddressDetails = (
+  components: GoogleAddressComponent[] | undefined
+): GoogleAddressDetails => {
+  const streetNumber = getAddressComponent(components, "street_number");
+  const route = getAddressComponent(components, "route");
+  const city =
+    getAddressComponent(components, "locality") ||
+    getAddressComponent(components, "postal_town") ||
+    getAddressComponent(components, "administrative_area_level_2") ||
+    getAddressComponent(components, "sublocality") ||
+    getAddressComponent(components, "neighborhood");
+
+  return {
+    street: [streetNumber, route].filter(Boolean).join(" "),
+    houseNumber: streetNumber,
+    postalCode: getAddressComponent(components, "postal_code"),
+    city,
+    state: getAddressComponent(components, "administrative_area_level_1"),
+    country: getAddressComponent(components, "country"),
+  };
+};
 
 export function AddressLocationPicker({
   coordinates,
@@ -156,12 +190,13 @@ export function AddressLocationPicker({
       const geocoder = new googleMaps.maps.Geocoder();
 
       geocoder.geocode({ location: nextCoordinates }, (results, geocoderStatus) => {
+        const firstResult = results?.[0];
         const label =
-          geocoderStatus === googleMaps.maps.GeocoderStatus.OK && results?.[0]?.formatted_address
-            ? results[0].formatted_address
+          geocoderStatus === googleMaps.maps.GeocoderStatus.OK && firstResult?.formatted_address
+            ? firstResult.formatted_address
             : "Selected map location";
 
-        onSelectLocation(nextCoordinates, label);
+        onSelectLocation(nextCoordinates, label, parseAddressDetails(firstResult?.address_components));
       });
     },
     [googleMaps, onSelectLocation]
@@ -243,7 +278,7 @@ export function AddressLocationPicker({
     placesService.getDetails(
       {
         placeId: prediction.place_id,
-        fields: ["formatted_address", "geometry"],
+        fields: ["address_components", "formatted_address", "geometry"],
       },
       (place, placeStatus) => {
         const location = place?.geometry?.location;
@@ -257,8 +292,11 @@ export function AddressLocationPicker({
           lng: location.lng(),
         };
 
-        onSelectLocation(nextCoordinates, place.formatted_address ?? prediction.description);
-        setMapOpenState(true);
+        onSelectLocation(
+          nextCoordinates,
+          place.formatted_address ?? prediction.description,
+          parseAddressDetails(place.address_components)
+        );
       }
     );
   };
