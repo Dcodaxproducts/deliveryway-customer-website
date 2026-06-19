@@ -153,7 +153,7 @@ export default function CategorySidebar({
             onChange={(event) =>
               onViewModeChange?.(event.target.value === "multiple" ? "multiple" : "onePage")
             }
-            className="h-11 w-full appearance-none rounded-xl bg-gray-100 pl-10 pr-9 text-sm font-semibold text-gray-800 outline-none transition focus:bg-white focus:ring-2 focus:ring-primary/15"
+            className="cursor-pointer h-11 w-full appearance-none rounded-xl bg-gray-100 pl-10 pr-9 text-sm font-semibold text-gray-800 outline-none transition focus:bg-white focus:ring-2 focus:ring-primary/15"
           >
             <option value="onePage">{tSidebar("onePage")}</option>
             <option value="multiple">{tSidebar("individual")}</option>
