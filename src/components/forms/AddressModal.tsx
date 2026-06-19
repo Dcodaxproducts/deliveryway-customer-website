@@ -203,6 +203,7 @@ export function AddressModal({
         city: form.city.trim(),
         state: form.state.trim(),
         country: form.country.trim(),
+        houseNumber: form.area.trim(),
         area: form.area.trim(),
         postalCode: form.postalCode.trim(),
         lat: form.lat.trim(),
