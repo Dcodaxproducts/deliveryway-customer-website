@@ -28,8 +28,8 @@ export default function AppPromo() {
   ];
 
   return (
-    <section className="px-4 pt-5 pb-[80px]">
-      <div className="mx-auto max-w-[1680px]">
+    <section className="mx-auto max-w-[1400px] px-4 pt-5 pb-[80px] sm:px-6">
+      <div>
         <div className="relative isolate min-h-[665px] overflow-hidden rounded-[20px] bg-[#fff7f7] px-5 py-8 shadow-[0_18px_50px_rgba(224,62,62,0.08)] sm:min-h-[705px] sm:px-7 lg:h-[320px] lg:min-h-0 lg:p-0 xl:h-[360px] 2xl:h-[380px]">
           <div className="absolute inset-0 -z-10 bg-[#fff7f7]" />
           <div className="absolute -left-[80px] -top-[120px] -z-10 h-[380px] w-[640px] rounded-full bg-[#ffe6e6]/65 blur-3xl" />
