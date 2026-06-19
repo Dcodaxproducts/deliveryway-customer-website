@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 
 import { getStoredRestaurantId } from "@/lib/auth";
+import { formatDisplayAddress } from "@/lib/address-display";
 import { fetchPrivacyPolicyContent, type PrivacyPolicyContent } from "@/services/legal-content";
 
 const ALLOWED_POLICY_TAGS = new Set([
@@ -127,18 +128,9 @@ const PrivacyPage = () => {
   }, []);
 
   const legalAddress = useMemo(() => {
-    const address = policy?.legalProfile?.businessAddress;
-
-    return [
-      address?.street,
-      address?.shopNumber,
-      address?.postalCode,
-      address?.city,
-      address?.state,
-      address?.country,
-    ]
-      .filter(Boolean)
-      .join(", ");
+    return formatDisplayAddress(policy?.legalProfile?.businessAddress, {
+      includeRegionCountry: true,
+    });
   }, [policy?.legalProfile?.businessAddress]);
 
   const hasLegalProfile = Boolean(

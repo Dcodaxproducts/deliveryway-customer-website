@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useCheckout } from "@/hooks/useCheckout";
 import { useAuth } from "@/hooks/useAuth";
+import { formatDisplayAddress } from "@/lib/address-display";
 import { reverseGeocode } from "@/services/geocoding";
 import {
   fetchAddresses as fetchProfileAddresses,
@@ -296,15 +297,6 @@ export function DeliveryAddressSection({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-[20px] md:gap-[30px]">
 
           {addresses.map((addr) => {
-            const fullAddress = [
-              addr.street,
-              addr.area,
-              addr.postalCode,
-              addr.city,
-              addr.state,
-              addr.country,
-            ].filter(Boolean).join(", ");
-
             const isSelected = selectedAddress === addr.id;
 
             return (
@@ -343,7 +335,7 @@ export function DeliveryAddressSection({
                       isSelected ? "" : "text-gray-700"
                     }`}
                   >
-                    {fullAddress}
+                    {formatDisplayAddress(addr)}
                   </p>
                 </div>
               </Card>

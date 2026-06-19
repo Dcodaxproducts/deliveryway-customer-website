@@ -104,7 +104,7 @@ const code = getGroupOrderCode();
 
 setTimeout(() => {
   if (code) {
-    router.push("/categories");
+    router.push("/items");
   } else {
     router.push("/");
   }
@@ -131,7 +131,7 @@ setTimeout(() => {
 
 setTimeout(() => {
   if (code) {
-    router.push("/categories");
+    router.push("/items");
   } else {
     router.push("/");
   }
