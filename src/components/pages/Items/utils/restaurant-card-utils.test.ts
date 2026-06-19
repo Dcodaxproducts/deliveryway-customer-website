@@ -172,6 +172,15 @@ describe("restaurant card utils", () => {
       label: "Today",
       value: "10:00 AM - 2:00 PM",
     });
+    expect(summary.regularOpeningSchedule).toEqual([
+      { dayOfWeek: "MONDAY", openTime: "09:00", closeTime: "18:00" },
+    ]);
+    expect(summary.regularDeliverySchedule).toEqual([
+      { dayOfWeek: "MONDAY", openTime: "10:00", closeTime: "22:00" },
+    ]);
+    expect(summary.openingSchedule).toEqual([
+      { date: todayValue, openTime: "10:00", closeTime: "14:00" },
+    ]);
     expect(summary.showDeliveryHoursCard).toBe(false);
   });
 

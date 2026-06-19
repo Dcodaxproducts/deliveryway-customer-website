@@ -510,6 +510,8 @@ export const getBranchHoursSummary = (branch: unknown) => {
     delivery: resolvedDelivery,
     openingSchedule: effectiveOpeningSchedule,
     deliverySchedule: effectiveDeliverySchedule,
+    regularOpeningSchedule: openingSchedule,
+    regularDeliverySchedule: deliverySchedule,
     showDeliveryHours,
     showDeliveryHoursCard,
     deliveryMatchesOpening,
