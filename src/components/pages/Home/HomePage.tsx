@@ -32,6 +32,12 @@ const getRestaurantHeroImage = (restaurant?: HomeRestaurant | null) =>
   restaurant?.heroImageUrl ||
   null;
 
+const getTrimmedText = (value?: string | null) => {
+  const trimmedValue = value?.trim();
+
+  return trimmedValue ? trimmedValue : null;
+};
+
 const HomePage = () => {
   const t = useTranslations("home.hero");
   const { user, token, restaurantId: authRestaurantId } = useAuth();
@@ -57,6 +63,8 @@ const HomePage = () => {
   const landingPopup = homeData?.landingPopup ?? null;
   const heroTitle = homeData?.restaurant?.name ?? branding.restaurantName ?? t("defaultTitle");
   const heroTagline = branding.tagline;
+  const heroBannerTitle = getTrimmedText(homeData?.restaurant?.tagline) ?? t("deliveryTitle");
+  const heroBannerDescription = getTrimmedText(homeData?.restaurant?.bio) ?? t("description");
   const heroImage =
     getRestaurantHeroImage(homeData?.restaurant) ??
     branding.assets.heroImage ??
@@ -96,6 +104,8 @@ const HomePage = () => {
           <HeroSection
             restaurantName={heroTitle}
             tagline={heroTagline}
+            title={heroBannerTitle}
+            description={heroBannerDescription}
             heroImage={heroImage}
           />
         ) : null}
