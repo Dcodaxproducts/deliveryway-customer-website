@@ -62,6 +62,20 @@ const getMenuItemPrice = (item: CustomerDealMenuItem) =>
 const hasMenuItemPrice = (value: CustomerDealMenuItem["basePrice"]) =>
   value !== null && value !== undefined && value !== "";
 
+const formatModifierSelectionPrice = (unitPrice: number, quantity: number) => {
+  const safeQuantity = Math.max(1, Math.floor(getDealChooserNumber(quantity, 1)));
+  const sign = unitPrice < 0 ? "-" : "+";
+  const formattedUnitPrice = formatDealPrice(Math.abs(unitPrice));
+
+  if (safeQuantity <= 1) {
+    return `${sign}${formattedUnitPrice}`;
+  }
+
+  return `${sign}${formattedUnitPrice} * ${safeQuantity} = ${sign}${formatDealPrice(
+    Math.abs(unitPrice) * safeQuantity
+  )}`;
+};
+
 const getRequirementText = (
   deal: CustomerDeal | null,
   requiredQuantity: number,
@@ -668,6 +682,7 @@ export function DealChooserDrawer({
                     1,
                     Math.floor(getDealChooserNumber(selectedModifier?.selectedQuantity, 1))
                   );
+                  const modifierPrice = getDealChooserNumber(modifier.priceDelta, 0);
                   const maxReached =
                     maxSelect > 0 &&
                     selectedGroupQuantity >= maxSelect &&
@@ -685,18 +700,28 @@ export function DealChooserDrawer({
                           : "border-gray-100 bg-white"
                       }`}
                     >
-                      <label className="flex items-center justify-between gap-3">
-                        <span className="text-sm font-medium text-gray-700">
+                      <label className="flex items-start justify-between gap-3">
+                        <span className="min-w-0 text-sm font-medium leading-5 text-gray-700">
                           {getDealChooserModifierName(modifier)}
                         </span>
-                        <Checkbox
-                          className="size-5"
-                          checked={checked}
-                          disabled={maxReached}
-                          onCheckedChange={(value) =>
-                            toggleModifier(item.id, group, modifier, value === true)
-                          }
-                        />
+                        <span className="flex shrink-0 items-center gap-3">
+                          {modifierPrice !== 0 ? (
+                            <span className="text-xs font-semibold text-primary">
+                              {formatModifierSelectionPrice(
+                                modifierPrice,
+                                selectedModifierQuantity
+                              )}
+                            </span>
+                          ) : null}
+                          <Checkbox
+                            className="size-5"
+                            checked={checked}
+                            disabled={maxReached}
+                            onCheckedChange={(value) =>
+                              toggleModifier(item.id, group, modifier, value === true)
+                            }
+                          />
+                        </span>
                       </label>
 
                       {canShowQuantitySelector ? (
@@ -765,7 +790,7 @@ export function DealChooserDrawer({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-auto rounded-[24px] sm:max-w-[680px]">
+      <DialogContent className="max-h-[92vh] overflow-auto rounded-[24px] sm:max-w-[760px]">
         <DialogHeader>
           <DialogTitle>{deal?.title || t("chooseItems")}</DialogTitle>
           <DialogDescription>
@@ -840,8 +865,8 @@ export function DealChooserDrawer({
                   key={item.id}
                   className="overflow-hidden rounded-2xl border border-gray-100 transition-colors hover:border-primary/30 hover:bg-primary/5"
                 >
-                  <div className="flex items-center gap-3 p-3">
-                    <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-primary/10 text-primary">
+                  <div className="flex items-start gap-4 p-4">
+                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-primary/10 text-primary">
                       {item.imageUrl ? (
                         <Image
                           src={item.imageUrl}
@@ -858,7 +883,7 @@ export function DealChooserDrawer({
                     </div>
 
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-gray-900">
+                      <p className="line-clamp-2 text-[15px] font-semibold leading-5 text-gray-900">
                         {item.name}
                       </p>
                       <div className="mt-1 flex flex-wrap items-center gap-2 text-xs font-medium text-gray-500">
@@ -880,7 +905,7 @@ export function DealChooserDrawer({
                         ) : null}
                       </div>
                       {description ? (
-                        <p className="mt-1 line-clamp-1 text-xs leading-5 text-gray-500">
+                        <p className="mt-1 line-clamp-2 text-xs leading-5 text-gray-500">
                           {description}
                         </p>
                       ) : null}
