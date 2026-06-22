@@ -116,9 +116,11 @@ export interface CartItem {
     type?: string;
     id?: string | number;
     menuItemId?: string | number;
+    variationId?: string | number;
     name?: string;
     quantity?: number | string;
     menuItem?: ApiRecord & { name?: string };
+    selectedModifiers?: CartAddon[];
   }>;
 }
 
@@ -1014,6 +1016,9 @@ export function CartSummarySection({
                                 1,
                                 toNumber(includedItem.quantity, 1)
                               );
+                              const includedModifiers = Array.isArray(includedItem.selectedModifiers)
+                                ? includedItem.selectedModifiers
+                                : [];
                               const includedKey =
                                 includedItem.id ||
                                 includedItem.menuItemId ||
@@ -1022,14 +1027,49 @@ export function CartSummarySection({
                               return (
                                 <div
                                   key={String(includedKey)}
-                                  className="flex items-center justify-between gap-3 text-xs"
+                                  className="space-y-1 text-xs"
                                 >
-                                  <span className="min-w-0 truncate text-gray-700">
-                                    {includedName}
-                                  </span>
-                                  <span className="shrink-0 font-medium text-primary">
-                                    × {includedQuantity}
-                                  </span>
+                                  <div className="flex items-center justify-between gap-3">
+                                    <span className="min-w-0 truncate text-gray-700">
+                                      {includedName}
+                                    </span>
+                                    <span className="shrink-0 font-medium text-primary">
+                                      × {includedQuantity}
+                                    </span>
+                                  </div>
+
+                                  {includedModifiers.length > 0 ? (
+                                    <div className="space-y-0.5 pl-2">
+                                      {includedModifiers.map((modifier, modifierIndex) => {
+                                        const modifierKey =
+                                          modifier.id ||
+                                          modifier.modifierId ||
+                                          `${includedKey}-modifier-${modifierIndex}`;
+                                        const modifierQuantity = Math.max(
+                                          1,
+                                          toNumber(modifier.quantity, 1)
+                                        );
+                                        const modifierTotal = toNumber(modifier.total, 0);
+
+                                        return (
+                                          <div
+                                            key={String(modifierKey)}
+                                            className="flex items-center justify-between gap-3 text-[11px] text-gray-500"
+                                          >
+                                            <span className="min-w-0 truncate">
+                                              {modifier.name}
+                                              {modifierQuantity > 1 ? ` × ${modifierQuantity}` : ""}
+                                            </span>
+                                            {modifierTotal > 0 ? (
+                                              <span className="shrink-0 font-medium text-gray-600">
+                                                +{formatCurrency(modifierTotal)}
+                                              </span>
+                                            ) : null}
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  ) : null}
                                 </div>
                               );
                             })}
