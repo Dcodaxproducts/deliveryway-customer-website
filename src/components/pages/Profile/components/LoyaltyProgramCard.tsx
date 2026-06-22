@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
 import { useLoyalty } from "@/hooks/useLoyalty";
 import { getApiErrorMessage } from "@/lib/errors";
-import { formatMoney } from "@/lib/money";
+import { DEFAULT_DISPLAY_CURRENCY, formatMoney } from "@/lib/money";
 import type { LoyaltySummary, LoyaltyTransaction } from "@/services/loyalty";
 
 type LoyaltyProgramCardProps = {
@@ -20,7 +20,7 @@ type LoyaltyProgramCardProps = {
 
 const formatPoints = (value: number) => new Intl.NumberFormat("en-US").format(Math.max(0, Math.round(value)));
 
-const formatCurrency = (value: number, currency = "PKR") =>
+const formatCurrency = (value: number, currency = DEFAULT_DISPLAY_CURRENCY) =>
   formatMoney(Math.max(0, value), currency, { maximumFractionDigits: 2 });
 
 const formatDate = (value: string | null) => {
@@ -131,7 +131,7 @@ export function LoyaltyProgramCard({ onWalletRedeemed }: LoyaltyProgramCardProps
 
       toast.success(
         t("redeemedSuccess", {
-          amount: formatCurrency(redemption?.redeemedAmount ?? estimatedWalletValue, redemption?.currency ?? "PKR"),
+          amount: formatCurrency(redemption?.redeemedAmount ?? estimatedWalletValue, redemption?.currency ?? DEFAULT_DISPLAY_CURRENCY),
         })
       );
       setPoints("");

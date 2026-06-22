@@ -21,7 +21,7 @@ import {
 
 import { useAuth } from "@/hooks/useAuth";
 import usePayments from "@/hooks/usePayments";
-import { formatMoney, normalizeCurrencyCode } from "@/lib/money";
+import { DEFAULT_DISPLAY_CURRENCY, formatMoney, normalizeCurrencyCode } from "@/lib/money";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 
@@ -100,7 +100,7 @@ const CheckoutForm = ({
 };
 const Balance = ({
   balance = 0,
-  currency = "PKR",
+  currency = DEFAULT_DISPLAY_CURRENCY,
   loyaltyPoints = 0,
 }: Props) => {
   const t = useTranslations("profile.wallet");

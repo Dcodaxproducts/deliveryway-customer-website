@@ -1,4 +1,4 @@
-export const DEFAULT_DISPLAY_CURRENCY = "PKR";
+export const DEFAULT_DISPLAY_CURRENCY = "EUR";
 
 const toFiniteNumber = (value: unknown, fallback = 0) => {
   const parsed = Number(value);

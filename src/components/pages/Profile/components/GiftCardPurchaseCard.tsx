@@ -12,7 +12,7 @@ import { CARD_PANEL_CLASS } from "@/components/common/common-classes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { usePurchaseGiftCard } from "@/hooks/useGiftCards";
-import { formatMoney } from "@/lib/money";
+import { DEFAULT_DISPLAY_CURRENCY, formatMoney } from "@/lib/money";
 import type { GiftCardPurchaseResult } from "@/types/gift-cards";
 import {
   buildGiftCardPurchasePayload,
@@ -33,12 +33,12 @@ const defaultValues: GiftCardPurchaseFormValues = {
   currency: "",
 };
 
-const formatWalletAmount = (amount: number, currency = "PKR") =>
+const formatWalletAmount = (amount: number, currency = DEFAULT_DISPLAY_CURRENCY) =>
   formatMoney(amount, currency, { maximumFractionDigits: 0 });
 
 export const GiftCardPurchaseCard = ({
   walletBalance = 0,
-  walletCurrency = "PKR",
+  walletCurrency = DEFAULT_DISPLAY_CURRENCY,
 }: GiftCardPurchaseCardProps) => {
   const t = useTranslations("profile.giftCards");
   const profileT = useTranslations("profile");

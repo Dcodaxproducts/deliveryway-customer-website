@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import Balance from "./Balance";
 import { useTranslations } from "next-intl";
-import { formatMoney } from "@/lib/money";
+import { DEFAULT_DISPLAY_CURRENCY, formatMoney } from "@/lib/money";
 
 export default function PaymentsHistory() {
   const t = useTranslations("payments");
@@ -39,7 +39,7 @@ export default function PaymentsHistory() {
   const [payments, setPayments] = useState<PaymentItem[]>([]);
   const [wallet, setWallet] = useState<WalletItem[]>([]);
   const [walletBalance, setWalletBalance] = useState(0);
-  const [walletCurrency, setWalletCurrency] = useState("PKR");
+  const [walletCurrency, setWalletCurrency] = useState(DEFAULT_DISPLAY_CURRENCY);
 
   const [meta, setMeta] = useState<PaymentMeta>({});
   const [loading, setLoading] = useState(false);

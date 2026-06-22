@@ -29,7 +29,7 @@ import {
   type WalletSummary,
 } from "@/services/profile";
 import { formatDisplayAddress } from "@/lib/address-display";
-import { formatMoney } from "@/lib/money";
+import { DEFAULT_DISPLAY_CURRENCY, formatMoney } from "@/lib/money";
 import {
   createProfileSchema,
   type ProfileFormValues,
@@ -78,7 +78,7 @@ export function ProfileForm() {
   const [addressOpen, setAddressOpen] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState<AddressRecord | null>(null);
   const [walletBalance, setWalletBalance] = useState(0);
-  const [walletCurrency, setWalletCurrency] = useState("PKR");
+  const [walletCurrency, setWalletCurrency] = useState(DEFAULT_DISPLAY_CURRENCY);
   const [walletTxns, setWalletTxns] = useState(0);
   const [updating, setUpdating] = useState(false);
   const [addresses, setAddresses] = useState<AddressRecord[]>([]);
