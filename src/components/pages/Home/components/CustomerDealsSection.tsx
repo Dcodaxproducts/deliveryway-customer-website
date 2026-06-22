@@ -41,6 +41,7 @@ type CustomerDealsSectionProps = {
   addingDealId?: string | null;
   branchId?: string | null;
   onAddDeal?: (deal: CustomerDeal, selectedMenuItemIds?: string[]) => void;
+  compact?: boolean;
 };
 
 const CustomerDealsSkeleton = () => (
@@ -235,9 +236,16 @@ export const CustomerDealsSection = ({
   addingDealId = null,
   branchId = null,
   onAddDeal,
+  compact = false,
 }: CustomerDealsSectionProps) => {
   const t = useTranslations("home.deals");
   const activeDeals = deals.filter(isDealActive).slice(0, 6);
+  const sectionClassName = compact
+    ? "mb-8 min-w-0"
+    : "mx-auto max-w-[1400px] px-4 pb-[30px] pt-[30px] sm:px-6 sm:pb-[60px] sm:pt-[60px]";
+  const headingClassName = compact
+    ? "text-xl font-semibold text-gray-900"
+    : "text-2xl font-extrabold text-gray-950";
   const [selectedChooserDeal, setSelectedChooserDeal] = useState<CustomerDeal | null>(null);
   const [pendingDeal, setPendingDeal] = useState<CustomerDeal | null>(null);
   const pendingDetailItemIds = useMemo(
@@ -336,7 +344,7 @@ export const CustomerDealsSection = ({
 
   if (isLoading) {
     return (
-      <section className="mx-auto max-w-[1400px] px-4 pb-[30px] pt-[30px] sm:px-6 sm:pb-[60px] sm:pt-[60px]">
+      <section className={sectionClassName}>
         <CustomerDealsSkeleton />
       </section>
     );
@@ -347,10 +355,10 @@ export const CustomerDealsSection = ({
   }
 
   return (
-    <section className="mx-auto max-w-[1400px] px-4 pb-[30px] pt-[30px] sm:px-6 sm:pb-[60px] sm:pt-[60px]">
+    <section className={sectionClassName}>
       <div className="mb-4 flex items-end justify-between gap-4">
         <div>
-          <h3 className="text-2xl font-extrabold text-gray-950">
+          <h3 className={headingClassName}>
             {t("available")}
           </h3>
         </div>
