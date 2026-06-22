@@ -34,6 +34,7 @@ type ItemsListingProps = {
   scrollTarget?: ScrollTarget;
   onActiveCategoryChange?: (categoryId: string) => void;
   currency?: string | null;
+  branchId?: string;
 };
 
 type CategoryItemsState = {
@@ -79,6 +80,7 @@ export function ItemsListing({
   scrollTarget,
   onActiveCategoryChange,
   currency,
+  branchId = "",
 }: ItemsListingProps) {
   const t = useTranslations("items.common");
   const { token, restaurantId: authRestaurantId, user } = useAuth();
@@ -114,6 +116,11 @@ export function ItemsListing({
     );
   }, [sections, activeCategoryId]);
 
+  useEffect(() => {
+    setCategoryItemsMap({});
+    inFlightRequestsRef.current.clear();
+  }, [restaurantId, branchId]);
+
   const fetchCategoryItems = async ({
     categoryId,
     page = 1,
@@ -123,7 +130,7 @@ export function ItemsListing({
     page?: number;
     append?: boolean;
   }) => {
-    if (!categoryId || !token || !restaurantId) return;
+    if (!categoryId || !token || !restaurantId || !branchId) return;
 
     const requestKey = `${categoryId}:${page}`;
 
@@ -150,6 +157,7 @@ export function ItemsListing({
 
       const { items: fetchedItems, meta } = await fetchMenuItemsPage({
         restaurantId: String(restaurantId),
+        branchId,
         categoryId: String(categoryId),
         page,
         limit: ITEMS_PAGE_LIMIT,
@@ -210,7 +218,7 @@ export function ItemsListing({
   useEffect(() => {
     if (contentSource !== "category") return;
     if (viewMode !== "multiple") return;
-    if (!activeCategoryId || !token || !restaurantId) return;
+    if (!activeCategoryId || !token || !restaurantId || !branchId) return;
 
     const state = categoryItemsMap[activeCategoryId];
 
@@ -223,14 +231,14 @@ export function ItemsListing({
         append: false,
       });
     });
-  }, [contentSource, viewMode, activeCategoryId, token, restaurantId]);
+  }, [contentSource, viewMode, activeCategoryId, token, restaurantId, branchId]);
 
   /* ================= ONE PAGE MODE: LOAD EACH DISPLAYED CATEGORY ================= */
 
   useEffect(() => {
     if (contentSource !== "category") return;
     if (viewMode !== "onePage") return;
-    if (!sections.length || !token || !restaurantId) return;
+    if (!sections.length || !token || !restaurantId || !branchId) return;
 
     sections.forEach((category) => {
       const id = String(category?.id || "");
@@ -248,7 +256,7 @@ export function ItemsListing({
         });
       });
     });
-  }, [contentSource, viewMode, categoryIdsKey, token, restaurantId]);
+  }, [contentSource, viewMode, categoryIdsKey, token, restaurantId, branchId]);
 
   /* ================= PRUNE OLD CATEGORY STATES AFTER SEARCH ================= */
 

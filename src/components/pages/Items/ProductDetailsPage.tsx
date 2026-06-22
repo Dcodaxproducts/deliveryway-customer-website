@@ -13,6 +13,7 @@ import { getStoredGroupOrderCode } from "@/lib/group-order";
 import { formatMoney as formatDisplayMoney, resolveCustomerCurrency } from "@/lib/money";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { resolveHomeBranchId } from "@/lib/home";
 import { Download, Eye, Loader2, Minus, Plus, X } from "lucide-react";
 import { AsyncSelect } from "@/components/ui/AsyncSelect";
 import type { CartPayload, CheckoutType, ItemPriceOverride, MenuItem, MenuVariation, Modifier, ModifierGroup, ModifierLink, ModifierSelectionMap, PromotionInfo, RawModifierLink, SelectedModifier, VariationPriceOverride } from "@/components/pages/Items/types";
@@ -850,7 +851,7 @@ function ProductDetailsPageContent() {
   const isEditingCartItem = Boolean(cartItemId);
 
   const { token } = useAuthContext();
-  const { fetchMenuItems } = useItems(token);
+  const { fetchCustomerMenuItemBySlug, fetchMenuItems } = useItems(token);
   const {
     addCustomerCartItem,
     addGroupOrderItem,
@@ -884,7 +885,7 @@ function ProductDetailsPageContent() {
 
   const { user } = useAuth();
   const customerId = user?.id;
-  const branchId = user?.branchId ? String(user.branchId) : "";
+  const branchId = resolveHomeBranchId(user);
   const restaurantId = String(
     item?.restaurantId ||
       item?.restaurant?.id ||
@@ -1512,8 +1513,43 @@ function ProductDetailsPageContent() {
       try {
         setPageLoading(true);
 
+        if (slug && restaurantId && branchId) {
+          const { response: res, item: customerItem } = await fetchCustomerMenuItemBySlug({
+            slug,
+            restaurantId,
+            branchId,
+          });
+
+          if (!isMounted) return;
+
+          if (!res || res?.error) {
+            toast.error(res?.error || t("failedFetchItem"));
+            setItem(null);
+            return;
+          }
+
+          if (customerItem) {
+            setItem(customerItem);
+            setSelectedVariation(getDefaultVariation(customerItem));
+            setSelectedModifiers({});
+            setQty(getProductDetailsQuantityLimits(customerItem).minQuantity);
+            setInstructions("");
+            setSplitPizzaEnabled(false);
+            setSplitPizzaItem(null);
+            return;
+          }
+        }
+
+        const queryParams = new URLSearchParams({
+          search: searchValue,
+        });
+
+        if (restaurantId) {
+          queryParams.set("restaurantId", restaurantId);
+        }
+
         const { response: res, items } = await fetchMenuItems(
-          `/v1/menu/items?search=${encodeURIComponent(searchValue)}`
+          `/v1/menu/items?${queryParams.toString()}`
         );
 
         if (!isMounted) return;
@@ -1563,7 +1599,7 @@ function ProductDetailsPageContent() {
     return () => {
       isMounted = false;
     };
-  }, [slug, itemIdParam, token, fetchMenuItems]);
+  }, [slug, itemIdParam, token, fetchCustomerMenuItemBySlug, fetchMenuItems, restaurantId, branchId]);
 
   useEffect(() => {
     const fetchCartItemToEdit = async () => {

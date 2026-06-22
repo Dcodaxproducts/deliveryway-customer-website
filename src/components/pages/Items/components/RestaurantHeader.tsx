@@ -213,6 +213,7 @@ export default function RestaurantHeader() {
         while (shouldContinue) {
           const { categories: fetchedCategories, meta } = await fetchMenuCategoriesPage({
             restaurantId: String(restaurantId),
+            branchId: selectedBranchId,
             page,
             limit: CATEGORY_PAGE_LIMIT,
           });
