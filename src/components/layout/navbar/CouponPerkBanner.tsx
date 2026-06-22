@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Clock3, Copy, TicketPercent, X } from "lucide-react";
+import { ArrowRight, Check, Clock3, Copy, TicketPercent, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
 
 import type { CustomerCoupon } from "@/types/customer-coupons";
 
@@ -53,6 +52,7 @@ export const CouponPerkBanner = ({ coupons }: CouponPerkBannerProps) => {
   const t = useTranslations("navigation.couponBanner");
   const [isDismissed, setIsDismissed] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const visibleCoupons = coupons?.filter(Boolean) ?? [];
   const coupon = visibleCoupons[activeIndex] ?? visibleCoupons[0] ?? null;
   const hasMultipleCoupons = visibleCoupons.length > 1;
@@ -77,6 +77,22 @@ export const CouponPerkBanner = ({ coupons }: CouponPerkBannerProps) => {
     return () => window.clearInterval(timer);
   }, [hasMultipleCoupons, isDismissed, visibleCoupons.length]);
 
+  useEffect(() => {
+    setCopiedCode(null);
+  }, [coupon?.code]);
+
+  useEffect(() => {
+    if (!copiedCode) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setCopiedCode(null);
+    }, 1800);
+
+    return () => window.clearTimeout(timer);
+  }, [copiedCode]);
+
   if (!coupon || isDismissed) {
     return null;
   }
@@ -86,13 +102,14 @@ export const CouponPerkBanner = ({ coupons }: CouponPerkBannerProps) => {
   const maxDiscount = toMoney(coupon.maxDiscountAmount);
   const expiryDate = formatExpiryDate(coupon.expiresAt);
   const description = coupon.description?.trim();
+  const isCopied = copiedCode === coupon.code;
 
   const handleCopyCode = async () => {
     try {
       await navigator.clipboard.writeText(coupon.code);
-      toast.success(t("copied"));
+      setCopiedCode(coupon.code);
     } catch {
-      toast.error(t("copyFailed"));
+      setCopiedCode(null);
     }
   };
 
@@ -135,19 +152,27 @@ export const CouponPerkBanner = ({ coupons }: CouponPerkBannerProps) => {
           <button
             type="button"
             onClick={() => void handleCopyCode()}
-            className="inline-flex h-9 items-center rounded-xl bg-primary px-3.5 text-center text-[10px] font-black uppercase leading-[1.05] text-white transition-colors hover:bg-primary/90"
+            className="inline-flex h-9 min-w-[92px] items-center justify-center rounded-xl bg-primary px-3.5 text-center text-[10px] font-black uppercase leading-[1.05] text-white transition-colors hover:bg-primary/90"
+            aria-label={isCopied ? t("copied") : t("copyCode")}
           >
-            <Copy size={14} className="mr-1.5 shrink-0" />
-            {t("copyCode")}
+            {isCopied ? (
+              <Check size={16} className="shrink-0" />
+            ) : (
+              <>
+                <Copy size={14} className="mr-1.5 shrink-0" />
+                {t("copyCode")}
+              </>
+            )}
           </button>
         </div>
 
         <button
           type="button"
           onClick={() => void handleCopyCode()}
-          className="inline-flex h-9 shrink-0 items-center rounded-xl bg-primary px-3 text-[10px] font-black uppercase text-white lg:hidden"
+          className="inline-flex h-9 min-w-16 shrink-0 items-center justify-center rounded-xl bg-primary px-3 text-[10px] font-black uppercase text-white lg:hidden"
+          aria-label={isCopied ? t("copied") : t("copyCode")}
         >
-          {coupon.code}
+          {isCopied ? <Check size={16} /> : coupon.code}
         </button>
 
         {expiryDate ? (
