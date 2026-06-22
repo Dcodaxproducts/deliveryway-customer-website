@@ -147,7 +147,7 @@ const CustomerDealCard = ({
         : t("addDeal");
 
   return (
-    <article className="relative flex min-h-[300px] min-w-0 flex-col overflow-hidden rounded-[18px] border border-gray-100 bg-white p-5 shadow-[0_12px_34px_rgba(17,24,39,0.08)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(17,24,39,0.12)]">
+    <article className="relative flex h-full min-h-[300px] min-w-0 flex-col overflow-hidden rounded-[18px] border border-gray-100 bg-white p-5 shadow-[0_12px_34px_rgba(17,24,39,0.08)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(17,24,39,0.12)]">
       <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_112px] gap-4 sm:grid-cols-[minmax(0,1fr)_132px]">
         <div className="flex min-w-0 flex-1 flex-col">
           {index === 0 ? (
@@ -206,20 +206,25 @@ const CustomerDealCard = ({
         </div>
       </div>
 
-      {!hasDealItems ? (
-        <p className="mt-2 text-xs font-semibold text-red-500">
-          {t("noAvailableItems")}
+      <div className="mt-auto pt-5">
+        <p
+          className={`mb-2 min-h-4 text-xs font-semibold ${
+            hasDealItems ? "invisible" : "text-red-500"
+          }`}
+          aria-hidden={hasDealItems}
+        >
+          {hasDealItems ? "" : t("noAvailableItems")}
         </p>
-      ) : null}
 
-      <Button
-        variant="default"
-        className="mt-5 h-12 w-full rounded-[10px] bg-primary px-3 text-base font-bold text-white shadow-md shadow-primary/20 hover:bg-primary/90"
-        disabled={!hasDealItems || isAdding}
-        onClick={handleAddDeal}
-      >
-        {isAdding ? t("adding") : translatedActionLabel}
-      </Button>
+        <Button
+          variant="default"
+          className="h-12 w-full rounded-[10px] bg-primary px-3 text-base font-bold text-white shadow-md shadow-primary/20 hover:bg-primary/90"
+          disabled={!hasDealItems || isAdding}
+          onClick={handleAddDeal}
+        >
+          {isAdding ? t("adding") : translatedActionLabel}
+        </Button>
+      </div>
     </article>
   );
 };
@@ -359,7 +364,7 @@ export const CustomerDealsSection = ({
           {activeDeals.map((deal, index) => (
             <CarouselItem
               key={deal.id}
-              className="basis-[92%] pl-5 sm:basis-[62%] md:basis-[48%] xl:basis-1/3 2xl:basis-1/4"
+              className="flex basis-[92%] pl-5 sm:basis-[62%] md:basis-[48%] xl:basis-1/3 2xl:basis-1/4"
             >
               <CustomerDealCard
                 deal={deal}
