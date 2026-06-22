@@ -1,6 +1,7 @@
 import type { Branding } from "@/types/branding";
 import type { BranchScheduleTimings } from "@/types/branches";
 import type { HomeGiftCards } from "@/types/gift-cards";
+import type { HappyHourInfo } from "@/components/pages/Items/types";
 
 export type HomeRestaurant = {
   id?: string | null;
@@ -59,6 +60,7 @@ export type HomeCategory = {
   id: string;
   name: string;
   imageUrl?: string | null;
+  happyHour?: HappyHourInfo | null;
 };
 
 export type PromotionCampaign = {

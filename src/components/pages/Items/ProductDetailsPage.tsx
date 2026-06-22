@@ -86,6 +86,10 @@ const isPromotionObject = (value: unknown): value is PromotionInfo => {
 };
 
 const getPromotionInfo = (source: ApiRecord | null | undefined): PromotionInfo | null => {
+  if (isPromotionObject(source?.happyHour) && source.happyHour.isCurrentlyActive !== false) {
+    return source.happyHour;
+  }
+
   return isPromotionObject(source?.promotion) ? source.promotion : null;
 };
 
@@ -119,9 +123,13 @@ const getBackendDiscountedPriceCandidate = (
   source: ApiRecord | null | undefined,
   promotion?: PromotionInfo | null
 ) => {
+  const record = source || {};
   const candidates = [
-    source?.discountedPrice,
-    source?.discountedBasePrice,
+    record.happyHourDiscountedPrice,
+    record.happyHourDiscountedBasePrice,
+    record.discountedPrice,
+    record.discountedBasePrice,
+    promotion?.discountedPrice,
     promotion?.discountedAmount,
   ];
 
@@ -1020,8 +1028,10 @@ function ProductDetailsPageContent() {
         price: getVariationDisplayPrice(menuItem, raw),
         pickupPrice: getVariationPickupPrice(menuItem, raw),
         displayText: getVariationDisplayText(menuItem, raw),
-        discountedPrice: raw?.discountedPrice ?? raw?.promotion?.discountedAmount ?? null,
+        discountedPrice: raw?.happyHourDiscountedPrice ?? raw?.discountedPrice ?? raw?.happyHour?.discountedPrice ?? raw?.promotion?.discountedAmount ?? null,
+        happyHourDiscountedPrice: raw?.happyHourDiscountedPrice ?? raw?.happyHour?.discountedPrice ?? null,
         promotion: getPromotionInfo(raw),
+        happyHour: raw?.happyHour ?? null,
         sortOrder: toNumber(raw?.sortOrder, 0),
         isDefault: Boolean(raw?.isDefault),
         isActive: raw?.isActive !== false,

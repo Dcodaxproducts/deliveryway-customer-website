@@ -99,6 +99,10 @@ const isPromotionObject = (value: unknown): value is PromotionInfo => {
 };
 
 const getPromotionInfo = (source: MenuItem | MenuVariation | ApiRecord | null | undefined): PromotionInfo | null => {
+  if (isPromotionObject(source?.happyHour) && source.happyHour.isCurrentlyActive !== false) {
+    return source.happyHour;
+  }
+
   return isPromotionObject(source?.promotion) ? source.promotion : null;
 };
 
@@ -132,9 +136,13 @@ const getBackendDiscountedPriceCandidate = (
   source: MenuItem | MenuVariation | ApiRecord | null | undefined,
   promotion?: PromotionInfo | null,
 ) => {
+  const record = (source || {}) as ApiRecord;
   const candidates = [
-    source?.discountedPrice,
-    source?.discountedBasePrice,
+    record.happyHourDiscountedPrice,
+    record.happyHourDiscountedBasePrice,
+    record.discountedPrice,
+    record.discountedBasePrice,
+    promotion?.discountedPrice,
     promotion?.discountedAmount,
   ];
 
@@ -609,8 +617,10 @@ export function RestaurantCard({
         displayText:
           typeof raw?.displayText === "string" ? raw.displayText : raw?.itemPriceOverrides?.[0]?.displayText ?? null,
         discountedPrice:
-          raw?.discountedPrice ?? raw?.promotion?.discountedAmount ?? null,
+          raw?.happyHourDiscountedPrice ?? raw?.discountedPrice ?? raw?.happyHour?.discountedPrice ?? raw?.promotion?.discountedAmount ?? null,
+        happyHourDiscountedPrice: raw?.happyHourDiscountedPrice ?? raw?.happyHour?.discountedPrice ?? null,
         promotion: getPromotionInfo(raw),
+        happyHour: raw?.happyHour ?? null,
         sortOrder: toNumber(raw?.sortOrder, 0),
         isDefault: Boolean(raw?.isDefault),
         isActive: raw?.isActive !== false,
