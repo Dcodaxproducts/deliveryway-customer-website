@@ -15,20 +15,23 @@ import {
   type CheckoutTypePreference,
 } from "@/lib/checkout-type-preference";
 import { cn } from "@/lib/utils";
+import { fetchCustomerCart } from "@/services/cart";
 
 const HIDDEN_CART_PATHS = ["/checkout", "/menu"];
 
 export function SiteFloatingCart() {
   const pathname = usePathname();
   const t = useTranslations("cart");
-  const { user, loading } = useAuth();
+  const { user, token, loading } = useAuth();
   const [cartRefreshKey, setCartRefreshKey] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
+  const [hasCartItems, setHasCartItems] = useState(false);
   const [storedCheckoutType, setStoredCheckoutType] =
     useState<CheckoutTypePreference | null>(null);
 
   const isHiddenRoute = HIDDEN_CART_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
   const hideOnMobileHome = pathname === "/";
+  const customerId = user?.id;
   const userCheckoutType = getSelectedOrderType(user) === "TAKEAWAY" ? "pickup" : "delivery";
   const checkoutType = storedCheckoutType ?? userCheckoutType;
 
@@ -36,13 +39,47 @@ export function SiteFloatingCart() {
     setCartRefreshKey((current) => current + 1);
   }, []);
 
+  const refreshCartPresence = useCallback(
+    async ({ openWhenPresent = false }: { openWhenPresent?: boolean } = {}) => {
+      if (loading || !customerId) {
+        setHasCartItems(false);
+        setIsOpen(false);
+        return;
+      }
+
+      try {
+        const { items } = await fetchCustomerCart({ customerId, token });
+        const nextHasCartItems = items.length > 0;
+
+        setHasCartItems(nextHasCartItems);
+
+        if (nextHasCartItems) {
+          if (openWhenPresent) {
+            setIsOpen(true);
+          }
+          return;
+        }
+
+        setIsOpen(false);
+      } catch {
+        setHasCartItems(false);
+        setIsOpen(false);
+      }
+    },
+    [customerId, loading, token]
+  );
+
+  useEffect(() => {
+    void refreshCartPresence();
+  }, [refreshCartPresence]);
+
   useEffect(() => {
     setStoredCheckoutType(getStoredCheckoutTypePreference());
 
     const handleCartChanged = () => {
       setStoredCheckoutType(getStoredCheckoutTypePreference());
       refreshCart();
-      setIsOpen(true);
+      void refreshCartPresence({ openWhenPresent: true });
     };
 
     window.addEventListener(CART_CHANGED_EVENT, handleCartChanged);
@@ -50,9 +87,9 @@ export function SiteFloatingCart() {
     return () => {
       window.removeEventListener(CART_CHANGED_EVENT, handleCartChanged);
     };
-  }, [refreshCart]);
+  }, [refreshCart, refreshCartPresence]);
 
-  if (loading || !user?.id || isHiddenRoute) {
+  if (loading || !customerId || isHiddenRoute || !hasCartItems) {
     return null;
   }
 
@@ -76,7 +113,7 @@ export function SiteFloatingCart() {
           </Button>
 
           <OrderCartSidebar
-            customerId={user.id}
+            customerId={customerId}
             cartRefreshKey={cartRefreshKey}
             onCartRefresh={refreshCart}
             presentation="floating"
