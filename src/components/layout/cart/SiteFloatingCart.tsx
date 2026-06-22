@@ -8,12 +8,15 @@ import { useCallback, useEffect, useState } from "react";
 import { OrderCartSidebar } from "@/components/pages/Items/components/signature-selection/OrderCartSidebar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { useHome } from "@/hooks/useHome";
 import { getSelectedOrderType } from "@/lib/branch-selector";
 import { CART_CHANGED_EVENT } from "@/lib/cart-events";
 import {
   getStoredCheckoutTypePreference,
   type CheckoutTypePreference,
 } from "@/lib/checkout-type-preference";
+import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
+import { resolveCustomerCurrency } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import { fetchCustomerCart } from "@/services/cart";
 
@@ -22,7 +25,7 @@ const HIDDEN_CART_PATHS = ["/checkout", "/menu"];
 export function SiteFloatingCart() {
   const pathname = usePathname();
   const t = useTranslations("cart");
-  const { user, token, loading } = useAuth();
+  const { user, token, loading, restaurantId } = useAuth();
   const [cartRefreshKey, setCartRefreshKey] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [hasCartItems, setHasCartItems] = useState(false);
@@ -32,6 +35,17 @@ export function SiteFloatingCart() {
   const isHiddenRoute = HIDDEN_CART_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
   const hideOnMobileHome = pathname === "/";
   const customerId = user?.id;
+  const homeRestaurantId = resolveHomeRestaurantId(user, restaurantId);
+  const branchId = resolveHomeBranchId(user);
+  const homeQuery = useHome(
+    homeRestaurantId,
+    branchId,
+    Boolean(!loading && homeRestaurantId && branchId)
+  );
+  const currency = resolveCustomerCurrency({
+    configCurrency: homeQuery.data?.data.config?.currency,
+    restaurant: homeQuery.data?.data.restaurant,
+  });
   const userCheckoutType = getSelectedOrderType(user) === "TAKEAWAY" ? "pickup" : "delivery";
   const checkoutType = storedCheckoutType ?? userCheckoutType;
 
@@ -118,6 +132,7 @@ export function SiteFloatingCart() {
             onCartRefresh={refreshCart}
             presentation="floating"
             checkoutType={checkoutType}
+            currency={currency}
           />
         </div>
       ) : (

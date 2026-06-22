@@ -87,7 +87,7 @@ export const fetchWalletSummary = async (api: Pick<ApiClient, "get">): Promise<W
   if (isRecord(res) && res.error) {
     return {
       balance: 0,
-      currency: "USD",
+      currency: "PKR",
       transactionCount: 0,
     };
   }
@@ -97,7 +97,7 @@ export const fetchWalletSummary = async (api: Pick<ApiClient, "get">): Promise<W
 
   return {
     balance: isRecord(data) ? getNumber(data.balance) : 0,
-    currency: isRecord(data) ? getString(data.currency) || "USD" : "USD",
+    currency: isRecord(data) ? getString(data.currency) || "PKR" : "PKR",
     transactionCount: Array.isArray(history) ? history.length : 0,
   };
 };

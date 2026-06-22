@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import Balance from "./Balance";
 import { useTranslations } from "next-intl";
+import { formatMoney } from "@/lib/money";
 
 export default function PaymentsHistory() {
   const t = useTranslations("payments");
@@ -38,7 +39,7 @@ export default function PaymentsHistory() {
   const [payments, setPayments] = useState<PaymentItem[]>([]);
   const [wallet, setWallet] = useState<WalletItem[]>([]);
   const [walletBalance, setWalletBalance] = useState(0);
-  const [walletCurrency, setWalletCurrency] = useState("USD");
+  const [walletCurrency, setWalletCurrency] = useState("PKR");
 
   const [meta, setMeta] = useState<PaymentMeta>({});
   const [loading, setLoading] = useState(false);
@@ -379,7 +380,7 @@ export default function PaymentsHistory() {
                       {/* RIGHT */}
                       <div className="shrink-0 text-right">
                         <p className="text-[22px] font-semibold leading-none text-primary">
-                          Rs. {item.amount}
+                          {formatMoney(item.amount, item.currency || walletCurrency)}
                         </p>
 
                         <div className="mt-2 flex flex-col items-end gap-1">
@@ -442,7 +443,9 @@ export default function PaymentsHistory() {
                       </p>
 
                       <p className="text-xs text-gray-500">
-                        {t("balanceAfter", { amount: item.balanceAfter })}
+                        {t("balanceAfter", {
+                          amount: formatMoney(item.balanceAfter, walletCurrency),
+                        })}
                       </p>
                     </div>
                   </div>
@@ -454,7 +457,7 @@ export default function PaymentsHistory() {
                         : "text-red-600"
                     }`}
                   >
-                    {isCredit ? "+" : "-"} Rs. {item.amount}
+                    {isCredit ? "+" : "-"} {formatMoney(item.amount, walletCurrency)}
                   </p>
                 </div>
               );

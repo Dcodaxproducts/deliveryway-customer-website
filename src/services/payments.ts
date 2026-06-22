@@ -111,7 +111,7 @@ export const fetchWallet = async (token?: string | null) => {
     response,
     wallet: response?.error ? [] : data?.history || [],
     balance: response?.error ? 0 : data?.balance || 0,
-    currency: response?.error ? "USD" : data?.currency || "USD",
+    currency: response?.error ? "PKR" : data?.currency || "PKR",
   };
 };
 

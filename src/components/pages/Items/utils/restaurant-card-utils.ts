@@ -1,5 +1,6 @@
 import type { ApiMeta, ApiRecord, AuthRestaurantUser, ItemsCategory, MenuItem, RestaurantInfo, StoredAuthState } from "../types";
 import { formatDisplayAddress } from "@/lib/address-display";
+import { formatMoney } from "@/lib/money";
 import type { BranchSettings } from "@/types/branches";
 
 export const FALLBACK_BANNER = "/categories/background_banner.png";
@@ -522,7 +523,12 @@ export const resolvePromotionBadge = (promotion?: { title?: string | null; disco
   if (!promotion) return "";
   if (hasText(promotion.title)) return String(promotion.title);
   if (promotion.discountType === "PERCENTAGE") return `${toNumber(promotion.discountValue, 0)}% OFF`;
-  if (promotion.discountType === "FLAT") return `$${formatPrice(promotion.discountValue)} OFF`;
+  if (promotion.discountType === "FLAT") {
+    return `${formatMoney(promotion.discountValue, undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })} OFF`;
+  }
   return "OFFER";
 };
 

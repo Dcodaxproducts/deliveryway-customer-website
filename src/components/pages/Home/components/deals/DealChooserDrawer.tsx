@@ -52,6 +52,7 @@ type DealChooserDrawerProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   branchId?: string | null;
+  currency?: string | null;
 };
 
 const getMenuItemInitial = (name: string) => name.trim().charAt(0).toUpperCase() || "?";
@@ -62,17 +63,22 @@ const getMenuItemPrice = (item: CustomerDealMenuItem) =>
 const hasMenuItemPrice = (value: CustomerDealMenuItem["basePrice"]) =>
   value !== null && value !== undefined && value !== "";
 
-const formatModifierSelectionPrice = (unitPrice: number, quantity: number) => {
+const formatModifierSelectionPrice = (
+  unitPrice: number,
+  quantity: number,
+  currency?: string | null
+) => {
   const safeQuantity = Math.max(1, Math.floor(getDealChooserNumber(quantity, 1)));
   const sign = unitPrice < 0 ? "-" : "+";
-  const formattedUnitPrice = formatDealPrice(Math.abs(unitPrice));
+  const formattedUnitPrice = formatDealPrice(Math.abs(unitPrice), currency);
 
   if (safeQuantity <= 1) {
     return `${sign}${formattedUnitPrice}`;
   }
 
   return `${sign}${formattedUnitPrice} * ${safeQuantity} = ${sign}${formatDealPrice(
-    Math.abs(unitPrice) * safeQuantity
+    Math.abs(unitPrice) * safeQuantity,
+    currency
   )}`;
 };
 
@@ -101,6 +107,7 @@ export function DealChooserDrawer({
   open,
   onOpenChange,
   branchId,
+  currency,
 }: DealChooserDrawerProps) {
   const t = useTranslations("home.deals");
   const addDealMutation = useAddDealToCart(branchId);
@@ -709,7 +716,8 @@ export function DealChooserDrawer({
                             <span className="text-xs font-semibold text-primary">
                               {formatModifierSelectionPrice(
                                 modifierPrice,
-                                selectedModifierQuantity
+                                selectedModifierQuantity,
+                                currency
                               )}
                             </span>
                           ) : null}
@@ -801,7 +809,7 @@ export function DealChooserDrawer({
         {deal ? (
           <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-gray-600">
             <span className="rounded-full bg-primary/10 px-2.5 py-1 text-primary">
-              {formatDealPrice(deal.discountValue)}
+              {formatDealPrice(deal.discountValue, currency)}
             </span>
             <span className="rounded-full bg-gray-100 px-2.5 py-1">
               {getDealTypeLabel(deal)}
@@ -889,7 +897,7 @@ export function DealChooserDrawer({
                       <div className="mt-1 flex flex-wrap items-center gap-2 text-xs font-medium text-gray-500">
                         {hasMenuItemPrice(itemPrice) ? (
                           <span className="text-primary">
-                            {formatDealPrice(itemPrice)}
+                            {formatDealPrice(itemPrice, currency)}
                           </span>
                         ) : null}
                         {categoryName ? <span>{categoryName}</span> : null}

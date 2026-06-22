@@ -10,8 +10,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAddDealToCart } from "@/hooks/useCart";
 import { useAppLocale } from "@/hooks/useAppLocale";
 import { useCustomerDeals } from "@/hooks/useCustomerDeals";
+import { useHome } from "@/hooks/useHome";
 import { getStoredRestaurantId } from "@/lib/auth";
 import { resolveHomeBranchId } from "@/lib/home";
+import { resolveCustomerCurrency } from "@/lib/money";
 import { getItemsMenuViewMode, setItemsMenuViewMode } from "@/lib/view-preferences";
 import type { ApiMeta, ItemsCategory, MenuItem } from "@/components/pages/Items/types";
 import { resolveHasNext } from "@/components/pages/Items/utils/restaurant-card-utils";
@@ -85,6 +87,15 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
     );
   }, [authRestaurantId, user?.restaurantId]);
   const branchId = useMemo(() => resolveHomeBranchId(user), [user]);
+  const homeQuery = useHome(
+    restaurantId,
+    branchId,
+    Boolean(token && restaurantId && branchId)
+  );
+  const currency = resolveCustomerCurrency({
+    configCurrency: homeQuery.data?.data.config?.currency,
+    restaurant: homeQuery.data?.data.restaurant,
+  });
   const dealsRestaurantId = contentSource === "menu" ? restaurantId : "";
   const dealsQuery = useCustomerDeals({
     restaurantId: dealsRestaurantId,
@@ -412,6 +423,7 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
             branchId={branchId}
             onAddDeal={handleAddDeal}
             compact
+            currency={currency}
           />
         ) : null}
 
@@ -424,6 +436,7 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
           onActiveCategoryChange={
             contentSource === "menu" ? setActiveOnePageMenuId : setActiveOnePageCategoryId
           }
+          currency={currency}
         />
       </main>
     </div>

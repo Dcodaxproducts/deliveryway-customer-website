@@ -12,6 +12,7 @@ import { CARD_PANEL_CLASS } from "@/components/common/common-classes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { usePurchaseGiftCard } from "@/hooks/useGiftCards";
+import { formatMoney } from "@/lib/money";
 import type { GiftCardPurchaseResult } from "@/types/gift-cards";
 import {
   buildGiftCardPurchasePayload,
@@ -29,10 +30,11 @@ const defaultValues: GiftCardPurchaseFormValues = {
   title: "",
   message: "",
   expiresAt: "",
+  currency: "",
 };
 
 const formatWalletAmount = (amount: number, currency = "PKR") =>
-  `${currency} ${Number(amount || 0).toLocaleString()}`;
+  formatMoney(amount, currency, { maximumFractionDigits: 0 });
 
 export const GiftCardPurchaseCard = ({
   walletBalance = 0,
@@ -60,7 +62,10 @@ export const GiftCardPurchaseCard = ({
 
   const onSubmit = async (values: GiftCardPurchaseFormValues) => {
     const response = await purchaseGiftCard.mutateAsync({
-      payload: buildGiftCardPurchasePayload(values),
+      payload: buildGiftCardPurchasePayload({
+        ...values,
+        currency: walletCurrency,
+      }),
     });
 
     setPurchaseResult(response.result);

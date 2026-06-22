@@ -12,6 +12,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { getStoredGroupOrderCode } from "@/lib/group-order";
+import { formatMoney as formatDisplayMoney } from "@/lib/money";
 import { AsyncSelect } from "@/components/ui/AsyncSelect";
 import type { ApiRecord, CartPayload, ItemPriceOverride, MenuItem, MenuVariation, Modifier, ModifierGroup, ModifierLink, SelectedModifiersMap, PromotionInfo, PromotionPricing, RawModifierLink, SelectedModifier, VariationPriceOverride } from "@/components/pages/Items/types";
 import { hasText, formatPrice, getSplitPizzaPricingVariation, toNumber } from "@/components/pages/Items/utils/restaurant-card-utils";
@@ -73,18 +74,24 @@ const normalizeArray = <T = unknown,>(value: unknown): T[] => {
 
 /* ================= PROMOTION HELPERS ================= */
 
-const formatMoney = (value: unknown) => {
-  return `$${formatPrice(value)}`;
-};
+const formatMoney = (value: unknown, currency?: string | null) =>
+  formatDisplayMoney(value, currency, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 
-const formatModifierSelectionPrice = (unitPrice: number, quantity: number) => {
+const formatModifierSelectionPrice = (
+  unitPrice: number,
+  quantity: number,
+  currency?: string | null
+) => {
   const safeQuantity = Math.max(1, Math.floor(toNumber(quantity, 1)));
 
   if (safeQuantity <= 1) {
-    return `+${formatMoney(unitPrice)}`;
+    return `+${formatMoney(unitPrice, currency)}`;
   }
 
-  return `+${formatMoney(unitPrice)} * ${safeQuantity} = +${formatMoney(unitPrice * safeQuantity)}`;
+  return `+${formatMoney(unitPrice, currency)} * ${safeQuantity} = +${formatMoney(unitPrice * safeQuantity, currency)}`;
 };
 
 const isPromotionObject = (value: unknown): value is PromotionInfo => {
@@ -236,14 +243,19 @@ const getPromotionSourceForPrice = (menuItem: MenuItem | null, variation?: MenuV
 function PromotionBadge({
   promotion,
   compact = false,
+  currency,
 }: {
   promotion?: PromotionInfo | null;
   compact?: boolean;
+  currency?: string | null;
 }) {
   const t = useTranslations("items.productCard");
   if (!promotion) return null;
 
-  const label = getPromotionDiscountLabel(promotion);
+  const label = getPromotionDiscountLabel(promotion)?.replace(
+    formatMoney(toNumber(promotion.discountValue, 0)),
+    formatMoney(toNumber(promotion.discountValue, 0), currency)
+  );
 
   return (
     <span
@@ -260,23 +272,25 @@ function PromotionPrice({
   pricing,
   className = "",
   originalClassName = "",
+  currency,
 }: {
   pricing: PromotionPricing;
   className?: string;
   originalClassName?: string;
+  currency?: string | null;
 }) {
   if (!pricing.hasDiscount) {
     return (
-      <span className={className}>{formatMoney(pricing.originalPrice)}</span>
+      <span className={className}>{formatMoney(pricing.originalPrice, currency)}</span>
     );
   }
 
   return (
     <span className={`inline-flex items-center gap-2 ${className}`}>
       <span className={`text-gray-400 line-through ${originalClassName}`}>
-        {formatMoney(pricing.originalPrice)}
+        {formatMoney(pricing.originalPrice, currency)}
       </span>
-      <span>{formatMoney(pricing.finalPrice)}</span>
+      <span>{formatMoney(pricing.finalPrice, currency)}</span>
     </span>
   );
 }
@@ -528,7 +542,13 @@ function ProductInfoContent({ item }: { item: MenuItem | null }) {
   );
 }
 
-export function RestaurantCard({ item }: { item: MenuItem }) {
+export function RestaurantCard({
+  item,
+  currency,
+}: {
+  item: MenuItem;
+  currency?: string | null;
+}) {
   const t = useTranslations("items.productCard");
   const tErrors = useTranslations("errors");
   const router = useRouter();
@@ -1560,6 +1580,7 @@ export function RestaurantCard({ item }: { item: MenuItem }) {
                         {formatModifierSelectionPrice(
                           effectivePrice,
                           selectedModifierQuantity,
+                          currency,
                         )}
                       </span>
                     ) : null}
@@ -1941,20 +1962,21 @@ export function RestaurantCard({ item }: { item: MenuItem }) {
 
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <p className="text-sm font-semibold text-gray-900">
-                <PromotionPrice pricing={cardPromotionPricing} />
+                <PromotionPrice pricing={cardPromotionPricing} currency={currency} />
               </p>
 
               {cardPromotionPricing.hasPromotion ? (
                 <PromotionBadge
                   promotion={cardPromotionPricing.promotion}
                   compact
+                  currency={currency}
                 />
               ) : null}
             </div>
 
             {cardPromotionPricing.hasDiscount ? (
               <p className="mt-1 text-[11px] font-medium text-green-700">
-                Save {formatMoney(cardPromotionPricing.discountAmount)}
+                Save {formatMoney(cardPromotionPricing.discountAmount, currency)}
               </p>
             ) : null}
 
@@ -1976,6 +1998,7 @@ export function RestaurantCard({ item }: { item: MenuItem }) {
                 <PromotionBadge
                   promotion={cardPromotionPricing.promotion}
                   compact
+                  currency={currency}
                 />
               </div>
             ) : null}
@@ -2055,6 +2078,7 @@ export function RestaurantCard({ item }: { item: MenuItem }) {
               {selectedItemPromotionPricing.hasPromotion ? (
                 <PromotionBadge
                   promotion={selectedItemPromotionPricing.promotion}
+                  currency={currency}
                 />
               ) : null}
             </div>
@@ -2123,6 +2147,7 @@ export function RestaurantCard({ item }: { item: MenuItem }) {
                                     variationPromotionPricing.promotion
                                   }
                                   compact
+                                  currency={currency}
                                 />
 
                                 {variationPromotionPricing.hasDiscount ? (
@@ -2130,6 +2155,7 @@ export function RestaurantCard({ item }: { item: MenuItem }) {
                                     Save{" "}
                                     {formatMoney(
                                       variationPromotionPricing.discountAmount,
+                                      currency,
                                     )}
                                   </span>
                                 ) : null}
@@ -2142,6 +2168,7 @@ export function RestaurantCard({ item }: { item: MenuItem }) {
                           <div className="shrink-0 text-right text-sm font-semibold text-primary">
                             <PromotionPrice
                               pricing={variationPromotionPricing}
+                              currency={currency}
                             />
                           </div>
                         ) : null}
@@ -2220,6 +2247,7 @@ export function RestaurantCard({ item }: { item: MenuItem }) {
                           <div className="shrink-0 text-right font-medium text-primary">
                             <PromotionPrice
                               pricing={splitPizzaPromotionPricing}
+                              currency={currency}
                             />
 
                             {splitPizzaPromotionPricing.hasPromotion ? (
@@ -2229,6 +2257,7 @@ export function RestaurantCard({ item }: { item: MenuItem }) {
                                     splitPizzaPromotionPricing.promotion
                                   }
                                   compact
+                                  currency={currency}
                                 />
                               </div>
                             ) : null}
@@ -2319,13 +2348,14 @@ export function RestaurantCard({ item }: { item: MenuItem }) {
                       hasDiscount: true,
                     }}
                     originalClassName="text-sm font-medium"
+                    currency={currency}
                   />
                   <span className="mt-0.5 text-xs font-medium text-green-700">
-                    Save {formatMoney(totalPromotionDiscount)}
+                    Save {formatMoney(totalPromotionDiscount, currency)}
                   </span>
                 </div>
               ) : (
-                formatMoney(totalPrice)
+                formatMoney(totalPrice, currency)
               )}
             </div>
           </div>

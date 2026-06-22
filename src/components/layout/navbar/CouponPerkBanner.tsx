@@ -5,30 +5,32 @@ import { ArrowRight, Check, Clock3, Copy, TicketPercent, X } from "lucide-react"
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
+import { formatMoney } from "@/lib/money";
 import type { CustomerCoupon } from "@/types/customer-coupons";
 
 type CouponPerkBannerProps = {
   coupons?: CustomerCoupon[] | null;
+  currency?: string | null;
 };
 
-const toMoney = (value?: number | null) => {
+const toMoney = (value?: number | null, currency?: string | null) => {
   if (!value || value <= 0) {
     return "";
   }
 
-  return `$${value}`;
+  return formatMoney(value, currency);
 };
 
-const formatDiscount = (coupon: CustomerCoupon) => {
+const formatDiscount = (coupon: CustomerCoupon, currency?: string | null) => {
   if (coupon.discountType === "PERCENTAGE") {
     return `${coupon.discountValue}%`;
   }
 
   if (coupon.discountType === "FLAT") {
-    return toMoney(coupon.discountValue);
+    return toMoney(coupon.discountValue, currency);
   }
 
-  return coupon.discountValue > 0 ? toMoney(coupon.discountValue) : "";
+  return coupon.discountValue > 0 ? toMoney(coupon.discountValue, currency) : "";
 };
 
 const formatExpiryDate = (value?: string | null) => {
@@ -48,7 +50,7 @@ const formatExpiryDate = (value?: string | null) => {
   });
 };
 
-export const CouponPerkBanner = ({ coupons }: CouponPerkBannerProps) => {
+export const CouponPerkBanner = ({ coupons, currency }: CouponPerkBannerProps) => {
   const t = useTranslations("navigation.couponBanner");
   const [isDismissed, setIsDismissed] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -97,9 +99,9 @@ export const CouponPerkBanner = ({ coupons }: CouponPerkBannerProps) => {
     return null;
   }
 
-  const discount = formatDiscount(coupon);
-  const minOrder = toMoney(coupon.minOrderAmount);
-  const maxDiscount = toMoney(coupon.maxDiscountAmount);
+  const discount = formatDiscount(coupon, currency);
+  const minOrder = toMoney(coupon.minOrderAmount, currency);
+  const maxDiscount = toMoney(coupon.maxDiscountAmount, currency);
   const expiryDate = formatExpiryDate(coupon.expiresAt);
   const description = coupon.description?.trim();
   const isCopied = copiedCode === coupon.code;

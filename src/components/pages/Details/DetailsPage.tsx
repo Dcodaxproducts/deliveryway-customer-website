@@ -20,6 +20,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { formatMoney } from "@/lib/money";
 
 const categories = ["All", "Burgers", "Pizza", "Bread", "Chiffon & Rolls", "Donut", "Pastry & Danish", "Cakes", "Drinks"];
 
@@ -150,7 +151,10 @@ export function DetailsPage() {
                                     {item.name}
                                 </h3>
                                 <p className="text-base  text-gray-900">
-                                    $ {item.price.toFixed(2)}
+                                    {formatMoney(item.price, undefined, {
+                                      minimumFractionDigits: 2,
+                                      maximumFractionDigits: 2,
+                                    })}
                                 </p>
                                 <p className="text-base text-gray-500 leading-[20px] line-clamp-3">
                                     {item.desc}

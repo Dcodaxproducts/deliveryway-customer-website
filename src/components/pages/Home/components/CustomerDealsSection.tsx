@@ -41,6 +41,7 @@ type CustomerDealsSectionProps = {
   branchId?: string | null;
   onAddDeal?: (deal: CustomerDeal, selectedMenuItemIds?: string[]) => void;
   compact?: boolean;
+  currency?: string | null;
 };
 
 const CustomerDealsSkeleton = ({ compact = false }: { compact?: boolean }) => (
@@ -118,24 +119,26 @@ const getDealImageForCard = (deal: CustomerDeal, index: number) => {
   return image || fallbackDealImages[index % fallbackDealImages.length];
 };
 
-const getComparableDealPrice = (deal: CustomerDeal) => {
+const getComparableDealPrice = (deal: CustomerDeal, currency?: string | null) => {
   const scopedTotal = deal.scopeMenuItems.reduce(
     (total, item) => total + toNumber(item.basePrice),
     0,
   );
 
-  return scopedTotal > deal.discountValue ? formatDealPrice(scopedTotal) : "";
+  return scopedTotal > deal.discountValue ? formatDealPrice(scopedTotal, currency) : "";
 };
 
 const CustomerDealCard = ({
   deal,
   index,
   isAdding,
+  currency,
   onAddDeal,
 }: {
   deal: CustomerDeal;
   index: number;
   isAdding: boolean;
+  currency?: string | null;
   onAddDeal?: (deal: CustomerDeal, selectedMenuItemIds?: string[]) => void;
 }) => {
   const t = useTranslations("home.deals");
@@ -144,7 +147,7 @@ const CustomerDealCard = ({
   const categoryNames = getDealItemNames(deal.scopeCategories);
   const actionLabel = getDealActionLabel(deal);
   const highlights = getDealHighlights(deal, itemNames, categoryNames);
-  const comparablePrice = getComparableDealPrice(deal);
+  const comparablePrice = getComparableDealPrice(deal, currency);
   const hasDealItems = isFlexibleCategoryDeal(deal)
     ? deal.scopeCategories.length > 0
     : isFlexibleAllItemsDeal(deal) || deal.scopeMenuItems.length > 0;
@@ -174,7 +177,7 @@ const CustomerDealCard = ({
 
           <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">
             <span className="text-[22px] font-black leading-tight text-primary">
-              {formatDealPrice(deal.discountValue)}
+              {formatDealPrice(deal.discountValue, currency)}
             </span>
             {comparablePrice ? (
               <span className="text-xs font-semibold text-gray-400 line-through">
@@ -247,11 +250,13 @@ const CustomerDealMenuCard = ({
   deal,
   index,
   isAdding,
+  currency,
   onAddDeal,
 }: {
   deal: CustomerDeal;
   index: number;
   isAdding: boolean;
+  currency?: string | null;
   onAddDeal?: (deal: CustomerDeal, selectedMenuItemIds?: string[]) => void;
 }) => {
   const t = useTranslations("home.deals");
@@ -260,7 +265,7 @@ const CustomerDealMenuCard = ({
   const categoryNames = getDealItemNames(deal.scopeCategories);
   const actionLabel = getDealActionLabel(deal);
   const highlights = getDealHighlights(deal, itemNames, categoryNames);
-  const comparablePrice = getComparableDealPrice(deal);
+  const comparablePrice = getComparableDealPrice(deal, currency);
   const isFeatured = index === 1;
   const hasDealItems = isFlexibleCategoryDeal(deal)
     ? deal.scopeCategories.length > 0
@@ -379,7 +384,7 @@ const CustomerDealMenuCard = ({
                   isFeatured ? "text-[#E1BC73]" : "text-[#A51F30]"
                 }`}
               >
-                {formatDealPrice(deal.discountValue)}
+                {formatDealPrice(deal.discountValue, currency)}
               </span>
               {comparablePrice ? (
                 <span
@@ -430,6 +435,7 @@ export const CustomerDealsSection = ({
   branchId = null,
   onAddDeal,
   compact = false,
+  currency,
 }: CustomerDealsSectionProps) => {
   const t = useTranslations("home.deals");
   const activeDeals = useMemo(() => {
@@ -569,6 +575,7 @@ export const CustomerDealsSection = ({
       deal={selectedChooserDeal}
       open={Boolean(selectedChooserDeal)}
       branchId={branchId}
+      currency={currency}
       onOpenChange={(open) => {
         if (!open) {
           setSelectedChooserDeal(null);
@@ -608,6 +615,7 @@ export const CustomerDealsSection = ({
                     isAdding={
                       addingDealId === deal.id || pendingDeal?.id === deal.id
                     }
+                    currency={currency}
                     onAddDeal={handleDealClick}
                   />
                 </CarouselItem>
@@ -642,6 +650,7 @@ export const CustomerDealsSection = ({
                 isAdding={
                   addingDealId === deal.id || pendingDeal?.id === deal.id
                 }
+                currency={currency}
                 onAddDeal={handleDealClick}
               />
             </CarouselItem>

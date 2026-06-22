@@ -19,6 +19,7 @@ export type HomeRestaurant = {
   backgroundColor?: string | null;
   textColor?: string | null;
   fontFamily?: string | null;
+  settings?: Record<string, unknown> | null;
 };
 
 export type HomeBranch = {
