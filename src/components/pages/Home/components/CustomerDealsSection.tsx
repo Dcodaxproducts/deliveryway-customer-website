@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { BadgePercent } from "lucide-react";
+import { ArrowUpRight, BadgePercent } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
@@ -45,13 +45,13 @@ type CustomerDealsSectionProps = {
 };
 
 const CustomerDealsSkeleton = ({ compact = false }: { compact?: boolean }) => (
-  <div className={compact ? "grid gap-3 md:grid-cols-2 xl:grid-cols-3" : "flex gap-5 overflow-hidden"}>
+  <div className={compact ? "grid grid-cols-[repeat(auto-fit,minmax(min(100%,270px),1fr))] gap-5" : "flex gap-5 overflow-hidden"}>
     {[1, 2, 3, 4].map((item) => (
       <div
         key={item}
         className={
           compact
-            ? "h-[170px] animate-pulse rounded-[16px] bg-gray-100"
+            ? "h-[430px] animate-pulse rounded-[24px] bg-[#FBF8F2]"
             : "h-[250px] min-w-[280px] animate-pulse rounded-[22px] bg-gray-100 sm:min-w-[320px]"
         }
       />
@@ -251,6 +251,8 @@ const CustomerDealMenuCard = ({
   const categoryNames = getDealItemNames(deal.scopeCategories);
   const actionLabel = getDealActionLabel(deal);
   const highlights = getDealHighlights(deal, itemNames, categoryNames);
+  const comparablePrice = getComparableDealPrice(deal);
+  const isFeatured = index === 1;
   const hasDealItems = isFlexibleCategoryDeal(deal)
     ? deal.scopeCategories.length > 0
     : isFlexibleAllItemsDeal(deal) || deal.scopeMenuItems.length > 0;
@@ -265,77 +267,135 @@ const CustomerDealMenuCard = ({
         : t("addDeal");
 
   return (
-    <article className="group grid min-h-[176px] min-w-0 grid-cols-[104px_minmax(0,1fr)] gap-3 overflow-hidden rounded-[16px] border border-gray-100 bg-white p-3 shadow-[0_10px_28px_rgba(17,24,39,0.07)] transition duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-[0_16px_34px_rgba(17,24,39,0.11)] sm:grid-cols-[124px_minmax(0,1fr)]">
-      <div className="relative min-h-[148px] overflow-hidden rounded-[12px] bg-gray-50">
-        <div className="absolute inset-x-4 bottom-2 h-8 rounded-full bg-black/10 blur-xl" />
+    <article
+      className={`group relative flex min-h-[430px] min-w-0 flex-col overflow-hidden rounded-[24px] border p-3 shadow-[0_22px_44px_rgba(67,53,34,0.10)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_28px_54px_rgba(67,53,34,0.16)] ${
+        isFeatured
+          ? "border-[#9B1C2A] bg-[#76111D] text-[#F9EEE2]"
+          : "border-[#E8DED2] bg-[#FBF8F2] text-[#3E2C28]"
+      }`}
+    >
+      <div className="relative h-[190px] overflow-hidden rounded-[18px] border border-white/70 bg-[#EFE8DD]">
+        <span
+          className={`absolute left-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-bold ${
+            isFeatured
+              ? "bg-[#E0B765] text-[#5B1720]"
+              : "bg-white text-[#A64955] shadow-sm"
+          }`}
+        >
+          {String(index + 1).padStart(2, "0")}
+        </span>
+        {index === 0 ? (
+          <span className="absolute right-3 top-3 z-10 rounded-full bg-[#A51F30] px-3 py-1.5 text-[10px] font-black uppercase tracking-wide text-white">
+            {t("bestSeller")}
+          </span>
+        ) : null}
         {image ? (
           <Image
             src={image}
             alt={deal.title}
             fill
-            sizes="(max-width: 640px) 104px, 124px"
-            className="object-contain p-2 transition duration-200 group-hover:scale-[1.03]"
+            sizes="(max-width: 768px) 92vw, (max-width: 1280px) 33vw, 300px"
+            className="object-cover transition duration-500 group-hover:scale-[1.04]"
             unoptimized
           />
         ) : (
           <div className="flex h-full items-center justify-center text-primary">
-            <BadgePercent size={34} />
+            <BadgePercent size={42} />
           </div>
         )}
       </div>
 
-      <div className="flex min-w-0 flex-col">
-        <div className="flex min-w-0 items-start justify-between gap-2">
-          <h3 className="line-clamp-2 min-w-0 break-words text-[15px] font-extrabold leading-[1.25] text-gray-950">
-            {deal.title}
-          </h3>
-          {index === 0 ? (
-            <span className="shrink-0 rounded-full bg-[#FFB23F]/15 px-2 py-1 text-[10px] font-black uppercase text-[#B96300]">
-              {t("bestSeller")}
-            </span>
-          ) : null}
-        </div>
+      <div className="flex min-w-0 flex-1 flex-col px-2 pb-1 pt-5">
+        <p
+          className={`line-clamp-1 text-[10px] font-black uppercase tracking-[0.14em] ${
+            isFeatured ? "text-[#E0B765]" : "text-[#A97845]"
+          }`}
+        >
+          {getDealTypeLabel(deal)}
+        </p>
 
-        <div className="mt-2 flex flex-wrap items-center gap-2">
-          <span className="text-[22px] font-black leading-none text-primary">
-            {formatDealPrice(deal.discountValue)}
-          </span>
-          <span className="rounded-full bg-primary/8 px-2 py-1 text-[11px] font-bold text-primary">
-            {getDealTypeLabel(deal)}
-          </span>
-        </div>
+        <h3 className="mt-2 line-clamp-2 min-h-[58px] break-words font-serif text-[25px] font-medium leading-[1.15]">
+          {deal.title}
+        </h3>
 
-        <p className="mt-2 line-clamp-2 min-h-10 break-words text-[12px] font-semibold leading-5 text-gray-500">
+        <p
+          className={`mt-2 line-clamp-2 min-h-10 break-words text-[12px] font-medium leading-5 ${
+            isFeatured ? "text-[#E8C9BD]" : "text-[#8A7B70]"
+          }`}
+        >
           {getDealRequirementText(deal) || getDealTypeLabel(deal)}
         </p>
 
-        <div className="mt-2 flex min-h-7 flex-wrap gap-1.5 overflow-hidden">
+        <div className="mt-4 flex min-h-8 flex-wrap gap-2 overflow-hidden">
           {(highlights.length > 0 ? highlights : [getDealTypeLabel(deal)])
             .slice(0, 2)
             .map((highlight) => (
               <span
                 key={highlight}
-                className="max-w-full truncate rounded-full bg-gray-100 px-2 py-1 text-[11px] font-semibold text-gray-700"
+                className={`max-w-full truncate rounded-full px-2.5 py-1.5 text-[10px] font-bold ${
+                  isFeatured
+                    ? "bg-white/12 text-[#F9EEE2]"
+                    : "bg-[#EEE7DD] text-[#7A6C62]"
+                }`}
               >
                 {highlight}
               </span>
             ))}
         </div>
 
-        <div className="mt-auto pt-3">
+        <div
+          className={`mt-auto flex items-end justify-between gap-4 border-t pt-4 ${
+            isFeatured ? "border-white/14" : "border-[#E7DCCF]"
+          }`}
+        >
+          <div className="min-w-0">
+            <p
+              className={`text-[10px] font-bold uppercase tracking-[0.12em] ${
+                isFeatured ? "text-[#CFAFA6]" : "text-[#B8A99C]"
+              }`}
+            >
+              {comparablePrice ? t("from") : t("completeMenu")}
+            </p>
+            <div className="mt-1 flex flex-wrap items-baseline gap-2">
+              <span className={isFeatured ? "text-[26px] font-light leading-none text-[#E0B765]" : "text-[26px] font-light leading-none text-[#A51F30]"}>
+                {formatDealPrice(deal.discountValue)}
+              </span>
+              {comparablePrice ? (
+                <span className={isFeatured ? "text-xs font-semibold text-white/35 line-through" : "text-xs font-semibold text-[#B8A99C] line-through"}>
+                  {comparablePrice}
+                </span>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="shrink-0">
+            <Button
+              variant="default"
+              size="icon"
+              className={`h-11 w-11 rounded-full border shadow-none transition duration-200 ${
+                isFeatured
+                  ? "border-[#E0B765] bg-[#E0B765] text-[#5B1720] hover:bg-[#E8C471]"
+                  : "border-[#E7C9C3] bg-transparent text-[#A51F30] hover:bg-[#A51F30] hover:text-white"
+              }`}
+              disabled={!hasDealItems || isAdding}
+              onClick={handleAddDeal}
+              aria-label={isAdding ? t("adding") : translatedActionLabel}
+            >
+              {isAdding ? (
+                <BadgePercent size={18} />
+              ) : (
+                <ArrowUpRight size={18} aria-hidden="true" />
+              )}
+            </Button>
+          </div>
+        </div>
+
+        <div className="min-h-5 pt-2">
           {!hasDealItems ? (
-            <p className="mb-2 text-xs font-semibold text-red-500">
+            <p className={isFeatured ? "text-xs font-semibold text-[#F5C8B8]" : "text-xs font-semibold text-red-500"}>
               {t("noAvailableItems")}
             </p>
           ) : null}
-          <Button
-            variant="default"
-            className="h-10 w-full rounded-[10px] bg-primary px-3 text-sm font-bold text-white shadow-sm shadow-primary/20 hover:bg-primary/90"
-            disabled={!hasDealItems || isAdding}
-            onClick={handleAddDeal}
-          >
-            {isAdding ? t("adding") : translatedActionLabel}
-          </Button>
         </div>
       </div>
     </article>
@@ -356,7 +416,7 @@ export const CustomerDealsSection = ({
     ? "mb-8 min-w-0"
     : "mx-auto max-w-[1400px] px-4 pb-[30px] pt-[30px] sm:px-6 sm:pb-[60px] sm:pt-[60px]";
   const headingClassName = compact
-    ? "text-xl font-semibold text-gray-900"
+    ? "font-serif text-3xl font-medium leading-none text-[#3E2C28] sm:text-4xl"
     : "text-2xl font-extrabold text-gray-950";
   const [selectedChooserDeal, setSelectedChooserDeal] = useState<CustomerDeal | null>(null);
   const [pendingDeal, setPendingDeal] = useState<CustomerDeal | null>(null);
@@ -482,19 +542,22 @@ export const CustomerDealsSection = ({
   if (compact) {
     return (
       <section className={sectionClassName}>
-        <div className="rounded-[18px] border border-gray-100 bg-gradient-to-br from-white via-[#fffafa] to-white p-3 shadow-[0_10px_30px_rgba(17,24,39,0.05)] sm:p-4">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-2">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <BadgePercent size={18} />
-              </span>
+        <div className="relative overflow-hidden rounded-[32px] border border-[#EEE5D9] bg-[#F4EFE7] p-5 shadow-[0_24px_60px_rgba(67,53,34,0.12)] sm:p-7 lg:p-9">
+          <div className="pointer-events-none absolute right-8 top-8 hidden h-5 w-[238px] bg-white/85 md:block" />
+          <div className="pointer-events-none absolute right-7 top-[76px] hidden h-5 w-[72px] bg-white/85 md:block" />
+
+          <div className="relative mb-7 flex items-end justify-between gap-4">
+            <div className="min-w-0">
+              <p className="mb-2 text-[10px] font-black uppercase tracking-[0.22em] text-[#A51F30]">
+                {t("specialMenusLimited")}
+              </p>
               <h3 className={headingClassName}>
                 {t("available")}
               </h3>
             </div>
           </div>
 
-          <div className="grid gap-3 xl:grid-cols-2 2xl:grid-cols-3">
+          <div className="relative grid grid-cols-[repeat(auto-fit,minmax(min(100%,270px),1fr))] gap-5">
             {activeDeals.map((deal, index) => (
               <CustomerDealMenuCard
                 key={deal.id}

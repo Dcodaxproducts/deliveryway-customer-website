@@ -209,6 +209,9 @@
     "deals": {
       "label": "Deals",
       "available": "Available Deals",
+      "specialMenusLimited": "Special menus - limited availability",
+      "from": "From",
+      "completeMenu": "Complete menu",
       "bestSeller": "Best seller",
       "includes": "Includes {items}",
       "noAvailableItems": "This deal has no available items.",
