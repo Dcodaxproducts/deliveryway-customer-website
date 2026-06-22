@@ -24,7 +24,6 @@ import {
   isFixedItemDeal,
   isFlexibleAllItemsDeal,
   isFlexibleCategoryDeal,
-  isFlexibleItemDeal,
   mergeDealScopedItemDetails,
 } from "@/components/pages/Home/utils/customer-deal-cart";
 import {
@@ -45,13 +44,17 @@ type CustomerDealsSectionProps = {
 };
 
 const CustomerDealsSkeleton = ({ compact = false }: { compact?: boolean }) => (
-  <div className={compact ? "flex gap-4 overflow-hidden" : "flex gap-5 overflow-hidden"}>
+  <div
+    className={
+      compact ? "flex gap-4 overflow-hidden" : "flex gap-5 overflow-hidden"
+    }
+  >
     {[1, 2, 3, 4].map((item) => (
       <div
         key={item}
         className={
           compact
-            ? "h-[370px] min-w-[240px] animate-pulse rounded-[22px] bg-[#FBF8F2] sm:min-w-[280px]"
+            ? "h-[428px] min-w-[270px] animate-pulse rounded-[22px] border border-[#EFE6DB] bg-[#FBFAF6] sm:min-w-[320px]"
             : "h-[250px] min-w-[280px] animate-pulse rounded-[22px] bg-gray-100 sm:min-w-[320px]"
         }
       />
@@ -73,7 +76,7 @@ const toNumber = (value: number | string | null | undefined) => {
 
 const getDealCategoryRuleHighlights = (deal: CustomerDeal) => {
   const categoryNamesById = new Map(
-    deal.scopeCategories.map((category) => [category.id, category.name])
+    deal.scopeCategories.map((category) => [category.id, category.name]),
   );
 
   return (deal.scopeCategoryRules ?? [])
@@ -92,7 +95,11 @@ const getDealNameChips = (names: string) =>
     .filter(Boolean)
     .slice(0, 3);
 
-const getDealHighlights = (deal: CustomerDeal, itemNames: string, categoryNames: string) => {
+const getDealHighlights = (
+  deal: CustomerDeal,
+  itemNames: string,
+  categoryNames: string,
+) => {
   const categoryRules = getDealCategoryRuleHighlights(deal);
   const chips = getDealNameChips(itemNames || categoryNames);
 
@@ -114,7 +121,7 @@ const getDealImageForCard = (deal: CustomerDeal, index: number) => {
 const getComparableDealPrice = (deal: CustomerDeal) => {
   const scopedTotal = deal.scopeMenuItems.reduce(
     (total, item) => total + toNumber(item.basePrice),
-    0
+    0,
   );
 
   return scopedTotal > deal.discountValue ? formatDealPrice(scopedTotal) : "";
@@ -186,7 +193,9 @@ const CustomerDealCard = ({
               .map((highlight) => (
                 <li key={highlight} className="flex min-w-0 items-start gap-2">
                   <span className="mt-[9px] h-1 w-1 shrink-0 rounded-full bg-gray-700" />
-                  <span className="line-clamp-2 min-w-0 break-words">{highlight}</span>
+                  <span className="line-clamp-2 min-w-0 break-words">
+                    {highlight}
+                  </span>
                 </li>
               ))}
           </ul>
@@ -268,34 +277,42 @@ const CustomerDealMenuCard = ({
 
   return (
     <article
-      className={`relative flex min-h-[386px] min-w-0 flex-col overflow-hidden rounded-[22px] border p-3 shadow-[0_18px_38px_rgba(67,53,34,0.10)] ${
+      className={`group relative flex h-[428px] w-full min-w-0 flex-col overflow-hidden rounded-[24px] border p-2.5 transition duration-300 ease-out ${
         isFeatured
-          ? "border-[#9B1C2A] bg-[#76111D] text-[#F9EEE2]"
-          : "border-[#E8DED2] bg-[#FBF8F2] text-[#3E2C28]"
+          ? "border-[#A33A47]/80 bg-[linear-gradient(155deg,#8B1D2B_0%,#77131F_100%)] text-[#FFF7EF] shadow-[0_14px_30px_rgba(79,24,33,0.13)]"
+          : "border-[#EEE4D9] bg-[#FFFDF9] text-[#40312D] shadow-[0_12px_28px_rgba(64,48,33,0.055)] hover:-translate-y-0.5 hover:shadow-[0_17px_34px_rgba(64,48,33,0.08)]"
       }`}
     >
-      <div className="relative h-[164px] overflow-hidden rounded-[17px] border border-white/70 bg-[#EFE8DD] sm:h-[172px]">
+      <div
+        className={`relative h-[188px] shrink-0 overflow-hidden rounded-[17px] border ${
+          isFeatured
+            ? "border-[#A9434E]/70 bg-[#56101A]"
+            : "border-white/90 bg-[#F2EBE2]"
+        }`}
+      >
         <span
-          className={`absolute left-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-bold ${
+          className={`absolute left-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full text-[10px] font-bold ${
             isFeatured
-              ? "bg-[#E0B765] text-[#5B1720]"
-              : "bg-white text-[#A64955] shadow-sm"
+              ? "bg-[#E1BC73] text-[#5B1720] shadow-[0_6px_14px_rgba(53,13,20,0.12)]"
+              : "bg-[#FFFAF7] text-[#AA5360] shadow-[0_6px_14px_rgba(74,47,31,0.09)]"
           }`}
         >
           {String(index + 1).padStart(2, "0")}
         </span>
+
         {index === 0 ? (
-          <span className="absolute right-3 top-3 z-10 rounded-full bg-[#A51F30] px-3 py-1.5 text-[10px] font-black uppercase tracking-wide text-white">
+          <span className="absolute right-3 top-3 z-10 rounded-full bg-[#A51F30] px-3 py-1.5 text-[9.5px] font-extrabold uppercase tracking-[0.1em] text-white shadow-[0_6px_14px_rgba(92,16,25,0.14)]">
             {t("bestSeller")}
           </span>
         ) : null}
+
         {image ? (
           <Image
             src={image}
             alt={deal.title}
             fill
-            sizes="(max-width: 640px) 86vw, (max-width: 1024px) 44vw, (max-width: 1536px) 30vw, 360px"
-            className="object-cover object-top"
+            sizes="(max-width: 640px) 86vw, (max-width: 1024px) 44vw, 350px"
+            className="object-cover object-center transition duration-500 ease-out group-hover:scale-[1.015]"
             unoptimized
           />
         ) : (
@@ -305,37 +322,37 @@ const CustomerDealMenuCard = ({
         )}
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col px-1.5 pb-1 pt-4">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col px-2.5 pb-1.5 pt-4">
         <p
-          className={`line-clamp-1 text-[10px] font-black uppercase tracking-[0.14em] ${
-            isFeatured ? "text-[#E0B765]" : "text-[#A97845]"
+          className={`line-clamp-1 text-[10px] font-bold uppercase leading-[1.2] tracking-[0.12em] ${
+            isFeatured ? "text-[#E2BD72]" : "text-[#A97747]"
           }`}
         >
           {getDealTypeLabel(deal)}
         </p>
 
-        <h3 className="mt-2 line-clamp-2 min-h-[48px] break-words text-[21px] font-extrabold leading-[1.15]">
+        <h3 className="mt-2 line-clamp-1 break-words text-[18px] font-semibold leading-[1.2] tracking-[-0.018em] sm:text-[19px]">
           {deal.title}
         </h3>
 
         <p
-          className={`mt-2 line-clamp-2 min-h-10 break-words text-[12px] font-medium leading-5 ${
-            isFeatured ? "text-[#E8C9BD]" : "text-[#8A7B70]"
+          className={`mt-2 line-clamp-2 h-10 break-words text-[12px] font-normal leading-[19px] ${
+            isFeatured ? "text-[#EBCFC4]" : "text-[#887A70]"
           }`}
         >
           {getDealRequirementText(deal) || getDealTypeLabel(deal)}
         </p>
 
-        <div className="mt-3 flex min-h-8 flex-wrap gap-2 overflow-hidden">
+        <div className="mt-3 flex h-7 flex-nowrap gap-1.5 overflow-hidden">
           {(highlights.length > 0 ? highlights : [getDealTypeLabel(deal)])
             .slice(0, 2)
             .map((highlight) => (
               <span
                 key={highlight}
-                className={`max-w-full truncate rounded-full px-2.5 py-1.5 text-[10px] font-bold ${
+                className={`max-w-[48%] truncate rounded-full px-2.5 py-1 text-[10px] font-semibold leading-[18px] ${
                   isFeatured
-                    ? "bg-white/12 text-[#F9EEE2]"
-                    : "bg-[#EEE7DD] text-[#7A6C62]"
+                    ? "bg-white/[0.11] text-[#FFF4EA]"
+                    : "bg-[#F0EAE2] text-[#74675E]"
                 }`}
               >
                 {highlight}
@@ -345,57 +362,61 @@ const CustomerDealMenuCard = ({
 
         <div
           className={`mt-auto flex items-end justify-between gap-3 border-t pt-3 ${
-            isFeatured ? "border-white/14" : "border-[#E7DCCF]"
+            isFeatured ? "border-white/[0.16]" : "border-[#EBE0D5]"
           }`}
         >
           <div className="min-w-0">
             <p
-              className={`text-[10px] font-bold uppercase tracking-[0.12em] ${
-                isFeatured ? "text-[#CFAFA6]" : "text-[#B8A99C]"
+              className={`text-[10px] font-semibold uppercase leading-[1.1] tracking-[0.1em] ${
+                isFeatured ? "text-[#D6B8AF]" : "text-[#B3A498]"
               }`}
             >
               {comparablePrice ? t("from") : t("completeMenu")}
             </p>
-            <div className="mt-1 flex flex-wrap items-baseline gap-2">
-              <span className={isFeatured ? "text-[26px] font-light leading-none text-[#E0B765]" : "text-[26px] font-light leading-none text-[#A51F30]"}>
+            <div className="mt-1.5 flex flex-wrap items-baseline gap-2">
+              <span
+                className={`text-[22px] font-normal leading-none tracking-[-0.035em] ${
+                  isFeatured ? "text-[#E1BC73]" : "text-[#A51F30]"
+                }`}
+              >
                 {formatDealPrice(deal.discountValue)}
               </span>
               {comparablePrice ? (
-                <span className={isFeatured ? "text-xs font-semibold text-white/35 line-through" : "text-xs font-semibold text-[#B8A99C] line-through"}>
+                <span
+                  className={`text-[10px] font-semibold line-through ${
+                    isFeatured ? "text-white/40" : "text-[#B6A79B]"
+                  }`}
+                >
                   {comparablePrice}
                 </span>
               ) : null}
             </div>
           </div>
 
-          <div className="shrink-0">
-            <Button
-              variant="default"
-              size="icon"
-              className={`h-11 w-11 rounded-full border shadow-none transition duration-200 ${
-                isFeatured
-                  ? "border-[#E0B765] bg-[#E0B765] text-[#5B1720] hover:bg-[#E8C471]"
-                  : "border-[#E7C9C3] bg-transparent text-[#A51F30] hover:bg-[#A51F30] hover:text-white"
-              }`}
-              disabled={!hasDealItems || isAdding}
-              onClick={handleAddDeal}
-              aria-label={isAdding ? t("adding") : translatedActionLabel}
-            >
-              {isAdding ? (
-                <BadgePercent size={18} />
-              ) : (
-                <ArrowUpRight size={18} aria-hidden="true" />
-              )}
-            </Button>
-          </div>
-        </div>
-
-        <div className="min-h-5 pt-2">
-          {!hasDealItems ? (
-            <p className={isFeatured ? "text-xs font-semibold text-[#F5C8B8]" : "text-xs font-semibold text-red-500"}>
-              {t("noAvailableItems")}
-            </p>
-          ) : null}
+          <Button
+            variant="default"
+            size="icon"
+            className={`h-9 w-9 shrink-0 rounded-full border shadow-none transition duration-200 ${
+              isFeatured
+                ? "border-[#E1BC73] bg-[#E1BC73] text-[#5B1720] hover:bg-[#E8C985]"
+                : "border-[#EBCFCB] bg-white/40 text-[#A51F30] hover:border-[#A51F30] hover:bg-[#A51F30] hover:text-white"
+            }`}
+            disabled={!hasDealItems || isAdding}
+            onClick={handleAddDeal}
+            aria-label={
+              !hasDealItems
+                ? t("noAvailableItems")
+                : isAdding
+                  ? t("adding")
+                  : translatedActionLabel
+            }
+          >
+            {isAdding ? (
+              <BadgePercent size={16} />
+            ) : (
+              <ArrowUpRight size={17} aria-hidden="true" />
+            )}
+          </Button>
         </div>
       </div>
     </article>
@@ -420,13 +441,14 @@ export const CustomerDealsSection = ({
     ? "mb-8 min-w-0"
     : "mx-auto max-w-[1400px] px-4 pb-[30px] pt-[30px] sm:px-6 sm:pb-[60px] sm:pt-[60px]";
   const headingClassName = compact
-    ? "text-3xl font-bold leading-none text-[#3E2C28] sm:text-4xl"
+    ? "text-[25px] font-bold leading-[1.06] tracking-[-0.035em] text-[#3E2C28] sm:text-[33px]"
     : "text-2xl font-extrabold text-gray-950";
-  const [selectedChooserDeal, setSelectedChooserDeal] = useState<CustomerDeal | null>(null);
+  const [selectedChooserDeal, setSelectedChooserDeal] =
+    useState<CustomerDeal | null>(null);
   const [pendingDeal, setPendingDeal] = useState<CustomerDeal | null>(null);
   const pendingDetailItemIds = useMemo(
     () => (pendingDeal ? getDealScopedItemIdsForDetails(pendingDeal) : []),
-    [pendingDeal]
+    [pendingDeal],
   );
   const scopedDetailsQuery = useDealScopedItemsDetails({
     itemIds: pendingDetailItemIds,
@@ -441,21 +463,26 @@ export const CustomerDealsSection = ({
         return;
       }
 
-      const states = deal.scopeMenuItems.map(getDealScopedItemCustomizationState);
+      const states = deal.scopeMenuItems.map(
+        getDealScopedItemCustomizationState,
+      );
 
       if (states.includes("UNKNOWN")) {
         toast.warning(t("reviewDealItems"));
         return;
       }
 
-      if (states.includes("REQUIRES_MODIFIERS") || getDealActionKind(deal) === "OPEN_CHOOSER") {
+      if (
+        states.includes("REQUIRES_MODIFIERS") ||
+        getDealActionKind(deal) === "OPEN_CHOOSER"
+      ) {
         setSelectedChooserDeal(deal);
         return;
       }
 
       onAddDeal?.(deal);
     },
-    [onAddDeal, setSelectedChooserDeal, t]
+    [onAddDeal, setSelectedChooserDeal, t],
   );
 
   const handleDealClick = useCallback(
@@ -469,11 +496,15 @@ export const CustomerDealsSection = ({
 
       resolveDealAction(deal);
     },
-    [resolveDealAction]
+    [resolveDealAction],
   );
 
   useEffect(() => {
-    if (!pendingDeal || pendingDetailItemIds.length === 0 || scopedDetailsQuery.isLoading) {
+    if (
+      !pendingDeal ||
+      pendingDetailItemIds.length === 0 ||
+      scopedDetailsQuery.isLoading
+    ) {
       return;
     }
 
@@ -489,10 +520,13 @@ export const CustomerDealsSection = ({
       }
 
       const pendingItem = pendingDeal.scopeMenuItems.find(
-        (item) => item.id.trim() === itemId
+        (item) => item.id.trim() === itemId,
       );
 
-      return !pendingItem || getDealScopedItemCustomizationState(pendingItem) === "UNKNOWN";
+      return (
+        !pendingItem ||
+        getDealScopedItemCustomizationState(pendingItem) === "UNKNOWN"
+      );
     });
 
     if (missingUnknownItemIds.length > 0) {
@@ -503,7 +537,7 @@ export const CustomerDealsSection = ({
 
     const resolvedDeal = mergeDealScopedItemDetails(
       pendingDeal,
-      scopedDetailsQuery.detailsById
+      scopedDetailsQuery.detailsById,
     );
 
     setPendingDeal(null);
@@ -546,39 +580,34 @@ export const CustomerDealsSection = ({
   if (compact) {
     return (
       <section className={sectionClassName}>
-        <div className="relative overflow-hidden rounded-[32px] border border-[#EEE5D9] bg-[#F4EFE7] p-5 shadow-[0_24px_60px_rgba(67,53,34,0.12)] sm:p-6 lg:p-7">
-          <div className="pointer-events-none absolute right-0 top-0 hidden h-36 w-48 opacity-50 md:block">
-            <div className="absolute right-[-26px] top-[-48px] h-32 w-32 rounded-full border border-[#D4B998]/50" />
-            <div className="absolute right-8 top-8 h-12 w-12 rounded-full border border-[#C79A6F]/45" />
-            <div className="absolute right-24 top-7 h-20 w-20 rounded-full border border-[#E0CDBA]/60" />
-            <div className="absolute right-4 top-24 h-10 w-28 rounded-full border border-[#D8C0A8]/45" />
-          </div>
+        <div className="relative overflow-hidden rounded-[36px] border border-[#F0E8DF] bg-[linear-gradient(108deg,#FAF7F2_0%,#FCFAF7_56%,#F6F0E9_100%)] px-5 pb-8 pt-7 shadow-[0_20px_54px_rgba(64,48,33,0.09)] sm:px-7 sm:pb-10 lg:px-9 lg:pb-[54px] lg:pt-8">
+          <div className="pointer-events-none absolute -right-[98px] -top-[111px] hidden h-[232px] w-[232px] rounded-full border border-[#DDCDBD]/50 bg-white/[0.04] shadow-[0_0_0_22px_rgba(231,220,208,0.14)] md:block" />
 
-          <div className="relative mb-6 flex items-end justify-between gap-4">
+          <div className="relative z-10 mb-5 flex items-end justify-between gap-4 sm:mb-6">
             <div className="min-w-0">
-              <p className="mb-2 text-[12px] font-semibold uppercase tracking-[0.16em] text-[#A51F30]">
+              <p className="mb-2.5 text-[11px] font-bold uppercase leading-[1.25] tracking-[0.18em] text-[#A51F30] sm:text-[12px]">
                 {t("specialMenusLimited")}
               </p>
-              <h3 className={headingClassName}>
-                {t("available")}
-              </h3>
+              <h3 className={headingClassName}>{t("available")}</h3>
             </div>
           </div>
 
           <Carousel
             opts={{ align: "start", dragFree: true }}
-            className="relative min-w-0"
+            className="relative z-10 min-w-0"
           >
             <CarouselContent className="-ml-4 cursor-grab active:cursor-grabbing">
               {activeDeals.map((deal, index) => (
                 <CarouselItem
                   key={deal.id}
-                  className="flex basis-[88%] pl-4 sm:basis-[50%] lg:basis-1/3"
+                  className="flex basis-[88%] pl-4 sm:basis-[52%] lg:basis-1/3"
                 >
                   <CustomerDealMenuCard
                     deal={deal}
                     index={index}
-                    isAdding={addingDealId === deal.id || pendingDeal?.id === deal.id}
+                    isAdding={
+                      addingDealId === deal.id || pendingDeal?.id === deal.id
+                    }
                     onAddDeal={handleDealClick}
                   />
                 </CarouselItem>
@@ -596,16 +625,11 @@ export const CustomerDealsSection = ({
     <section className={sectionClassName}>
       <div className="mb-4 flex items-end justify-between gap-4">
         <div>
-          <h3 className={headingClassName}>
-            {t("available")}
-          </h3>
+          <h3 className={headingClassName}>{t("available")}</h3>
         </div>
       </div>
 
-      <Carousel
-        opts={{ align: "start", dragFree: true }}
-        className="min-w-0"
-      >
+      <Carousel opts={{ align: "start", dragFree: true }} className="min-w-0">
         <CarouselContent className="-ml-5 cursor-grab active:cursor-grabbing">
           {activeDeals.map((deal, index) => (
             <CarouselItem
@@ -615,7 +639,9 @@ export const CustomerDealsSection = ({
               <CustomerDealCard
                 deal={deal}
                 index={index}
-                isAdding={addingDealId === deal.id || pendingDeal?.id === deal.id}
+                isAdding={
+                  addingDealId === deal.id || pendingDeal?.id === deal.id
+                }
                 onAddDeal={handleDealClick}
               />
             </CarouselItem>
