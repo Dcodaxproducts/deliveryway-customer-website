@@ -147,21 +147,21 @@ const CustomerDealCard = ({
         : t("addDeal");
 
   return (
-    <article className="relative flex h-[250px] min-w-0 flex-col overflow-hidden rounded-[18px] border border-gray-100 bg-white p-4 shadow-[0_12px_34px_rgba(17,24,39,0.08)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(17,24,39,0.12)]">
-      <div className="flex min-h-0 flex-1 gap-3">
+    <article className="relative flex min-h-[300px] min-w-0 flex-col overflow-hidden rounded-[18px] border border-gray-100 bg-white p-5 shadow-[0_12px_34px_rgba(17,24,39,0.08)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(17,24,39,0.12)]">
+      <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_112px] gap-4 sm:grid-cols-[minmax(0,1fr)_132px]">
         <div className="flex min-w-0 flex-1 flex-col">
           {index === 0 ? (
-            <span className="mb-2 w-fit rounded-full bg-[#FFB23F] px-3 py-1 text-[10px] font-black uppercase tracking-wide text-white">
+            <span className="mb-3 w-fit max-w-full rounded-full bg-[#FFB23F] px-3 py-1 text-[10px] font-black uppercase tracking-wide text-white">
               {t("bestSeller")}
             </span>
           ) : null}
 
-          <h3 className="line-clamp-2 text-[15px] font-extrabold leading-tight text-gray-950">
+          <h3 className="line-clamp-2 break-words text-[17px] font-extrabold leading-[1.25] text-gray-950">
             {deal.title}
           </h3>
 
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-[20px] font-black leading-none text-primary">
+          <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+            <span className="text-[22px] font-black leading-tight text-primary">
               {formatDealPrice(deal.discountValue)}
             </span>
             {comparablePrice ? (
@@ -171,30 +171,30 @@ const CustomerDealCard = ({
             ) : null}
           </div>
 
-          <p className="mt-2 text-[11px] font-bold text-gray-500">
+          <p className="mt-2 line-clamp-2 break-words text-[12px] font-bold leading-5 text-gray-500">
             {getDealRequirementText(deal) || getDealTypeLabel(deal)}
           </p>
 
-          <ul className="mt-3 space-y-1.5 text-[12px] font-medium leading-4 text-gray-700">
+          <ul className="mt-3 space-y-1.5 text-[13px] font-medium leading-5 text-gray-700">
             {(highlights.length > 0 ? highlights : [getDealTypeLabel(deal)])
               .slice(0, 3)
               .map((highlight) => (
                 <li key={highlight} className="flex min-w-0 items-start gap-2">
-                  <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-gray-700" />
-                  <span className="line-clamp-1">{highlight}</span>
+                  <span className="mt-[9px] h-1 w-1 shrink-0 rounded-full bg-gray-700" />
+                  <span className="line-clamp-2 min-w-0 break-words">{highlight}</span>
                 </li>
               ))}
           </ul>
         </div>
 
-        <div className="relative mt-2 h-[118px] w-[128px] shrink-0 self-center">
+        <div className="relative mt-2 h-[124px] w-full self-center sm:h-[138px]">
           <div className="absolute inset-x-3 bottom-1 h-8 rounded-full bg-black/20 blur-xl" />
           {image ? (
             <Image
               src={image}
               alt={deal.title}
               fill
-              sizes="128px"
+              sizes="(max-width: 640px) 112px, 132px"
               className="object-contain drop-shadow-[0_18px_18px_rgba(17,24,39,0.22)]"
               unoptimized
             />
@@ -214,7 +214,7 @@ const CustomerDealCard = ({
 
       <Button
         variant="default"
-        className="mt-4 h-10 w-full rounded-[10px] bg-primary px-3 text-sm font-bold text-white shadow-md shadow-primary/20 hover:bg-primary/90"
+        className="mt-5 h-12 w-full rounded-[10px] bg-primary px-3 text-base font-bold text-white shadow-md shadow-primary/20 hover:bg-primary/90"
         disabled={!hasDealItems || isAdding}
         onClick={handleAddDeal}
       >
@@ -359,7 +359,7 @@ export const CustomerDealsSection = ({
           {activeDeals.map((deal, index) => (
             <CarouselItem
               key={deal.id}
-              className="basis-[82%] pl-5 sm:basis-[48%] lg:basis-1/4"
+              className="basis-[92%] pl-5 sm:basis-[62%] md:basis-[48%] xl:basis-1/3 2xl:basis-1/4"
             >
               <CustomerDealCard
                 deal={deal}
