@@ -71,6 +71,7 @@ export default function OrderSummary({
     return new Intl.DateTimeFormat("en", {
       dateStyle: "medium",
       timeStyle: "short",
+      hourCycle: "h23",
     }).format(date);
   };
 

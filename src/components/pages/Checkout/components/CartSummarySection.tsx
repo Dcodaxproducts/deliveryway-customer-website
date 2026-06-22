@@ -870,7 +870,11 @@ export function CartSummarySection({
                 {backendError.timestamp ? (
                   <div className="mt-2 flex flex-wrap justify-center gap-2 text-[11px] text-red-700/80">
                     <span className="rounded-full bg-white/70 px-2 py-1">
-                      {new Date(backendError.timestamp).toLocaleString()}
+                      {new Date(backendError.timestamp).toLocaleString("en-US", {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                        hourCycle: "h23",
+                      })}
                     </span>
                   </div>
                 ) : null}

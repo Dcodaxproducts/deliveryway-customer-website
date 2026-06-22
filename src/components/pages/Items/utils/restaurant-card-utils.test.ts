@@ -60,11 +60,11 @@ describe("restaurant card utils", () => {
     expect(getBranchHoursSummary(branch)).toMatchObject({
       opening: {
         status: "open",
-        value: "9:00 AM - 10:00 PM",
+        value: "09:00 - 22:00",
       },
       delivery: {
         status: "open",
-        value: "11:30 AM - 9:45 PM",
+        value: "11:30 - 21:45",
       },
       showDeliveryHours: true,
     });
@@ -133,11 +133,11 @@ describe("restaurant card utils", () => {
 
     expect(summary.opening).toMatchObject({
       label: "Today",
-      value: "9:00 AM - 6:00 PM",
+      value: "09:00 - 18:00",
     });
     expect(summary.delivery).toMatchObject({
       label: "Today",
-      value: "9:00 AM - 6:00 PM",
+      value: "09:00 - 18:00",
     });
     expect(summary.showDeliveryHoursCard).toBe(false);
   });
@@ -166,11 +166,11 @@ describe("restaurant card utils", () => {
 
     expect(summary.opening).toMatchObject({
       label: "Today",
-      value: "10:00 AM - 2:00 PM",
+      value: "10:00 - 14:00",
     });
     expect(summary.delivery).toMatchObject({
       label: "Today",
-      value: "10:00 AM - 2:00 PM",
+      value: "10:00 - 14:00",
     });
     expect(summary.regularOpeningSchedule).toEqual([
       { dayOfWeek: "MONDAY", openTime: "09:00", closeTime: "18:00" },
@@ -200,8 +200,8 @@ describe("restaurant card utils", () => {
     ).toEqual([
       expect.objectContaining({
         dayLabel: "Fri",
-        hoursLabel: "9:00 AM - 6:00 PM",
-        breakLabels: ["3:14 PM - 3:48 PM (lunch break)"],
+        hoursLabel: "09:00 - 18:00",
+        breakLabels: ["15:14 - 15:48 (lunch break)"],
       }),
     ]);
   });

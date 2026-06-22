@@ -112,7 +112,11 @@ const {
 
   // ================= FORMAT DATE =================
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleString();
+    return new Date(date).toLocaleString("en-US", {
+      dateStyle: "medium",
+      timeStyle: "short",
+      hourCycle: "h23",
+    });
   };
 
   // ================= STATUS MAP =================

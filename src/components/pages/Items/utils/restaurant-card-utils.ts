@@ -226,23 +226,28 @@ export const formatScheduleTime = (value: unknown) => {
   const text = String(value ?? "").trim();
 
   if (!text) return "";
-  if (/[ap]m/i.test(text)) return text.toUpperCase();
 
-  const match = text.match(/^(\d{1,2}):(\d{2})/);
+  const match = text.match(/^(\d{1,2}):(\d{2})(?:\s*([ap]m))?/i);
 
   if (!match) return text;
 
-  const hours = Number(match[1]);
+  const modifier = match[3]?.toUpperCase();
+  let hours = Number(match[1]);
   const minutes = Number(match[2]);
 
   if (!Number.isFinite(hours) || !Number.isFinite(minutes)) {
     return text;
   }
 
-  const period = hours >= 12 ? "PM" : "AM";
-  const normalizedHours = hours % 12 || 12;
+  if (modifier === "PM" && hours !== 12) {
+    hours += 12;
+  }
 
-  return `${normalizedHours}:${String(minutes).padStart(2, "0")} ${period}`;
+  if (modifier === "AM" && hours === 12) {
+    hours = 0;
+  }
+
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
 };
 
 export const formatHoursRange = (entry: BranchHoursEntry) => {

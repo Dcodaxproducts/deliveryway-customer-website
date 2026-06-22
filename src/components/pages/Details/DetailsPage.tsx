@@ -100,7 +100,7 @@ export function DetailsPage() {
                         <div className="flex items-center gap-3 text-gray-700">
                             <Clock size={20} />
                             <span className="text-base font-medium">
-                                <span className="text-primary">{t("openFrom")}</span> 10:00 AM - 11:00 PM
+                                <span className="text-primary">{t("openFrom")}</span> 10:00 - 23:00
                             </span>
                         </div>
                     </div>
