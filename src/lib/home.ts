@@ -27,7 +27,6 @@ const normalizePromotionScope = (value: unknown) => {
   return value.filter(isRecord).map((entry) => ({
     id: getString(entry.id),
     name: getString(entry.name),
-    slug: getString(entry.slug),
     imageUrl: getString(entry.imageUrl) ?? null,
   }));
 };

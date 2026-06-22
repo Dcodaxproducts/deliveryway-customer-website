@@ -160,19 +160,11 @@ function PromotionBannerCard({
   const gradientClass = gradients[index % gradients.length];
 
   const handleOpenPromotion = () => {
-    const firstItem = promotion.scopeMenuItems?.[0];
-    const firstItemId = firstItem?.id;
-    const firstItemSlug = firstItem?.slug;
+    const firstItemId = promotion.scopeMenuItems?.[0]?.id;
     const firstCategoryId = promotion.scopeCategories?.[0]?.id;
 
     if (firstItemId) {
-      const params = new URLSearchParams({ itemId: firstItemId });
-
-      if (firstItemSlug) {
-        params.set("slug", firstItemSlug);
-      }
-
-      router.push(`/items/details?${params.toString()}`);
+      router.push(`/items/details?itemId=${firstItemId}`);
       return;
     }
 

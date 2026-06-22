@@ -88,7 +88,6 @@ export type PromotionCampaign = {
   scopeMenuItems?: {
     id?: string;
     name?: string;
-    slug?: string;
     imageUrl?: string | null;
   }[];
   scopeCategories?: {
