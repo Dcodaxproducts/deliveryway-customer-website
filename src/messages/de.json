@@ -209,7 +209,7 @@
     "deals": {
       "label": "Angebote",
       "available": "Verfügbare Angebote",
-      "specialMenusLimited": "Spezialmenüs - begrenzte Verfügbarkeit",
+      "specialMenusLimited": "Zeitlich begrenzte Menüangebote",
       "from": "Ab",
       "completeMenu": "Komplettes Menü",
       "bestSeller": "Bestseller",
