@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { ArrowRight, Clock3, Copy, TicketPercent, X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import type { CustomerCoupon } from "@/types/customer-coupons";
 
 type CouponPerkBannerProps = {
-  coupon?: CustomerCoupon | null;
+  coupons?: CustomerCoupon[] | null;
 };
 
 const toMoney = (value?: number | null) => {
@@ -49,9 +49,33 @@ const formatExpiryDate = (value?: string | null) => {
   });
 };
 
-export const CouponPerkBanner = ({ coupon }: CouponPerkBannerProps) => {
+export const CouponPerkBanner = ({ coupons }: CouponPerkBannerProps) => {
   const t = useTranslations("navigation.couponBanner");
   const [isDismissed, setIsDismissed] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const visibleCoupons = coupons?.filter(Boolean) ?? [];
+  const coupon = visibleCoupons[activeIndex] ?? visibleCoupons[0] ?? null;
+  const hasMultipleCoupons = visibleCoupons.length > 1;
+
+  useEffect(() => {
+    if (activeIndex < visibleCoupons.length) {
+      return;
+    }
+
+    setActiveIndex(0);
+  }, [activeIndex, visibleCoupons.length]);
+
+  useEffect(() => {
+    if (isDismissed || !hasMultipleCoupons) {
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      setActiveIndex((current) => (current + 1) % visibleCoupons.length);
+    }, 5000);
+
+    return () => window.clearInterval(timer);
+  }, [hasMultipleCoupons, isDismissed, visibleCoupons.length]);
 
   if (!coupon || isDismissed) {
     return null;
@@ -73,23 +97,26 @@ export const CouponPerkBanner = ({ coupon }: CouponPerkBannerProps) => {
   };
 
   return (
-    <section className="relative z-40 border-b border-[#F5D8D9] bg-[#FFF7F7] px-4 py-2 shadow-[0_18px_40px_rgba(225,20,45,0.08)]">
-      <div className="mx-auto flex max-w-[1440px] items-center gap-3 rounded-[22px] border border-[#F4DCDD] bg-white/75 py-3 pl-4 pr-3 shadow-[0_10px_28px_rgba(121,34,42,0.06)] lg:gap-5 lg:pl-8">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#FFF1F2] text-primary ring-1 ring-[#F4C9CE]">
-          <TicketPercent size={20} />
+    <section className="relative z-40 bg-[#FFF7F7] px-4 py-1.5 shadow-[0_10px_24px_rgba(121,34,42,0.08)]">
+      <div className="mx-auto flex max-w-[1440px] items-center gap-2.5 rounded-[20px] border border-[#F4DCDD] bg-white/75 py-2.5 pl-3.5 pr-2.5 shadow-[0_7px_20px_rgba(121,34,42,0.045)] lg:gap-4 lg:pl-6">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#FFF1F2] text-primary ring-1 ring-[#F4C9CE]">
+          <TicketPercent size={18} />
         </div>
 
-        <div className="min-w-0 flex-1 lg:flex lg:items-center lg:gap-5">
+        <div
+          key={`${coupon.id}-${coupon.code}`}
+          className="coupon-banner-slide min-w-0 flex-1 lg:flex lg:items-center lg:gap-4"
+        >
           <div className="min-w-0 lg:min-w-[330px]">
             <p className="text-[11px] font-black uppercase tracking-[0.16em] text-primary">
               {t("eyebrow")}
             </p>
-            <h2 className="mt-0.5 truncate text-base font-black leading-tight text-[#171717] sm:text-xl">
+            <h2 className="mt-0.5 truncate text-[15px] font-black leading-tight text-[#171717] sm:text-lg">
               {coupon.title || (discount ? t("headline", { discount }) : coupon.code)}
             </h2>
           </div>
 
-          <div className="mt-2 hidden h-9 w-px bg-[#F0D5D6] lg:block" />
+          <div className="mt-2 hidden h-8 w-px bg-[#F0D5D6] lg:block" />
 
           <p className="mt-2 min-w-0 truncate text-xs font-semibold text-[#6B7078] lg:mt-0 lg:flex-1">
             {minOrder ? t("minimum", { amount: minOrder }) : description || t("browseOffer")}
@@ -98,17 +125,17 @@ export const CouponPerkBanner = ({ coupon }: CouponPerkBannerProps) => {
           </p>
         </div>
 
-        <div className="hidden items-center overflow-hidden rounded-[18px] border border-dashed border-[#EFA9B1] bg-white p-1.5 lg:flex">
-          <span className="px-4 text-[11px] font-black uppercase tracking-[0.18em] text-[#A7747B]">
+        <div className="hidden items-center overflow-hidden rounded-2xl border border-dashed border-[#EFA9B1] bg-white p-1 lg:flex">
+          <span className="px-3 text-[10px] font-black uppercase tracking-[0.18em] text-[#A7747B]">
             {t("coupon")}
           </span>
-          <span className="px-3 text-lg font-black uppercase tracking-[0.13em] text-primary">
+          <span className="px-2.5 text-base font-black uppercase tracking-[0.13em] text-primary">
             {coupon.code}
           </span>
           <button
             type="button"
             onClick={() => void handleCopyCode()}
-            className="inline-flex h-10 items-center rounded-xl bg-primary px-4 text-center text-[11px] font-black uppercase leading-[1.05] text-white transition-colors hover:bg-primary/90"
+            className="inline-flex h-9 items-center rounded-xl bg-primary px-3.5 text-center text-[10px] font-black uppercase leading-[1.05] text-white transition-colors hover:bg-primary/90"
           >
             <Copy size={14} className="mr-1.5 shrink-0" />
             {t("copyCode")}
@@ -118,7 +145,7 @@ export const CouponPerkBanner = ({ coupon }: CouponPerkBannerProps) => {
         <button
           type="button"
           onClick={() => void handleCopyCode()}
-          className="inline-flex h-10 shrink-0 items-center rounded-xl bg-primary px-3 text-[11px] font-black uppercase text-white lg:hidden"
+          className="inline-flex h-9 shrink-0 items-center rounded-xl bg-primary px-3 text-[10px] font-black uppercase text-white lg:hidden"
         >
           {coupon.code}
         </button>
@@ -132,19 +159,35 @@ export const CouponPerkBanner = ({ coupon }: CouponPerkBannerProps) => {
 
         <Link
           href="/items"
-          className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#171717] text-white shadow-lg shadow-black/20 transition-colors hover:bg-primary md:flex"
+          className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#171717] text-white shadow-lg shadow-black/20 transition-colors hover:bg-primary md:flex"
           aria-label={t("browse")}
         >
-          <ArrowRight size={19} />
+          <ArrowRight size={18} />
         </Link>
+
+        {hasMultipleCoupons ? (
+          <div className="hidden shrink-0 items-center gap-1.5 md:flex">
+            {visibleCoupons.map((item, index) => (
+              <button
+                key={`${item.id}-${item.code}`}
+                type="button"
+                onClick={() => setActiveIndex(index)}
+                className={`h-1.5 rounded-full transition-all ${
+                  index === activeIndex ? "w-5 bg-primary" : "w-1.5 bg-[#E8B9BE]"
+                }`}
+                aria-label={`${t("coupon")} ${index + 1}`}
+              />
+            ))}
+          </div>
+        ) : null}
 
         <button
           type="button"
           onClick={() => setIsDismissed(true)}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-[#B4A2A4] ring-1 ring-[#F0D8DA] transition-colors hover:text-primary"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-[#B4A2A4] ring-1 ring-[#F0D8DA] transition-colors hover:text-primary"
           aria-label={t("dismiss")}
         >
-          <X size={17} />
+          <X size={16} />
         </button>
       </div>
     </section>

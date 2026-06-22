@@ -347,7 +347,7 @@ export const Navbar = () => {
         ref={navbarWrapRef}
         className={`relative z-30 ${hideOnMobileHome ? "hidden md:block" : ""}`}
       >
-        <CouponPerkBanner coupon={couponsQuery.coupons[0] ?? null} />
+        <CouponPerkBanner coupons={couponsQuery.coupons} />
 
         {/* NAVBAR */}
         <nav className="mx-auto flex max-w-[1440px] items-center justify-between gap-5 px-5 py-5 lg:px-8 2xl:px-10">
