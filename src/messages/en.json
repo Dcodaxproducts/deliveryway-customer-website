@@ -67,7 +67,22 @@
     "uncategorized": "Uncategorized",
     "showingResults": "Showing {count} of {total} results",
     "pageOf": "Page {page} of {totalPages}",
-    "minutesShort": "{count} min"
+    "minutesShort": "{count} min",
+    "couponBanner": {
+      "eyebrow": "Today's dining perk",
+      "headline": "Save {discount} on your first online order",
+      "minimum": "{amount} minimum",
+      "maxDiscount": "Up to {amount} discount",
+      "perCustomer": "One per customer",
+      "browseOffer": "Browse the menu and use this code at checkout",
+      "coupon": "Coupon",
+      "copyCode": "Copy code",
+      "copied": "Coupon code copied",
+      "copyFailed": "Could not copy coupon code",
+      "ends": "Ends {date}",
+      "browse": "Browse menu",
+      "dismiss": "Dismiss coupon banner"
+    }
   },
   "footer": {
     "quickLinks": "Quick Links",

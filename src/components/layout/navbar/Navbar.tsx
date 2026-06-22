@@ -24,7 +24,9 @@ import { useAuth } from "@/hooks/useAuth"
 import useMenu from "@/hooks/useMenu"
 import { BranchSwitcher } from "@/components/common/branch-selector/BranchSwitcher"
 import { BrandLogo } from "@/components/common/BrandLogo"
+import { CouponPerkBanner } from "@/components/layout/navbar/CouponPerkBanner"
 import { LanguageSelector } from "@/components/layout/navbar/LanguageSelector"
+import { useCustomerCoupons } from "@/hooks/useCustomerCoupons"
 import { useHome } from "@/hooks/useHome"
 import { CART_CHANGED_EVENT } from "@/lib/cart-events"
 import { resolveHomeBranchId, resolveHomeRestaurantId, resolveTableReservationsEnabled } from "@/lib/home"
@@ -131,6 +133,10 @@ export const Navbar = () => {
       refetchOnWindowFocus: "always",
     }
   )
+  const couponsQuery = useCustomerCoupons({
+    restaurantId: homeRestaurantId,
+    branchId,
+  })
 
   const isAuth = !!user
   const userId = user?.id
@@ -341,6 +347,8 @@ export const Navbar = () => {
         ref={navbarWrapRef}
         className={`relative z-30 ${hideOnMobileHome ? "hidden md:block" : ""}`}
       >
+        <CouponPerkBanner coupon={couponsQuery.coupons[0] ?? null} />
+
         {/* NAVBAR */}
         <nav className="mx-auto flex max-w-[1440px] items-center justify-between gap-5 px-5 py-5 lg:px-8 2xl:px-10">
           {/* LEFT - LOGO */}
