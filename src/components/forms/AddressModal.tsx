@@ -450,7 +450,7 @@ export function AddressModal({
 
                 <div className="rounded-[22px] border border-gray-100 bg-white p-4 shadow-sm sm:p-5">
                   <div className="space-y-4">
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-[1.3fr_1fr]">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       <div className="space-y-2">
                         <label className={LABEL_TEXT_CLASS}>
                           {t("streetAddress")}
