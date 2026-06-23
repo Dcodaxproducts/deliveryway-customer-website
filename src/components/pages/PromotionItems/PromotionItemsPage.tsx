@@ -260,7 +260,7 @@ function PromotionOfferCard({
     return (
       <article className="relative grid min-h-[248px] overflow-hidden rounded-[20px] border border-gray-100 bg-white shadow-[0_16px_42px_rgba(17,24,39,0.08)] lg:grid-cols-[0.9fr_1.1fr]">
         <div className="relative z-10 flex min-w-0 flex-col p-5 sm:p-6">
-          <span className="mb-3 inline-flex w-fit items-center gap-2 rounded-full border border-primary/10 bg-primary/5 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.08em] text-primary">
+          <span className="mb-3 inline-flex w-fit items-center gap-2 rounded-full border border-primary/10 bg-primary/5 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-primary">
             <Star className="h-3.5 w-3.5 fill-current" />
             {t("chefsPick")}
           </span>
@@ -272,9 +272,9 @@ function PromotionOfferCard({
             {description}
           </p>
 
-          <div className="mt-auto flex flex-wrap items-end justify-between gap-4 pt-5">
-            <div className="flex items-baseline gap-2">
-              <span className="text-[20px] font-black text-gray-950">
+          <div className="mt-auto flex flex-col gap-4 pt-5 sm:flex-row sm:items-end sm:justify-between">
+            <div className="flex min-w-0 flex-wrap items-baseline gap-2">
+              <span className="text-[20px] font-semibold text-gray-950">
                 {formatMoney(finalPrice, currency)}
               </span>
               {oldPrice ? (
@@ -282,7 +282,7 @@ function PromotionOfferCard({
                   {formatMoney(oldPrice, currency)}
                 </span>
               ) : null}
-              <span className="rounded-full bg-green-100 px-2.5 py-1 text-[11px] font-black text-green-700">
+              <span className="max-w-full truncate rounded-full bg-green-100 px-2.5 py-1 text-[11px] font-semibold text-green-700">
                 {badge}
               </span>
             </div>
@@ -290,10 +290,10 @@ function PromotionOfferCard({
             <Button
               asChild
               variant="outline"
-              className="h-9 rounded-full border-primary/25 px-4 text-xs font-black text-primary hover:bg-primary hover:text-white"
+              className="h-9 w-fit max-w-full shrink-0 rounded-full border-primary/25 px-4 text-xs font-semibold text-primary hover:bg-primary hover:text-white"
             >
-              <Link href={href}>
-                {t("viewDetails")}
+              <Link href={href} className="min-w-0">
+                <span className="truncate">{t("viewDetails")}</span>
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </Button>
@@ -330,7 +330,7 @@ function PromotionOfferCard({
   return (
     <article className="relative flex min-h-[112px] overflow-hidden rounded-[18px] border border-gray-100 bg-white p-4 shadow-[0_12px_30px_rgba(17,24,39,0.06)]">
       <div className="min-w-0 flex-1 pr-3">
-        <h3 className="line-clamp-1 text-sm font-black uppercase tracking-[0.02em] text-gray-950">
+        <h3 className="line-clamp-1 text-sm font-semibold text-gray-950">
           {title}
         </h3>
         <p className="mt-1 line-clamp-2 max-w-[220px] text-xs leading-4 text-gray-500">
@@ -338,7 +338,7 @@ function PromotionOfferCard({
         </p>
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <span className="text-[15px] font-black text-gray-950">
+          <span className="text-[15px] font-semibold text-gray-950">
             {formatMoney(finalPrice, currency)}
           </span>
           {oldPrice ? (
@@ -346,7 +346,7 @@ function PromotionOfferCard({
               {formatMoney(oldPrice, currency)}
             </span>
           ) : null}
-          <span className="rounded-full bg-green-100 px-2 py-1 text-[10px] font-black text-green-700">
+          <span className="max-w-[120px] truncate rounded-full bg-green-100 px-2 py-1 text-[10px] font-semibold text-green-700">
             {badge}
           </span>
         </div>
@@ -529,8 +529,8 @@ function PromotionItemsPageContent() {
   const remainingItems = visibleItems.slice(featuredItem ? 5 : 4);
 
   return (
-    <main className="mx-auto max-w-[1460px] px-4 py-5 sm:px-6 lg:px-8">
-      <Button asChild variant="link" className="mb-5 h-auto p-0 text-sm font-black text-primary">
+    <main className="mx-auto max-w-[1440px] px-5 py-5 lg:px-8 2xl:px-10">
+      <Button asChild variant="link" className="mb-5 h-auto p-0 text-sm font-semibold text-primary">
         <Link href="/">
           <ArrowLeft className="h-4 w-4" />
           {t("backToOffers")}
@@ -641,7 +641,7 @@ function PromotionItemsPageContent() {
             <button
               type="button"
               onClick={() => setSelectedCategory(ALL_ITEMS_FILTER)}
-              className={`shrink-0 rounded-full px-5 py-2 text-sm font-black transition ${
+              className={`shrink-0 rounded-full px-5 py-2 text-sm font-semibold transition ${
                 selectedCategory === ALL_ITEMS_FILTER
                   ? "bg-primary text-white shadow-[0_10px_20px_rgba(205,0,11,0.18)]"
                   : "border border-gray-100 bg-white text-gray-600 hover:border-primary/25 hover:text-primary"
