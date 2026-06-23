@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, BadgePercent, Clock3 } from "lucide-react";
+import { ArrowUpRight, Clock3, Star } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import {
@@ -85,10 +85,12 @@ function PromotionalItemCard({
   item,
   currency,
   compact = false,
+  featured = false,
 }: {
   item: MenuItem;
   currency?: string | null;
   compact?: boolean;
+  featured?: boolean;
 }) {
   const t = useTranslations("home.promotionalItems");
   const promotion = getPromotion(item);
@@ -102,15 +104,24 @@ function PromotionalItemCard({
     item.description?.trim() || promotion?.description?.trim() || t("fallbackDescription");
 
   return (
-    <article
-      className={
-        compact
-          ? "h-[318px] w-[238px] shrink-0 overflow-hidden rounded-[28px] bg-white shadow-[0_16px_34px_rgba(31,41,55,0.09)]"
-          : "group flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[24px] border border-gray-100 bg-white shadow-[0_12px_34px_rgba(17,24,39,0.08)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(17,24,39,0.12)]"
-      }
-    >
+    <div className={compact ? "" : "relative flex h-full w-full pt-4"}>
+      {featured && !compact ? (
+        <span className="absolute left-1/2 top-0 z-20 inline-flex -translate-x-1/2 items-center gap-1.5 rounded-md bg-primary px-5 py-2 text-sm font-black uppercase leading-none text-white shadow-[0_10px_20px_rgba(205,0,11,0.22)]">
+          <Star className="h-4 w-4 fill-current" aria-hidden="true" />
+          {t("topDeal")}
+        </span>
+      ) : null}
+      <article
+        className={
+          compact
+            ? "h-[318px] w-[238px] shrink-0 overflow-hidden rounded-[28px] bg-white shadow-[0_16px_34px_rgba(31,41,55,0.09)]"
+            : `group flex h-[500px] w-full min-w-0 flex-col overflow-hidden rounded-[18px] bg-white shadow-[0_20px_44px_rgba(17,24,39,0.08)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_24px_52px_rgba(17,24,39,0.12)] ${
+                featured ? "border border-primary" : "border border-transparent"
+              }`
+        }
+      >
       <Link href={getItemHref(item)} className="flex h-full min-w-0 flex-col text-left">
-        <div className={compact ? "relative h-[132px] bg-primary/5" : "relative h-[178px] bg-[#F7F3EF]"}>
+        <div className={compact ? "relative h-[132px] bg-primary/5" : "relative h-[280px] bg-[#F7F3EF]"}>
           <Image
             src={image}
             alt={title}
@@ -120,22 +131,22 @@ function PromotionalItemCard({
             unoptimized
           />
 
-          <span className="absolute left-3 top-3 max-w-[calc(100%-64px)] truncate rounded-full bg-white px-3 py-1 text-[11px] font-black text-primary shadow-sm">
+          <span className={compact ? "absolute left-3 top-3 max-w-[calc(100%-64px)] truncate rounded-full bg-white px-3 py-1 text-[11px] font-black text-primary shadow-sm" : "absolute left-5 top-5 max-w-[calc(100%-92px)] truncate rounded-full bg-white/95 px-5 py-3 text-sm font-black text-primary shadow-[0_8px_18px_rgba(205,0,11,0.14)] ring-1 ring-primary/10"}>
             {badgeText}
           </span>
 
           <FavoriteHeartButton
             menuItemId={item.id}
-            className="absolute right-3 top-3 h-9 w-9"
+            className={compact ? "absolute right-3 top-3 h-9 w-9" : "absolute right-5 top-5 h-12 w-12 text-slate-500 shadow-[0_10px_24px_rgba(15,23,42,0.12)] [&_svg]:h-6 [&_svg]:w-6"}
           />
         </div>
 
-        <div className={compact ? "flex min-w-0 flex-1 flex-col p-4" : "flex min-w-0 flex-1 flex-col p-5"}>
+        <div className={compact ? "flex min-w-0 flex-1 flex-col p-4" : "flex min-w-0 flex-1 flex-col px-7 py-7"}>
           <h3
             className={
               compact
                 ? "line-clamp-1 text-[16px] font-black text-gray-950"
-                : "line-clamp-2 text-[18px] font-extrabold leading-[1.25] text-gray-950"
+                : "line-clamp-1 text-[21px] font-black leading-[1.2] text-gray-950"
             }
           >
             {title}
@@ -145,20 +156,20 @@ function PromotionalItemCard({
             className={
               compact
                 ? "mt-1 line-clamp-2 min-h-10 text-xs leading-5 text-gray-500"
-                : "mt-2 line-clamp-2 min-h-10 text-sm leading-5 text-gray-500"
+                : "mt-4 line-clamp-2 min-h-[54px] text-[16px] font-medium leading-7 text-slate-500"
             }
           >
             {description}
           </p>
 
-          <div className={compact ? "mt-auto flex min-w-0 items-center justify-between gap-2 pt-4" : "mt-auto flex min-w-0 items-end justify-between gap-3 pt-5"}>
+          <div className={compact ? "mt-auto flex min-w-0 items-center justify-between gap-2 pt-4" : "mt-auto flex min-w-0 items-end justify-between gap-4 pt-6"}>
             <div className="flex min-w-0 flex-wrap items-baseline gap-2">
               {oldPrice ? (
                 <span className="text-xs font-semibold text-gray-400 line-through">
                   {formatMoney(oldPrice, currency)}
                 </span>
               ) : null}
-              <span className={compact ? "truncate text-base font-black text-primary" : "text-[22px] font-black leading-none text-primary"}>
+              <span className={compact ? "truncate text-base font-black text-primary" : "text-[32px] font-black leading-none text-primary"}>
                 {formatMoney(finalPrice, currency)}
               </span>
             </div>
@@ -169,14 +180,15 @@ function PromotionalItemCard({
                 {t("quickOrder")}
               </span>
             ) : (
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-primary/20 text-primary transition group-hover:bg-primary group-hover:text-white">
-                <ArrowUpRight size={17} aria-hidden="true" />
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-primary/20 text-primary transition group-hover:bg-primary group-hover:text-white">
+                <ArrowUpRight size={24} aria-hidden="true" />
               </span>
             )}
           </div>
         </div>
       </Link>
-    </article>
+      </article>
+    </div>
   );
 }
 
@@ -236,33 +248,37 @@ export function PromotionalItemsSection({
   }
 
   return (
-    <section className="mx-auto max-w-[1400px] px-4 pb-[30px] pt-[30px] sm:px-6 sm:pb-[50px] sm:pt-[50px]">
-      <div className="mb-5 flex items-end justify-between gap-4">
+    <section className="mx-auto max-w-[1400px] px-4 pb-[34px] pt-[42px] sm:px-6 sm:pb-[58px] sm:pt-[58px]">
+      <div className="mb-10 flex items-end justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-wide text-primary">
+          <p className="text-[16px] font-semibold uppercase tracking-[0.04em] text-primary">
             {t("eyebrow")}
           </p>
-          <h3 className="mt-1 text-2xl font-extrabold text-gray-950">
+          <h2 className="mt-4 text-[42px] font-black leading-none text-gray-950 lg:text-[48px]">
             {t("title")}
-          </h3>
+          </h2>
         </div>
 
-        <Button asChild variant="link" className="p-0 text-sm font-semibold text-primary">
+        <Button asChild variant="link" className="mb-1 p-0 text-base font-bold text-primary">
           <Link href="/items">
             {t("exploreMenu")}
-            <ArrowUpRight size={16} />
+            <ArrowUpRight size={20} />
           </Link>
         </Button>
       </div>
 
       <Carousel opts={{ align: "start", dragFree: true }} className="min-w-0">
         <CarouselContent className="-ml-5 cursor-grab active:cursor-grabbing">
-          {items.map((item) => (
+          {items.map((item, index) => (
             <CarouselItem
               key={String(item.id)}
               className="flex basis-[92%] pl-5 sm:basis-[62%] md:basis-[48%] xl:basis-1/3 2xl:basis-1/4"
             >
-              <PromotionalItemCard item={item} currency={currency} />
+              <PromotionalItemCard
+                item={item}
+                currency={currency}
+                featured={index === 1}
+              />
             </CarouselItem>
           ))}
         </CarouselContent>

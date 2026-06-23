@@ -230,7 +230,8 @@
       "fallbackDescription": "Freshly prepared and ready to order.",
       "quickOrder": "Quick order",
       "seeAll": "See all",
-      "exploreMenu": "Explore Menu"
+      "exploreMenu": "Explore Menu",
+      "topDeal": "Top deal"
     },
     "deals": {
       "label": "Deals",

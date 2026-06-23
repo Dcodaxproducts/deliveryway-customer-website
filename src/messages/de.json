@@ -230,7 +230,8 @@
       "fallbackDescription": "Frisch zubereitet und bereit zum Bestellen.",
       "quickOrder": "Schnell bestellen",
       "seeAll": "Alle anzeigen",
-      "exploreMenu": "Menü entdecken"
+      "exploreMenu": "Menü entdecken",
+      "topDeal": "Top Deal"
     },
     "deals": {
       "label": "Angebote",
