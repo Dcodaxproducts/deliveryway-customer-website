@@ -34,7 +34,7 @@ export const useCustomerFavorites = () => {
         return { items: [], favoriteIds: new Set<string>() };
       }
 
-      const result = await fetchFavoriteItems({ token });
+      const result = await fetchFavoriteItems({ token, customerId });
       const favoriteIds = new Set(
         result.items.map(getMenuItemId).filter(Boolean),
       );
@@ -68,7 +68,7 @@ export const useToggleFavorite = () => {
 
       return isFavorite
         ? removeFavoriteItem({ token, customerId, menuItemId })
-        : addFavoriteItem({ token, customerId, menuItemId });
+        : addFavoriteItem({ token, menuItemId });
     },
     onMutate: async ({ menuItemId, isFavorite }) => {
       await queryClient.cancelQueries({ queryKey });

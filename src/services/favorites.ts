@@ -7,10 +7,16 @@ const favoritesService = createDomainApiService();
 
 export const fetchFavoriteItems = async ({
   token,
+  customerId,
 }: {
   token: string;
+  customerId: string;
 }): Promise<{ response: ApiResult; items: MenuItem[]; meta: ApiMeta }> => {
-  const response = await favoritesService.get("/v1/customer-app/favorites", token);
+  const params = new URLSearchParams({ customerId });
+  const response = await favoritesService.get(
+    `/v1/customer-app/favorites?${params.toString()}`,
+    token,
+  );
 
   return {
     response,
@@ -21,16 +27,14 @@ export const fetchFavoriteItems = async ({
 
 export const addFavoriteItem = async ({
   token,
-  customerId,
   menuItemId,
 }: {
   token: string;
-  customerId: string;
   menuItemId: string;
 }) => {
   return favoritesService.post(
     "/v1/customer-app/favorites",
-    { customerId, menuItemId },
+    { menuItemId },
     token,
   );
 };
