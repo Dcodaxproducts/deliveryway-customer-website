@@ -22,13 +22,15 @@ type CustomerFavoritesData = {
 const getMenuItemId = (item: MenuItem) => String(item?.id ?? "");
 
 export const useCustomerFavorites = () => {
-  const { token } = useAuthContext();
+  const { token, user } = useAuthContext();
+  const customerId = user?.id ?? "";
+  const queryKey = [...favoriteItemsQueryKey, customerId] as const;
 
   return useQuery<CustomerFavoritesData>({
-    queryKey: favoriteItemsQueryKey,
-    enabled: Boolean(token),
+    queryKey,
+    enabled: Boolean(token && customerId),
     queryFn: async () => {
-      if (!token) {
+      if (!token || !customerId) {
         return { items: [], favoriteIds: new Set<string>() };
       }
 
@@ -48,7 +50,9 @@ export const useCustomerFavorites = () => {
 export const useToggleFavorite = () => {
   const queryClient = useQueryClient();
   const router = useRouter();
-  const { token } = useAuthContext();
+  const { token, user } = useAuthContext();
+  const customerId = user?.id ?? "";
+  const queryKey = [...favoriteItemsQueryKey, customerId] as const;
 
   return useMutation({
     mutationFn: async ({
@@ -58,22 +62,22 @@ export const useToggleFavorite = () => {
       menuItemId: string;
       isFavorite: boolean;
     }) => {
-      if (!token) {
+      if (!token || !customerId) {
         throw new Error("Please login to save favourites.");
       }
 
       return isFavorite
-        ? removeFavoriteItem({ token, menuItemId })
-        : addFavoriteItem({ token, menuItemId });
+        ? removeFavoriteItem({ token, customerId, menuItemId })
+        : addFavoriteItem({ token, customerId, menuItemId });
     },
     onMutate: async ({ menuItemId, isFavorite }) => {
-      await queryClient.cancelQueries({ queryKey: favoriteItemsQueryKey });
+      await queryClient.cancelQueries({ queryKey });
 
       const previousFavorites =
-        queryClient.getQueryData<CustomerFavoritesData>(favoriteItemsQueryKey);
+        queryClient.getQueryData<CustomerFavoritesData>(queryKey);
 
       queryClient.setQueryData<CustomerFavoritesData>(
-        favoriteItemsQueryKey,
+        queryKey,
         (current) => {
           const favoriteIds = new Set(current?.favoriteIds ?? []);
 
@@ -99,7 +103,7 @@ export const useToggleFavorite = () => {
     onError: (error, _variables, context) => {
       if (context?.previousFavorites) {
         queryClient.setQueryData(
-          favoriteItemsQueryKey,
+          queryKey,
           context.previousFavorites,
         );
       }
@@ -111,7 +115,7 @@ export const useToggleFavorite = () => {
 
       toast.error(message);
 
-      if (!token) {
+      if (!token || !customerId) {
         router.push("/auth/login");
       }
     },

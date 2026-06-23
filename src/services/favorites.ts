@@ -7,22 +7,10 @@ const favoritesService = createDomainApiService();
 
 export const fetchFavoriteItems = async ({
   token,
-  page = 1,
-  limit = 100,
 }: {
   token: string;
-  page?: number;
-  limit?: number;
 }): Promise<{ response: ApiResult; items: MenuItem[]; meta: ApiMeta }> => {
-  const params = new URLSearchParams({
-    page: String(page),
-    limit: String(limit),
-  });
-
-  const response = await favoritesService.get(
-    `/v1/customer-app/favorites?${params.toString()}`,
-    token,
-  );
+  const response = await favoritesService.get("/v1/customer-app/favorites", token);
 
   return {
     response,
@@ -33,27 +21,33 @@ export const fetchFavoriteItems = async ({
 
 export const addFavoriteItem = async ({
   token,
+  customerId,
   menuItemId,
 }: {
   token: string;
+  customerId: string;
   menuItemId: string;
 }) => {
   return favoritesService.post(
     "/v1/customer-app/favorites",
-    { menuItemId },
+    { customerId, menuItemId },
     token,
   );
 };
 
 export const removeFavoriteItem = async ({
   token,
+  customerId,
   menuItemId,
 }: {
   token: string;
+  customerId: string;
   menuItemId: string;
 }) => {
+  const params = new URLSearchParams({ customerId });
+
   return favoritesService.del(
-    `/v1/customer-app/favorites/${encodeURIComponent(menuItemId)}`,
+    `/v1/customer-app/favorites/${encodeURIComponent(menuItemId)}?${params.toString()}`,
     token,
   );
 };
