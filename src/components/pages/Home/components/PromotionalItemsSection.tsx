@@ -83,7 +83,7 @@ const PromotionalItemsSkeleton = ({ compact }: { compact?: boolean }) => (
         className={
           compact
             ? "h-[318px] min-w-[238px] animate-pulse rounded-[28px] bg-white"
-            : "h-[342px] animate-pulse rounded-[24px] bg-gray-100"
+            : "h-[360px] animate-pulse rounded-[24px] bg-gray-100"
         }
       />
     ))}
@@ -115,8 +115,8 @@ function PromotionalItemCard({
   return (
     <div className={compact ? "" : "relative flex h-full w-full pt-4"}>
       {featured && !compact ? (
-        <span className="absolute left-1/2 top-0 z-20 inline-flex -translate-x-1/2 items-center gap-1.5 rounded-md bg-primary px-5 py-2 text-sm font-black uppercase leading-none text-white shadow-[0_10px_20px_rgba(205,0,11,0.22)]">
-          <Star className="h-4 w-4 fill-current" aria-hidden="true" />
+        <span className="absolute left-1/2 top-1 z-20 inline-flex -translate-x-1/2 items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-[11px] font-black uppercase leading-none text-white shadow-[0_8px_16px_rgba(205,0,11,0.2)]">
+          <Star className="h-3 w-3 fill-current" aria-hidden="true" />
           {t("topDeal")}
         </span>
       ) : null}
@@ -124,7 +124,7 @@ function PromotionalItemCard({
         className={
           compact
             ? "h-[318px] w-[238px] shrink-0 overflow-hidden rounded-[28px] bg-white shadow-[0_16px_34px_rgba(31,41,55,0.09)]"
-            : `group flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[24px] bg-white shadow-[0_12px_34px_rgba(17,24,39,0.08)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(17,24,39,0.12)] ${
+            : `group flex h-[360px] w-full min-w-0 flex-col overflow-hidden rounded-[24px] bg-white shadow-[0_12px_34px_rgba(17,24,39,0.08)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(17,24,39,0.12)] ${
                 featured ? "border border-primary" : "border border-gray-100"
               }`
         }
@@ -258,20 +258,20 @@ export function PromotionalItemsSection({
 
   return (
     <section className="mx-auto max-w-[1400px] px-4 pb-[34px] pt-[42px] sm:px-6 sm:pb-[58px] sm:pt-[58px]">
-      <div className="mb-10 flex items-end justify-between gap-4">
+      <div className="mb-4 flex items-end justify-between gap-4">
         <div>
-          <p className="text-[16px] font-semibold uppercase tracking-[0.04em] text-primary">
+          <p className="text-sm font-semibold uppercase tracking-wide text-primary">
             {t("eyebrow")}
           </p>
-          <h2 className="mt-4 text-[42px] font-black leading-none text-gray-950 lg:text-[48px]">
+          <h2 className="mt-1 text-2xl font-bold text-gray-900">
             {t("title")}
           </h2>
         </div>
 
-        <Button asChild variant="link" className="mb-1 p-0 text-base font-bold text-primary">
+        <Button asChild variant="link" className="p-0 text-sm font-semibold text-primary">
           <Link href="/items">
             {t("exploreMenu")}
-            <ArrowUpRight size={20} />
+            <ArrowUpRight size={16} />
           </Link>
         </Button>
       </div>
