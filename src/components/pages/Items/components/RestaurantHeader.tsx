@@ -341,7 +341,7 @@ export default function RestaurantHeader() {
   }
 
   return (
-    <div className="mx-4 mt-4 overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm md:mx-10">
+    <div className="mx-4 mt-6 overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm md:mx-10 md:mt-7">
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_480px]">
         {/* LEFT CONTENT */}
         <div className="flex min-w-0 flex-col justify-center bg-white px-5 py-5 md:px-7 md:py-6 lg:px-8">
@@ -369,8 +369,8 @@ export default function RestaurantHeader() {
           <div className="mt-4 grid overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm md:grid-cols-[1fr_1fr_1fr]">
             <div className="min-w-0 border-b border-gray-200 px-4 py-3 md:border-b-0 md:border-r">
               <div className="flex items-start gap-3">
-                <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-                  <span className="h-3 w-3 rounded-full bg-emerald-500" />
+                <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 shadow-sm ring-1 ring-emerald-200">
+                  <span className="h-3.5 w-3.5 rounded-full bg-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.16)]" />
                 </span>
                 <span className="min-w-0">
                   <span className="block text-sm font-semibold text-emerald-600">
@@ -394,8 +394,8 @@ export default function RestaurantHeader() {
 
             <div className="min-w-0 border-b border-gray-200 px-4 py-3 md:border-b-0 md:border-r">
               <div className="flex items-start gap-3">
-                <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-red-50 text-primary">
-                  <Truck size={16} />
+                <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary shadow-sm ring-1 ring-primary/20">
+                  <Truck size={18} strokeWidth={2.5} />
                 </span>
                 <span className="min-w-0">
                   <span className="block text-sm font-semibold text-primary">

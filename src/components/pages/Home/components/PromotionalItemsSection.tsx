@@ -30,13 +30,22 @@ const getFinalPrice = (item: MenuItem) =>
   toNumber(
     item.happyHourDiscountedBasePrice ??
       item.discountedBasePrice ??
+      item.happyHour?.discountedPrice ??
+      item.promotion?.discountedAmount ??
+      item.discountedPrice ??
       item.basePrice ??
       item.price,
     0,
   );
 
 const getBasePrice = (item: MenuItem) =>
-  toNumber(item.basePrice ?? item.price, 0);
+  toNumber(
+    item.happyHour?.originalPrice ??
+      item.promotion?.originalPrice ??
+      item.basePrice ??
+      item.price,
+    0,
+  );
 
 const getDiscountBadge = (
   promotion?: PromotionInfo | null,
@@ -163,9 +172,9 @@ function PromotionalItemCard({
           </p>
 
           <div className={compact ? "mt-auto flex min-w-0 items-center justify-between gap-2 pt-4" : "mt-auto flex min-w-0 items-end justify-between gap-4 pt-6"}>
-            <div className="flex min-w-0 flex-wrap items-baseline gap-2">
+            <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
               {oldPrice ? (
-                <span className="text-xs font-semibold text-gray-400 line-through">
+                <span className={compact ? "text-xs font-semibold text-gray-400 line-through" : "text-sm font-semibold text-gray-400 line-through"}>
                   {formatMoney(oldPrice, currency)}
                 </span>
               ) : null}
