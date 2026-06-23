@@ -67,11 +67,16 @@ export type PromotionCampaign = {
   id: string;
   title?: string;
   description?: string;
+  code?: string;
+  couponCode?: string;
+  imageUrl?: string | null;
+  thumbnailUrl?: string | null;
   applyMode?: "ORDER_TOTAL" | "SCOPED_ITEMS" | string;
   discountType?: "FLAT" | "PERCENTAGE" | string;
   discountValue?: number | string;
   maxDiscountAmount?: number | string;
   minOrderAmount?: number | string;
+  maxUsesPerCustomer?: number | string;
   startsAt?: string;
   expiresAt?: string;
   branch?: {
