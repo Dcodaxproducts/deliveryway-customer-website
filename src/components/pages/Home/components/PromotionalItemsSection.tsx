@@ -105,11 +105,11 @@ function PromotionalItemCard({
     <article
       className={
         compact
-          ? "min-w-[238px] overflow-hidden rounded-[28px] bg-white shadow-[0_16px_34px_rgba(31,41,55,0.09)]"
-          : "group flex h-full min-w-0 flex-col overflow-hidden rounded-[24px] border border-gray-100 bg-white shadow-[0_12px_34px_rgba(17,24,39,0.08)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(17,24,39,0.12)]"
+          ? "h-[318px] w-[238px] shrink-0 overflow-hidden rounded-[28px] bg-white shadow-[0_16px_34px_rgba(31,41,55,0.09)]"
+          : "group flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[24px] border border-gray-100 bg-white shadow-[0_12px_34px_rgba(17,24,39,0.08)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(17,24,39,0.12)]"
       }
     >
-      <Link href={getItemHref(item)} className="block h-full text-left">
+      <Link href={getItemHref(item)} className="flex h-full min-w-0 flex-col text-left">
         <div className={compact ? "relative h-[132px] bg-primary/5" : "relative h-[178px] bg-[#F7F3EF]"}>
           <Image
             src={image}
@@ -130,7 +130,7 @@ function PromotionalItemCard({
           />
         </div>
 
-        <div className={compact ? "p-4" : "flex flex-1 flex-col p-5"}>
+        <div className={compact ? "flex min-w-0 flex-1 flex-col p-4" : "flex min-w-0 flex-1 flex-col p-5"}>
           <h3
             className={
               compact
@@ -151,20 +151,20 @@ function PromotionalItemCard({
             {description}
           </p>
 
-          <div className={compact ? "mt-4 flex items-center justify-between" : "mt-auto flex items-end justify-between gap-3 pt-5"}>
-            <div className="flex flex-wrap items-baseline gap-2">
+          <div className={compact ? "mt-auto flex min-w-0 items-center justify-between gap-2 pt-4" : "mt-auto flex min-w-0 items-end justify-between gap-3 pt-5"}>
+            <div className="flex min-w-0 flex-wrap items-baseline gap-2">
               {oldPrice ? (
                 <span className="text-xs font-semibold text-gray-400 line-through">
                   {formatMoney(oldPrice, currency)}
                 </span>
               ) : null}
-              <span className={compact ? "text-base font-black text-primary" : "text-[22px] font-black leading-none text-primary"}>
+              <span className={compact ? "truncate text-base font-black text-primary" : "text-[22px] font-black leading-none text-primary"}>
                 {formatMoney(finalPrice, currency)}
               </span>
             </div>
 
             {compact ? (
-              <span className="inline-flex items-center gap-1 text-xs font-semibold text-gray-400">
+              <span className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-gray-400">
                 <Clock3 className="h-4 w-4" />
                 {t("quickOrder")}
               </span>

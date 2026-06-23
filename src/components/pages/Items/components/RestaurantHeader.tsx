@@ -315,6 +315,12 @@ export default function RestaurantHeader() {
   const deliveryHoursLabel = currentDeliveryDetail?.hoursLabel || restaurant?.branchHours.delivery.value;
   const primaryOpeningBreakLabel = currentOpeningBreakLabels[0] ?? "";
   const primaryDeliveryBreakLabel = currentDeliveryBreakLabels[0] ?? primaryOpeningBreakLabel;
+  const openingBreakText = primaryOpeningBreakLabel
+    ? t("breakTime", { time: primaryOpeningBreakLabel })
+    : t("noBreakToday");
+  const deliveryBreakText = primaryDeliveryBreakLabel
+    ? t("breakTime", { time: primaryDeliveryBreakLabel })
+    : t("noBreakToday");
 
   const title = category?.name ? category.name : t("fullMenu");
 
@@ -335,10 +341,10 @@ export default function RestaurantHeader() {
   }
 
   return (
-    <div className="mx-4 mt-6 overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm md:mx-10">
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_520px]">
+    <div className="mx-4 mt-4 overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm md:mx-10">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_480px]">
         {/* LEFT CONTENT */}
-        <div className="flex min-w-0 flex-col justify-center bg-white px-5 py-6 md:px-8 md:py-8 lg:px-10">
+        <div className="flex min-w-0 flex-col justify-center bg-white px-5 py-5 md:px-7 md:py-6 lg:px-8">
           <div className="flex flex-wrap items-center gap-3">
             <span className="rounded-full bg-primary/10 px-3 py-1.5 text-xs font-bold uppercase tracking-normal text-primary">
               {category?.name ? t("category") : t("restaurantMenu")}
@@ -352,75 +358,81 @@ export default function RestaurantHeader() {
             ) : null}
           </div>
 
-          <h1 className="mt-5 text-[34px] font-semibold leading-tight tracking-normal text-gray-950 md:text-[42px]">
+          <h1 className="mt-4 text-[30px] font-semibold leading-tight tracking-normal text-gray-950 md:text-[38px]">
             {title}
           </h1>
 
-          <p className="mt-3 max-w-2xl text-base leading-6 text-gray-600">
+          <p className="mt-2 line-clamp-2 max-w-2xl text-sm leading-6 text-gray-600 md:text-[15px]">
             {description}
           </p>
 
-          <div className="mt-5 grid overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm md:grid-cols-[1fr_1fr_1fr]">
-            <div className="min-w-0 border-b border-gray-200 px-5 py-4 md:border-b-0 md:border-r">
+          <div className="mt-4 grid overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm md:grid-cols-[1fr_1fr_1fr]">
+            <div className="min-w-0 border-b border-gray-200 px-4 py-3 md:border-b-0 md:border-r">
               <div className="flex items-start gap-3">
-                <span className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-                  <span className="h-3.5 w-3.5 rounded-full bg-emerald-500" />
+                <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                  <span className="h-3 w-3 rounded-full bg-emerald-500" />
                 </span>
                 <span className="min-w-0">
                   <span className="block text-sm font-semibold text-emerald-600">
                     {openingStatusLabel}
                   </span>
-                  <span className="mt-2 block text-sm font-medium text-gray-700">
+                  <span className="mt-1.5 block truncate text-sm font-medium text-gray-700">
                     {openingSubLabel}
                   </span>
-                  <span className="mt-3 flex items-center gap-2 text-sm text-gray-700">
-                    <Coffee size={15} className="shrink-0 text-gray-400" />
-                    {primaryOpeningBreakLabel
-                      ? t("breakTime", { time: primaryOpeningBreakLabel })
-                      : t("noBreakToday")}
+                  <span
+                    className="mt-2 flex min-w-0 items-center gap-1.5 text-xs font-medium text-gray-600"
+                    title={openingBreakText}
+                  >
+                    <Coffee size={14} className="shrink-0 text-gray-400" />
+                    <span className="min-w-0 truncate whitespace-nowrap">
+                      {openingBreakText}
+                    </span>
                   </span>
                 </span>
               </div>
             </div>
 
-            <div className="min-w-0 border-b border-gray-200 px-5 py-4 md:border-b-0 md:border-r">
+            <div className="min-w-0 border-b border-gray-200 px-4 py-3 md:border-b-0 md:border-r">
               <div className="flex items-start gap-3">
-                <span className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-50 text-primary">
-                  <Truck size={18} />
+                <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-red-50 text-primary">
+                  <Truck size={16} />
                 </span>
                 <span className="min-w-0">
                   <span className="block text-sm font-semibold text-primary">
                     {t("delivery")}
                   </span>
-                  <span className="mt-2 block text-sm font-medium text-gray-700">
+                  <span className="mt-1.5 block truncate text-sm font-medium text-gray-700">
                     {deliveryHoursLabel}
                   </span>
-                  <span className="mt-3 flex items-center gap-2 text-sm text-gray-700">
-                    <Coffee size={15} className="shrink-0 text-gray-400" />
-                    {primaryDeliveryBreakLabel
-                      ? t("breakTime", { time: primaryDeliveryBreakLabel })
-                      : t("noBreakToday")}
+                  <span
+                    className="mt-2 flex min-w-0 items-center gap-1.5 text-xs font-medium text-gray-600"
+                    title={deliveryBreakText}
+                  >
+                    <Coffee size={14} className="shrink-0 text-gray-400" />
+                    <span className="min-w-0 truncate whitespace-nowrap">
+                      {deliveryBreakText}
+                    </span>
                   </span>
                 </span>
               </div>
             </div>
 
-            <div className="min-w-0 px-5 py-4">
+            <div className="min-w-0 px-4 py-3">
               <div className="flex items-center gap-3">
-                <MapPin size={25} className="shrink-0 text-gray-500" />
-                <span className="line-clamp-3 text-sm font-medium leading-5 text-gray-700">
+                <MapPin size={22} className="shrink-0 text-gray-500" />
+                <span className="line-clamp-2 text-sm font-medium leading-5 text-gray-700">
                   {restaurant?.address}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
             {restaurant?.branchHours ? (
               <BranchHoursDialog
                 branchName={restaurant.branchName}
                 branchHours={restaurant.branchHours}
-                triggerClassName="inline-flex h-12 min-w-[220px] items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-5 text-sm font-semibold text-gray-800 shadow-sm transition hover:border-primary hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                triggerClassName="inline-flex h-10 min-w-[190px] items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-800 shadow-sm transition hover:border-primary hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 triggerContent={(
                   <>
                     <Clock size={17} className="shrink-0 text-gray-500" />
@@ -438,7 +450,7 @@ export default function RestaurantHeader() {
                   router.push("/reservetable");
                 }
               }}
-              className="inline-flex h-12 min-w-[220px] items-center justify-center gap-2 rounded-xl bg-primary px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-45"
+              className="inline-flex h-10 min-w-[190px] items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-45"
             >
               <CalendarDays size={17} className="shrink-0" />
               {t("reserveTable")}
@@ -447,7 +459,7 @@ export default function RestaurantHeader() {
         </div>
 
         {/* RIGHT IMAGE */}
-        <div className="relative h-[260px] w-full overflow-hidden bg-gray-100 md:h-[340px] lg:h-auto">
+        <div className="relative h-[220px] w-full overflow-hidden bg-gray-100 md:h-[300px] lg:h-auto">
           <Image
             src={bannerImage}
             alt={category?.name || restaurant?.name || t("restaurantMenuImageAlt")}
