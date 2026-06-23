@@ -222,6 +222,16 @@
       "noActivePromotions": "No active promotions right now",
       "noActivePromotionsDescription": "Explore the menu and check back later for fresh deals and exclusive branch offers."
     },
+    "promotionalItems": {
+      "eyebrow": "Special for you",
+      "title": "Promotional items",
+      "specialOffer": "Special Offer",
+      "menuItem": "Menu item",
+      "fallbackDescription": "Freshly prepared and ready to order.",
+      "quickOrder": "Quick order",
+      "seeAll": "See all",
+      "exploreMenu": "Explore Menu"
+    },
     "deals": {
       "label": "Deals",
       "available": "Available Deals",

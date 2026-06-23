@@ -222,6 +222,16 @@
       "noActivePromotions": "Derzeit keine aktiven Aktionen",
       "noActivePromotionsDescription": "Entdecken Sie das Menü und schauen Sie später wieder vorbei, um frische Angebote und exklusive Filialaktionen zu finden."
     },
+    "promotionalItems": {
+      "eyebrow": "Speziell für Sie",
+      "title": "Aktionsartikel",
+      "specialOffer": "Sonderangebot",
+      "menuItem": "Menüartikel",
+      "fallbackDescription": "Frisch zubereitet und bereit zum Bestellen.",
+      "quickOrder": "Schnell bestellen",
+      "seeAll": "Alle anzeigen",
+      "exploreMenu": "Menü entdecken"
+    },
     "deals": {
       "label": "Angebote",
       "available": "Verfügbare Angebote",
