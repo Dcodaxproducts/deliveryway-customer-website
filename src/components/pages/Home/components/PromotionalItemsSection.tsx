@@ -124,13 +124,13 @@ function PromotionalItemCard({
         className={
           compact
             ? "h-[318px] w-[238px] shrink-0 overflow-hidden rounded-[28px] bg-white shadow-[0_16px_34px_rgba(31,41,55,0.09)]"
-            : `group flex h-[500px] w-full min-w-0 flex-col overflow-hidden rounded-[18px] bg-white shadow-[0_20px_44px_rgba(17,24,39,0.08)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_24px_52px_rgba(17,24,39,0.12)] ${
-                featured ? "border border-primary" : "border border-transparent"
+            : `group flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[24px] bg-white shadow-[0_12px_34px_rgba(17,24,39,0.08)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(17,24,39,0.12)] ${
+                featured ? "border border-primary" : "border border-gray-100"
               }`
         }
       >
       <Link href={getItemHref(item)} className="flex h-full min-w-0 flex-col text-left">
-        <div className={compact ? "relative h-[132px] bg-primary/5" : "relative h-[280px] bg-[#F7F3EF]"}>
+        <div className={compact ? "relative h-[132px] bg-primary/5" : "relative h-[178px] bg-[#F7F3EF]"}>
           <Image
             src={image}
             alt={title}
@@ -140,22 +140,22 @@ function PromotionalItemCard({
             unoptimized
           />
 
-          <span className={compact ? "absolute left-3 top-3 max-w-[calc(100%-64px)] truncate rounded-full bg-white px-3 py-1 text-[11px] font-black text-primary shadow-sm" : "absolute left-5 top-5 max-w-[calc(100%-92px)] truncate rounded-full bg-white/95 px-5 py-3 text-sm font-black text-primary shadow-[0_8px_18px_rgba(205,0,11,0.14)] ring-1 ring-primary/10"}>
+          <span className="absolute left-3 top-3 max-w-[calc(100%-64px)] truncate rounded-full bg-white px-3 py-1 text-[11px] font-black text-primary shadow-sm">
             {badgeText}
           </span>
 
           <FavoriteHeartButton
             menuItemId={item.id}
-            className={compact ? "absolute right-3 top-3 h-9 w-9" : "absolute right-5 top-5 h-12 w-12 text-slate-500 shadow-[0_10px_24px_rgba(15,23,42,0.12)] [&_svg]:h-6 [&_svg]:w-6"}
+            className="absolute right-3 top-3 h-9 w-9"
           />
         </div>
 
-        <div className={compact ? "flex min-w-0 flex-1 flex-col p-4" : "flex min-w-0 flex-1 flex-col px-7 py-7"}>
+        <div className={compact ? "flex min-w-0 flex-1 flex-col p-4" : "flex min-w-0 flex-1 flex-col p-5"}>
           <h3
             className={
               compact
                 ? "line-clamp-1 text-[16px] font-black text-gray-950"
-                : "line-clamp-1 text-[21px] font-black leading-[1.2] text-gray-950"
+                : "line-clamp-2 text-[18px] font-extrabold leading-[1.25] text-gray-950"
             }
           >
             {title}
@@ -165,20 +165,20 @@ function PromotionalItemCard({
             className={
               compact
                 ? "mt-1 line-clamp-2 min-h-10 text-xs leading-5 text-gray-500"
-                : "mt-4 line-clamp-2 min-h-[54px] text-[16px] font-medium leading-7 text-slate-500"
+                : "mt-2 line-clamp-2 min-h-10 text-sm leading-5 text-gray-500"
             }
           >
             {description}
           </p>
 
-          <div className={compact ? "mt-auto flex min-w-0 items-center justify-between gap-2 pt-4" : "mt-auto flex min-w-0 items-end justify-between gap-4 pt-6"}>
+          <div className={compact ? "mt-auto flex min-w-0 items-center justify-between gap-2 pt-4" : "mt-auto flex min-w-0 items-end justify-between gap-3 pt-5"}>
             <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
               {oldPrice ? (
-                <span className={compact ? "text-xs font-semibold text-gray-400 line-through" : "text-sm font-semibold text-gray-400 line-through"}>
+                <span className="text-xs font-semibold text-gray-400 line-through">
                   {formatMoney(oldPrice, currency)}
                 </span>
               ) : null}
-              <span className={compact ? "truncate text-base font-black text-primary" : "text-[32px] font-black leading-none text-primary"}>
+              <span className={compact ? "truncate text-base font-black text-primary" : "text-[22px] font-black leading-none text-primary"}>
                 {formatMoney(finalPrice, currency)}
               </span>
             </div>
@@ -189,8 +189,8 @@ function PromotionalItemCard({
                 {t("quickOrder")}
               </span>
             ) : (
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-primary/20 text-primary transition group-hover:bg-primary group-hover:text-white">
-                <ArrowUpRight size={24} aria-hidden="true" />
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-primary/20 text-primary transition group-hover:bg-primary group-hover:text-white">
+                <ArrowUpRight size={17} aria-hidden="true" />
               </span>
             )}
           </div>
