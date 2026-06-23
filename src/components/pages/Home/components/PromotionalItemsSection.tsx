@@ -277,7 +277,7 @@ export function PromotionalItemsSection({
       </div>
 
       <Carousel opts={{ align: "start", dragFree: true }} className="min-w-0">
-        <CarouselContent className="-ml-5 cursor-grab active:cursor-grabbing">
+        <CarouselContent className="-ml-5 cursor-grab pb-8 active:cursor-grabbing">
           {items.map((item, index) => (
             <CarouselItem
               key={String(item.id)}
