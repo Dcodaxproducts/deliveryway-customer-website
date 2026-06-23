@@ -219,6 +219,10 @@
       "liveOffers": "Aktuelle Angebote",
       "dealsPickedForYou": "Angebote für Sie",
       "exploreMenu": "Menü entdecken",
+      "backToOffers": "Zurück zu Angeboten",
+      "promotionItemsCount": "{count, plural, one {# berechtigter Artikel} other {# berechtigte Artikel}}",
+      "promotionItemsUnavailable": "Angebotsartikel sind nicht verfügbar",
+      "promotionItemsUnavailableDescription": "Für dieses Angebot gibt es derzeit keine eigene Artikelliste. Entdecken Sie das vollständige Menü, um weiter zu bestellen.",
       "noActivePromotions": "Derzeit keine aktiven Aktionen",
       "noActivePromotionsDescription": "Entdecken Sie das Menü und schauen Sie später wieder vorbei, um frische Angebote und exklusive Filialaktionen zu finden."
     },

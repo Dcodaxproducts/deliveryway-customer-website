@@ -1,7 +1,7 @@
 import type { Branding } from "@/types/branding";
 import type { BranchScheduleTimings } from "@/types/branches";
 import type { HomeGiftCards } from "@/types/gift-cards";
-import type { HappyHourInfo } from "@/components/pages/Items/types";
+import type { HappyHourInfo, MenuItem } from "@/components/pages/Items/types";
 
 export type HomeRestaurant = {
   id?: string | null;
@@ -85,11 +85,7 @@ export type PromotionCampaign = {
     logoUrl?: string | null;
     coverImage?: string | null;
   } | null;
-  scopeMenuItems?: {
-    id?: string;
-    name?: string;
-    imageUrl?: string | null;
-  }[];
+  scopeMenuItems?: MenuItem[];
   scopeCategories?: {
     id?: string;
     name?: string;

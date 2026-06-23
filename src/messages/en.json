@@ -219,6 +219,10 @@
       "liveOffers": "Live Offers",
       "dealsPickedForYou": "Deals picked for you",
       "exploreMenu": "Explore Menu",
+      "backToOffers": "Back to offers",
+      "promotionItemsCount": "{count, plural, one {# eligible item} other {# eligible items}}",
+      "promotionItemsUnavailable": "Offer items are unavailable",
+      "promotionItemsUnavailableDescription": "This offer does not have a dedicated item list right now. Explore the full menu to continue ordering.",
       "noActivePromotions": "No active promotions right now",
       "noActivePromotionsDescription": "Explore the menu and check back later for fresh deals and exclusive branch offers."
     },
