@@ -3,17 +3,18 @@
 import Image from "next/image";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import TestimonialsSection from "@/components/pages/Items/components/Testimonials";
 import useItems from "@/hooks/useItems";
 import { useCart } from "@/hooks/useCart";
 import { useAuthContext } from "@/hooks/useAuth";
 import { useHome } from "@/hooks/useHome";
+import { useCustomerReviews } from "@/hooks/useCustomerReviews";
 import { getStoredGroupOrderCode } from "@/lib/group-order";
 import { formatMoney as formatDisplayMoney, resolveCustomerCurrency } from "@/lib/money";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
-import { Download, Eye, Loader2, Minus, Plus, X } from "lucide-react";
+import { Download, Eye, Loader2, Minus, Plus, Star, X } from "lucide-react";
 import { AsyncSelect } from "@/components/ui/AsyncSelect";
 import { FavoriteHeartButton } from "@/components/common/favorites/FavoriteHeartButton";
 import type { CartPayload, CheckoutType, ItemPriceOverride, MenuItem, MenuVariation, Modifier, ModifierGroup, ModifierLink, ModifierSelectionMap, PromotionInfo, RawModifierLink, SelectedModifier, VariationPriceOverride } from "@/components/pages/Items/types";
@@ -840,6 +841,7 @@ const getModifierSideVariationOverrides = (menuItem: MenuItem | null, modifier: 
 function ProductDetailsPageContent() {
   const t = useTranslations("productDetails");
   const tErrors = useTranslations("errors");
+  const locale = useLocale();
   const params = useSearchParams();
   const slug = params.get("slug");
   const itemIdParam = params.get("itemId") || "";
@@ -897,6 +899,30 @@ function ProductDetailsPageContent() {
     branchId,
     Boolean(token && restaurantId && branchId)
   );
+  const { reviews: customerReviews } = useCustomerReviews({
+    restaurantId,
+    branchId,
+    page: 1,
+    limit: 100,
+    locale,
+  });
+  const itemReviews = useMemo(() => {
+    const currentMenuItemId = getId(item?.id);
+
+    if (!currentMenuItemId) {
+      return [];
+    }
+
+    return customerReviews.filter((review) =>
+      review.order?.items.some(
+        (reviewItem) => reviewItem.menuItemId === currentMenuItemId
+      )
+    );
+  }, [customerReviews, item?.id]);
+  const itemAverageRating = itemReviews.length
+    ? itemReviews.reduce((total, review) => total + review.rating, 0) /
+      itemReviews.length
+    : null;
   const currency = resolveCustomerCurrency({
     configCurrency: homeQuery.data?.data.config?.currency,
     restaurant: homeQuery.data?.data.restaurant,
@@ -2402,8 +2428,17 @@ function ProductDetailsPageContent() {
             </div>
 
             <div className="mt-2 flex flex-wrap gap-2 text-sm text-gray-500">
-              <span className="font-medium text-primary">★ 4.8</span>
-              <span>(150 reviews)</span>
+              {itemAverageRating ? (
+                <>
+                  <span className="font-medium text-primary">
+                    ★ {itemAverageRating.toFixed(1)}
+                  </span>
+                  <span>
+                    ({itemReviews.length}{" "}
+                    {itemReviews.length === 1 ? "review" : "reviews"})
+                  </span>
+                </>
+              ) : null}
               <span>• 20–25 mins delivery</span>
             </div>
           </div>
@@ -2724,6 +2759,84 @@ function ProductDetailsPageContent() {
           </div>
         </div>
       </div>
+
+      {itemReviews.length > 0 ? (
+        <section className="mx-auto px-4 pb-8 sm:px-6 md:px-10 lg:px-40">
+          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Customer reviews
+              </h2>
+              <p className="mt-1 text-xs text-gray-500">
+                Reviewed from orders containing this item.
+              </p>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              {itemReviews.slice(0, 4).map((review) => {
+                const customerName = [
+                  review.customer.firstName,
+                  review.customer.lastName,
+                ]
+                  .filter(Boolean)
+                  .join(" ");
+                const orderedItems = review.order?.items
+                  .filter((reviewItem) => reviewItem.menuItemId === getId(item.id))
+                  .map(
+                    (reviewItem) =>
+                      reviewItem.variationName ||
+                      reviewItem.menuItemName ||
+                      "This item"
+                  )
+                  .join(", ");
+
+                return (
+                  <article
+                    key={review.id}
+                    className="rounded-xl border border-gray-100 bg-gray-50 p-4"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">
+                          {customerName || "Customer"}
+                        </p>
+                        <p className="mt-0.5 text-xs text-gray-400">
+                          {review.branch.name}
+                        </p>
+                      </div>
+                      <div className="flex gap-0.5">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            size={14}
+                            className={
+                              star <= review.rating
+                                ? "fill-[#EC5834] text-[#EC5834]"
+                                : "text-gray-300"
+                            }
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {review.comment ? (
+                      <p className="mt-3 text-sm leading-6 text-gray-600">
+                        {review.comment}
+                      </p>
+                    ) : null}
+
+                    {orderedItems ? (
+                      <p className="mt-3 text-xs text-gray-400">
+                        Ordered: {orderedItems}
+                      </p>
+                    ) : null}
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       {infoOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
