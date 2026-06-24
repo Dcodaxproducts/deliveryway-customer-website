@@ -8,10 +8,10 @@ import {
   ChevronDown,
   LogOut,
   HelpCircle,
-  ShoppingCart,
   Menu,
   X,
   Bell,
+  CalendarDays,
   Coffee,
   Heart,
 } from "lucide-react"
@@ -450,129 +450,120 @@ export const Navbar = () => {
                 {dropdownOpen && (
                   <div
                     style={{ zIndex: "99999" }}
-                    className="absolute right-0 mt-4 w-[300px] rounded-2xl bg-white shadow-xl border border-gray-100 overflow-hidden"
+                    className="absolute right-0 mt-3 w-[365px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[18px] border border-[#F1E6D9] bg-white shadow-[0_18px_50px_rgba(56,40,24,0.16)]"
                   >
-                    <div className="flex items-center gap-3 p-4 bg-gray-100">
-                      <div className="relative w-12 h-12 rounded-full overflow-hidden">
+                    <div
+                      className="relative flex min-h-[114px] items-center gap-4 border-b border-[#E8C990] bg-[#FBF5EC] bg-cover bg-center px-8 py-6"
+                      style={{ backgroundImage: "url('/profile-dropdown-bg.svg')" }}
+                    >
+                      <span className="relative h-[68px] w-[68px] shrink-0 overflow-hidden rounded-full border-2 border-white bg-white shadow-[0_8px_20px_rgba(49,34,20,0.18)]">
                         <Image
                           src={
                             user?.profile?.avatarUrl?.startsWith("http")
                               ? user.profile.avatarUrl
                               : "/profile-user.png"
                           }
-                          alt="avatar"
+                          alt={userName || tNav("user")}
                           fill
                           className="object-cover"
                         />
-                      </div>
+                      </span>
 
-                      <div>
-                        <p className="font-semibold text-gray-900 text-sm">
+                      <div className="min-w-0">
+                        <p className="truncate font-serif text-[18px] leading-6 text-[#1D1712]">
                           {userName || tNav("user")}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="mt-1 truncate text-[12px] leading-5 text-[#7F7167]">
                           {user?.email}
                         </p>
                       </div>
+
+                      <div className="absolute -bottom-[7px] left-0 right-0 flex items-center justify-center text-[#D8A95D]">
+                        <span className="h-px w-[47%] bg-[#E8C990]" />
+                        <span className="mx-1 h-2 w-2 rotate-45 rounded-[1px] border border-[#D8A95D] bg-white" />
+                        <span className="h-px w-[47%] bg-[#E8C990]" />
+                      </div>
                     </div>
 
-                    <div className="py-2">
+                    <div className="space-y-3 px-7 py-5">
                       <Link
                         href="/profile"
                         onClick={() => setDropdownOpen(false)}
-                        className="flex items-center justify-between px-4 py-3 hover:bg-gray-50"
+                        className="group flex min-h-10 items-center gap-4 rounded-xl text-[#1D1712] transition-colors hover:text-primary"
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-100">
-                            <User size={16} />
-                          </div>
-                          <span className="text-sm text-gray-700">{tNav("myProfile")}</span>
-                        </div>
-                        <ChevronDown className="rotate-[-90deg]" size={16} />
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#F8F4EF] text-primary shadow-[0_8px_18px_rgba(42,27,14,0.08)] ring-1 ring-[#F1EAE2]">
+                          <User size={18} strokeWidth={1.8} />
+                        </span>
+                        <span className="font-serif text-[16px] leading-6">{tNav("myProfile")}</span>
                       </Link>
 
                       <Link
                         href="/orders-history"
                         onClick={() => setDropdownOpen(false)}
-                        className="flex items-center justify-between px-4 py-3 hover:bg-gray-50"
+                        className="group flex min-h-10 items-center gap-4 rounded-xl text-[#1D1712] transition-colors hover:text-primary"
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-100">
-                            <ShoppingCart size={16} />
-                          </div>
-                          <span className="text-sm text-gray-700">{tNav("myOrders")}</span>
-                        </div>
-                        <ChevronDown className="rotate-[-90deg]" size={16} />
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#F8F4EF] text-primary shadow-[0_8px_18px_rgba(42,27,14,0.08)] ring-1 ring-[#F1EAE2]">
+                          <ShoppingBag size={18} strokeWidth={1.8} />
+                        </span>
+                        <span className="font-serif text-[16px] leading-6">{tNav("myOrders")}</span>
                       </Link>
 
                       <Link
                         href="/favourites"
                         onClick={() => setDropdownOpen(false)}
-                        className="flex items-center justify-between px-4 py-3 hover:bg-gray-50"
+                        className="group flex min-h-10 items-center gap-4 rounded-xl text-[#1D1712] transition-colors hover:text-primary"
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-100">
-                            <Heart size={16} />
-                          </div>
-                          <span className="text-sm text-gray-700">{tNav("myFavourites")}</span>
-                        </div>
-                        <ChevronDown className="rotate-[-90deg]" size={16} />
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#F8F4EF] text-primary shadow-[0_8px_18px_rgba(42,27,14,0.08)] ring-1 ring-[#F1EAE2]">
+                          <Heart size={18} strokeWidth={1.8} />
+                        </span>
+                        <span className="font-serif text-[16px] leading-6">{tNav("myFavourites")}</span>
                       </Link>
 
                       <Link
                         href="/reservations"
                         onClick={() => setDropdownOpen(false)}
-                        className="flex items-center justify-between px-4 py-3 hover:bg-gray-50"
+                        className="group flex min-h-10 items-center gap-4 rounded-xl text-[#1D1712] transition-colors hover:text-primary"
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-100">
-                            <Coffee size={16} />
-                          </div>
-                          <span className="text-sm text-gray-700">{tNav("myReservations")}</span>
-                        </div>
-                        <ChevronDown className="rotate-[-90deg]" size={16} />
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#F8F4EF] text-primary shadow-[0_8px_18px_rgba(42,27,14,0.08)] ring-1 ring-[#F1EAE2]">
+                          <CalendarDays size={18} strokeWidth={1.8} />
+                        </span>
+                        <span className="font-serif text-[16px] leading-6">{tNav("myReservations")}</span>
                       </Link>
 
                       <Link
                         href="/notifications"
                         onClick={() => setDropdownOpen(false)}
-                        className="flex w-full items-center justify-between px-4 py-3 hover:bg-gray-50"
+                        className="group flex min-h-10 items-center gap-4 rounded-xl text-[#1D1712] transition-colors hover:text-primary"
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-100">
-                            <Bell size={16} />
-                          </div>
-                          <span className="text-sm text-gray-700">{tNav("notifications")}</span>
-                        </div>
-                        <ChevronDown className="rotate-[-90deg]" size={16} />
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#F8F4EF] text-primary shadow-[0_8px_18px_rgba(42,27,14,0.08)] ring-1 ring-[#F1EAE2]">
+                          <Bell size={18} strokeWidth={1.8} />
+                        </span>
+                        <span className="font-serif text-[16px] leading-6">{tNav("notifications")}</span>
                       </Link>
 
                       <Link
                         href="/contact"
                         onClick={() => setDropdownOpen(false)}
-                        className="flex w-full items-center justify-between px-4 py-3 hover:bg-gray-50"
+                        className="group flex min-h-10 items-center gap-4 rounded-xl text-[#1D1712] transition-colors hover:text-primary"
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-100">
-                            <HelpCircle size={16} />
-                          </div>
-                          <span className="text-sm text-gray-700">{tNav("helpCenter")}</span>
-                        </div>
-                        <ChevronDown className="rotate-[-90deg]" size={16} />
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#F8F4EF] text-primary shadow-[0_8px_18px_rgba(42,27,14,0.08)] ring-1 ring-[#F1EAE2]">
+                          <HelpCircle size={18} strokeWidth={1.8} />
+                        </span>
+                        <span className="font-serif text-[16px] leading-6">{tNav("helpCenter")}</span>
                       </Link>
                     </div>
 
-                    <div className="border-t border-gray-200" />
-
-                    <button
-                      onClick={handleLogout}
-                      className="flex w-full items-center gap-3 px-4 py-4 text-sm hover:bg-red-50"
-                    >
-                      <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-100">
-                        <LogOut size={16} />
-                      </div>
-                      {tNav("logout")}
-                    </button>
+                    <div className="px-3 pb-3">
+                      <button
+                        onClick={handleLogout}
+                        className="flex min-h-12 w-full items-center gap-4 rounded-xl bg-[#FCF7F6] px-6 text-left text-primary transition-colors hover:bg-[#FCEEEE]"
+                      >
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#F7EDED] text-primary ring-1 ring-[#F1DEDE]">
+                          <LogOut size={18} strokeWidth={1.8} />
+                        </span>
+                        <span className="font-serif text-[15px] leading-6">{tNav("logout")}</span>
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
