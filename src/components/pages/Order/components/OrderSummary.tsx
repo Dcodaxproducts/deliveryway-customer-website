@@ -16,8 +16,18 @@ import {
 import Link from "next/link";
 import { formatDisplayAddress } from "@/lib/address-display";
 import { formatMoney, resolveCustomerCurrency } from "@/lib/money";
-import { canReviewOrder, type Order, type OrderItem } from "@/services/orders";
+import { canReviewOrder, type Order, type OrderItem, type OrderPricingBreakdownLine } from "@/services/orders";
 import { useTranslations } from "next-intl";
+
+const getAmountNumber = (value: unknown) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const shouldShowAmountLine = (value: unknown) => Math.abs(getAmountNumber(value)) > 0;
+
+const getBreakdownKey = (line: OrderPricingBreakdownLine) =>
+  String(line.key || line.label || "").toLowerCase();
 
 export default function OrderSummary({
   title,
@@ -40,9 +50,32 @@ export default function OrderSummary({
   const paymentStatus = String(order?.paymentStatus || latestCharge?.status || "").toUpperCase();
   const paymentMethod = String(order?.paymentMethod || latestCharge?.paymentMethod || "").toUpperCase();
   const paymentCurrency = resolveCustomerCurrency({
-    moneyCurrency: latestCharge?.currency,
+    moneyCurrency: order?.pricing?.currency || latestCharge?.currency,
   });
   const paymentAmount = order?.payableAmount ?? order?.totalAmount ?? latestCharge?.amount;
+  const pricingBreakdown = Array.isArray(order?.pricing?.breakdown)
+    ? order.pricing.breakdown
+    : [];
+  const backendBillRows = pricingBreakdown.filter((line) => {
+    const key = getBreakdownKey(line);
+    return key !== "total" && key !== "payableamount" && shouldShowAmountLine(line.amount);
+  });
+  const fallbackBillRows = [
+    { key: "subtotal", label: t("itemTotal"), amount: order?.subtotal },
+    { key: "deliveryFee", label: t("deliveryFee"), amount: order?.deliveryFee, info: true },
+    { key: "taxAmount", label: t("taxes"), amount: order?.taxAmount, info: true },
+    { key: "serviceChargeAmount", label: t("serviceCharge"), amount: order?.serviceChargeAmount },
+    { key: "tipAmount", label: t("tip"), amount: order?.tipAmount },
+  ].filter((line) => line.key === "subtotal" || shouldShowAmountLine(line.amount));
+  const billRows = backendBillRows.length > 0 ? backendBillRows : fallbackBillRows;
+  const discountRows = [
+    { key: "discountAmount", label: t("discount"), amount: order?.pricing?.discountAmount ?? order?.discountAmount },
+    { key: "loyaltyDiscountAmount", label: t("loyaltyDiscount"), amount: order?.pricing?.loyaltyDiscountAmount },
+    { key: "walletAppliedAmount", label: t("walletApplied"), amount: order?.pricing?.walletAppliedAmount },
+  ].filter((line) => shouldShowAmountLine(line.amount));
+  const paidAmount = order?.pricing?.paidAmount;
+  const remainingAmount = order?.pricing?.remainingAmount;
+  const refundedAmount = order?.pricing?.refundedAmount;
   const canContinuePayment =
     Boolean(onContinuePayment && order?.id) &&
     paymentMethod === "STRIPE" &&
@@ -142,29 +175,18 @@ export default function OrderSummary({
         </h2>
 
         <div className="space-y-4 text-gray-500 text-sm">
-          <div className="flex justify-between">
-            <span>{t("itemTotal")}</span>
-            <span>{formatMoney(order?.subtotal, paymentCurrency)}</span>
-          </div>
-
-          <div className="flex justify-between">
-            <div className="flex items-center gap-1">
-              <span>{t("deliveryFee")}</span>
-              <Info size={14} />
+          {billRows.map((line) => (
+            <div key={line.key} className="flex justify-between gap-4">
+              <div className="flex items-center gap-1">
+                <span>{line.label}</span>
+                {"info" in line && line.info ? <Info size={14} /> : null}
+              </div>
+              <span>{formatMoney(line.amount, paymentCurrency)}</span>
             </div>
-            <span>{formatMoney(order?.deliveryFee, paymentCurrency)}</span>
-          </div>
-
-          <div className="flex justify-between">
-            <div className="flex items-center gap-1">
-              <span>{t("taxes")}</span>
-              <Info size={14} />
-            </div>
-            <span>{formatMoney(order?.taxAmount, paymentCurrency)}</span>
-          </div>
+          ))}
         </div>
 
-        {Number(order?.discountAmount || 0) > 0 && (
+        {discountRows.length > 0 && (
           <div className="bg-primary/20 text-primary p-3 rounded-md flex items-center gap-2 text-sm">
             <TicketPercent size={16} />
             {t("discountApplied")}
@@ -172,15 +194,45 @@ export default function OrderSummary({
         )}
 
         <div className="space-y-[10px] pt-[10px]">
-          <div className="flex justify-between text-sm text-gray-500">
-            <span>{t("discount")}</span>
-            <span>{formatMoney(order?.discountAmount, paymentCurrency)}</span>
-          </div>
+          {discountRows.map((line) => (
+            <div key={line.key} className="flex justify-between gap-4 text-sm text-gray-500">
+              <span>{line.label}</span>
+              <span>-{formatMoney(line.amount, paymentCurrency)}</span>
+            </div>
+          ))}
 
           <div className="flex justify-between text-lg font-semibold text-gray-900">
             <span>{t("total")}</span>
             <span>{formatMoney(order?.totalAmount, paymentCurrency)}</span>
           </div>
+
+          {shouldShowAmountLine(order?.payableAmount) && order?.payableAmount !== order?.totalAmount ? (
+            <div className="flex justify-between text-sm font-semibold text-gray-700">
+              <span>{t("payableAmount")}</span>
+              <span>{formatMoney(order?.payableAmount, paymentCurrency)}</span>
+            </div>
+          ) : null}
+
+          {shouldShowAmountLine(paidAmount) ? (
+            <div className="flex justify-between text-sm text-emerald-700">
+              <span>{t("paidAmount")}</span>
+              <span>{formatMoney(paidAmount, paymentCurrency)}</span>
+            </div>
+          ) : null}
+
+          {shouldShowAmountLine(remainingAmount) ? (
+            <div className="flex justify-between text-sm text-amber-700">
+              <span>{t("remainingAmount")}</span>
+              <span>{formatMoney(remainingAmount, paymentCurrency)}</span>
+            </div>
+          ) : null}
+
+          {shouldShowAmountLine(refundedAmount) ? (
+            <div className="flex justify-between text-sm text-gray-500">
+              <span>{t("refundedAmount")}</span>
+              <span>{formatMoney(refundedAmount, paymentCurrency)}</span>
+            </div>
+          ) : null}
         </div>
       </section>
 
