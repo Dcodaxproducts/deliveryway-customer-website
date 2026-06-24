@@ -450,13 +450,13 @@ export const Navbar = () => {
                 {dropdownOpen && (
                   <div
                     style={{ zIndex: "99999" }}
-                    className="absolute right-0 mt-3 w-[365px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[18px] border border-[#F1E6D9] bg-white shadow-[0_18px_50px_rgba(56,40,24,0.16)]"
+                    className="absolute right-0 mt-3 w-[320px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-[#F1E6D9] bg-white shadow-[0_16px_42px_rgba(56,40,24,0.14)]"
                   >
                     <div
-                      className="relative flex min-h-[114px] items-center gap-4 border-b border-[#E8C990] bg-[#FBF5EC] bg-cover bg-center px-8 py-6"
+                      className="relative flex min-h-[92px] items-center gap-3 border-b border-[#E8C990] bg-[#FBF5EC] bg-cover bg-center px-6 py-4"
                       style={{ backgroundImage: "url('/profile-dropdown-bg.svg')" }}
                     >
-                      <span className="relative h-[68px] w-[68px] shrink-0 overflow-hidden rounded-full border-2 border-white bg-white shadow-[0_8px_20px_rgba(49,34,20,0.18)]">
+                      <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full border-2 border-white bg-white shadow-[0_7px_18px_rgba(49,34,20,0.16)]">
                         <Image
                           src={
                             user?.profile?.avatarUrl?.startsWith("http")
@@ -470,10 +470,10 @@ export const Navbar = () => {
                       </span>
 
                       <div className="min-w-0">
-                        <p className="truncate font-serif text-[18px] leading-6 text-[#1D1712]">
+                        <p className="truncate text-[15px] font-semibold leading-5 text-[#1D1712]">
                           {userName || tNav("user")}
                         </p>
-                        <p className="mt-1 truncate text-[12px] leading-5 text-[#7F7167]">
+                        <p className="mt-0.5 truncate text-[12px] leading-5 text-[#7F7167]">
                           {user?.email}
                         </p>
                       </div>
@@ -485,83 +485,83 @@ export const Navbar = () => {
                       </div>
                     </div>
 
-                    <div className="space-y-3 px-7 py-5">
+                    <div className="space-y-2 px-5 py-4">
                       <Link
                         href="/profile"
                         onClick={() => setDropdownOpen(false)}
-                        className="group flex min-h-10 items-center gap-4 rounded-xl text-[#1D1712] transition-colors hover:text-primary"
+                        className="group flex min-h-9 items-center gap-3 rounded-xl text-[#1D1712] transition-colors hover:text-primary"
                       >
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#F8F4EF] text-primary shadow-[0_8px_18px_rgba(42,27,14,0.08)] ring-1 ring-[#F1EAE2]">
-                          <User size={18} strokeWidth={1.8} />
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#F8F4EF] text-primary shadow-[0_7px_16px_rgba(42,27,14,0.07)] ring-1 ring-[#F1EAE2]">
+                          <User size={17} strokeWidth={1.8} />
                         </span>
-                        <span className="font-serif text-[16px] leading-6">{tNav("myProfile")}</span>
+                        <span className="text-sm font-medium leading-5">{tNav("myProfile")}</span>
                       </Link>
 
                       <Link
                         href="/orders-history"
                         onClick={() => setDropdownOpen(false)}
-                        className="group flex min-h-10 items-center gap-4 rounded-xl text-[#1D1712] transition-colors hover:text-primary"
+                        className="group flex min-h-9 items-center gap-3 rounded-xl text-[#1D1712] transition-colors hover:text-primary"
                       >
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#F8F4EF] text-primary shadow-[0_8px_18px_rgba(42,27,14,0.08)] ring-1 ring-[#F1EAE2]">
-                          <ShoppingBag size={18} strokeWidth={1.8} />
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#F8F4EF] text-primary shadow-[0_7px_16px_rgba(42,27,14,0.07)] ring-1 ring-[#F1EAE2]">
+                          <ShoppingBag size={17} strokeWidth={1.8} />
                         </span>
-                        <span className="font-serif text-[16px] leading-6">{tNav("myOrders")}</span>
+                        <span className="text-sm font-medium leading-5">{tNav("myOrders")}</span>
                       </Link>
 
                       <Link
                         href="/favourites"
                         onClick={() => setDropdownOpen(false)}
-                        className="group flex min-h-10 items-center gap-4 rounded-xl text-[#1D1712] transition-colors hover:text-primary"
+                        className="group flex min-h-9 items-center gap-3 rounded-xl text-[#1D1712] transition-colors hover:text-primary"
                       >
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#F8F4EF] text-primary shadow-[0_8px_18px_rgba(42,27,14,0.08)] ring-1 ring-[#F1EAE2]">
-                          <Heart size={18} strokeWidth={1.8} />
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#F8F4EF] text-primary shadow-[0_7px_16px_rgba(42,27,14,0.07)] ring-1 ring-[#F1EAE2]">
+                          <Heart size={17} strokeWidth={1.8} />
                         </span>
-                        <span className="font-serif text-[16px] leading-6">{tNav("myFavourites")}</span>
+                        <span className="text-sm font-medium leading-5">{tNav("myFavourites")}</span>
                       </Link>
 
                       <Link
                         href="/reservations"
                         onClick={() => setDropdownOpen(false)}
-                        className="group flex min-h-10 items-center gap-4 rounded-xl text-[#1D1712] transition-colors hover:text-primary"
+                        className="group flex min-h-9 items-center gap-3 rounded-xl text-[#1D1712] transition-colors hover:text-primary"
                       >
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#F8F4EF] text-primary shadow-[0_8px_18px_rgba(42,27,14,0.08)] ring-1 ring-[#F1EAE2]">
-                          <CalendarDays size={18} strokeWidth={1.8} />
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#F8F4EF] text-primary shadow-[0_7px_16px_rgba(42,27,14,0.07)] ring-1 ring-[#F1EAE2]">
+                          <CalendarDays size={17} strokeWidth={1.8} />
                         </span>
-                        <span className="font-serif text-[16px] leading-6">{tNav("myReservations")}</span>
+                        <span className="text-sm font-medium leading-5">{tNav("myReservations")}</span>
                       </Link>
 
                       <Link
                         href="/notifications"
                         onClick={() => setDropdownOpen(false)}
-                        className="group flex min-h-10 items-center gap-4 rounded-xl text-[#1D1712] transition-colors hover:text-primary"
+                        className="group flex min-h-9 items-center gap-3 rounded-xl text-[#1D1712] transition-colors hover:text-primary"
                       >
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#F8F4EF] text-primary shadow-[0_8px_18px_rgba(42,27,14,0.08)] ring-1 ring-[#F1EAE2]">
-                          <Bell size={18} strokeWidth={1.8} />
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#F8F4EF] text-primary shadow-[0_7px_16px_rgba(42,27,14,0.07)] ring-1 ring-[#F1EAE2]">
+                          <Bell size={17} strokeWidth={1.8} />
                         </span>
-                        <span className="font-serif text-[16px] leading-6">{tNav("notifications")}</span>
+                        <span className="text-sm font-medium leading-5">{tNav("notifications")}</span>
                       </Link>
 
                       <Link
                         href="/contact"
                         onClick={() => setDropdownOpen(false)}
-                        className="group flex min-h-10 items-center gap-4 rounded-xl text-[#1D1712] transition-colors hover:text-primary"
+                        className="group flex min-h-9 items-center gap-3 rounded-xl text-[#1D1712] transition-colors hover:text-primary"
                       >
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#F8F4EF] text-primary shadow-[0_8px_18px_rgba(42,27,14,0.08)] ring-1 ring-[#F1EAE2]">
-                          <HelpCircle size={18} strokeWidth={1.8} />
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#F8F4EF] text-primary shadow-[0_7px_16px_rgba(42,27,14,0.07)] ring-1 ring-[#F1EAE2]">
+                          <HelpCircle size={17} strokeWidth={1.8} />
                         </span>
-                        <span className="font-serif text-[16px] leading-6">{tNav("helpCenter")}</span>
+                        <span className="text-sm font-medium leading-5">{tNav("helpCenter")}</span>
                       </Link>
                     </div>
 
                     <div className="px-3 pb-3">
                       <button
                         onClick={handleLogout}
-                        className="flex min-h-12 w-full items-center gap-4 rounded-xl bg-[#FCF7F6] px-6 text-left text-primary transition-colors hover:bg-[#FCEEEE]"
+                        className="flex min-h-11 w-full items-center gap-3 rounded-xl bg-[#FCF7F6] px-5 text-left text-primary transition-colors hover:bg-[#FCEEEE]"
                       >
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#F7EDED] text-primary ring-1 ring-[#F1DEDE]">
-                          <LogOut size={18} strokeWidth={1.8} />
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#F7EDED] text-primary ring-1 ring-[#F1DEDE]">
+                          <LogOut size={17} strokeWidth={1.8} />
                         </span>
-                        <span className="font-serif text-[15px] leading-6">{tNav("logout")}</span>
+                        <span className="text-sm font-medium leading-5">{tNav("logout")}</span>
                       </button>
                     </div>
                   </div>
