@@ -167,11 +167,33 @@ describe("public content service", () => {
                 avatarUrl: null,
               },
               branch: { id: "branch-1", name: "Main" },
+              order: {
+                id: "order-1",
+                orderType: "DELIVERY",
+                status: "DELIVERED",
+                paymentMethod: "STRIPE",
+                paymentStatus: "PAID",
+                totalAmount: "2500",
+                createdAt: "2026-06-18T00:00:00.000Z",
+                items: [
+                  {
+                    id: "order-item-1",
+                    menuItemId: "burger-1",
+                    menuItemName: "Burger",
+                    variationId: "variation-1",
+                    variationName: "Large",
+                    quantity: "2",
+                    unitPrice: "1000",
+                    lineTotal: "2000",
+                    snapshotModifiers: [{ name: "Cheese" }],
+                  },
+                ],
+              },
             },
           ],
           summary: {
             reviewCount: "1",
-            averageRating: "5",
+            averageRating: null,
           },
         },
         meta: {
@@ -184,8 +206,27 @@ describe("public content service", () => {
         },
       })
     ).toMatchObject({
-      items: [{ id: "review-1", rating: 5, comment: "Great" }],
-      summary: { reviewCount: 1, averageRating: 5 },
+      items: [
+        {
+          id: "review-1",
+          rating: 5,
+          comment: "Great",
+          order: {
+            id: "order-1",
+            totalAmount: 2500,
+            items: [
+              {
+                id: "order-item-1",
+                menuItemId: "burger-1",
+                quantity: 2,
+                unitPrice: 1000,
+                lineTotal: 2000,
+              },
+            ],
+          },
+        },
+      ],
+      summary: { reviewCount: 1, averageRating: null },
       meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
     });
   });
@@ -202,10 +243,11 @@ describe("public content service", () => {
       page: 2,
       limit: 5,
       rating: 5,
+      locale: "de",
     });
 
     expect(getRequestMock).toHaveBeenCalledWith(
-      "/customer-app/reviews?page=2&limit=5&restaurantId=restaurant-1&branchId=branch-1&rating=5"
+      "/customer-app/reviews?page=2&limit=5&restaurantId=restaurant-1&branchId=branch-1&rating=5&locale=de"
     );
   });
 
