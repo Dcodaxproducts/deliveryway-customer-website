@@ -107,7 +107,7 @@ const Testimonials = ({ reviews = [], menuItemId = null, averageRating = null }:
 
       <div className="max-w-[1200px] mx-auto mb-10">
         <h2 className="text-[28px] font-semibold text-gray-900">
-          Guest Experiences
+          User Experiences
         </h2>
 
         <div className="flex items-center gap-3 mt-2">
@@ -164,7 +164,7 @@ const Testimonials = ({ reviews = [], menuItemId = null, averageRating = null }:
                   {item.name}
                 </p>
                 <p className="text-[11px] tracking-wide uppercase text-gray-400">
-                  Verified Guest
+                  Verified User
                 </p>
               </div>
 
