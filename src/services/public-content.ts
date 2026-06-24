@@ -177,6 +177,8 @@ export type CustomerReviewsParams = {
   locale?: string | null;
 };
 
+const MAX_CUSTOMER_REVIEWS_LIMIT = 50;
+
 export type HelpSupportContent = {
   restaurantId: string;
   restaurantCoverImage: string | null;
@@ -541,9 +543,13 @@ export const fetchCustomerReviews = async ({
   rating,
   locale,
 }: CustomerReviewsParams) => {
+  const safeLimit = Math.min(
+    MAX_CUSTOMER_REVIEWS_LIMIT,
+    Math.max(1, Number.isFinite(limit) ? limit : 10)
+  );
   const params = new URLSearchParams({
     page: String(page),
-    limit: String(limit),
+    limit: String(safeLimit),
   });
 
   if (restaurantId) {

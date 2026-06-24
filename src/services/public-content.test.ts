@@ -251,6 +251,24 @@ describe("public content service", () => {
     );
   });
 
+  it("caps customer review requests at the backend max limit", async () => {
+    getRequestMock.mockResolvedValue({
+      data: { data: { items: [], summary: { reviewCount: 0, averageRating: null } } },
+      meta: { page: 1, limit: 50, total: 0, totalPages: 0 },
+    });
+
+    await fetchCustomerReviews({
+      restaurantId: "restaurant-1",
+      page: 1,
+      limit: 100,
+      locale: "en",
+    });
+
+    expect(getRequestMock).toHaveBeenCalledWith(
+      "/customer-app/reviews?page=1&limit=50&restaurantId=restaurant-1&locale=en"
+    );
+  });
+
   it("normalizes help support content", () => {
     expect(
       normalizeHelpSupportContent({

@@ -903,7 +903,7 @@ function ProductDetailsPageContent() {
     restaurantId,
     branchId,
     page: 1,
-    limit: 100,
+    limit: 50,
     locale,
   });
   const itemReviews = useMemo(() => {
