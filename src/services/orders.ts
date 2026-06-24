@@ -49,9 +49,13 @@ export type OrderModifierInput = {
   id?: string | number | null;
   modifierId?: string | number | null;
   modifierGroupId?: string | number | null;
+  name?: string | null;
   quantity?: number | string | null;
+  unitPrice?: number | string | null;
+  total?: number | string | null;
   modifier?: {
     id?: string | number | null;
+    name?: string | null;
   } | null;
   modifiers?: OrderModifierInput[];
 };
