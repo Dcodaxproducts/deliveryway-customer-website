@@ -1147,9 +1147,6 @@ function CheckoutPageContent() {
         return;
       }
 
-      const addressUpdated = await setCartAddress();
-      if (!addressUpdated) return;
-
       const scheduledDeliveryAt = getScheduledDeliveryAt();
 
       if (scheduledDeliveryAt === null) {
@@ -1161,12 +1158,12 @@ function CheckoutPageContent() {
         return;
       }
 
-      const cartOrderTime =
-        activeTab === "pickup" && scheduledDeliveryAt === undefined
-          ? null
-          : scheduledDeliveryAt;
+      const cartOrderTime = scheduledDeliveryAt === undefined ? null : scheduledDeliveryAt;
       const scheduleUpdated = await setCartSchedule(cartOrderTime);
       if (!scheduleUpdated) return;
+
+      const addressUpdated = await setCartAddress();
+      if (!addressUpdated) return;
 
       const checkoutTipAmount = Math.max(
         0,
