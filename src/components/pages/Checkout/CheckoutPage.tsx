@@ -62,6 +62,9 @@ type GuestPrivacyPolicy = {
   policyLink: string;
 };
 
+const getCartItemCount = (items: CartItem[]) =>
+  items.reduce((total, item) => total + Math.max(1, toNumber(item.quantity, 1)), 0);
+
 const getCheckoutOrderType = (checkoutType: string) =>
   checkoutType === "pickup" ? "TAKEAWAY" : "DELIVERY";
 
@@ -740,6 +743,11 @@ function CheckoutPageContent() {
 
     const currentQty = Math.max(1, toNumber(currentItem.quantity, 1));
 
+    if (type === "dec" && currentQty <= 1) {
+      await deleteItem(id);
+      return;
+    }
+
     const newQty =
       type === "inc" ? currentQty + 1 : Math.max(1, currentQty - 1);
 
@@ -775,6 +783,9 @@ function CheckoutPageContent() {
         return;
       }
 
+      dispatchCartChanged({
+        itemCount: Math.max(0, getCartItemCount(previousCartItems) - currentQty + newQty),
+      });
       await fetchCart();
     } catch (err) {
       setCartItems(previousCartItems);
@@ -810,6 +821,12 @@ function CheckoutPageContent() {
         return;
       }
 
+      dispatchCartChanged({
+        itemCount: Math.max(
+          0,
+          getCartItemCount(previousCartItems) - Math.max(1, toNumber(currentItem?.quantity, 1))
+        ),
+      });
       await fetchCart();
       toast.success(t("toast.itemRemoved"));
     } catch (err) {
@@ -853,7 +870,7 @@ function CheckoutPageContent() {
       }
 
       clearBackendError();
-      dispatchCartChanged();
+      dispatchCartChanged({ itemCount: 0 });
       return true;
     } catch (err) {
       setCartItems(previousCartItems);
