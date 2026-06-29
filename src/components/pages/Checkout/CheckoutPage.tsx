@@ -326,7 +326,15 @@ function CheckoutPageContent() {
   const [removingCoupon, setRemovingCoupon] = useState(false);
   const [applyingTip, setApplyingTip] = useState(false);
 
-  const { get, patch, del, post, checkoutCustomerCart } = useCheckout(token);
+  const {
+    get,
+    patch,
+    del,
+    post,
+    applyCoupon: applyCheckoutCoupon,
+    checkoutCustomerCart,
+    removeCoupon: removeCheckoutCoupon,
+  } = useCheckout(token);
   const { updateCustomerCart, updateCustomerCartOrderType, quoteCustomerCart } = useCart(token);
   const { fetchLoyalty } = useLoyalty(token);
   const checkoutBranchId = user?.branchId || user?.branch?.id || null;
@@ -1291,7 +1299,13 @@ function CheckoutPageContent() {
     try {
       setValidatingCoupon(true);
 
-      const res = await patch(`/v1/cart/coupon`, {
+      if (!customerId) {
+        toast.error(t("toast.failedFetchCart"));
+        return;
+      }
+
+      const res = await applyCheckoutCoupon({
+        customerId,
         couponCode: couponCode.trim(),
       });
 
@@ -1326,7 +1340,12 @@ function CheckoutPageContent() {
     try {
       setRemovingCoupon(true);
 
-      const res = await del(`/v1/cart/coupon`);
+      if (!customerId) {
+        toast.error(t("toast.failedFetchCart"));
+        return;
+      }
+
+      const res = await removeCheckoutCoupon({ customerId });
 
       if (hasBackendError(res)) {
         reportBackendError(
