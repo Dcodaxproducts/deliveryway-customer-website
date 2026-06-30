@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { CalendarDays, MapPin, Clock, Utensils, Loader2, Store, Truck, Coffee } from "lucide-react";
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import useItems from "@/hooks/useItems";
@@ -12,6 +12,7 @@ import { useHome } from "@/hooks/useHome";
 import { getStoredAuthState } from "@/lib/auth";
 import { normalizeBranch } from "@/lib/branch-selector";
 import { OpeningHoursDialog } from "@/components/common/popups/OpeningHoursDialog";
+import { CustomTooltip } from "@/components/ui/CustomTooltip";
 import type { AuthRestaurantUser, ItemsCategory, StoredAuthState } from "@/components/pages/Items/types";
 import { formatAddress, getBranchHoursDetails, getBranchHoursSummary, getCurrentBranchHoursDetail, getImageUrl, getOperatingHours, getRatingInfo, getRestaurantAddress, getRestaurantName, hasText, resolveHasNext } from "@/components/pages/Items/utils/restaurant-card-utils";
 import type { BranchRecord } from "@/types/branch-selector";
@@ -69,11 +70,11 @@ function BranchHoursDialog({
             title: day.dayLabel,
             subtitle: t("openingHours"),
             statusLabel: day.status === "closed" ? t("closed") : day.status === "open" ? t("open") : t("hoursAvailable"),
-            isClosed: Boolean(day.isClosed || day.status === "closed"),
+            isClosed: Boolean(day.isClosed),
             hoursLabel: day.hoursLabel,
             breakLabels: day.breakLabels,
             closedTitle: t("closed"),
-            closedDescription: t("hoursNotConfigured"),
+            closedDescription: t("closedToday"),
             breakPrefix: t("breakTime", { time: "" }).replace(/\s*$/, ""),
           })),
           emptyTitle: t("hoursNotConfigured"),
@@ -88,11 +89,11 @@ function BranchHoursDialog({
                 title: day.dayLabel,
                 subtitle: t("deliveryHours"),
                 statusLabel: day.status === "closed" ? t("closed") : day.status === "open" ? t("open") : t("hoursAvailable"),
-                isClosed: Boolean(day.isClosed || day.status === "closed"),
+                isClosed: Boolean(day.isClosed),
                 hoursLabel: day.hoursLabel,
                 breakLabels: day.breakLabels,
                 closedTitle: t("closed"),
-                closedDescription: t("hoursNotConfigured"),
+                closedDescription: t("closedToday"),
                 breakPrefix: t("breakTime", { time: "" }).replace(/\s*$/, ""),
               })),
               emptyTitle: t("hoursNotConfigured"),
@@ -108,11 +109,11 @@ function BranchHoursDialog({
                 title: day.dayLabel,
                 subtitle: t("holidayHours"),
                 statusLabel: day.status === "closed" ? t("closed") : day.status === "open" ? t("open") : t("hoursAvailable"),
-                isClosed: Boolean(day.isClosed || day.status === "closed"),
+                isClosed: Boolean(day.isClosed),
                 hoursLabel: day.hoursLabel,
                 breakLabels: day.breakLabels,
                 closedTitle: t("closed"),
-                closedDescription: t("hoursNotConfigured"),
+                closedDescription: t("closedToday"),
                 breakPrefix: t("breakTime", { time: "" }).replace(/\s*$/, ""),
               })),
               emptyTitle: t("hoursNotConfigured"),
@@ -153,6 +154,7 @@ export default function RestaurantHeader() {
     reservationEnabled: boolean;
   } | null>(null);
   const [loading, setLoading] = useState(true);
+  const hasLoadedRestaurantRef = useRef(false);
 
   const storedAuth = useMemo<StoredAuthState | null>(() => getStoredAuthState() as StoredAuthState | null, []);
 
@@ -184,7 +186,9 @@ export default function RestaurantHeader() {
       }
 
       try {
-        setLoading(true);
+        if (!hasLoadedRestaurantRef.current) {
+          setLoading(true);
+        }
 
         const sessionBranch = getSelectedBranchFromSession(user as AuthRestaurantUser | null, storedAuth);
         let selectedBranch: BranchRecord | AuthRestaurantUser["branch"] | null = sessionBranch;
@@ -289,6 +293,7 @@ export default function RestaurantHeader() {
         if (cancelled) return;
 
         setRestaurant(resolvedRestaurant);
+        hasLoadedRestaurantRef.current = true;
         setCategory(categoryId ? selectedCategory : null);
       } catch (err) {
 
@@ -302,6 +307,7 @@ export default function RestaurantHeader() {
             branchHours: getBranchHoursSummary(getSelectedBranchFromSession(user as AuthRestaurantUser | null, storedAuth)),
             reservationEnabled: getSelectedBranchFromSession(user as AuthRestaurantUser | null, storedAuth)?.settings?.tableReservationsEnabled === true,
           });
+          hasLoadedRestaurantRef.current = true;
           setCategory(null);
         }
       } finally {
@@ -339,6 +345,8 @@ export default function RestaurantHeader() {
   const openingSubLabel = restaurant?.branchHours.opening.status === "open" && openingCloseTime
     ? t("closesAt", { time: openingCloseTime })
     : restaurant?.branchHours.opening.value;
+  const openingSubLabelText = String(openingSubLabel || "");
+  const shouldShowOpeningTooltip = openingSubLabelText.length > 28;
   const deliveryHoursLabel = currentDeliveryDetail?.hoursLabel || restaurant?.branchHours.delivery.value;
   const primaryOpeningBreakLabel = currentOpeningBreakLabels[0] ?? "";
   const primaryDeliveryBreakLabel = currentDeliveryBreakLabels[0] ?? primaryOpeningBreakLabel;
@@ -415,9 +423,11 @@ export default function RestaurantHeader() {
                   <span className={`block text-sm font-semibold ${openingTone.text}`}>
                     {openingStatusLabel}
                   </span>
-                  <span className="mt-1.5 block truncate text-sm font-medium text-gray-700">
-                    {openingSubLabel}
-                  </span>
+                  <CustomTooltip content={shouldShowOpeningTooltip ? openingSubLabelText : null} className="mt-1.5 max-w-full">
+                    <span className="block truncate text-sm font-medium text-gray-700">
+                      {openingSubLabelText}
+                    </span>
+                  </CustomTooltip>
                   <span
                     className="mt-2 flex min-w-0 items-center gap-1.5 text-xs font-medium text-gray-600"
                     title={openingBreakText}
