@@ -146,6 +146,27 @@ describe("restaurant card utils", () => {
     expect(summary.showDeliveryHoursCard).toBe(false);
   });
 
+  it("uses opening hours as popup fallback for closed delivery day rows", () => {
+    const summary = getBranchHoursSummary({
+      scheduleTimings: {
+        openingHours: [
+          { dayOfWeek: "TUESDAY", openTime: "16:00", closeTime: "18:00" },
+        ],
+        deliveryHours: [
+          { dayOfWeek: "TUESDAY", isClosed: true, openTime: null, closeTime: null },
+        ],
+      },
+    });
+
+    const deliveryDetails = getBranchHoursDetails(summary.regularDeliverySchedule);
+    const tuesday = deliveryDetails.find((day) => day.dayLabel === "Tue");
+
+    expect(tuesday).toMatchObject({
+      hoursLabel: "16:00 - 18:00",
+    });
+    expect(tuesday?.hoursLabel).not.toBe("Closed");
+  });
+
   it("uses today's holiday opening hours before regular branch hours", () => {
     const todayDate = new Date();
     const todayValue = [

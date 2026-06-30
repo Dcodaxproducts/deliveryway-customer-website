@@ -543,6 +543,36 @@ const getTodaySchedule = (schedule: BranchHoursEntry[]) => {
 const isUsableHoursEntry = (entry: BranchHoursEntry | null | undefined) =>
   Boolean(entry && !entry.isClosed && hasText(entry.openTime) && hasText(entry.closeTime));
 
+const getScheduleWithOpeningFallback = ({
+  openingSchedule,
+  schedule,
+}: {
+  openingSchedule: BranchHoursEntry[];
+  schedule: BranchHoursEntry[];
+}) => {
+  if (!schedule.length) return openingSchedule;
+
+  const openingByDay = new Map(
+    openingSchedule.map((entry) => [normalizeDayKey(entry.dayOfWeek), entry])
+  );
+  const scheduleDays = new Set(schedule.map((entry) => normalizeDayKey(entry.dayOfWeek)));
+  const mergedSchedule = schedule.map((entry) => {
+    if (isUsableHoursEntry(entry)) return entry;
+
+    return openingByDay.get(normalizeDayKey(entry.dayOfWeek)) ?? entry;
+  });
+
+  openingSchedule.forEach((entry) => {
+    const dayKey = normalizeDayKey(entry.dayOfWeek);
+
+    if (!scheduleDays.has(dayKey)) {
+      mergedSchedule.push(entry);
+    }
+  });
+
+  return mergedSchedule;
+};
+
 const summarizeSchedule = ({
   fallback,
   schedule,
@@ -618,6 +648,10 @@ export const getBranchHoursSummary = (branch: unknown) => {
     "deliverySchedule",
     "deliveryOperatingHours",
   ]);
+  const displayDeliverySchedule = getScheduleWithOpeningFallback({
+    openingSchedule,
+    schedule: deliverySchedule,
+  });
   const holidaySchedule = getHolidayScheduleForDate(settings);
   const opening = holidaySchedule
     ? summarizeSchedule({ schedule: [holidaySchedule] })
@@ -636,14 +670,14 @@ export const getBranchHoursSummary = (branch: unknown) => {
   const effectiveDeliverySchedule = holidaySchedule || !isUsableHoursEntry(todayDeliveryEntry)
     ? [holidaySchedule ?? getTodaySchedule(openingSchedule).entry].filter(Boolean) as BranchHoursEntry[]
     : deliverySchedule;
-  const deliveryMatchesOpening = areBranchSchedulesIdentical(openingSchedule, deliverySchedule);
+  const deliveryMatchesOpening = areBranchSchedulesIdentical(openingSchedule, displayDeliverySchedule);
   const deliveryMatchesOpeningToday = areCurrentBranchHoursDetailsIdentical(
     getCurrentBranchHoursDetail(getBranchHoursDetails(effectiveOpeningSchedule)),
     getCurrentBranchHoursDetail(getBranchHoursDetails(effectiveDeliverySchedule)),
   );
   const showDeliveryHours =
     !holidaySchedule &&
-    deliverySchedule.length > 0 &&
+    displayDeliverySchedule.length > 0 &&
     isUsableHoursEntry(todayDeliveryEntry) &&
     !deliveryMatchesOpening;
   const showDeliveryHoursCard = showDeliveryHours && !deliveryMatchesOpeningToday;
@@ -671,7 +705,7 @@ export const getBranchHoursSummary = (branch: unknown) => {
     openingSchedule: effectiveOpeningSchedule,
     deliverySchedule: effectiveDeliverySchedule,
     regularOpeningSchedule: openingSchedule,
-    regularDeliverySchedule: deliverySchedule,
+    regularDeliverySchedule: displayDeliverySchedule,
     holidaySchedule: holidaySchedule ? [holidaySchedule] : [],
     showDeliveryHours,
     showDeliveryHoursCard,
