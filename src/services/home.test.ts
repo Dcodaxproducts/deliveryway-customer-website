@@ -92,17 +92,30 @@ describe("getHomeCategories", () => {
         },
       });
 
-    const categories = await getHomeCategories("restaurant-1");
+    const categories = await getHomeCategories("restaurant-1", "branch-1");
 
     expect(categories.map((category) => category.id)).toEqual(["c1", "c2", "c3"]);
     expect(getRequestMock).toHaveBeenNthCalledWith(
       1,
-      "/v1/menu/categories?restaurantId=restaurant-1&page=1&limit=50&sortBy=sortOrder&sortOrder=ASC"
+      "/customer-app/cuisines?restaurantId=restaurant-1&page=1&limit=50&branchId=branch-1"
     );
     expect(getRequestMock).toHaveBeenNthCalledWith(
       2,
-      "/v1/menu/categories?restaurantId=restaurant-1&page=2&limit=50&sortBy=sortOrder&sortOrder=ASC"
+      "/customer-app/cuisines?restaurantId=restaurant-1&page=2&limit=50&branchId=branch-1"
     );
+  });
+
+  it("normalizes home categories from cuisines or categories payload fields", async () => {
+    getRequestMock.mockResolvedValue({
+      data: {
+        restaurant: { name: "Demo" },
+        categories: [{ id: "fallback-category", name: "Burgers" }],
+      },
+    });
+
+    const response = await getHome("restaurant-1");
+
+    expect(response.data.cuisines[0]?.id).toBe("fallback-category");
   });
 
   it("deduplicates categories across pages", async () => {

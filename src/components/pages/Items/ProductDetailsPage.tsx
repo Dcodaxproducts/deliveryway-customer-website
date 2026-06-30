@@ -853,7 +853,7 @@ function ProductDetailsPageContent() {
   const isEditingCartItem = Boolean(cartItemId);
 
   const { token } = useAuthContext();
-  const { fetchMenuItems } = useItems(token);
+  const { fetchCustomerMenuItemBySlug, fetchMenuItems } = useItems(token);
   const {
     addCustomerCartItem,
     addGroupOrderItem,
@@ -1539,9 +1539,36 @@ function ProductDetailsPageContent() {
       try {
         setPageLoading(true);
 
-        const { response: res, items } = await fetchMenuItems(
-          `/v1/menu/items?search=${encodeURIComponent(searchValue)}`
-        );
+        let res;
+        let matchedItem: MenuItem | null = null;
+
+        if (slug && restaurantId && branchId) {
+          const { response: customerItemResponse, item: customerItem } = await fetchCustomerMenuItemBySlug({
+            slug,
+            restaurantId,
+            branchId,
+          });
+
+          res = customerItemResponse;
+          matchedItem = customerItem;
+        } else {
+          const { response: searchResponse, items } = await fetchMenuItems(
+            `/v1/menu/items?search=${encodeURIComponent(searchValue)}`
+          );
+
+          res = searchResponse;
+          matchedItem =
+            items.find(
+              (menuItem: MenuItem) =>
+                itemIdParam && String(menuItem?.id || "") === String(itemIdParam)
+            ) ||
+            items.find(
+              (menuItem: MenuItem) =>
+                slug && String(menuItem?.slug || "") === String(slug)
+            ) ||
+            items[0] ||
+            null;
+        }
 
         if (!isMounted) return;
 
@@ -1550,17 +1577,6 @@ function ProductDetailsPageContent() {
           setItem(null);
           return;
         }
-
-        const matchedItem =
-          items.find(
-            (menuItem: MenuItem) =>
-              itemIdParam && String(menuItem?.id || "") === String(itemIdParam)
-          ) ||
-          items.find(
-            (menuItem: MenuItem) =>
-              slug && String(menuItem?.slug || "") === String(slug)
-          ) ||
-          items[0];
 
         if (!matchedItem) {
           setItem(null);
@@ -1590,7 +1606,7 @@ function ProductDetailsPageContent() {
     return () => {
       isMounted = false;
     };
-  }, [slug, itemIdParam, token, fetchMenuItems]);
+  }, [slug, itemIdParam, token, fetchCustomerMenuItemBySlug, fetchMenuItems, restaurantId, branchId]);
 
   useEffect(() => {
     const fetchCartItemToEdit = async () => {

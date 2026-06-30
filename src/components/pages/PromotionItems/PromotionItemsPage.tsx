@@ -68,6 +68,10 @@ const getPromotionIds = (promotion?: PromotionInfo | null) =>
     .map((value) => String(value || "").trim())
     .filter(Boolean);
 
+const isHappyHourCampaign = (promotion?: PromotionCampaign) =>
+  [promotion?.type, promotion?.promotionType, promotion?.campaignType]
+    .some((value) => String(value || "").trim().toUpperCase() === "HAPPY_HOUR");
+
 const getPromotionMenuItems = ({
   promotion,
   promotionId,
@@ -86,7 +90,7 @@ const getPromotionMenuItems = ({
   const matchingPromotionalItems = promotionalItems.filter((item) => {
     const ids = [
       ...getPromotionIds(item.promotion),
-      ...getPromotionIds(item.happyHour),
+      ...(isHappyHourCampaign(promotion) ? getPromotionIds(item.happyHour) : []),
     ];
 
     return ids.includes(promotionId) || scopedIds.has(String(item.id || ""));
