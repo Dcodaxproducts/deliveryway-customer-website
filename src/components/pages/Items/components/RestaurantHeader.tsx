@@ -8,7 +8,9 @@ import { useTranslations } from "next-intl";
 import useItems from "@/hooks/useItems";
 import { useAuth } from "@/hooks/useAuth";
 import useBranches from "@/hooks/useBranches";
+import { useHome } from "@/hooks/useHome";
 import { getStoredAuthState } from "@/lib/auth";
+import { normalizeBranch } from "@/lib/branch-selector";
 import { OpeningHoursDialog } from "@/components/common/popups/OpeningHoursDialog";
 import type { AuthRestaurantUser, ItemsCategory, StoredAuthState } from "@/components/pages/Items/types";
 import { formatAddress, getBranchHoursDetails, getBranchHoursSummary, getCurrentBranchHoursDetail, getImageUrl, getOperatingHours, getRatingInfo, getRestaurantAddress, getRestaurantName, hasText, resolveHasNext } from "@/components/pages/Items/utils/restaurant-card-utils";
@@ -66,8 +68,8 @@ function BranchHoursDialog({
             id: `opening-${day.dayOfWeek}`,
             title: day.dayLabel,
             subtitle: t("openingHours"),
-            statusLabel: day.isClosed ? t("closed") : t("open"),
-            isClosed: Boolean(day.isClosed),
+            statusLabel: day.status === "closed" ? t("closed") : day.status === "open" ? t("open") : t("hoursAvailable"),
+            isClosed: Boolean(day.isClosed || day.status === "closed"),
             hoursLabel: day.hoursLabel,
             breakLabels: day.breakLabels,
             closedTitle: t("closed"),
@@ -85,8 +87,8 @@ function BranchHoursDialog({
                 id: `delivery-${day.dayOfWeek}`,
                 title: day.dayLabel,
                 subtitle: t("deliveryHours"),
-                statusLabel: day.isClosed ? t("closed") : t("open"),
-                isClosed: Boolean(day.isClosed),
+                statusLabel: day.status === "closed" ? t("closed") : day.status === "open" ? t("open") : t("hoursAvailable"),
+                isClosed: Boolean(day.isClosed || day.status === "closed"),
                 hoursLabel: day.hoursLabel,
                 breakLabels: day.breakLabels,
                 closedTitle: t("closed"),
@@ -105,8 +107,8 @@ function BranchHoursDialog({
                 id: `holiday-${day.date || day.dayOfWeek || index}`,
                 title: day.dayLabel,
                 subtitle: t("holidayHours"),
-                statusLabel: day.isClosed ? t("closed") : t("open"),
-                isClosed: Boolean(day.isClosed),
+                statusLabel: day.status === "closed" ? t("closed") : day.status === "open" ? t("open") : t("hoursAvailable"),
+                isClosed: Boolean(day.isClosed || day.status === "closed"),
                 hoursLabel: day.hoursLabel,
                 breakLabels: day.breakLabels,
                 closedTitle: t("closed"),
@@ -166,6 +168,11 @@ export default function RestaurantHeader() {
   const selectedBranchId = useMemo(() => {
     return String(user?.branchId || user?.branch?.id || storedAuth?.user?.branchId || storedAuth?.user?.branch?.id || "");
   }, [user?.branchId, user?.branch?.id, storedAuth]);
+  const homeQuery = useHome(
+    String(restaurantId || ""),
+    selectedBranchId,
+    Boolean(restaurantId && selectedBranchId)
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -181,8 +188,28 @@ export default function RestaurantHeader() {
 
         const sessionBranch = getSelectedBranchFromSession(user as AuthRestaurantUser | null, storedAuth);
         let selectedBranch: BranchRecord | AuthRestaurantUser["branch"] | null = sessionBranch;
+        const normalizedHomeBranch = normalizeBranch(homeQuery.data?.data.branch);
+        const landingPopup = homeQuery.data?.data.landingPopup;
 
-        if (selectedBranchId && restaurantId) {
+        if (normalizedHomeBranch) {
+          selectedBranch = landingPopup?.type === "TEMPORARY_CLOSURE" && landingPopup.temporaryClosure
+            ? {
+                ...normalizedHomeBranch,
+                landingPopup,
+                availability: {
+                  ...normalizedHomeBranch.availability,
+                  isTemporarilyClosed: landingPopup.temporaryClosure.isClosed,
+                  temporaryClosure: landingPopup.temporaryClosure,
+                },
+                settings: {
+                  ...normalizedHomeBranch.settings,
+                  temporaryClosure: landingPopup.temporaryClosure,
+                },
+              }
+            : normalizedHomeBranch;
+        }
+
+        if (!normalizedHomeBranch && selectedBranchId && restaurantId) {
           try {
             const branches = await fetchBranches(
               `/v1/branches?restaurantId=${encodeURIComponent(String(restaurantId))}&page=1&limit=100`
@@ -289,7 +316,7 @@ export default function RestaurantHeader() {
     return () => {
       cancelled = true;
     };
-  }, [categoryId, token, restaurantId, selectedBranchId, fetchBranches, user, storedAuth, t]);
+  }, [categoryId, token, restaurantId, selectedBranchId, fetchBranches, user, storedAuth, t, homeQuery.data?.data.branch, homeQuery.data?.data.landingPopup]);
 
   const categoryItemCount = category ? getCategoryItemCount(category) : null;
   const bannerImage = getImageUrl(category, restaurant);
@@ -321,6 +348,18 @@ export default function RestaurantHeader() {
   const deliveryBreakText = primaryDeliveryBreakLabel
     ? t("breakTime", { time: primaryDeliveryBreakLabel })
     : t("noBreakToday");
+  const isOpeningCurrentlyOpen = restaurant?.branchHours.opening.status === "open";
+  const openingTone = isOpeningCurrentlyOpen
+    ? {
+        icon: "bg-emerald-100 text-emerald-700 ring-emerald-200",
+        dot: "bg-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.16)]",
+        text: "text-emerald-600",
+      }
+    : {
+        icon: "bg-red-100 text-red-700 ring-red-200",
+        dot: "bg-red-500 shadow-[0_0_0_4px_rgba(239,68,68,0.16)]",
+        text: "text-red-600",
+      };
 
   const title = category?.name ? category.name : t("fullMenu");
 
@@ -369,11 +408,11 @@ export default function RestaurantHeader() {
           <div className="mt-4 grid overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm md:grid-cols-[1fr_1fr_1fr]">
             <div className="min-w-0 border-b border-gray-200 px-4 py-3 md:border-b-0 md:border-r">
               <div className="flex items-start gap-3">
-                <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 shadow-sm ring-1 ring-emerald-200">
-                  <span className="h-3.5 w-3.5 rounded-full bg-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.16)]" />
+                <span className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full shadow-sm ring-1 ${openingTone.icon}`}>
+                  <span className={`h-3.5 w-3.5 rounded-full ${openingTone.dot}`} />
                 </span>
                 <span className="min-w-0">
-                  <span className="block text-sm font-semibold text-emerald-600">
+                  <span className={`block text-sm font-semibold ${openingTone.text}`}>
                     {openingStatusLabel}
                   </span>
                   <span className="mt-1.5 block truncate text-sm font-medium text-gray-700">

@@ -1,7 +1,7 @@
 import type { ApiMeta, ApiRecord, AuthRestaurantUser, ItemsCategory, MenuItem, RestaurantInfo, StoredAuthState } from "../types";
 import { formatDisplayAddress } from "@/lib/address-display";
 import { formatMoney } from "@/lib/money";
-import type { BranchSettings } from "@/types/branches";
+import type { BranchSettings, BranchTemporaryClosure } from "@/types/branches";
 
 export const FALLBACK_BANNER = "/categories/background_banner.png";
 export const FALLBACK_ITEM_IMAGE = "/menu-item.jpg";
@@ -181,12 +181,18 @@ export type BranchHoursSummary = {
   label: string;
   value: string;
   status: "open" | "closed" | "unknown";
+  closesAt?: string;
+  opensAt?: string;
+  breakUntil?: string;
+  reason?: "open" | "closed" | "before-open" | "after-close" | "break" | "temporary-closure" | "unknown";
 };
 
 export type BranchHoursDetail = BranchHoursEntry & {
   dayLabel: string;
   hoursLabel: string;
   breakLabels: string[];
+  status: "open" | "closed" | "unknown";
+  statusReason?: BranchHoursSummary["reason"];
 };
 
 const getRecordValue = (record: ApiRecord, keys: string[]) =>
@@ -308,6 +314,10 @@ export const getBranchHoursDetails = (schedule: BranchHoursEntry[]): BranchHours
       const dayKey = normalizeDayKey(entry.dayOfWeek);
       const isTodayHoliday = String(entry.date || "").trim() === getTodayDateValue();
       const hoursLabel = entry.isClosed ? "Closed" : formatHoursRange(entry) || "Not configured";
+      const isToday = isTodayHoliday || dayKey === DAYS[new Date().getDay()];
+      const runtimeSummary = isToday
+        ? getScheduleRuntimeSummary({ entry, label: "Today" })
+        : null;
 
       return {
         ...entry,
@@ -316,6 +326,8 @@ export const getBranchHoursDetails = (schedule: BranchHoursEntry[]): BranchHours
         breakLabels: Array.isArray(entry.breakTimes)
           ? entry.breakTimes.map(formatBreakRange).filter(Boolean)
           : [],
+        status: runtimeSummary?.status ?? (entry.isClosed ? "closed" : hoursLabel ? "open" : "unknown"),
+        statusReason: runtimeSummary?.reason,
       };
     });
 
@@ -381,6 +393,139 @@ const getTodayDateValue = () => {
   ].join("-");
 };
 
+const getCurrentMinutes = () => {
+  const now = new Date();
+
+  return now.getHours() * 60 + now.getMinutes();
+};
+
+const scheduleTimeToMinutes = (value: unknown) => {
+  const formatted = formatScheduleTime(value);
+
+  if (!formatted) return null;
+
+  const [hours, minutes] = formatted.split(":").map(Number);
+
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return null;
+
+  return hours * 60 + minutes;
+};
+
+const getActiveBreak = (entry: BranchHoursEntry | null | undefined) => {
+  const currentMinutes = getCurrentMinutes();
+
+  return Array.isArray(entry?.breakTimes)
+    ? entry.breakTimes.find((breakTime) => {
+        const start = scheduleTimeToMinutes(breakTime?.startTime);
+        const end = scheduleTimeToMinutes(breakTime?.endTime);
+
+        return start !== null && end !== null && currentMinutes >= start && currentMinutes < end;
+      }) ?? null
+    : null;
+};
+
+const isActiveTemporaryClosure = (closure?: BranchTemporaryClosure | null) => {
+  if (!closure?.isClosed) return false;
+
+  const closedUntil = closure.closedUntil ? new Date(closure.closedUntil) : null;
+
+  return !closedUntil || Number.isNaN(closedUntil.getTime()) || closedUntil.getTime() > Date.now();
+};
+
+const getTemporaryClosureFromBranch = (branch: unknown): BranchTemporaryClosure | null => {
+  if (typeof branch !== "object" || branch === null || Array.isArray(branch)) return null;
+
+  const record = branch as ApiRecord;
+  const availability = typeof record.availability === "object" && record.availability !== null && !Array.isArray(record.availability)
+    ? record.availability as ApiRecord
+    : {};
+  const settings = typeof record.settings === "object" && record.settings !== null && !Array.isArray(record.settings)
+    ? record.settings as ApiRecord
+    : {};
+  const landingPopup = typeof record.landingPopup === "object" && record.landingPopup !== null && !Array.isArray(record.landingPopup)
+    ? record.landingPopup as ApiRecord
+    : {};
+
+  const candidates = [
+    availability.temporaryClosure,
+    settings.temporaryClosure,
+    landingPopup.temporaryClosure,
+  ];
+
+  return candidates.find((candidate): candidate is BranchTemporaryClosure => {
+    return typeof candidate === "object" && candidate !== null && !Array.isArray(candidate) &&
+      isActiveTemporaryClosure(candidate as BranchTemporaryClosure);
+  }) ?? null;
+};
+
+const getScheduleRuntimeSummary = ({
+  entry,
+  label,
+}: {
+  entry: BranchHoursEntry | null;
+  label: string;
+}): BranchHoursSummary => {
+  if (!entry) {
+    return { label: "Schedule", value: "Not configured", status: "unknown", reason: "unknown" };
+  }
+
+  if (entry.isClosed) {
+    return { label, value: "Closed", status: "closed", reason: "closed" };
+  }
+
+  const hours = formatHoursRange(entry);
+  const open = scheduleTimeToMinutes(entry.openTime);
+  const close = scheduleTimeToMinutes(entry.closeTime);
+
+  if (!hours || open === null || close === null) {
+    return { label, value: "Not configured", status: "unknown", reason: "unknown" };
+  }
+
+  const currentMinutes = getCurrentMinutes();
+  const activeBreak = getActiveBreak(entry);
+
+  if (activeBreak) {
+    const breakUntil = formatScheduleTime(activeBreak.endTime);
+
+    return {
+      label,
+      value: breakUntil ? `Break until ${breakUntil}` : "Break time",
+      status: "closed",
+      breakUntil,
+      reason: "break",
+    };
+  }
+
+  if (currentMinutes < open) {
+    const opensAt = formatScheduleTime(entry.openTime);
+
+    return {
+      label,
+      value: opensAt ? `Opens at ${opensAt}` : hours,
+      status: "closed",
+      opensAt,
+      reason: "before-open",
+    };
+  }
+
+  if (currentMinutes >= close) {
+    return {
+      label,
+      value: "Closed",
+      status: "closed",
+      reason: "after-close",
+    };
+  }
+
+  return {
+    label,
+    value: hours,
+    status: "open",
+    closesAt: formatScheduleTime(entry.closeTime),
+    reason: "open",
+  };
+};
+
 const getTodaySchedule = (schedule: BranchHoursEntry[]) => {
   const today = DAYS[new Date().getDay()];
   const todayDate = getTodayDateValue();
@@ -438,11 +583,18 @@ const summarizeSchedule = ({
     ? "Today"
     : DAY_LABELS[normalizeDayKey(entry.dayOfWeek)] || "Next open";
 
+  const isTodayEntry = label === "Today";
+
+  if (isTodayEntry) {
+    return getScheduleRuntimeSummary({ entry, label });
+  }
+
   if (entry.isClosed) {
     return {
       label,
       value: "Closed",
       status: "closed",
+      reason: "closed",
     };
   }
 
@@ -452,11 +604,13 @@ const summarizeSchedule = ({
     label,
     value: hours || "Not configured",
     status: hours ? "open" : "unknown",
+    reason: hours ? "open" : "unknown",
   };
 };
 
 export const getBranchHoursSummary = (branch: unknown) => {
   const settings = getBranchSettings(branch);
+  const temporaryClosure = getTemporaryClosureFromBranch(branch);
   const openingSchedule = getScheduleFromSettings(settings, ["openingHours", "operatingHours", "businessHours"]);
   const deliverySchedule = getScheduleFromSettings(settings, [
     "deliveryHours",
@@ -493,10 +647,27 @@ export const getBranchHoursSummary = (branch: unknown) => {
     isUsableHoursEntry(todayDeliveryEntry) &&
     !deliveryMatchesOpening;
   const showDeliveryHoursCard = showDeliveryHours && !deliveryMatchesOpeningToday;
+  const temporaryClosureMessage = temporaryClosure?.message || temporaryClosure?.reason || "Branch is temporarily closed.";
+  const openingWithTemporaryClosure = temporaryClosure
+    ? {
+        ...opening,
+        status: "closed" as const,
+        value: temporaryClosureMessage,
+        reason: "temporary-closure" as const,
+      }
+    : opening;
+  const deliveryWithTemporaryClosure = temporaryClosure
+    ? {
+        ...resolvedDelivery,
+        status: "closed" as const,
+        value: temporaryClosureMessage,
+        reason: "temporary-closure" as const,
+      }
+    : resolvedDelivery;
 
   return {
-    opening,
-    delivery: resolvedDelivery,
+    opening: openingWithTemporaryClosure,
+    delivery: deliveryWithTemporaryClosure,
     openingSchedule: effectiveOpeningSchedule,
     deliverySchedule: effectiveDeliverySchedule,
     regularOpeningSchedule: openingSchedule,
@@ -506,6 +677,7 @@ export const getBranchHoursSummary = (branch: unknown) => {
     showDeliveryHoursCard,
     deliveryMatchesOpening,
     deliveryMatchesOpeningToday,
+    temporaryClosure,
   };
 };
 
