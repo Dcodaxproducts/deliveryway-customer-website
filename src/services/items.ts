@@ -20,14 +20,12 @@ export const fetchMenuItems = async (endpoint: string, token?: string | null) =>
 
 export const fetchMenuItemsPage = async ({
   restaurantId,
-  branchId,
   categoryId,
   page,
   limit,
   token,
 }: {
   restaurantId: string;
-  branchId?: string;
   categoryId?: string;
   page: number;
   limit: number;
@@ -37,75 +35,20 @@ export const fetchMenuItemsPage = async ({
     restaurantId,
     page: String(page),
     limit: String(limit),
+    sortBy: "sortOrder",
+    sortOrder: "ASC",
   });
 
-  if (branchId) {
-    params.set("branchId", branchId);
+  if (categoryId) {
+    params.set("categoryId", categoryId);
   }
 
-  const endpoint = categoryId
-    ? `/customer-app/cuisines/${encodeURIComponent(categoryId)}/items?${params.toString()}`
-    : `/v1/menu/items?${new URLSearchParams({
-        ...Object.fromEntries(params),
-        sortBy: "sortOrder",
-        sortOrder: "ASC",
-      }).toString()}`;
-
-  const response = await getItems(endpoint, token);
+  const response = await getItems(`/v1/menu/items?${params.toString()}`, token);
 
   return {
     response,
     items: normalizeApiArray<MenuItem>(response),
     meta: normalizeApiMeta(response),
-  };
-};
-
-const normalizeApiRecord = <T = unknown,>(res: unknown): T | null => {
-  if (typeof res !== "object" || res === null || Array.isArray(res)) return null;
-
-  const record = res as Record<string, unknown>;
-  const data = record.data;
-
-  if (typeof data === "object" && data !== null && !Array.isArray(data)) {
-    const dataRecord = data as Record<string, unknown>;
-
-    if (typeof dataRecord.data === "object" && dataRecord.data !== null && !Array.isArray(dataRecord.data)) {
-      return dataRecord.data as T;
-    }
-
-    return dataRecord as T;
-  }
-
-  return record as T;
-};
-
-export const fetchCustomerMenuItemBySlug = async ({
-  slug,
-  restaurantId,
-  branchId,
-  token,
-}: {
-  slug: string;
-  restaurantId: string;
-  branchId?: string;
-  token?: string | null;
-}) => {
-  const params = new URLSearchParams({
-    restaurantId,
-  });
-
-  if (branchId) {
-    params.set("branchId", branchId);
-  }
-
-  const response = await getItems(
-    `/customer-app/items/${encodeURIComponent(slug)}?${params.toString()}`,
-    token
-  );
-
-  return {
-    response,
-    item: normalizeApiRecord<MenuItem>(response),
   };
 };
 
@@ -197,14 +140,12 @@ export const fetchSplitPizzaMenuItems = async ({
 
 export const fetchMenuCategoriesPage = async ({
   restaurantId,
-  branchId,
   page,
   limit,
   search,
   token,
 }: {
   restaurantId: string;
-  branchId?: string;
   page: number;
   limit: number;
   search?: string;
@@ -214,17 +155,15 @@ export const fetchMenuCategoriesPage = async ({
     restaurantId,
     page: String(page),
     limit: String(limit),
+    sortBy: "sortOrder",
+    sortOrder: "ASC",
   });
-
-  if (branchId) {
-    params.set("branchId", branchId);
-  }
 
   if (search) {
     params.set("search", search);
   }
 
-  const response = await getItems(`/customer-app/cuisines?${params.toString()}`, token);
+  const response = await getItems(`/v1/menu/categories?${params.toString()}`, token);
 
   return {
     response,

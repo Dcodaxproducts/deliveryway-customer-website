@@ -71,9 +71,6 @@ export type PromotionCampaign = {
   couponCode?: string;
   imageUrl?: string | null;
   thumbnailUrl?: string | null;
-  type?: string;
-  promotionType?: string;
-  campaignType?: string;
   applyMode?: "ORDER_TOTAL" | "SCOPED_ITEMS" | string;
   discountType?: "FLAT" | "PERCENTAGE" | string;
   discountValue?: number | string;

@@ -48,12 +48,11 @@ type ItemsLayoutProps = {
 export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
   const { token, restaurantId: authRestaurantId, user } = useAuth();
   const { locale } = useAppLocale();
-  const { fetchMenuCategoriesPage, fetchMenuItemsPage } = useItems(token);
+  const { fetchMenuCategoriesPage } = useItems(token);
   const { fetchSignatureMenus } = useMenu(token);
 
   const [categories, setCategories] = useState<ItemsCategory[]>([]);
   const [menus, setMenus] = useState<ItemsMenu[]>([]);
-  const [customerMenuItemsById, setCustomerMenuItemsById] = useState<Record<string, MenuItem>>({});
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [loadingMoreCategories, setLoadingMoreCategories] = useState(false);
   const [loadingMenus, setLoadingMenus] = useState(false);
@@ -134,29 +133,14 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
       deduped.set(id, {
         ...menu,
         id,
-        items: Array.isArray(menu?.items)
-          ? menu.items.map((entry) => {
-              const menuItemId = String(entry?.menuItem?.id || "");
-              const customerItem = menuItemId ? customerMenuItemsById[menuItemId] : undefined;
-
-              return customerItem
-                ? {
-                    ...entry,
-                    menuItem: {
-                      ...entry.menuItem,
-                      ...customerItem,
-                    },
-                  }
-                : entry;
-            })
-          : [],
+        items: Array.isArray(menu?.items) ? menu.items : [],
       });
     });
 
     return Array.from(deduped.values()).sort((a, b) => {
       return Number(a?.sortOrder ?? 0) - Number(b?.sortOrder ?? 0);
     });
-  }, [menus, customerMenuItemsById]);
+  }, [menus]);
 
   const filteredMenus = useMemo(() => {
     const term = debouncedSearch.toLowerCase();
@@ -190,7 +174,7 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
     searchValue?: string;
     append?: boolean;
   }) => {
-    if (!token || !restaurantId || !branchId) return;
+    if (!token || !restaurantId) return;
     if (requestInFlightRef.current) return;
 
     try {
@@ -204,7 +188,6 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
 
       const { categories: fetchedCategories, meta } = await fetchMenuCategoriesPage({
         restaurantId: String(restaurantId),
-        branchId,
         page,
         limit: CATEGORY_PAGE_LIMIT,
         search: searchValue,
@@ -261,83 +244,28 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
       });
 
       setMenus(fetchedMenus as ItemsMenu[]);
-      setCustomerMenuItemsById({});
-
-      if (!branchId) {
-        return;
-      }
-
-      const categoryIds = Array.from(
-        new Set(
-          (fetchedMenus as ItemsMenu[])
-            .flatMap((menu) => (Array.isArray(menu.items) ? menu.items : []))
-            .map((entry) => {
-              const menuItem = entry?.menuItem;
-              const categoryRecord = menuItem?.category;
-
-              return String(
-                menuItem?.categoryId ||
-                  (typeof categoryRecord?.id === "string" || typeof categoryRecord?.id === "number"
-                    ? categoryRecord.id
-                    : "") ||
-                  ""
-              );
-            })
-            .filter(Boolean)
-        )
-      );
-
-      if (!categoryIds.length) {
-        return;
-      }
-
-      const responses = await Promise.all(
-        categoryIds.map((id) =>
-          fetchMenuItemsPage({
-            restaurantId: String(restaurantId),
-            branchId,
-            categoryId: id,
-            page: 1,
-            limit: 100,
-          })
-        )
-      );
-
-      const nextItemsById: Record<string, MenuItem> = {};
-
-      responses.forEach(({ items }) => {
-        items.forEach((item) => {
-          const id = String(item?.id || "");
-          if (id) {
-            nextItemsById[id] = item;
-          }
-        });
-      });
-
-      setCustomerMenuItemsById(nextItemsById);
     } catch {
       setMenus([]);
-      setCustomerMenuItemsById({});
     } finally {
       setLoadingMenus(false);
     }
   };
 
   useEffect(() => {
-    if (!token || !restaurantId || !branchId) return;
+    if (!token || !restaurantId) return;
 
     fetchCategories({
       page: 1,
       searchValue: debouncedSearch,
       append: false,
     });
-  }, [token, restaurantId, branchId, debouncedSearch]);
+  }, [token, restaurantId, debouncedSearch]);
 
   useEffect(() => {
     if (!token || !restaurantId) return;
 
     fetchMenus();
-  }, [token, restaurantId, branchId]);
+  }, [token, restaurantId]);
 
   useEffect(() => {
     if (!categories.length) {
@@ -509,7 +437,6 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
             contentSource === "menu" ? setActiveOnePageMenuId : setActiveOnePageCategoryId
           }
           currency={currency}
-          branchId={branchId}
         />
       </main>
     </div>

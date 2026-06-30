@@ -261,7 +261,7 @@ export function FoodCategorySection() {
   const { token, user, restaurantId: authRestaurantId } = useAuth();
   const restaurantId = resolveHomeRestaurantId(user, authRestaurantId);
   const branchId = resolveHomeBranchId(user);
-  const categoriesQuery = useHomeCategories(restaurantId, branchId, Boolean(token));
+  const categoriesQuery = useHomeCategories(restaurantId, Boolean(token));
   const promotionsQuery = useHomePromotions(restaurantId, branchId, Boolean(token));
   const homeQuery = useHome(restaurantId, branchId, Boolean(token && restaurantId && branchId));
   const currency = resolveCustomerCurrency({

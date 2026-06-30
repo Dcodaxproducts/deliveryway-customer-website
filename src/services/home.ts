@@ -93,7 +93,7 @@ const normalizeHomeData = (value: unknown): CustomerHomeData => {
     config: normalizeHomeConfig(record.config),
     branch: isHomeBranch(record.branch) ? record.branch : null,
     landingPopup: isLandingPopup(record.landingPopup) ? record.landingPopup : null,
-    cuisines: normalizeHomeCategories(record.cuisines ?? record.categories),
+    cuisines: normalizeHomeCategories(record.cuisines),
     promotionalItems: normalizePromotions(record.promotionalItems),
     giftCards: normalizeHomeGiftCards(record.giftCards),
     faqs: Array.isArray(record.faqs) ? record.faqs.filter(isRecord) : [],
@@ -101,7 +101,7 @@ const normalizeHomeData = (value: unknown): CustomerHomeData => {
   };
 };
 
-export const getHomeCategories = async (restaurantId: string, branchId?: string | null) => {
+export const getHomeCategories = async (restaurantId: string) => {
   const categories: HomeCategory[] = [];
   const seenCategoryIds = new Set<string>();
   let page = 1;
@@ -111,13 +111,11 @@ export const getHomeCategories = async (restaurantId: string, branchId?: string 
       restaurantId,
       page: String(page),
       limit: String(HOME_CATEGORIES_PAGE_LIMIT),
+      sortBy: "sortOrder",
+      sortOrder: "ASC",
     });
 
-    if (branchId) {
-      params.set("branchId", branchId);
-    }
-
-    const response = await getRequest(`/customer-app/cuisines?${params.toString()}`);
+    const response = await getRequest(`/v1/menu/categories?${params.toString()}`);
     const pageCategories = normalizeHomeCategories(response);
 
     for (const category of pageCategories) {
