@@ -123,8 +123,8 @@ export function SelectPickupTimeSection({
                     isSelected
                       ? "border-orange-500 bg-orange-500 text-white shadow-md"
                       : disabled
-                        ? "cursor-not-allowed border-gray-100 bg-gray-100 text-gray-400"
-                        : "border-gray-200 bg-white text-gray-700 hover:border-orange-400 hover:text-orange-500"
+                        ? "cursor-not-allowed border-gray-100 bg-gray-50 text-gray-400"
+                        : "border-gray-200 bg-[#FAFAF9] text-gray-700 hover:border-orange-400 hover:bg-white hover:text-orange-500"
                   }`}
                 >
                   <span className="block text-xs font-semibold uppercase">
@@ -172,7 +172,7 @@ export function SelectPickupTimeSection({
                   className={`h-[48px] rounded-[10px] border-2 text-sm font-medium transition-all ${
                     pickupTime === slot.value
                       ? "border-orange-500 bg-orange-500 text-white shadow-md"
-                      : "border-gray-200 bg-white text-gray-700 hover:border-orange-400 hover:text-orange-500"
+                      : "border-gray-200 bg-[#FAFAF9] text-gray-700 hover:border-orange-400 hover:bg-white hover:text-orange-500"
                   }`}
                 >
                   {slot.label}

@@ -372,7 +372,7 @@ export function GroupOrderModal({ open, onClose }: GroupOrderModalProps) {
                     <Time24Picker
                       value={time}
                       onChange={setTime}
-                      className="mt-1 h-12 rounded-full border border-gray-200 bg-[#FAFAF9] px-3"
+                      className="mt-1 h-12 rounded-full border border-gray-200 bg-[#FAFAF9] px-4 text-sm font-medium text-gray-700"
                     />
                   </div>
                 </div>
