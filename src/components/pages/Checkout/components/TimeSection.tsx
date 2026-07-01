@@ -8,6 +8,7 @@ import {
   getDateFromValue,
   getDateValue,
   getPickupScheduleForDate,
+  isImmediateScheduleAvailable,
   isPastDateValue,
 } from "@/components/pages/Checkout/utils/pickup-schedule";
 import { Time24Picker } from "@/components/ui/time-24-picker";
@@ -19,6 +20,8 @@ interface Props {
   setPickupDate: (value: Date | null) => void;
   pickupTime: string | null;
   setPickupTime: (value: string | null) => void;
+  pickupScheduleMode: "now" | "schedule";
+  setPickupScheduleMode: (value: "now" | "schedule") => void;
   selectedBranch?: BranchRecord | null;
 }
 
@@ -41,11 +44,17 @@ export function SelectPickupTimeSection({
   setPickupDate,
   pickupTime,
   setPickupTime,
+  pickupScheduleMode,
+  setPickupScheduleMode,
   selectedBranch,
 }: Props) {
   const t = useTranslations("checkout");
   const dateValue = pickupDate ? getDateValue(pickupDate) : "";
   const dates = useMemo(() => buildUpcomingDates(), []);
+  const immediateAvailable = useMemo(
+    () => isImmediateScheduleAvailable({ branch: selectedBranch, scheduleType: "pickup" }),
+    [selectedBranch]
+  );
   const timeSlots = useMemo(
     () => buildPickupTimeSlots({ branch: selectedBranch, dateValue }),
     [dateValue, selectedBranch]
@@ -76,14 +85,59 @@ export function SelectPickupTimeSection({
     }
   }, [hasOpeningHours, pickupTime, selectedTimeAvailable, setPickupTime]);
 
+  useEffect(() => {
+    if (!immediateAvailable && pickupScheduleMode === "now") {
+      setPickupScheduleMode("schedule");
+    }
+  }, [immediateAvailable, pickupScheduleMode, setPickupScheduleMode]);
+
   return (
     <section className="max-w-[520px] space-y-[22px]">
       <h2 className="text-[24px] font-semibold text-gray-900">
-        {t("selectPickupTime")}
+        {t("pickupTiming")}
       </h2>
-      <p className="rounded-[16px] border border-primary/10 bg-primary/5 px-4 py-3 text-sm leading-6 text-gray-600">
-        {t("instantPickupHint")}
-      </p>
+      <div className="rounded-xl bg-white px-5 py-4 shadow-sm">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            disabled={!immediateAvailable}
+            onClick={() => {
+              setPickupScheduleMode("now");
+              setPickupDate(null);
+              setPickupTime(null);
+            }}
+            className={`rounded-2xl border px-4 py-4 text-left transition-all ${
+              pickupScheduleMode === "now"
+                ? "border-orange-500 bg-orange-500 text-white shadow-md"
+                : !immediateAvailable
+                  ? "cursor-not-allowed border-gray-100 bg-gray-50 text-gray-400"
+                  : "border-gray-200 bg-[#FAFAF9] text-gray-700 hover:border-orange-400 hover:bg-white hover:text-orange-500"
+            }`}
+          >
+            <span className="block text-base font-semibold">{t("orderNow")}</span>
+            <span className={`mt-1 block text-xs leading-5 ${pickupScheduleMode === "now" ? "text-white/85" : "text-gray-500"}`}>
+              {immediateAvailable ? t("pickupNowDescription") : t("pickupNowUnavailable")}
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setPickupScheduleMode("schedule")}
+            className={`rounded-2xl border px-4 py-4 text-left transition-all ${
+              pickupScheduleMode === "schedule"
+                ? "border-orange-500 bg-orange-500 text-white shadow-md"
+                : "border-gray-200 bg-[#FAFAF9] text-gray-700 hover:border-orange-400 hover:bg-white hover:text-orange-500"
+            }`}
+          >
+            <span className="block text-base font-semibold">{t("scheduleOrder")}</span>
+            <span className={`mt-1 block text-xs leading-5 ${pickupScheduleMode === "schedule" ? "text-white/85" : "text-gray-500"}`}>
+              {t("schedulePickupDescription")}
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {pickupScheduleMode === "schedule" ? (
+        <>
 
       {/* DATE */}
       <div className="space-y-[14px]">
@@ -195,6 +249,8 @@ export function SelectPickupTimeSection({
           </label>
         )}
       </div>
+        </>
+      ) : null}
     </section>
   );
 }
