@@ -97,15 +97,16 @@ const hasPromotionSignal = (value: unknown): value is PromotionInfo => {
     record.supportsDealIdCartPayload === true ||
     record.supportsDealCartPayload === true ||
     record.isDealMenuItem === true ||
+    promotion.discountType === "FIXED_PRICE" ||
     (promotion.applyMode && promotion.applyMode !== "SCOPED_ITEMS")
   ) {
     return false;
   }
 
+  const discountValue = toNumber(promotion.discountValue, 0);
+
   return Boolean(
-    String(promotion.title || "").trim() ||
-      String(promotion.description || "").trim() ||
-      toNumber(promotion.discountValue, 0) > 0 ||
+    ((promotion.discountType === "PERCENTAGE" || promotion.discountType === "FLAT") && discountValue > 0) ||
       toNumber(promotion.discountAmount, 0) > 0 ||
       toNumber(promotion.discountedPrice, 0) > 0 ||
       toNumber(promotion.discountedAmount, 0) > 0

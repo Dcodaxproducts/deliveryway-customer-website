@@ -741,14 +741,15 @@ export const resolvePromotionBadge = (promotion?: {
     promotion.dealRequiredQuantity !== undefined ||
     Array.isArray(promotion.scopeCategoryRules) ||
     Array.isArray(promotion.scopeCategoryIds) ||
+    promotion.discountType === "FIXED_PRICE" ||
     (promotion.applyMode && promotion.applyMode !== "SCOPED_ITEMS")
   ) {
     return "";
   }
 
-  if (hasText(promotion.title)) return String(promotion.title);
-
   const discountValue = toNumber(promotion.discountValue, 0);
+
+  if (hasText(promotion.title) && discountValue > 0) return String(promotion.title);
 
   if (promotion.discountType === "PERCENTAGE" && discountValue > 0) return `${discountValue}% OFF`;
   if (promotion.discountType === "FLAT" && discountValue > 0) {

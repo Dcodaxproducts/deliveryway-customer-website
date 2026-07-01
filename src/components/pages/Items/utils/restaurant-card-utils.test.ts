@@ -313,6 +313,8 @@ describe("restaurant card utils", () => {
     expect(resolvePromotionBadge({ discountType: "PERCENTAGE", discountValue: 0 })).toBe("");
     expect(resolvePromotionBadge({})).toBe("");
     expect(resolvePromotionBadge({ title: "Angebot 2", applyMode: "ALL_ITEMS" })).toBe("");
+    expect(resolvePromotionBadge({ title: "Angebot 2", applyMode: "SCOPED_ITEMS" })).toBe("");
+    expect(resolvePromotionBadge({ title: "Angebot 2", discountType: "FIXED_PRICE", discountValue: 20 })).toBe("");
     expect(resolvePromotionBadge({ title: "Angebot 2", dealSelectionMode: "FIXED_ITEMS" })).toBe("");
   });
 
