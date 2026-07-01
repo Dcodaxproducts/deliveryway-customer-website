@@ -312,6 +312,8 @@ describe("restaurant card utils", () => {
     expect(resolvePromotionBadge({ discountType: "PERCENTAGE", discountValue: 10 })).toBe("10% OFF");
     expect(resolvePromotionBadge({ discountType: "PERCENTAGE", discountValue: 0 })).toBe("");
     expect(resolvePromotionBadge({})).toBe("");
+    expect(resolvePromotionBadge({ title: "Angebot 2", applyMode: "ALL_ITEMS" })).toBe("");
+    expect(resolvePromotionBadge({ title: "Angebot 2", dealSelectionMode: "FIXED_ITEMS" })).toBe("");
   });
 
   it("merges stable IDs and resolves pagination", () => {

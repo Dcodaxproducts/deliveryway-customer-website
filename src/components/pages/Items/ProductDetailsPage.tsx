@@ -87,6 +87,20 @@ const hasPromotionSignal = (value: unknown): value is PromotionInfo => {
   if (!value || typeof value !== "object") return false;
 
   const promotion = value as PromotionInfo;
+  const record = value as ApiRecord;
+
+  if (
+    record.dealSelectionMode ||
+    record.dealRequiredQuantity !== undefined ||
+    Array.isArray(record.scopeCategoryRules) ||
+    Array.isArray(record.scopeCategoryIds) ||
+    record.supportsDealIdCartPayload === true ||
+    record.supportsDealCartPayload === true ||
+    record.isDealMenuItem === true ||
+    (promotion.applyMode && promotion.applyMode !== "SCOPED_ITEMS")
+  ) {
+    return false;
+  }
 
   return Boolean(
     String(promotion.title || "").trim() ||

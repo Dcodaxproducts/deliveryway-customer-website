@@ -725,8 +725,27 @@ export const getRatingInfo = (authUser: AuthRestaurantUser | null | undefined, s
 
 export const resolveAvailabilityStatus = (isOpen?: boolean | null) => (isOpen === false ? "Closed" : "Open");
 
-export const resolvePromotionBadge = (promotion?: { title?: string | null; discountType?: string | null; discountValue?: string | number | null } | null) => {
+export const resolvePromotionBadge = (promotion?: {
+  title?: string | null;
+  discountType?: string | null;
+  discountValue?: string | number | null;
+  applyMode?: string | null;
+  dealSelectionMode?: string | null;
+  dealRequiredQuantity?: string | number | null;
+  scopeCategoryRules?: unknown;
+  scopeCategoryIds?: unknown;
+} | null) => {
   if (!promotion) return "";
+  if (
+    promotion.dealSelectionMode ||
+    promotion.dealRequiredQuantity !== undefined ||
+    Array.isArray(promotion.scopeCategoryRules) ||
+    Array.isArray(promotion.scopeCategoryIds) ||
+    (promotion.applyMode && promotion.applyMode !== "SCOPED_ITEMS")
+  ) {
+    return "";
+  }
+
   if (hasText(promotion.title)) return String(promotion.title);
 
   const discountValue = toNumber(promotion.discountValue, 0);
