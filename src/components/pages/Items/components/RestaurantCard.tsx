@@ -1922,7 +1922,7 @@ export function RestaurantCard({
       setOpen(false);
 
       if (groupCode) {
-        router.push("/group-order/lobby");
+        window.dispatchEvent(new Event("deliveryway:group-order:item-added"));
       }
     } catch (error) {
       toast.error(tErrors("somethingWentWrong"));

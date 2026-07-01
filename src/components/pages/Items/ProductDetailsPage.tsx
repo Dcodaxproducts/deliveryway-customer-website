@@ -2385,7 +2385,7 @@ function ProductDetailsPageContent() {
       );
 
       if (groupCode) {
-        router.push("/group-order/lobby");
+        window.dispatchEvent(new Event("deliveryway:group-order:item-added"));
       } else if (isEditingCartItem) {
         router.push(`/checkout?type=${checkoutType}`);
       }

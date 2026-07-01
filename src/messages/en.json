@@ -660,7 +660,13 @@
     "groupOrder": {
       "joining": "Joining group order...",
       "joined": "Joined group order successfully",
-      "failedJoin": "Failed to join group order"
+      "failedJoin": "Failed to join group order",
+      "selectionSavedTitle": "Your group order selection is saved",
+      "selectionSavedDescription": "Keep adding items here. When you're finished, mark your selection done or view the lobby.",
+      "goToLobby": "View lobby",
+      "doneSelecting": "Done selecting",
+      "markedDone": "Your selection is marked done",
+      "failedMarkDone": "Failed to mark your selection done"
     },
     "signature": {
       "failedFetchMenus": "Failed to fetch menus",

@@ -660,7 +660,13 @@
     "groupOrder": {
       "joining": "Gruppenbestellung wird beigetreten...",
       "joined": "Gruppenbestellung erfolgreich beigetreten",
-      "failedJoin": "Gruppenbestellung konnte nicht beigetreten werden"
+      "failedJoin": "Gruppenbestellung konnte nicht beigetreten werden",
+      "selectionSavedTitle": "Ihre Auswahl für die Gruppenbestellung ist gespeichert",
+      "selectionSavedDescription": "Fügen Sie hier weitere Artikel hinzu. Wenn Sie fertig sind, markieren Sie Ihre Auswahl als fertig oder öffnen Sie die Lobby.",
+      "goToLobby": "Lobby ansehen",
+      "doneSelecting": "Auswahl fertig",
+      "markedDone": "Ihre Auswahl ist als fertig markiert",
+      "failedMarkDone": "Ihre Auswahl konnte nicht als fertig markiert werden"
     },
     "signature": {
       "failedFetchMenus": "Menüs konnten nicht geladen werden",
