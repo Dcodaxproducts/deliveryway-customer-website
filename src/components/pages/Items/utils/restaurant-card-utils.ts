@@ -728,14 +728,17 @@ export const resolveAvailabilityStatus = (isOpen?: boolean | null) => (isOpen ==
 export const resolvePromotionBadge = (promotion?: { title?: string | null; discountType?: string | null; discountValue?: string | number | null } | null) => {
   if (!promotion) return "";
   if (hasText(promotion.title)) return String(promotion.title);
-  if (promotion.discountType === "PERCENTAGE") return `${toNumber(promotion.discountValue, 0)}% OFF`;
-  if (promotion.discountType === "FLAT") {
-    return `${formatMoney(promotion.discountValue, undefined, {
+
+  const discountValue = toNumber(promotion.discountValue, 0);
+
+  if (promotion.discountType === "PERCENTAGE" && discountValue > 0) return `${discountValue}% OFF`;
+  if (promotion.discountType === "FLAT" && discountValue > 0) {
+    return `${formatMoney(discountValue, undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })} OFF`;
   }
-  return "OFFER";
+  return "";
 };
 
 export const mergeUniqueById = <T extends { id?: string | number | null }>(prev: T[], next: T[]) => {

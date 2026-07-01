@@ -310,6 +310,8 @@ describe("restaurant card utils", () => {
   it("resolves restaurant and promotion text", () => {
     expect(getRestaurantName({ restaurantName: "Demo" }, null)).toBe("Demo");
     expect(resolvePromotionBadge({ discountType: "PERCENTAGE", discountValue: 10 })).toBe("10% OFF");
+    expect(resolvePromotionBadge({ discountType: "PERCENTAGE", discountValue: 0 })).toBe("");
+    expect(resolvePromotionBadge({})).toBe("");
   });
 
   it("merges stable IDs and resolves pagination", () => {

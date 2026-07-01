@@ -95,16 +95,27 @@ const formatModifierSelectionPrice = (
   return `+${formatMoney(unitPrice, currency)} * ${safeQuantity} = +${formatMoney(unitPrice * safeQuantity, currency)}`;
 };
 
-const isPromotionObject = (value: unknown): value is PromotionInfo => {
-  return Boolean(value && typeof value === "object");
+const hasPromotionSignal = (value: unknown): value is PromotionInfo => {
+  if (!value || typeof value !== "object") return false;
+
+  const promotion = value as PromotionInfo;
+
+  return Boolean(
+    String(promotion.title || "").trim() ||
+      String(promotion.description || "").trim() ||
+      toNumber(promotion.discountValue, 0) > 0 ||
+      toNumber(promotion.discountAmount, 0) > 0 ||
+      toNumber(promotion.discountedPrice, 0) > 0 ||
+      toNumber(promotion.discountedAmount, 0) > 0
+  );
 };
 
 const getPromotionInfo = (source: MenuItem | MenuVariation | ApiRecord | null | undefined): PromotionInfo | null => {
-  if (isPromotionObject(source?.happyHour) && source.happyHour.isCurrentlyActive !== false) {
+  if (hasPromotionSignal(source?.happyHour) && source.happyHour.isCurrentlyActive !== false) {
     return source.happyHour;
   }
 
-  return isPromotionObject(source?.promotion) ? source.promotion : null;
+  return hasPromotionSignal(source?.promotion) ? source.promotion : null;
 };
 
 const getPromotionDiscountLabel = (promotion?: PromotionInfo | null) => {
