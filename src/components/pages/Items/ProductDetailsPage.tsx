@@ -1539,8 +1539,14 @@ function ProductDetailsPageContent() {
       try {
         setPageLoading(true);
 
+        const params = new URLSearchParams({ search: searchValue });
+
+        if (branchId) {
+          params.set("branchId", branchId);
+        }
+
         const { response: res, items } = await fetchMenuItems(
-          `/v1/menu/items?search=${encodeURIComponent(searchValue)}`
+          `/v1/menu/items?${params.toString()}`
         );
 
         if (!isMounted) return;
@@ -1590,7 +1596,7 @@ function ProductDetailsPageContent() {
     return () => {
       isMounted = false;
     };
-  }, [slug, itemIdParam, token, fetchMenuItems]);
+  }, [slug, itemIdParam, token, branchId, fetchMenuItems]);
 
   useEffect(() => {
     const fetchCartItemToEdit = async () => {
@@ -1928,6 +1934,10 @@ function ProductDetailsPageContent() {
 
     if (restaurantId) {
       queryParams.set("restaurantId", String(restaurantId));
+    }
+
+    if (branchId) {
+      queryParams.set("branchId", branchId);
     }
 
     const resolvedSearch = search?.trim();

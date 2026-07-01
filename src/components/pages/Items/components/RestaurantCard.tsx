@@ -1465,7 +1465,7 @@ export function RestaurantCard({
     search: string;
     page: number;
   }) => {
-    return fetchSplitPizzaMenuItems({ restaurantId, search, page });
+    return fetchSplitPizzaMenuItems({ restaurantId, branchId, search, page });
   };
 
   const handleSplitPizzaToggle = (checked: boolean) => {
