@@ -22,7 +22,7 @@ function ItemsPageContent() {
   const codeFromUrl = searchParams.get("code") || "";
 
   const { token, user, loading: authLoading } = useAuth();
-  const { order, participant, refetch: refetchGroupOrder, canMutateGroupOrder } = useGroupOrder();
+  const { order, participant, refetch: refetchGroupOrder, canMutateGroupOrder, isHost } = useGroupOrder();
   const { joinGroupOrder, searchGroupOrdersByInviteCode, updateMyGroupOrderParticipantStatus } = useGroupOrderApi(token);
 
   const [joiningGroupOrder, setJoiningGroupOrder] = useState(false);
@@ -173,7 +173,7 @@ function ItemsPageContent() {
               <div>
                 <p className="text-sm font-semibold text-gray-950">{t("selectionSavedTitle")}</p>
                 <p className="mt-1 text-xs leading-5 text-gray-500 sm:text-sm">
-                  {t("selectionSavedDescription", { count: Math.max(participantItemCount, 1) })}
+                  {t(isHost ? "hostSelectionSavedDescription" : "selectionSavedDescription", { count: Math.max(participantItemCount, 1) })}
                 </p>
               </div>
             </div>
@@ -185,15 +185,17 @@ function ItemsPageContent() {
               >
                 {t("goToLobby")}
               </button>
-              <button
-                type="button"
-                onClick={handleDoneSelecting}
-                disabled={markingDone || !canMutateGroupOrder}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-primary/20 transition hover:-translate-y-0.5 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
-              >
-                {markingDone ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                {t("doneSelecting")}
-              </button>
+              {!isHost ? (
+                <button
+                  type="button"
+                  onClick={handleDoneSelecting}
+                  disabled={markingDone || !canMutateGroupOrder}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-primary/20 transition hover:-translate-y-0.5 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+                >
+                  {markingDone ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                  {t("doneSelecting")}
+                </button>
+              ) : null}
             </div>
           </div>
         </div>
