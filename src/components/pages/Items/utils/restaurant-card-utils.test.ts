@@ -121,6 +121,9 @@ describe("restaurant card utils", () => {
   });
 
   it("uses opening hours when today's delivery hours are closed", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 6, 1, 12, 0));
+
     const dayKeys = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"];
     const today = dayKeys[new Date().getDay()];
 
@@ -168,6 +171,9 @@ describe("restaurant card utils", () => {
   });
 
   it("uses today's holiday opening hours before regular branch hours", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 6, 1, 12, 0));
+
     const todayDate = new Date();
     const todayValue = [
       todayDate.getFullYear(),
