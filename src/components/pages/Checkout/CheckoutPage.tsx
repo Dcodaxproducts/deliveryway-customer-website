@@ -1212,7 +1212,6 @@ function CheckoutPageContent() {
       const res = await checkoutCustomerCart({
         customerId,
         payload: {
-          orderType: getCheckoutOrderType(activeTab),
           ...(cartOrderTime !== undefined ? { orderTime: cartOrderTime } : {}),
           ...(checkoutTipAmount > 0 ? { tipAmount: checkoutTipAmount } : {}),
           ...(checkoutLoyaltyPoints > 0 ? { loyaltyPoints: checkoutLoyaltyPoints } : {}),

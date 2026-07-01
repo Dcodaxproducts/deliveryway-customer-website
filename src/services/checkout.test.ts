@@ -167,7 +167,7 @@ describe("checkout service", () => {
     );
   });
 
-  it("sends TAKEAWAY orderType in cart checkout payload", async () => {
+  it("does not send orderType in cart checkout payload", async () => {
     postCheckoutMock.mockResolvedValue({ success: true });
 
     await checkoutCustomerCart({
@@ -182,11 +182,10 @@ describe("checkout service", () => {
       "/v1/cart/checkout?customerId=customer-1",
       {
         paymentMethod: "COD",
-        orderType: "TAKEAWAY",
       },
       undefined
     );
-    expect(postCheckoutMock.mock.calls[0][1]).not.toMatchObject({ orderType: "PICKUP" });
+    expect(postCheckoutMock.mock.calls[0][1]).not.toHaveProperty("orderType");
   });
 
   it("sends guest contact and inline guest delivery address in checkout payload", async () => {
