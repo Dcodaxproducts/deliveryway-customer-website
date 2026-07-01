@@ -83,6 +83,10 @@ const formatModifierSelectionPrice = (
   return `+${formatMoney(unitPrice, currency)} * ${safeQuantity} = +${formatMoney(unitPrice * safeQuantity, currency)}`;
 };
 
+const isPromotionObject = (value: unknown): value is PromotionInfo => {
+  return Boolean(value && typeof value === "object");
+};
+
 const hasPromotionSignal = (value: unknown): value is PromotionInfo => {
   if (!value || typeof value !== "object") return false;
 
@@ -114,7 +118,7 @@ const hasPromotionSignal = (value: unknown): value is PromotionInfo => {
 };
 
 const getPromotionInfo = (source: ApiRecord | null | undefined): PromotionInfo | null => {
-  if (hasPromotionSignal(source?.happyHour) && source.happyHour.isCurrentlyActive !== false) {
+  if (isPromotionObject(source?.happyHour) && source.happyHour.isCurrentlyActive !== false) {
     return source.happyHour;
   }
 
