@@ -56,7 +56,6 @@ export const normalizeCheckoutPaymentMethod = (paymentMethod: unknown) => {
 
 export const normalizeCheckoutPayload = (payload: CheckoutCartPayload): Record<string, unknown> => {
   const { orderTime, scheduledDeliveryAt, ...rest } = payload;
-  delete rest.orderType;
   rest.paymentMethod = normalizeCheckoutPaymentMethod(rest.paymentMethod);
 
   if (scheduledDeliveryAt !== undefined) {

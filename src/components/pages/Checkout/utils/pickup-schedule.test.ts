@@ -7,7 +7,9 @@ import {
   buildScheduledDeliveryEstimate,
   buildScheduleBreakLabels,
   getBranchScheduleForDate,
+  getBranchScheduleTimeZone,
   getPickupScheduleForDate,
+  getScheduleOrderTimeIso,
   isImmediateScheduleAvailable,
   isScheduleTimeAvailable,
 } from "@/components/pages/Checkout/utils/pickup-schedule";
@@ -429,6 +431,35 @@ describe("pickup schedule helpers", () => {
     ]);
   });
 
+  it("converts branch local scheduled times to backend UTC orderTime", () => {
+    expect(
+      getScheduleOrderTimeIso({
+        dateValue: "2026-07-01",
+        timeValue: "13:30",
+        timeZone: "Europe/Berlin",
+      })
+    ).toBe("2026-07-01T11:30:00.000Z");
+    expect(
+      getScheduleOrderTimeIso({
+        dateValue: "2026-07-01",
+        timeValue: "13:30",
+        preparationMinutes: 20,
+        timeZone: "Europe/Berlin",
+      })
+    ).toBe("2026-07-01T11:50:00.000Z");
+  });
+
+  it("uses Europe/Berlin as the default schedule timezone unless branch overrides it", () => {
+    expect(getBranchScheduleTimeZone(null)).toBe("Europe/Berlin");
+    expect(
+      getBranchScheduleTimeZone({
+        id: "branch-1",
+        name: "Main",
+        settings: { timezone: "Asia/Karachi" },
+      })
+    ).toBe("Asia/Karachi");
+  });
+
   it("adds preparation minutes to a selected scheduled delivery time", () => {
     const scheduledAt = addPreparationMinutesToScheduledDelivery({
       scheduledDeliveryValue: "2030-06-17T09:30",
@@ -448,6 +479,71 @@ describe("pickup schedule helpers", () => {
       readyLabel: "09:50",
       preparationMinutes: 20,
     });
+  });
+
+  it("rejects scheduled times outside branch pickup and delivery hours", () => {
+    const branch: BranchRecord = {
+      id: "american-corner",
+      name: "American Corner",
+      settings: {
+        openingHours: [
+          {
+            dayOfWeek: "WEDNESDAY",
+            openTime: "11:00",
+            closeTime: "22:30",
+          },
+        ],
+        deliveryHours: [
+          {
+            dayOfWeek: "WEDNESDAY",
+            openTime: "11:00",
+            closeTime: "22:30",
+            breakTimes: [{ startTime: "15:00", endTime: "17:00" }],
+          },
+        ],
+      },
+    };
+
+    expect(
+      isScheduleTimeAvailable({
+        branch,
+        dateValue: "2026-07-01",
+        timeValue: "09:30",
+        scheduleType: "delivery",
+      })
+    ).toBe(false);
+    expect(
+      isScheduleTimeAvailable({
+        branch,
+        dateValue: "2026-07-01",
+        timeValue: "13:30",
+        scheduleType: "delivery",
+      })
+    ).toBe(true);
+    expect(
+      isScheduleTimeAvailable({
+        branch,
+        dateValue: "2026-07-01",
+        timeValue: "15:30",
+        scheduleType: "delivery",
+      })
+    ).toBe(false);
+    expect(
+      isScheduleTimeAvailable({
+        branch,
+        dateValue: "2026-07-01",
+        timeValue: "09:30",
+        scheduleType: "pickup",
+      })
+    ).toBe(false);
+    expect(
+      isScheduleTimeAvailable({
+        branch,
+        dateValue: "2026-07-01",
+        timeValue: "13:30",
+        scheduleType: "pickup",
+      })
+    ).toBe(true);
   });
 
   it("validates scheduled pickup and delivery times against available branch slots", () => {
