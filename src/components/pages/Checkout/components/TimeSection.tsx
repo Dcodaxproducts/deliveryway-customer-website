@@ -11,6 +11,7 @@ import {
   isImmediateScheduleAvailable,
   isPastDateValue,
 } from "@/components/pages/Checkout/utils/pickup-schedule";
+import { useHorizontalDragScroll } from "@/components/pages/Checkout/hooks/use-horizontal-drag-scroll";
 import { Time24Picker } from "@/components/ui/time-24-picker";
 import type { BranchRecord } from "@/types/branch-selector";
 import { useTranslations } from "next-intl";
@@ -24,6 +25,15 @@ interface Props {
   setPickupScheduleMode: (value: "now" | "schedule") => void;
   selectedBranch?: BranchRecord | null;
 }
+
+const activeGradientClass =
+  "border-primary/80 bg-gradient-to-br from-primary via-orange-500 to-amber-400 text-white shadow-lg shadow-primary/25 ring-1 ring-white/40";
+const interactiveTileClass =
+  "border-primary/15 bg-gradient-to-br from-primary/10 via-white to-orange-50 text-gray-800 shadow-sm hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-md hover:shadow-primary/10 hover:text-primary";
+const disabledTileClass =
+  "cursor-not-allowed border-gray-100 bg-gray-50 text-gray-400 shadow-none";
+const horizontalRailClass =
+  "flex snap-x gap-3 overflow-x-auto pb-2 pr-2 scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
 
 const buildUpcomingDates = () => {
   const today = new Date();
@@ -64,6 +74,14 @@ export function SelectPickupTimeSection({
     [dateValue, selectedBranch]
   );
   const hasOpeningHours = scheduleState.hasOpeningHours;
+  const {
+    railRef: pickupDateRailRef,
+    dragScrollHandlers: pickupDateDragHandlers,
+  } = useHorizontalDragScroll<HTMLDivElement>();
+  const {
+    railRef: pickupTimeRailRef,
+    dragScrollHandlers: pickupTimeDragHandlers,
+  } = useHorizontalDragScroll<HTMLDivElement>();
 
   const openingHoursLabel = useMemo(() => {
     const schedule = scheduleState.schedule;
@@ -106,12 +124,12 @@ export function SelectPickupTimeSection({
               setPickupDate(null);
               setPickupTime(null);
             }}
-            className={`rounded-2xl border px-4 py-4 text-left transition-all ${
+            className={`rounded-2xl border px-4 py-4 text-left transition-all duration-200 ${
               pickupScheduleMode === "now"
-                ? "border-orange-500 bg-orange-500 text-white shadow-md"
+                ? activeGradientClass
                 : !immediateAvailable
-                  ? "cursor-not-allowed border-gray-100 bg-gray-50 text-gray-400"
-                  : "border-gray-200 bg-[#FAFAF9] text-gray-700 hover:border-orange-400 hover:bg-white hover:text-orange-500"
+                  ? disabledTileClass
+                  : interactiveTileClass
             }`}
           >
             <span className="block text-base font-semibold">{t("orderNow")}</span>
@@ -122,10 +140,10 @@ export function SelectPickupTimeSection({
           <button
             type="button"
             onClick={() => setPickupScheduleMode("schedule")}
-            className={`rounded-2xl border px-4 py-4 text-left transition-all ${
+            className={`rounded-2xl border px-4 py-4 text-left transition-all duration-200 ${
               pickupScheduleMode === "schedule"
-                ? "border-orange-500 bg-orange-500 text-white shadow-md"
-                : "border-gray-200 bg-[#FAFAF9] text-gray-700 hover:border-orange-400 hover:bg-white hover:text-orange-500"
+                ? activeGradientClass
+                : interactiveTileClass
             }`}
           >
             <span className="block text-base font-semibold">{t("scheduleOrder")}</span>
@@ -146,7 +164,11 @@ export function SelectPickupTimeSection({
         </h3>
 
         <div className="rounded-xl bg-white px-5 py-4 shadow-sm">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div
+            ref={pickupDateRailRef}
+            className={`cursor-grab active:cursor-grabbing ${horizontalRailClass}`}
+            {...pickupDateDragHandlers}
+          >
             {dates.map((date) => {
               const nextDateValue = getDateValue(date);
               const dateScheduleState = getPickupScheduleForDate({
@@ -173,12 +195,12 @@ export function SelectPickupTimeSection({
                     setPickupDate(getDateFromValue(nextDateValue));
                     setPickupTime(null);
                   }}
-                  className={`rounded-xl border px-3 py-3 text-left transition-all ${
+                  className={`min-w-[92px] snap-start rounded-xl border px-3 py-3 text-left transition-all duration-200 ${
                     isSelected
-                      ? "border-orange-500 bg-orange-500 text-white shadow-md"
+                      ? activeGradientClass
                       : disabled
-                        ? "cursor-not-allowed border-gray-100 bg-gray-50 text-gray-400"
-                        : "border-gray-200 bg-[#FAFAF9] text-gray-700 hover:border-orange-400 hover:bg-white hover:text-orange-500"
+                        ? disabledTileClass
+                        : interactiveTileClass
                   }`}
                 >
                   <span className="block text-xs font-semibold uppercase">
@@ -216,24 +238,28 @@ export function SelectPickupTimeSection({
         </h3>
 
         {hasOpeningHours ? (
-          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+          <div
+            ref={pickupTimeRailRef}
+            className={`cursor-grab active:cursor-grabbing ${horizontalRailClass}`}
+            {...pickupTimeDragHandlers}
+          >
             {timeSlots.length > 0 ? (
               timeSlots.map((slot) => (
                 <button
                   key={slot.value}
                   type="button"
                   onClick={() => setPickupTime(slot.value)}
-                  className={`h-[48px] rounded-[10px] border-2 text-sm font-medium transition-all ${
+                  className={`h-[48px] min-w-[96px] snap-start rounded-[14px] border text-sm font-semibold transition-all duration-200 ${
                     pickupTime === slot.value
-                      ? "border-orange-500 bg-orange-500 text-white shadow-md"
-                      : "border-gray-200 bg-[#FAFAF9] text-gray-700 hover:border-orange-400 hover:bg-white hover:text-orange-500"
+                      ? activeGradientClass
+                      : interactiveTileClass
                   }`}
                 >
                   {slot.label}
                 </button>
               ))
             ) : (
-              <p className="col-span-full rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-500">
+              <p className="min-w-full rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-500">
                 {t("noPickupSlots")}
               </p>
             )}
