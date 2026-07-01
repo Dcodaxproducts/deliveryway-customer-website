@@ -130,43 +130,43 @@ describe("pickup schedule helpers", () => {
     ]);
   });
 
-  it("blocks checkout slots with temporary closure before holiday and delivery hours", () => {
+  it("keeps scheduled slots outside a temporary closure while blocking immediate checkout", () => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-06-30T14:30:00+05:00"));
+    vi.setSystemTime(new Date("2026-07-01T11:52:00Z"));
 
     const branch: BranchRecord = {
       id: "branch-1",
-      name: "Main",
+      name: "American Corner",
       availability: {
         temporaryClosure: {
           isClosed: true,
-          closedAt: "2026-06-30T14:00:00+05:00",
-          closedUntil: "2026-06-30T15:30:00+05:00",
+          closedAt: "2026-07-01T11:50:00Z",
+          closedUntil: "2026-07-01T11:55:00Z",
           reason: "Busy kitchen",
         },
       },
       scheduleTimings: {
         openingHours: [
-          { dayOfWeek: "TUESDAY", openTime: "11:00", closeTime: "22:30" },
+          { dayOfWeek: "WEDNESDAY", openTime: "11:00", closeTime: "12:30" },
         ],
         deliveryHours: [
-          { dayOfWeek: "TUESDAY", openTime: "11:00", closeTime: "22:30" },
+          { dayOfWeek: "WEDNESDAY", openTime: "11:00", closeTime: "12:30" },
         ],
-        holidayOpeningHours: [
-          { date: "2026-06-30", openTime: "10:00", closeTime: "18:00" },
-        ],
+        deliveryIntervalMinutes: 30,
       },
     };
 
     expect(getBranchScheduleForDate({
       branch,
-      dateValue: "2026-06-30",
+      dateValue: "2026-07-01",
       scheduleType: "delivery",
     })).toMatchObject({
-      source: "temporaryClosure",
-      schedule: { isClosed: true },
+      source: "delivery",
+      schedule: { openTime: "11:00", closeTime: "12:30" },
     });
-    expect(buildDeliveryTimeSlots({ branch, dateValue: "2026-06-30" })).toEqual([]);
+    expect(buildDeliveryTimeSlots({ branch, dateValue: "2026-07-01" })).toEqual([
+      { value: "12:00", label: "12:00" },
+    ]);
     expect(isImmediateScheduleAvailable({ branch, scheduleType: "delivery" })).toBe(false);
   });
 
