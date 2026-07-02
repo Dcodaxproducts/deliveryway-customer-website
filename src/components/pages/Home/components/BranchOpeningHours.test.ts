@@ -35,4 +35,32 @@ describe("buildRuntimeClosedPopup", () => {
       message: "closedBeforeOpen:13:00",
     });
   });
+
+  it("shows the preorder popup when home branch API marks isOpen false", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 6, 2, 13, 2));
+
+    const popup = buildRuntimeClosedPopup({
+      t,
+      branch: {
+        id: "cmp0t09h30025t7ilzikwi8qu",
+        name: "American Corner",
+        isOpen: false,
+        scheduleTimings: {
+          timezone: "Europe/Berlin",
+          openingHours: [
+            { dayOfWeek: "THURSDAY", isClosed: false, openTime: "13:30", closeTime: "22:30" },
+          ],
+          deliveryHours: [
+            { dayOfWeek: "THURSDAY", isClosed: false, openTime: "11:00", closeTime: "22:30" },
+          ],
+        },
+      },
+    });
+
+    expect(popup).toMatchObject({
+      show: true,
+      title: "closedTitle",
+    });
+  });
 });

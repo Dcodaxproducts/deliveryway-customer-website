@@ -123,15 +123,19 @@ export const buildRuntimeClosedPopup = ({
   if (!branch) return null;
 
   const summary = getBranchHoursSummary(branch);
+  const branchRecord = branch as { isOpen?: boolean | null };
   const activeSummary = summary.opening.status === "closed"
     ? summary.opening
     : summary.delivery.status === "closed"
       ? summary.delivery
       : summary.opening;
+  const isApiClosed = branchRecord.isOpen === false;
 
-  if (activeSummary.status !== "closed") return null;
+  if (activeSummary.status !== "closed" && !isApiClosed) return null;
 
-  const reason = activeSummary.reason || "closed";
+  const reason = activeSummary.status === "closed"
+    ? activeSummary.reason || "closed"
+    : "api-closed";
   const time = activeSummary.opensAt || activeSummary.breakUntil || "";
   const message = (() => {
     if (reason === "before-open" && time) return t("closedBeforeOpen", { time });
