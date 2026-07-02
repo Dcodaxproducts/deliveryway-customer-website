@@ -68,7 +68,15 @@ describe("getScopedItemDiscountDisplays", () => {
     const discounts = getScopedItemDiscountDisplays([
       getPricingEntry(discountedItem),
       getPricingEntry(regularItem),
-    ]);
+    ], {
+      discountAmount: 3,
+      appliedPromotion: {
+        id: "happy-hour-1",
+        title: "Happy hour",
+        applyMode: "SCOPED_ITEMS",
+        discountAmount: 3,
+      },
+    });
 
     expect(discounts.get("cart-item-1")).toEqual({
       lineDiscount: 3,
@@ -76,6 +84,27 @@ describe("getScopedItemDiscountDisplays", () => {
       discountedUnitPriceWithModifiers: 7,
     });
     expect(discounts.has("cart-item-2")).toBe(false);
+  });
+
+  it("does not treat null discount contract fields as zero-price discounts", () => {
+    const regularItem: CartItem = {
+      id: "cart-item-regular",
+      name: "Regular item",
+      price: 8.9,
+      unitPrice: 8.9,
+      unitPriceWithModifiers: 8.9,
+      lineTotal: 8.9,
+      quantity: 1,
+      promotion: null,
+      happyHour: null,
+      promotionDiscountAmount: 0,
+      discountedUnitPrice: null,
+      discountedLineTotal: null,
+    };
+
+    const discounts = getScopedItemDiscountDisplays([getPricingEntry(regularItem)]);
+
+    expect(discounts.size).toBe(0);
   });
 
   it("returns line-through and discounted prices for scoped item promotions", () => {

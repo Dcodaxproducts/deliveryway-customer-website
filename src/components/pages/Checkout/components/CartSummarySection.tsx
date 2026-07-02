@@ -635,6 +635,16 @@ export const getTotalBeforeDiscount = ({
   tipAmount?: number;
 }) => subtotal + orderFee + tipAmount;
 
+const hasDiscountMetadata = (value: unknown) => {
+  return typeof value === "object" && value !== null && !Array.isArray(value) && Object.keys(value).length > 0;
+};
+
+const getOptionalDiscountNumber = (value: unknown) => {
+  if (value === null || value === undefined || value === "") return Number.NaN;
+
+  return toNumber(value, Number.NaN);
+};
+
 export const getScopedItemDiscountDisplays = (
   pricingItems: PricingEntry[],
   quote?: CartQuote | null
@@ -642,9 +652,9 @@ export const getScopedItemDiscountDisplays = (
   const discountMap = new Map<string, CartItemDiscountDisplay>();
 
   pricingItems.forEach(({ item, pricing }, index) => {
-    const hasAnyDiscount = Boolean(item.promotion) || Boolean(item.happyHour);
-    const discountedLineTotal = toNumber(item.discountedLineTotal, Number.NaN);
-    const discountedUnitPrice = toNumber(item.discountedUnitPrice, Number.NaN);
+    const hasAnyDiscount = hasDiscountMetadata(item.promotion) || hasDiscountMetadata(item.happyHour);
+    const discountedLineTotal = getOptionalDiscountNumber(item.discountedLineTotal);
+    const discountedUnitPrice = getOptionalDiscountNumber(item.discountedUnitPrice);
     const explicitLineDiscount = Math.max(0, toNumber(item.promotionDiscountAmount, 0));
 
     if (!hasAnyDiscount || isDealCartItem(item) || !Number.isFinite(discountedLineTotal)) return;
