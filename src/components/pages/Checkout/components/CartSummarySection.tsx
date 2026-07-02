@@ -639,10 +639,20 @@ const hasDiscountMetadata = (value: unknown) => {
   return typeof value === "object" && value !== null && !Array.isArray(value) && Object.keys(value).length > 0;
 };
 
-const getOptionalDiscountNumber = (value: unknown) => {
-  if (value === null || value === undefined || value === "") return Number.NaN;
+const getPerItemDiscountAmount = (item: CartItem) => {
+  const directDiscount = Math.max(0, toNumber(item.promotionDiscountAmount, 0));
 
-  return toNumber(value, Number.NaN);
+  if (directDiscount > 0) return directDiscount;
+
+  const promotionDiscount = hasDiscountMetadata(item.promotion)
+    ? Math.max(0, toNumber(item.promotion?.discountAmount, 0))
+    : 0;
+
+  if (promotionDiscount > 0) return promotionDiscount;
+
+  return hasDiscountMetadata(item.happyHour)
+    ? Math.max(0, toNumber(item.happyHour?.discountAmount, 0))
+    : 0;
 };
 
 export const getScopedItemDiscountDisplays = (
@@ -650,31 +660,34 @@ export const getScopedItemDiscountDisplays = (
   quote?: CartQuote | null
 ) => {
   const discountMap = new Map<string, CartItemDiscountDisplay>();
+  const hasPerItemContract = pricingItems.some(({ item }) =>
+    hasDiscountMetadata(item.promotion) ||
+    hasDiscountMetadata(item.happyHour) ||
+    item.promotion === null ||
+    item.happyHour === null ||
+    item.discountedLineTotal === null ||
+    item.discountedUnitPrice === null ||
+    item.promotionDiscountAmount !== undefined
+  );
 
   pricingItems.forEach(({ item, pricing }, index) => {
     const hasAnyDiscount = hasDiscountMetadata(item.promotion) || hasDiscountMetadata(item.happyHour);
-    const discountedLineTotal = getOptionalDiscountNumber(item.discountedLineTotal);
-    const discountedUnitPrice = getOptionalDiscountNumber(item.discountedUnitPrice);
-    const explicitLineDiscount = Math.max(0, toNumber(item.promotionDiscountAmount, 0));
+    const lineDiscount = getPerItemDiscountAmount(item);
 
-    if (!hasAnyDiscount || isDealCartItem(item) || !Number.isFinite(discountedLineTotal)) return;
+    if (!hasAnyDiscount || isDealCartItem(item) || lineDiscount <= 0 || pricing.lineTotal <= 0) return;
 
-    const lineDiscount = explicitLineDiscount > 0
-      ? explicitLineDiscount
-      : Math.max(0, pricing.lineTotal - discountedLineTotal);
+    const discountedLineTotal = Math.max(0, pricing.lineTotal - Math.min(pricing.lineTotal, lineDiscount));
 
-    if (discountedLineTotal >= pricing.lineTotal || lineDiscount <= 0) return;
+    if (discountedLineTotal >= pricing.lineTotal) return;
 
     discountMap.set(String(item.id || item.menuItemId || index), {
       lineDiscount,
-      discountedLineTotal: Math.max(0, discountedLineTotal),
-      discountedUnitPriceWithModifiers: Number.isFinite(discountedUnitPrice)
-        ? Math.max(0, discountedUnitPrice)
-        : Math.max(0, discountedLineTotal) / pricing.quantity,
+      discountedLineTotal,
+      discountedUnitPriceWithModifiers: discountedLineTotal / pricing.quantity,
     });
   });
 
-  if (discountMap.size > 0) return discountMap;
+  if (hasPerItemContract || discountMap.size > 0) return discountMap;
 
   const applyMode = String(quote?.appliedPromotion?.applyMode || "").toUpperCase();
   const discountAmount = Math.max(
