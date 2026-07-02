@@ -73,7 +73,7 @@ const interactiveTileClass =
 const disabledTileClass =
   "cursor-not-allowed border-gray-100 bg-[#F7F3EF]/70 text-gray-400 shadow-none";
 const horizontalRailClass =
-  "flex snap-x gap-3 overflow-x-auto pb-2 pr-2 scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
+  "-mx-2 flex snap-x gap-3 overflow-x-auto px-2 py-3 scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
 
 export function DeliverySection(props: DeliverySectionProps) {
   const t = useTranslations("checkout");
