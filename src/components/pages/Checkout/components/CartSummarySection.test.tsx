@@ -35,6 +35,49 @@ describe("getTotalBeforeDiscount", () => {
 });
 
 describe("getScopedItemDiscountDisplays", () => {
+  it("uses per-item promotion and happy-hour contract fields first", () => {
+    const discountedItem: CartItem = {
+      id: "cart-item-1",
+      name: "Happy item",
+      price: 10,
+      unitPrice: 10,
+      unitPriceWithModifiers: 10,
+      lineTotal: 10,
+      quantity: 1,
+      promotion: null,
+      happyHour: { id: "happy-hour-1", title: "Happy hour" },
+      promotionDiscountAmount: 3,
+      discountedUnitPrice: 7,
+      discountedLineTotal: 7,
+    };
+    const regularItem: CartItem = {
+      id: "cart-item-2",
+      name: "Regular item",
+      price: 8,
+      unitPrice: 8,
+      unitPriceWithModifiers: 8,
+      lineTotal: 8,
+      quantity: 1,
+      promotion: null,
+      happyHour: null,
+      promotionDiscountAmount: 0,
+      discountedUnitPrice: null,
+      discountedLineTotal: null,
+    };
+
+    const discounts = getScopedItemDiscountDisplays([
+      getPricingEntry(discountedItem),
+      getPricingEntry(regularItem),
+    ]);
+
+    expect(discounts.get("cart-item-1")).toEqual({
+      lineDiscount: 3,
+      discountedLineTotal: 7,
+      discountedUnitPriceWithModifiers: 7,
+    });
+    expect(discounts.has("cart-item-2")).toBe(false);
+  });
+
   it("returns line-through and discounted prices for scoped item promotions", () => {
     const item: CartItem = {
       id: "cart-item-1",

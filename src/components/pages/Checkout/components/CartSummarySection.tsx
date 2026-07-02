@@ -112,6 +112,11 @@ export interface CartItem {
     imageUrl?: string;
     fixedPrice?: number | string;
   };
+  promotion?: ApiRecord | null;
+  happyHour?: ApiRecord | null;
+  promotionDiscountAmount?: number | string | null;
+  discountedUnitPrice?: number | string | null;
+  discountedLineTotal?: number | string | null;
   includedItems?: Array<{
     type?: string;
     id?: string | number;
@@ -634,6 +639,33 @@ export const getScopedItemDiscountDisplays = (
   pricingItems: PricingEntry[],
   quote?: CartQuote | null
 ) => {
+  const discountMap = new Map<string, CartItemDiscountDisplay>();
+
+  pricingItems.forEach(({ item, pricing }, index) => {
+    const hasAnyDiscount = Boolean(item.promotion) || Boolean(item.happyHour);
+    const discountedLineTotal = toNumber(item.discountedLineTotal, Number.NaN);
+    const discountedUnitPrice = toNumber(item.discountedUnitPrice, Number.NaN);
+    const explicitLineDiscount = Math.max(0, toNumber(item.promotionDiscountAmount, 0));
+
+    if (!hasAnyDiscount || isDealCartItem(item) || !Number.isFinite(discountedLineTotal)) return;
+
+    const lineDiscount = explicitLineDiscount > 0
+      ? explicitLineDiscount
+      : Math.max(0, pricing.lineTotal - discountedLineTotal);
+
+    if (discountedLineTotal >= pricing.lineTotal || lineDiscount <= 0) return;
+
+    discountMap.set(String(item.id || item.menuItemId || index), {
+      lineDiscount,
+      discountedLineTotal: Math.max(0, discountedLineTotal),
+      discountedUnitPriceWithModifiers: Number.isFinite(discountedUnitPrice)
+        ? Math.max(0, discountedUnitPrice)
+        : Math.max(0, discountedLineTotal) / pricing.quantity,
+    });
+  });
+
+  if (discountMap.size > 0) return discountMap;
+
   const applyMode = String(quote?.appliedPromotion?.applyMode || "").toUpperCase();
   const discountAmount = Math.max(
     0,
@@ -641,7 +673,7 @@ export const getScopedItemDiscountDisplays = (
   );
 
   if (applyMode !== "SCOPED_ITEMS" || discountAmount <= 0) {
-    return new Map<string, CartItemDiscountDisplay>();
+    return discountMap;
   }
 
   const eligibleItems = pricingItems.filter(({ item, pricing }) => {
@@ -650,10 +682,9 @@ export const getScopedItemDiscountDisplays = (
   const eligibleTotal = eligibleItems.reduce((total, { pricing }) => total + pricing.lineTotal, 0);
 
   if (eligibleTotal <= 0) {
-    return new Map<string, CartItemDiscountDisplay>();
+    return discountMap;
   }
 
-  const discountMap = new Map<string, CartItemDiscountDisplay>();
   let allocatedDiscount = 0;
 
   eligibleItems.forEach(({ item, pricing }, index) => {
