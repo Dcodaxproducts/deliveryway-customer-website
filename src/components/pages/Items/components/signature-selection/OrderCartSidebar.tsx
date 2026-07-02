@@ -22,6 +22,7 @@ import {
   getCheckoutPriceAdjustmentTotal,
   getItemImage,
   getItemPricing,
+  getScopedItemDiscountDisplays,
   getSelectedVariationName,
   getTotalBeforeDiscount,
   getSplitPizzaDisplay,
@@ -161,6 +162,7 @@ export function OrderCartSidebar({
     appliedPromotion && ("id" in appliedPromotion || "title" in appliedPromotion)
   );
   const promotionDiscountLine = getAppliedPromotionDiscountLine(cartQuote);
+  const scopedItemDiscountDisplays = getScopedItemDiscountDisplays(pricingItems, cartQuote);
   const discount = promotionDiscountLine?.amount ?? Math.max(0, toNumber(cartQuote?.discountAmount, 0));
   const loyaltyDiscount = Math.max(0, toNumber(cartQuote?.loyaltyDiscountAmount, 0));
   const walletAppliedAmount = Math.max(0, toNumber(cartQuote?.walletAppliedAmount, 0));
@@ -300,6 +302,7 @@ export function OrderCartSidebar({
                 checkoutType
               );
               const includedItems = Array.isArray(item.includedItems) ? item.includedItems : [];
+              const itemDiscountDisplay = scopedItemDiscountDisplays.get(String(item.id || item.menuItemId || ""));
 
               return (
                 <div
@@ -501,12 +504,34 @@ export function OrderCartSidebar({
 
                       <div className="flex items-end justify-between gap-3 pt-1">
                         <div>
-                          <p className="text-sm font-semibold text-primary">
-                            {formatCurrency(lineTotal, currency)}
-                          </p>
+                          {itemDiscountDisplay ? (
+                            <div className="flex flex-wrap items-baseline gap-2">
+                              <span className="text-xs font-medium text-gray-400 line-through decoration-gray-400">
+                                {formatCurrency(lineTotal, currency)}
+                              </span>
+                              <span className="text-sm font-semibold text-primary">
+                                {formatCurrency(itemDiscountDisplay.discountedLineTotal, currency)}
+                              </span>
+                            </div>
+                          ) : (
+                            <p className="text-sm font-semibold text-primary">
+                              {formatCurrency(lineTotal, currency)}
+                            </p>
+                          )}
                           <div className="space-y-0.5">
                             <p className="text-[11px] text-gray-400">
-                              {t("each", { price: formatCurrency(unitPriceWithModifiers, currency) })}
+                              {itemDiscountDisplay ? (
+                                <>
+                                  {t("each", {
+                                    price: formatCurrency(itemDiscountDisplay.discountedUnitPriceWithModifiers, currency),
+                                  })}
+                                  <span className="ml-1 line-through decoration-gray-400">
+                                    {formatCurrency(unitPriceWithModifiers, currency)}
+                                  </span>
+                                </>
+                              ) : (
+                                t("each", { price: formatCurrency(unitPriceWithModifiers, currency) })
+                              )}
                             </p>
                             {selectedAddons.length > 0 ? (
                               <p className="text-[11px] text-gray-400">
