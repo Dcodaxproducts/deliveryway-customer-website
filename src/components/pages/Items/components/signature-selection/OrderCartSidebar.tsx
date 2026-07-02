@@ -40,6 +40,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
+import { dispatchCartChanged } from "@/lib/cart-events";
 import { cn } from "@/lib/utils";
 
 type OrderCartSidebarProps = {
@@ -220,6 +221,8 @@ export function OrderCartSidebar({
   const deleteItem = async (id: string) => {
     if (!customerId) return;
     const item = cartItems.find((cartItem) => String(cartItem.id) === id);
+    const previousTotalItems = totalItems;
+    const deletedQuantity = Math.max(1, toNumber(item?.quantity, 1));
 
     try {
       setActionId(id);
@@ -236,6 +239,7 @@ export function OrderCartSidebar({
 
       toast.success(cartT("itemRemoved"));
       setCartItems((prev) => prev.filter((cartItem) => String(cartItem.id) !== id));
+      dispatchCartChanged({ itemCount: Math.max(0, previousTotalItems - deletedQuantity) });
       onCartRefresh?.();
       await fetchCart();
     } catch (err) {
