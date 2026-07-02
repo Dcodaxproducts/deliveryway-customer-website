@@ -113,7 +113,7 @@ const getPopupKey = (popup?: LandingPopup | null, branchId?: string) => {
 
 type RuntimeClosedPopupTranslator = (key: "closedTitle" | "closedBeforeOpen" | "closedDuringBreak" | "closedAfterHours" | "closedTemporarily" | "closedGeneric", values?: { time?: string }) => string;
 
-const buildRuntimeClosedPopup = ({
+export const buildRuntimeClosedPopup = ({
   branch,
   t,
 }: {
@@ -123,7 +123,11 @@ const buildRuntimeClosedPopup = ({
   if (!branch) return null;
 
   const summary = getBranchHoursSummary(branch);
-  const activeSummary = summary.delivery.status !== "unknown" ? summary.delivery : summary.opening;
+  const activeSummary = summary.opening.status === "closed"
+    ? summary.opening
+    : summary.delivery.status === "closed"
+      ? summary.delivery
+      : summary.opening;
 
   if (activeSummary.status !== "closed") return null;
 
