@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   fetchMenuItemDetailsByIds,
   fetchMenuItemsPage,
-  fetchMenuCategoriesPage,
   fetchSplitPizzaMenuItems,
 } from "./items";
 
@@ -116,60 +115,14 @@ describe("fetchMenuItemDetailsByIds", () => {
       categoryId: "category-1",
       page: 2,
       limit: 12,
-      locale: "en",
-      search: "pizza",
       token: "token-1",
     });
 
     expect(getItemsMock).toHaveBeenCalledWith(
-      "/customer-app/cuisines/category-1/items?restaurantId=restaurant-1&page=2&limit=12&branchId=branch-1&locale=en&search=pizza&sort=sortOrder%3AASC",
+      "/v1/menu/items?restaurantId=restaurant-1&page=2&limit=12&sortBy=sortOrder&sortOrder=ASC&categoryId=category-1&branchId=branch-1",
       "token-1"
     );
   });
-
-  it("passes customer-app cuisine params when fetching paginated cuisines", async () => {
-    getItemsMock.mockResolvedValueOnce({ data: [], meta: { page: 1 } });
-
-    await fetchMenuCategoriesPage({
-      restaurantId: "restaurant-1",
-      branchId: "branch-1",
-      page: 1,
-      limit: 20,
-      locale: "de",
-      search: "pasta",
-      token: "token-1",
-    });
-
-    expect(getItemsMock).toHaveBeenCalledWith(
-      "/customer-app/cuisines?restaurantId=restaurant-1&page=1&limit=20&branchId=branch-1&locale=de&search=pasta&sort=sortOrder%3AASC",
-      "token-1"
-    );
-  });
-
-  it("maps customer-app cuisine items response with nested data and top-level meta", async () => {
-    getItemsMock.mockResolvedValueOnce({
-      data: {
-        cuisine: { id: "cuisine-1", name: "Pizza" },
-        items: [{ id: "item-1", promotion: { id: "promo-1", discountAmount: 2 } }],
-      },
-      meta: { page: 2, hasNext: false },
-    });
-
-    const result = await fetchMenuItemsPage({
-      restaurantId: "restaurant-1",
-      branchId: "branch-1",
-      categoryId: "cuisine-1",
-      page: 2,
-      limit: 12,
-      token: "token-1",
-    });
-
-    expect(result.items).toEqual([
-      { id: "item-1", promotion: { id: "promo-1", discountAmount: 2 } },
-    ]);
-    expect(result.meta).toEqual({ page: 2, hasNext: false });
-  });
-
 
   it("passes branchId when fetching split-pizza menu items", async () => {
     getItemsMock.mockResolvedValueOnce({ data: [], meta: { page: 1 } });

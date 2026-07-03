@@ -24,9 +24,6 @@ export const fetchMenuItemsPage = async ({
   categoryId,
   page,
   limit,
-  locale,
-  search,
-  sort = "sortOrder:ASC",
   token,
 }: {
   restaurantId: string;
@@ -34,37 +31,25 @@ export const fetchMenuItemsPage = async ({
   categoryId?: string;
   page: number;
   limit: number;
-  locale?: string | null;
-  search?: string | null;
-  sort?: string | null;
   token?: string | null;
 }) => {
   const params = new URLSearchParams({
     restaurantId,
     page: String(page),
     limit: String(limit),
+    sortBy: "sortOrder",
+    sortOrder: "ASC",
   });
+
+  if (categoryId) {
+    params.set("categoryId", categoryId);
+  }
 
   if (branchId) {
     params.set("branchId", String(branchId));
   }
 
-  if (locale) {
-    params.set("locale", locale);
-  }
-
-  if (search?.trim()) {
-    params.set("search", search.trim());
-  }
-
-  if (sort) {
-    params.set("sort", sort);
-  }
-
-  const cuisinePath = categoryId
-    ? `/customer-app/cuisines/${encodeURIComponent(categoryId)}/items`
-    : "/customer-app/cuisines/items";
-  const response = await getItems(`${cuisinePath}?${params.toString()}`, token);
+  const response = await getItems(`/v1/menu/items?${params.toString()}`, token);
 
   return {
     response,
@@ -175,46 +160,30 @@ export const fetchSplitPizzaMenuItems = async ({
 
 export const fetchMenuCategoriesPage = async ({
   restaurantId,
-  branchId,
   page,
   limit,
-  locale,
   search,
-  sort = "sortOrder:ASC",
   token,
 }: {
   restaurantId: string;
-  branchId?: string | number | null;
   page: number;
   limit: number;
-  locale?: string | null;
   search?: string;
-  sort?: string | null;
   token?: string | null;
 }) => {
   const params = new URLSearchParams({
     restaurantId,
     page: String(page),
     limit: String(limit),
+    sortBy: "sortOrder",
+    sortOrder: "ASC",
   });
-
-  if (branchId) {
-    params.set("branchId", String(branchId));
-  }
-
-  if (locale) {
-    params.set("locale", locale);
-  }
 
   if (search) {
     params.set("search", search);
   }
 
-  if (sort) {
-    params.set("sort", sort);
-  }
-
-  const response = await getItems(`/customer-app/cuisines?${params.toString()}`, token);
+  const response = await getItems(`/v1/menu/categories?${params.toString()}`, token);
 
   return {
     response,

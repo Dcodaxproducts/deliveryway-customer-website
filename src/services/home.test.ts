@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { getHome, getHomeCategories, getHomePromotions, getPromotionalItems } from "./home";
+import { getHome, getHomeCategories, getPromotionalItems } from "./home";
 
 const getRequestMock = vi.hoisted(() => vi.fn());
 
@@ -77,7 +77,7 @@ describe("getHomeCategories", () => {
       .mockResolvedValueOnce({
         data: {
           data: [
-            { id: "c1", name: "Pizza", imageUrl: "pizza.png", promotion: { id: "promo-1" }, happyHour: { id: "happy-1" } },
+            { id: "c1", name: "Pizza", imageUrl: "pizza.png" },
             { id: "c2", name: "Pasta", imageUrl: "pasta.png" },
           ],
           pagination: { page: 1, totalPages: 2 },
@@ -92,18 +92,16 @@ describe("getHomeCategories", () => {
         },
       });
 
-    const categories = await getHomeCategories({ restaurantId: "restaurant-1", branchId: "branch-1", locale: "en" });
+    const categories = await getHomeCategories("restaurant-1");
 
     expect(categories.map((category) => category.id)).toEqual(["c1", "c2", "c3"]);
-    expect(categories[0]?.promotion).toEqual({ id: "promo-1" });
-    expect(categories[0]?.happyHour).toEqual({ id: "happy-1" });
     expect(getRequestMock).toHaveBeenNthCalledWith(
       1,
-      "/customer-app/cuisines?restaurantId=restaurant-1&page=1&limit=50&sort=sortOrder%3AASC&branchId=branch-1&locale=en"
+      "/v1/menu/categories?restaurantId=restaurant-1&page=1&limit=50&sortBy=sortOrder&sortOrder=ASC"
     );
     expect(getRequestMock).toHaveBeenNthCalledWith(
       2,
-      "/customer-app/cuisines?restaurantId=restaurant-1&page=2&limit=50&sort=sortOrder%3AASC&branchId=branch-1&locale=en"
+      "/v1/menu/categories?restaurantId=restaurant-1&page=2&limit=50&sortBy=sortOrder&sortOrder=ASC"
     );
   });
 
@@ -118,32 +116,12 @@ describe("getHomeCategories", () => {
       },
     });
 
-    const categories = await getHomeCategories({ restaurantId: "restaurant-1", branchId: "branch-1", locale: "en" });
+    const categories = await getHomeCategories("restaurant-1");
 
     expect(categories).toHaveLength(1);
     expect(categories[0].id).toBe("c1");
   });
 });
-
-describe("getHomePromotions", () => {
-  beforeEach(() => {
-    getRequestMock.mockReset();
-  });
-
-  it("calls promotional-cuisines with restaurant, branch, and locale params", async () => {
-    getRequestMock.mockResolvedValue({
-      data: [{ id: "promo-cuisine-1", title: "Pizza deals" }],
-    });
-
-    const promotions = await getHomePromotions("restaurant-1", "branch-1", "en");
-
-    expect(getRequestMock).toHaveBeenCalledWith(
-      "/customer-app/promotional-cuisines?restaurantId=restaurant-1&branchId=branch-1&locale=en"
-    );
-    expect(promotions[0]?.id).toBe("promo-cuisine-1");
-  });
-});
-
 
 describe("getPromotionalItems", () => {
   beforeEach(() => {

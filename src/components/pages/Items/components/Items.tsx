@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { RestaurantCard } from "./RestaurantCard";
 import useItems from "@/hooks/useItems";
 import { useAuth } from "@/hooks/useAuth";
-import { useAppLocale } from "@/hooks/useAppLocale";
 import { getStoredRestaurantId } from "@/lib/auth";
 import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -83,7 +82,6 @@ export function ItemsListing({
 }: ItemsListingProps) {
   const t = useTranslations("items.common");
   const { token, restaurantId: authRestaurantId, user } = useAuth();
-  const { locale } = useAppLocale();
   const { fetchMenuItemsPage } = useItems(token);
 
   const [categoryItemsMap, setCategoryItemsMap] = useState<
@@ -160,7 +158,6 @@ export function ItemsListing({
         categoryId: String(categoryId),
         page,
         limit: ITEMS_PAGE_LIMIT,
-        locale,
       });
 
       queueMicrotask(() => {
@@ -231,7 +228,7 @@ export function ItemsListing({
         append: false,
       });
     });
-  }, [contentSource, viewMode, activeCategoryId, token, restaurantId, branchId, locale]);
+  }, [contentSource, viewMode, activeCategoryId, token, restaurantId, branchId]);
 
   /* ================= ONE PAGE MODE: LOAD EACH DISPLAYED CATEGORY ================= */
 
@@ -256,7 +253,7 @@ export function ItemsListing({
         });
       });
     });
-  }, [contentSource, viewMode, categoryIdsKey, token, restaurantId, branchId, locale]);
+  }, [contentSource, viewMode, categoryIdsKey, token, restaurantId, branchId]);
 
   /* ================= PRUNE OLD CATEGORY STATES AFTER SEARCH ================= */
 

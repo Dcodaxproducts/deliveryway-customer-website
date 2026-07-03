@@ -413,7 +413,7 @@ function PromotionItemsPageContent() {
   );
   const branchId = useMemo(() => resolveHomeBranchId(user), [user]);
 
-  const promotionsQuery = useHomePromotions(restaurantId, branchId, locale, Boolean(token && promotionId));
+  const promotionsQuery = useHomePromotions(restaurantId, branchId, Boolean(token && promotionId));
   const promotionalItemsQuery = useHomePromotionalItems({
     restaurantId,
     branchId,

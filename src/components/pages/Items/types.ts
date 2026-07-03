@@ -358,7 +358,6 @@ export type MenuCategory = {
   imageUrl?: string | null;
   coverImage?: string | null;
   bannerUrl?: string | null;
-  promotion?: PromotionInfo | null;
   happyHour?: HappyHourInfo | null;
 };
 
