@@ -224,7 +224,6 @@ export const HeroSection = ({
             {description || t("description")}
           </p>
 
-          {!isSingleBranchRestaurant ? (
           <div className="mt-6 grid max-w-[680px] gap-2.5 sm:grid-cols-3">
             <div className="rounded-[18px] bg-white/13 p-3 ring-1 ring-white/18 backdrop-blur">
               <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-white text-primary">
@@ -250,7 +249,6 @@ export const HeroSection = ({
               <p className="mt-1 line-clamp-2 text-xs leading-5 text-white/72">{t("offersDescription")}</p>
             </div>
           </div>
-          ) : null}
         </div>
 
         <div className="w-full rounded-[30px] bg-white p-5 shadow-[0_24px_80px_rgba(17,24,39,0.22)] ring-1 ring-black/5 md:p-7">

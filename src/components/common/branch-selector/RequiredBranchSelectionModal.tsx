@@ -38,7 +38,14 @@ export function RequiredBranchSelectionModal({
 
   const shouldShow =
     !!token && !!user && !user?.branchId && !!resolvedRestaurantId;
-  const checkKey = shouldShow ? `${user?.id ?? ""}:${resolvedRestaurantId ?? ""}` : null;
+  const shouldCheckSingleBranch =
+    !!token &&
+    !!user &&
+    !!resolvedRestaurantId &&
+    (!user?.branchId || user?.branch?.isOnlyBranch !== true);
+  const checkKey = shouldCheckSingleBranch
+    ? `${user?.id ?? ""}:${resolvedRestaurantId ?? ""}:${user?.branchId ?? "none"}`
+    : null;
   const isCheckingSingleBranch = shouldShow && checkedKey !== checkKey;
 
   const buildBranchLookupUrl = useCallback(() => {
@@ -59,7 +66,7 @@ export function RequiredBranchSelectionModal({
   }, [user?.id, user?.branchId, resolvedRestaurantId]);
 
   useEffect(() => {
-    if (!shouldShow || !checkKey) return;
+    if (!shouldCheckSingleBranch || !checkKey) return;
 
     let cancelled = false;
 
@@ -92,7 +99,7 @@ export function RequiredBranchSelectionModal({
     return () => {
       cancelled = true;
     };
-  }, [buildBranchLookupUrl, checkKey, fetchBranchPage, onSelected, setUser, shouldShow, user]);
+  }, [buildBranchLookupUrl, checkKey, fetchBranchPage, onSelected, setUser, shouldCheckSingleBranch, user]);
 
   useEffect(() => {
     setOpen(shouldShow && !dismissedEmptyState && !isCheckingSingleBranch);
