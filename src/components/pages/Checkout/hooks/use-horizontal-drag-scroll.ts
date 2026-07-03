@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef } from "react";
-import type { MouseEvent, PointerEvent } from "react";
+import { useCallback, useEffect, useRef } from "react";
+import type { MouseEvent, PointerEvent as ReactPointerEvent } from "react";
 
 type DragState = {
   pointerId: number | null;
@@ -21,21 +21,9 @@ export function useHorizontalDragScroll<T extends HTMLElement>() {
     isDragging: false,
   });
 
-  const handlePointerDown = (event: PointerEvent<T>) => {
-    const rail = railRef.current;
+  const cleanupWindowListenersRef = useRef<() => void>(() => {});
 
-    if (!rail || event.button !== 0) return;
-
-    dragStateRef.current = {
-      pointerId: event.pointerId,
-      startX: event.clientX,
-      startScrollLeft: rail.scrollLeft,
-      didDrag: false,
-      isDragging: false,
-    };
-  };
-
-  const handlePointerMove = (event: PointerEvent<T>) => {
+  const handlePointerMove = useCallback((event: Pick<PointerEvent, "clientX" | "pointerId" | "preventDefault">) => {
     const rail = railRef.current;
     const dragState = dragStateRef.current;
 
@@ -56,9 +44,9 @@ export function useHorizontalDragScroll<T extends HTMLElement>() {
 
     event.preventDefault();
     rail.scrollLeft = dragState.startScrollLeft - dragDistance;
-  };
+  }, []);
 
-  const handlePointerEnd = (event: PointerEvent<T>) => {
+  const handlePointerEnd = useCallback((event: Pick<PointerEvent, "pointerId">) => {
     const rail = railRef.current;
     const dragState = dragStateRef.current;
 
@@ -70,7 +58,37 @@ export function useHorizontalDragScroll<T extends HTMLElement>() {
 
     dragState.pointerId = null;
     dragState.isDragging = false;
+    cleanupWindowListenersRef.current();
+  }, []);
+
+  const handlePointerDown = (event: ReactPointerEvent<T>) => {
+    const rail = railRef.current;
+
+    if (!rail || event.button !== 0) return;
+
+    dragStateRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startScrollLeft: rail.scrollLeft,
+      didDrag: false,
+      isDragging: false,
+    };
+
+    cleanupWindowListenersRef.current();
+
+    window.addEventListener("pointermove", handlePointerMove, { passive: false });
+    window.addEventListener("pointerup", handlePointerEnd);
+    window.addEventListener("pointercancel", handlePointerEnd);
+
+    cleanupWindowListenersRef.current = () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerEnd);
+      window.removeEventListener("pointercancel", handlePointerEnd);
+      cleanupWindowListenersRef.current = () => {};
+    };
   };
+
+  useEffect(() => () => cleanupWindowListenersRef.current(), []);
 
   const handleClickCapture = (event: MouseEvent<T>) => {
     if (!dragStateRef.current.didDrag) return;
