@@ -184,6 +184,8 @@
       "offersDescription": "Unlock branch deals and menu promos whenever they are live.",
       "orderPanelEyebrow": "Start your order",
       "orderPanelTitle": "Delivery or pickup",
+      "singleBranchPanelTitle": "Ready to order?",
+      "singleBranchSchedulePanelTitle": "Order ahead from this branch",
       "deliveryPanelTitle": "Delivery",
       "pickupPanelTitle": "Pickup",
       "scheduleDeliveryPanelTitle": "Schedule Delivery",

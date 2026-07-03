@@ -121,6 +121,7 @@ const mergeHomeBranch = (
   return {
     ...sessionBranch,
     ...homeBranch,
+    isOnlyBranch: sessionBranch.isOnlyBranch,
     settings: mergeBranchSettings(homeBranch.settings, sessionBranch.settings),
     availability: {
       ...(sessionHomeBranch.availability ?? {}),

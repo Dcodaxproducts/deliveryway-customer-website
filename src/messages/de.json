@@ -184,6 +184,8 @@
       "offersDescription": "Nutzen Sie Filialangebote und Menüaktionen, sobald sie verfügbar sind.",
       "orderPanelEyebrow": "Bestellung starten",
       "orderPanelTitle": "Lieferung oder Abholung",
+      "singleBranchPanelTitle": "Bereit zum Bestellen?",
+      "singleBranchSchedulePanelTitle": "Bei dieser Filiale vorbestellen",
       "deliveryPanelTitle": "Lieferung",
       "pickupPanelTitle": "Abholung",
       "scheduleDeliveryPanelTitle": "Lieferung planen",

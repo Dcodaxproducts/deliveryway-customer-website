@@ -75,6 +75,7 @@ export const HeroSection = ({
   );
 
   const selectedBranch = user?.branch ?? null;
+  const isSingleBranchRestaurant = Boolean(selectedBranch?.isOnlyBranch);
   const selectedOrderType = getSelectedOrderType(user);
   const selectedOrderLabel = selectedOrderType === "TAKEAWAY" ? "Pickup" : selectedOrderType === "DELIVERY" ? "Delivery" : "";
   const isSelectedBranchAvailable = selectedBranch ? isBranchCurrentlyAvailable(selectedBranch) : true;
@@ -87,6 +88,9 @@ export const HeroSection = ({
       ? t("pickupPanelTitle")
       : t("schedulePickupPanelTitle")
     : t("orderPanelTitle");
+  const singleBranchPanelTitle = isSelectedBranchAvailable
+    ? t("singleBranchPanelTitle")
+    : t("singleBranchSchedulePanelTitle");
   const hasOrderTypeRules = Boolean(selectedBranch?.settings?.allowedOrderTypes?.length);
   const showDeliveryOption = !hasOrderTypeRules || (selectedBranch ? branchSupportsDelivery(selectedBranch) : false);
   const showPickupOption = !hasOrderTypeRules || (selectedBranch ? branchSupportsPickup(selectedBranch) : false);
@@ -220,6 +224,7 @@ export const HeroSection = ({
             {description || t("description")}
           </p>
 
+          {!isSingleBranchRestaurant ? (
           <div className="mt-6 grid max-w-[680px] gap-2.5 sm:grid-cols-3">
             <div className="rounded-[18px] bg-white/13 p-3 ring-1 ring-white/18 backdrop-blur">
               <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-white text-primary">
@@ -245,12 +250,13 @@ export const HeroSection = ({
               <p className="mt-1 line-clamp-2 text-xs leading-5 text-white/72">{t("offersDescription")}</p>
             </div>
           </div>
+          ) : null}
         </div>
 
         <div className="w-full rounded-[30px] bg-white p-5 shadow-[0_24px_80px_rgba(17,24,39,0.22)] ring-1 ring-black/5 md:p-7">
           <div className="mb-5">
             <h2 className="text-2xl font-black tracking-normal text-[#171717]">
-              {orderPanelTitle}
+              {isSingleBranchRestaurant ? singleBranchPanelTitle : orderPanelTitle}
             </h2>
           </div>
 
@@ -291,14 +297,15 @@ export const HeroSection = ({
               </div>
               <button
                 type="button"
-                onClick={handleFindNearbyBranches}
+                onClick={isSingleBranchRestaurant ? handleFindFood : handleFindNearbyBranches}
                 className="h-10 rounded-xl border border-primary/20 bg-white px-4 text-sm font-semibold text-primary transition hover:bg-primary/5"
               >
-                Change
+                {isSingleBranchRestaurant ? t("findFood") : "Change"}
               </button>
             </div>
           ) : null}
 
+          {isSingleBranchRestaurant ? null : (
           <div ref={branchSearchRef} className="relative">
             <AddressLocationPicker
               coordinates={coordinates}
@@ -370,6 +377,7 @@ export const HeroSection = ({
               </div>
             ) : null}
           </div>
+          )}
         </div>
       </div>
     </main>
