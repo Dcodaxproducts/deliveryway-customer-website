@@ -59,6 +59,7 @@ export const normalizeHomeCategories = (response: unknown): HomeCategory[] =>
       id: getString(item.id) ?? "",
       name: getString(item.name) ?? "",
       imageUrl: getString(item.imageUrl) ?? null,
+      promotion: isRecord(item.promotion) ? item.promotion as HappyHourInfo : null,
       happyHour: isRecord(item.happyHour) ? item.happyHour as HappyHourInfo : null,
     }))
     .filter((item) => item.id);

@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import useItems from "@/hooks/useItems";
 import { useAuth } from "@/hooks/useAuth";
+import { useAppLocale } from "@/hooks/useAppLocale";
 import useBranches from "@/hooks/useBranches";
 import { useHome } from "@/hooks/useHome";
 import { getStoredAuthState } from "@/lib/auth";
@@ -139,6 +140,7 @@ export default function RestaurantHeader() {
   const router = useRouter();
 
   const { token, restaurantId: authRestaurantId, user } = useAuth();
+  const { locale } = useAppLocale();
   const { fetchMenuCategoriesPage } = useItems(token);
   const { fetchBranches } = useBranches(token);
 
@@ -255,8 +257,10 @@ export default function RestaurantHeader() {
         while (shouldContinue) {
           const { categories: fetchedCategories, meta } = await fetchMenuCategoriesPage({
             restaurantId: String(restaurantId),
+            branchId: selectedBranchId,
             page,
             limit: CATEGORY_PAGE_LIMIT,
+            locale,
           });
 
           if (!firstCategory && fetchedCategories.length > 0) {
@@ -322,7 +326,7 @@ export default function RestaurantHeader() {
     return () => {
       cancelled = true;
     };
-  }, [categoryId, token, restaurantId, selectedBranchId, fetchBranches, user, storedAuth, t, homeQuery.data?.data.branch, homeQuery.data?.data.landingPopup]);
+  }, [categoryId, token, restaurantId, selectedBranchId, locale, fetchBranches, user, storedAuth, t, homeQuery.data?.data.branch, homeQuery.data?.data.landingPopup]);
 
   const categoryItemCount = category ? getCategoryItemCount(category) : null;
   const bannerImage = getImageUrl(category, restaurant);

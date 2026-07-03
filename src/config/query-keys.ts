@@ -38,8 +38,8 @@ export const queryKeys = {
   },
   home: {
     detail: (restaurantId?: string | null, branchId?: string | null) => ["customer-home", restaurantId ?? "", branchId ?? ""] as const,
-    categories: (restaurantId?: string | null) => ["customer-home", "categories", restaurantId ?? ""] as const,
-    promotions: (restaurantId?: string | null, branchId?: string | null) => ["customer-home", "promotions", restaurantId ?? "", branchId ?? ""] as const,
+    categories: (restaurantId?: string | null, branchId?: string | null, locale?: string | null) => ["customer-home", "categories", restaurantId ?? "", branchId ?? "", locale ?? ""] as const,
+    promotions: (restaurantId?: string | null, branchId?: string | null, locale?: string | null) => ["customer-home", "promotional-cuisines", restaurantId ?? "", branchId ?? "", locale ?? ""] as const,
     promotionalItems: (params: Record<string, unknown>) => ["customer-home", "promotional-items", params] as const,
     branchStats: (restaurantId?: string | null, branchId?: string | null) => ["customer-home", "branch-stats", restaurantId ?? "", branchId ?? ""] as const,
     about: (restaurantId?: string | null) => ["customer-home", "about", restaurantId ?? ""] as const,

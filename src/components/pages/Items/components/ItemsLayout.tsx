@@ -188,8 +188,10 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
 
       const { categories: fetchedCategories, meta } = await fetchMenuCategoriesPage({
         restaurantId: String(restaurantId),
+        branchId,
         page,
         limit: CATEGORY_PAGE_LIMIT,
+        locale,
         search: searchValue,
       });
 

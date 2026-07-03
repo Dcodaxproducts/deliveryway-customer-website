@@ -101,7 +101,15 @@ const normalizeHomeData = (value: unknown): CustomerHomeData => {
   };
 };
 
-export const getHomeCategories = async (restaurantId: string) => {
+export const getHomeCategories = async ({
+  restaurantId,
+  branchId,
+  locale,
+}: {
+  restaurantId: string;
+  branchId?: string | null;
+  locale?: string | null;
+}) => {
   const categories: HomeCategory[] = [];
   const seenCategoryIds = new Set<string>();
   let page = 1;
@@ -111,11 +119,18 @@ export const getHomeCategories = async (restaurantId: string) => {
       restaurantId,
       page: String(page),
       limit: String(HOME_CATEGORIES_PAGE_LIMIT),
-      sortBy: "sortOrder",
-      sortOrder: "ASC",
+      sort: "sortOrder:ASC",
     });
 
-    const response = await getRequest(`/v1/menu/categories?${params.toString()}`);
+    if (branchId) {
+      params.set("branchId", branchId);
+    }
+
+    if (locale) {
+      params.set("locale", locale);
+    }
+
+    const response = await getRequest(`/customer-app/cuisines?${params.toString()}`);
     const pageCategories = normalizeHomeCategories(response);
 
     for (const category of pageCategories) {
@@ -137,7 +152,7 @@ export const getHomeCategories = async (restaurantId: string) => {
   return categories;
 };
 
-export const getHomePromotions = async (restaurantId: string, branchId?: string | null) => {
+export const getHomePromotions = async (restaurantId: string, branchId?: string | null, locale?: string | null) => {
   const params = new URLSearchParams();
   params.set("restaurantId", restaurantId);
 
@@ -145,7 +160,11 @@ export const getHomePromotions = async (restaurantId: string, branchId?: string 
     params.set("branchId", branchId);
   }
 
-  return normalizePromotions(await getRequest(`/customer-app/promotions?${params.toString()}`));
+  if (locale) {
+    params.set("locale", locale);
+  }
+
+  return normalizePromotions(await getRequest(`/customer-app/promotional-cuisines?${params.toString()}`));
 };
 
 export const getPromotionalItems = async ({

@@ -61,6 +61,7 @@ export type HomeCategory = {
   id: string;
   name: string;
   imageUrl?: string | null;
+  promotion?: HappyHourInfo | null;
   happyHour?: HappyHourInfo | null;
 };
 

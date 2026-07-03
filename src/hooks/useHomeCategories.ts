@@ -5,21 +5,31 @@ import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/config/query-keys";
 import { getHomeCategories, getHomePromotions, getPromotionalItems } from "@/services/home";
 
-export const useHomeCategories = (restaurantId?: string | null, enabled = true) =>
+export const useHomeCategories = (
+  restaurantId?: string | null,
+  branchId?: string | null,
+  locale?: string | null,
+  enabled = true
+) =>
   useQuery({
-    queryKey: queryKeys.home.categories(restaurantId),
-    queryFn: () => getHomeCategories(restaurantId ?? ""),
+    queryKey: queryKeys.home.categories(restaurantId, branchId, locale),
+    queryFn: () => getHomeCategories({
+      restaurantId: restaurantId ?? "",
+      branchId,
+      locale,
+    }),
     enabled: enabled && Boolean(restaurantId),
   });
 
 export const useHomePromotions = (
   restaurantId?: string | null,
   branchId?: string | null,
+  locale?: string | null,
   enabled = true
 ) =>
   useQuery({
-    queryKey: queryKeys.home.promotions(restaurantId, branchId),
-    queryFn: () => getHomePromotions(restaurantId ?? "", branchId),
+    queryKey: queryKeys.home.promotions(restaurantId, branchId, locale),
+    queryFn: () => getHomePromotions(restaurantId ?? "", branchId, locale),
     enabled: enabled && Boolean(restaurantId),
   });
 
