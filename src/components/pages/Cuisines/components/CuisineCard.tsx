@@ -16,7 +16,7 @@ export function CuisineCard({ cuisine }: { cuisine: CustomerCuisine }) {
   return (
     <Link
       href={`/cuisines/${encodeURIComponent(cuisine.id)}`}
-      className="group block overflow-hidden rounded-[26px] border border-gray-100 bg-white shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition hover:-translate-y-1 hover:shadow-[0_20px_48px_rgba(15,23,42,0.12)]"
+      className="group flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[26px] border border-gray-100 bg-white shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition-shadow hover:shadow-[0_20px_48px_rgba(15,23,42,0.12)]"
     >
       <div className="relative h-44 bg-primary/5">
         <Image
@@ -38,7 +38,7 @@ export function CuisineCard({ cuisine }: { cuisine: CustomerCuisine }) {
         ) : null}
       </div>
 
-      <div className="p-5">
+      <div className="flex flex-1 flex-col p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h3 className="line-clamp-1 text-lg font-black text-gray-950">{cuisine.name}</h3>
@@ -51,7 +51,7 @@ export function CuisineCard({ cuisine }: { cuisine: CustomerCuisine }) {
           </span>
         </div>
 
-        <div className="mt-5 flex items-center justify-between border-t border-dashed border-gray-100 pt-4 text-sm">
+        <div className="mt-auto flex items-center justify-between border-t border-dashed border-gray-100 pt-4 text-sm">
           <span className="inline-flex items-center gap-1 font-semibold text-gray-500">
             <Utensils className="h-4 w-4" />
             {cuisine.itemCount ? t("itemCount", { count: cuisine.itemCount }) : t("exploreItems")}

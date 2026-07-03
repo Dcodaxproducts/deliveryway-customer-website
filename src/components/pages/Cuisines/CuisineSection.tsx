@@ -85,7 +85,7 @@ export function CuisineSection() {
             {cuisines.map((cuisine) => (
               <CarouselItem
                 key={cuisine.id}
-                className="flex basis-[92%] pl-5 sm:basis-[62%] md:basis-[48%] xl:basis-1/3 2xl:basis-1/4"
+                className="flex min-w-0 basis-[92%] pl-5 sm:basis-[62%] md:basis-[48%] xl:basis-1/3 2xl:basis-1/4"
               >
                 <CuisineCard cuisine={cuisine} />
               </CarouselItem>
