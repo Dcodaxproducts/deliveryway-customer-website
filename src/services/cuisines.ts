@@ -23,7 +23,8 @@ export type FetchCuisinesParams = {
   limit?: number;
   locale?: string | null;
   search?: string | null;
-  sort?: string | null;
+  sortBy?: string | null;
+  sortOrder?: "ASC" | "DESC" | null;
 };
 
 export type FetchCuisineItemsParams = FetchCuisinesParams & {
@@ -48,7 +49,8 @@ const appendCuisineParams = (params: URLSearchParams, values: FetchCuisinesParam
   if (values.limit) params.set("limit", String(values.limit));
   if (values.locale) params.set("locale", String(values.locale));
   if (values.search?.trim()) params.set("search", values.search.trim());
-  if (values.sort?.trim()) params.set("sort", values.sort.trim());
+  if (values.sortBy?.trim()) params.set("sortBy", values.sortBy.trim());
+  if (values.sortOrder) params.set("sortOrder", values.sortOrder);
 };
 
 export const normalizeCuisine = (value: unknown): CustomerCuisine | null => {
@@ -81,7 +83,8 @@ export const fetchCustomerCuisines = async (params: FetchCuisinesParams) => {
   appendCuisineParams(queryParams, {
     page: 1,
     limit: 12,
-    sort: "sortOrder",
+    sortBy: "sortOrder",
+    sortOrder: "ASC",
     ...params,
   });
 
@@ -99,7 +102,8 @@ export const fetchCustomerCuisineItems = async ({ cuisineId, ...params }: FetchC
   appendCuisineParams(queryParams, {
     page: 1,
     limit: 12,
-    sort: "sortOrder",
+    sortBy: "sortOrder",
+    sortOrder: "ASC",
     ...params,
   });
 
@@ -119,7 +123,8 @@ export const fetchPromotionalCuisines = async (params: FetchCuisinesParams) => {
   appendCuisineParams(queryParams, {
     page: 1,
     limit: 8,
-    sort: "sortOrder",
+    sortBy: "sortOrder",
+    sortOrder: "ASC",
     ...params,
   });
 

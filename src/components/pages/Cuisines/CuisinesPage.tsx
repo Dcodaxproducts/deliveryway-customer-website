@@ -20,7 +20,7 @@ function CuisinesPageContent() {
   const restaurantId = resolveHomeRestaurantId(user, authRestaurantId) || context?.restaurantId || "";
   const branchId = resolveHomeBranchId(user) || context?.branchId || "";
   const params = useMemo(
-    () => ({ restaurantId, branchId, locale, limit: 24, search, sort: "sortOrder" }),
+    () => ({ restaurantId, branchId, locale, limit: 24, search, sortBy: "sortOrder", sortOrder: "ASC" as const }),
     [branchId, locale, restaurantId, search],
   );
   const cuisinesQuery = useCustomerCuisines({ ...params, enabled: Boolean(restaurantId) });

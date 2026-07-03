@@ -30,11 +30,12 @@ describe("cuisines service", () => {
       limit: 10,
       locale: "en",
       search: "ita",
-      sort: "name",
+      sortBy: "name",
+      sortOrder: "ASC",
     });
 
     expect(mockedGetRequest).toHaveBeenCalledWith(
-      "/customer-app/cuisines?restaurantId=restaurant-1&branchId=branch-1&page=2&limit=10&locale=en&search=ita&sort=name",
+      "/customer-app/cuisines?restaurantId=restaurant-1&branchId=branch-1&page=2&limit=10&locale=en&search=ita&sortBy=name&sortOrder=ASC",
     );
   });
 
@@ -50,7 +51,7 @@ describe("cuisines service", () => {
     });
 
     expect(mockedGetRequest).toHaveBeenCalledWith(
-      "/customer-app/cuisines/cuisine%2F1/items?restaurantId=restaurant-1&branchId=branch-1&page=1&limit=12&sort=sortOrder",
+      "/customer-app/cuisines/cuisine%2F1/items?restaurantId=restaurant-1&branchId=branch-1&page=1&limit=12&sortBy=sortOrder&sortOrder=ASC",
     );
     expect(result.items).toEqual([{ id: "item-1" }]);
   });
@@ -61,7 +62,7 @@ describe("cuisines service", () => {
     await fetchPromotionalCuisines({ restaurantId: "restaurant-1", branchId: "branch-1", limit: 4 });
 
     expect(mockedGetRequest).toHaveBeenCalledWith(
-      "/customer-app/promotional-cuisines?restaurantId=restaurant-1&branchId=branch-1&page=1&limit=4&sort=sortOrder",
+      "/customer-app/promotional-cuisines?restaurantId=restaurant-1&branchId=branch-1&page=1&limit=4&sortBy=sortOrder&sortOrder=ASC",
     );
   });
 });
