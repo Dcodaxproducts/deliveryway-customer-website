@@ -121,6 +121,21 @@ const findModifierPrice = (
   return getPriceDelta(source);
 };
 
+const findModifierPriceOverride = (
+  sources: ModifierPriceSource[] | undefined,
+  modifierId: string
+) => {
+  return normalizeArray<ModifierPriceSource>(sources).find(
+    (entry) => getModifierId(entry) === modifierId
+  ) ?? null;
+};
+
+const getNestedModifierDefaultPrice = (source: ModifierPriceSource) => {
+  if (!source || !("modifier" in source) || !source.modifier) return null;
+
+  return getPriceDelta(source.modifier);
+};
+
 const getGroupsFromSource = (source: ModifierGroupSource): ModifierGroupSource[] => {
   if (!source) return [];
 
@@ -213,12 +228,22 @@ export const getModifierPriceForVariation = ({
     return modifierVariationPrice;
   }
 
-  const itemOverridePrice = findModifierPrice(
+  const itemOverride = findModifierPriceOverride(
     item.modifierPriceOverrides,
     normalizedModifierId
   );
+  const itemOverridePrice = getPriceDelta(itemOverride);
+  const itemOverrideNestedDefaultPrice = getNestedModifierDefaultPrice(itemOverride);
 
   if (itemOverridePrice !== null) {
+    if (itemOverridePrice !== 0 || itemOverrideNestedDefaultPrice === null) {
+      return itemOverridePrice;
+    }
+
+    if (itemOverrideNestedDefaultPrice !== 0) {
+      return itemOverrideNestedDefaultPrice;
+    }
+
     return itemOverridePrice;
   }
 

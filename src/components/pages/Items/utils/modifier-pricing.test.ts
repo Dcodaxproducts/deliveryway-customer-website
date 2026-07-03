@@ -131,6 +131,29 @@ describe("modifier pricing", () => {
     ).toBe(3);
   });
 
+  it("falls back to nested modifier default when item assignment price is zero", () => {
+    expect(
+      getModifierPriceForVariation({
+        item: {
+          ...baseItem,
+          modifierPriceOverrides: [
+            {
+              modifierId: "modifier-1",
+              priceDelta: "0",
+              modifier: {
+                id: "modifier-1",
+                name: "Gyros",
+                priceDelta: "1.55",
+              },
+            },
+          ],
+        },
+        selectedVariationId: null,
+        modifierId: "modifier-1",
+      })
+    ).toBe(1.55);
+  });
+
   it("uses selected variation modifierPriceOverrides from category variations", () => {
     expect(
       getModifierPriceForVariation({
