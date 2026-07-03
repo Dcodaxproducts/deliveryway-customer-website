@@ -13,7 +13,7 @@ type ScheduleRailProps = {
 };
 
 const railClass =
-  "flex snap-x gap-3 overflow-x-auto scroll-smooth px-2 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
+  "flex snap-x scroll-px-14 gap-3 overflow-x-auto scroll-smooth px-14 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
 
 const arrowButtonClass =
   "absolute top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/80 bg-white/95 text-gray-700 shadow-[0_10px_24px_rgba(17,24,39,0.14)] ring-1 ring-gray-900/5 backdrop-blur transition-all duration-200 hover:-translate-y-[calc(50%+1px)] hover:text-primary hover:shadow-[0_14px_30px_rgba(17,24,39,0.18)] disabled:pointer-events-none disabled:opacity-0";
@@ -47,7 +47,7 @@ export function ScheduleRail({
         aria-label={`${ariaLabel} previous`}
         disabled={!canScrollLeft}
         onClick={() => scrollByPage("left")}
-        className={`${arrowButtonClass} left-0`}
+        className={`${arrowButtonClass} left-2`}
       >
         <ChevronLeft size={18} aria-hidden="true" />
       </button>
@@ -63,7 +63,7 @@ export function ScheduleRail({
         aria-label={`${ariaLabel} next`}
         disabled={!canScrollRight}
         onClick={() => scrollByPage("right")}
-        className={`${arrowButtonClass} right-0`}
+        className={`${arrowButtonClass} right-2`}
       >
         <ChevronRight size={18} aria-hidden="true" />
       </button>
