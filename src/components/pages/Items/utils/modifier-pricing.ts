@@ -145,6 +145,9 @@ const getItemModifierGroups = (item: ModifierPricingMenuItem) => {
 const getItemModifierCandidates = (item: ModifierPricingMenuItem) => {
   return [
     ...normalizeArray<ModifierPriceSource>(item.modifiers),
+    ...normalizeArray<ModifierPriceSource>(item.modifierPriceOverrides).flatMap(
+      (override) => (override?.modifier ? [override.modifier] : [])
+    ),
     ...getItemModifierGroups(item).flatMap((group) =>
       normalizeArray<ModifierReference>(group?.modifiers)
     ),
@@ -193,15 +196,6 @@ export const getModifierPriceForVariation = ({
     return variationModifierPrice;
   }
 
-  const itemOverridePrice = findModifierPrice(
-    item.modifierPriceOverrides,
-    normalizedModifierId
-  );
-
-  if (itemOverridePrice !== null) {
-    return itemOverridePrice;
-  }
-
   const itemModifier = getItemModifierCandidates(item).find(
     (modifier) => getModifierId(modifier) === normalizedModifierId
   );
@@ -217,6 +211,15 @@ export const getModifierPriceForVariation = ({
 
   if (modifierVariationPrice !== null) {
     return modifierVariationPrice;
+  }
+
+  const itemOverridePrice = findModifierPrice(
+    item.modifierPriceOverrides,
+    normalizedModifierId
+  );
+
+  if (itemOverridePrice !== null) {
+    return itemOverridePrice;
   }
 
   const modifierItemOverridePrice = findModifierPrice(
