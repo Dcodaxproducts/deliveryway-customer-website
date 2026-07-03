@@ -24,11 +24,13 @@ import {
   getItemPricing,
   getScopedItemDiscountDisplays,
   getSelectedVariationName,
+  getServiceChargeAmountFromQuote,
   getTotalBeforeDiscount,
   getSplitPizzaDisplay,
   isDealCartItem,
   type CheckoutType,
 } from "@/components/pages/Checkout/components/CartSummarySection";
+import { getServiceChargeLabel } from "@/components/pages/Checkout/utils/checkout-formatters";
 import {
   getAppliedPromotionDiscountLine,
   type ApiRecord,
@@ -154,6 +156,16 @@ export function OrderCartSidebar({
   const pickupFee = checkoutType === "pickup" && !hasCartQuote ? checkoutPriceAdjustment : 0;
   const selectedOrderFee = checkoutType === "pickup" ? pickupFee : deliveryFee;
   const tipAmount = Math.max(0, toNumber(cartQuote?.tipAmount, 0));
+  const serviceChargeAmount = getServiceChargeAmountFromQuote(cartQuote);
+  const serviceChargeLabel = getServiceChargeLabel({
+    serviceChargeType: typeof cartQuote?.serviceChargeType === "string" ? cartQuote.serviceChargeType : null,
+    serviceChargeValue:
+      typeof cartQuote?.serviceChargeValue === "string" || typeof cartQuote?.serviceChargeValue === "number"
+        ? cartQuote.serviceChargeValue
+        : null,
+    serviceChargeLabel: t("totals.serviceCharge"),
+    serviceChargeWithPercentageLabel: (value) => t("totals.serviceChargeWithPercentage", { value }),
+  });
   const quoteSubtotal = cartQuote ? toNumber(cartQuote.subtotal, itemTotal) : itemTotal;
   const appliedPromotion =
     typeof cartQuote?.appliedPromotion === "object" && cartQuote.appliedPromotion !== null
@@ -583,6 +595,13 @@ export function OrderCartSidebar({
                   {checkoutType === "pickup" ? t("pickupPrice") : t("deliveryFee")}
                 </span>
                 <span>{formatCurrency(selectedOrderFee, currency)}</span>
+              </div>
+            ) : null}
+
+            {serviceChargeAmount > 0 ? (
+              <div className="flex items-center justify-between">
+                <span>{serviceChargeLabel}</span>
+                <span>{formatCurrency(serviceChargeAmount, currency)}</span>
               </div>
             ) : null}
 

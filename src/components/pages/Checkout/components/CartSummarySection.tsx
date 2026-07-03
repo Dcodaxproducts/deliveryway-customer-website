@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import {
   getDisplayTotalAmount,
+  getServiceChargeLabel,
   getTipAdjustedDisplayTotalAmount,
   shouldShowPositiveAmountLine,
 } from "@/components/pages/Checkout/utils/checkout-formatters";
@@ -635,6 +636,25 @@ export const getTotalBeforeDiscount = ({
   tipAmount?: number;
 }) => subtotal + orderFee + tipAmount;
 
+export const getServiceChargeAmountFromQuote = (quote?: CartQuote | null) => {
+  const breakdownTotal = toNullableNumber(quote?.chargeBreakdown?.totalServiceChargeAmount);
+
+  if (breakdownTotal !== null) {
+    return Math.max(0, breakdownTotal);
+  }
+
+  const directAmount = toNullableNumber(quote?.serviceChargeAmount);
+
+  if (directAmount !== null) {
+    return Math.max(0, directAmount);
+  }
+
+  return Math.max(
+    0,
+    (quote?.chargeBreakdown?.serviceCharges ?? []).reduce((total, line) => total + toNumber(line.amount, 0), 0)
+  );
+};
+
 const hasDiscountMetadata = (value: unknown) => {
   return typeof value === "object" && value !== null && !Array.isArray(value) && Object.keys(value).length > 0;
 };
@@ -824,6 +844,13 @@ export function CartSummarySection({
     toNullableNumber(resolvedQuote?.tipAmount) ??
     Math.max(0, toNumber(appliedTipAmount, 0));
   const quotePayableAmount = resolvedQuote ? getDisplayTotalAmount(resolvedQuote) : null;
+  const serviceChargeAmount = getServiceChargeAmountFromQuote(resolvedQuote);
+  const serviceChargeLabel = getServiceChargeLabel({
+    serviceChargeType: resolvedQuote?.serviceChargeType,
+    serviceChargeValue: resolvedQuote?.serviceChargeValue,
+    serviceChargeLabel: t("totals.serviceCharge"),
+    serviceChargeWithPercentageLabel: (value) => t("totals.serviceChargeWithPercentage", { value }),
+  });
   const [tipInput, setTipInput] = useState("");
   const loyaltyPointsValue = Math.max(0, Math.floor(toNumber(loyaltyPoints, 0)));
   const loyaltyEstimatedDiscount = loyaltyPointsValue * toNumber(loyalty?.redemptionValuePerPoint, 0);
@@ -1471,6 +1498,13 @@ export function CartSummarySection({
                 <Info size={16} />
               </div>
               <span>{formatCurrency(selectedOrderFee, currency)}</span>
+            </div>
+          ) : null}
+
+          {shouldShowPositiveAmountLine(serviceChargeAmount) ? (
+            <div className="flex items-center justify-between">
+              <span>{serviceChargeLabel}</span>
+              <span>{formatCurrency(serviceChargeAmount, currency)}</span>
             </div>
           ) : null}
 
