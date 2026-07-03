@@ -5,6 +5,11 @@ import { ArrowUpRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { CuisineCard } from "@/components/pages/Cuisines/components/CuisineCard";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
 import { useAppLocale } from "@/hooks/useAppLocale";
 import { useAuth } from "@/hooks/useAuth";
 import { useCustomerCuisines, usePromotionalCuisines } from "@/hooks/useCuisines";
@@ -13,9 +18,12 @@ import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
 import type { CustomerCuisine } from "@/services/cuisines";
 
 const CuisineSkeleton = () => (
-  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+  <div className="flex gap-5 overflow-hidden pb-8">
     {[1, 2, 3, 4].map((item) => (
-      <div key={item} className="h-[340px] animate-pulse rounded-[26px] bg-gray-100" />
+      <div
+        key={item}
+        className="h-[340px] min-w-[92%] animate-pulse rounded-[26px] bg-gray-100 sm:min-w-[62%] md:min-w-[48%] xl:min-w-[33.333%] 2xl:min-w-[25%]"
+      />
     ))}
   </div>
 );
@@ -72,11 +80,18 @@ export function CuisineSection() {
       {loading ? (
         <CuisineSkeleton />
       ) : (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {cuisines.map((cuisine) => (
-            <CuisineCard key={cuisine.id} cuisine={cuisine} />
-          ))}
-        </div>
+        <Carousel opts={{ align: "start", dragFree: true }} className="min-w-0">
+          <CarouselContent className="-ml-5 cursor-grab pb-8 active:cursor-grabbing">
+            {cuisines.map((cuisine) => (
+              <CarouselItem
+                key={cuisine.id}
+                className="flex basis-[92%] pl-5 sm:basis-[62%] md:basis-[48%] xl:basis-1/3 2xl:basis-1/4"
+              >
+                <CuisineCard cuisine={cuisine} />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
       )}
 
       <Link href="/cuisines" className="mt-5 flex items-center justify-center gap-1 text-sm font-semibold text-primary sm:hidden">

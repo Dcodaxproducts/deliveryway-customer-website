@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { Search, Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { CuisineCard } from "@/components/pages/Cuisines/components/CuisineCard";
@@ -27,28 +27,42 @@ function CuisinesPageContent() {
   const cuisines = cuisinesQuery.data?.cuisines ?? [];
 
   return (
-    <main className="mx-auto mb-20 mt-10 max-w-[1400px] px-4 sm:px-6">
-      <div className="rounded-[32px] bg-gradient-to-br from-primary via-primary/90 to-[#111827] p-8 text-white sm:p-10">
-        <p className="text-sm font-bold uppercase tracking-[0.18em] text-white/75">{t("eyebrow")}</p>
-        <h1 className="mt-3 text-3xl font-black sm:text-5xl">{t("title")}</h1>
-        <p className="mt-4 max-w-2xl text-sm leading-6 text-white/75 sm:text-base">{t("description")}</p>
-      </div>
+    <main className="mx-auto max-w-[1440px] px-5 py-5 lg:px-8 2xl:px-10">
+      <section className="grid overflow-hidden rounded-[28px] border border-[#EADFD6] bg-[#FFFBF7] shadow-[0_18px_48px_rgba(17,24,39,0.06)] lg:grid-cols-[0.9fr_1fr]">
+        <div className="relative overflow-hidden px-6 py-8 sm:px-9 lg:py-10">
+          <div className="pointer-events-none absolute -bottom-16 right-0 h-52 w-52 rounded-full border border-primary/10" />
+          <div className="pointer-events-none absolute -bottom-8 right-10 h-44 w-44 rounded-full border border-primary/10" />
 
-      <div className="mt-8 flex flex-col gap-4 rounded-[24px] border border-gray-100 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-sm font-bold text-gray-900">{t("browseTitle")}</p>
-          <p className="text-xs text-gray-500">{t("browseDescription")}</p>
+          <span className="inline-flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.16em] text-primary">
+            <Sparkles className="h-4 w-4" />
+            {t("eyebrow")}
+          </span>
+          <h1 className="mt-5 font-serif text-[48px] leading-[0.95] text-gray-950 sm:text-[68px] lg:text-[76px]">
+            {t("title")}
+          </h1>
+          <p className="mt-4 max-w-2xl text-lg leading-7 text-gray-700">
+            {t("description")}
+          </p>
         </div>
-        <label className="relative block w-full sm:w-[360px]">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-          <input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder={t("searchPlaceholder")}
-            className="h-11 w-full rounded-full border border-gray-200 bg-gray-50 pl-10 pr-4 text-sm outline-none transition focus:border-primary focus:bg-white"
-          />
-        </label>
-      </div>
+
+        <div className="relative flex min-h-[320px] items-end overflow-hidden bg-[#F7F0E8] p-6 lg:min-h-[430px]">
+          <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-primary/10" />
+          <div className="absolute left-8 top-8 h-36 w-36 rounded-full bg-white/70 blur-sm" />
+          <div className="relative w-full rounded-[22px] bg-white/95 p-5 shadow-[0_20px_46px_rgba(17,24,39,0.14)]">
+            <p className="text-sm font-bold text-gray-950">{t("browseTitle")}</p>
+            <p className="mt-1 text-xs leading-5 text-gray-500">{t("browseDescription")}</p>
+            <label className="relative mt-4 block w-full">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder={t("searchPlaceholder")}
+                className="h-11 w-full rounded-full border border-gray-200 bg-gray-50 pl-10 pr-4 text-sm outline-none transition focus:border-primary focus:bg-white"
+              />
+            </label>
+          </div>
+        </div>
+      </section>
 
       {cuisinesQuery.isLoading ? (
         <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -57,11 +71,11 @@ function CuisinesPageContent() {
           ))}
         </div>
       ) : cuisines.length === 0 ? (
-        <div className="mt-8 rounded-[24px] border border-dashed border-gray-200 bg-gray-50 p-10 text-center text-sm text-gray-500">
+        <div className="mt-8 rounded-[24px] border border-dashed border-[#EEE4DC] bg-[#FFFBF7] p-10 text-center text-sm text-gray-500">
           {t("empty")}
         </div>
       ) : (
-        <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-8 grid grid-cols-1 gap-5 rounded-[24px] border border-[#EEE4DC] bg-white/95 p-4 shadow-[0_12px_38px_rgba(17,24,39,0.05)] sm:grid-cols-2 sm:p-5 lg:grid-cols-4">
           {cuisines.map((cuisine) => (
             <CuisineCard key={cuisine.id} cuisine={cuisine} />
           ))}
