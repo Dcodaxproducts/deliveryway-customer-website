@@ -199,7 +199,7 @@ export const HeroSection = ({
   };
 
   return (
-    <main className="relative flex min-h-[620px] w-full items-start overflow-hidden pb-10 pt-8 md:pb-12 md:pt-10 lg:min-h-[650px] lg:pt-14">
+    <main className="relative flex min-h-[680px] w-full items-center overflow-hidden pb-12 pt-8 md:pb-16 md:pt-10 lg:min-h-[720px]">
       <div className="absolute inset-0 z-0">
         <Image
           src={resolvedHeroImage}
@@ -212,7 +212,7 @@ export const HeroSection = ({
       </div>
       <div className="absolute inset-0 z-0 bg-gradient-to-r from-black/70 via-black/38 to-black/12" />
 
-      <div className="relative z-10 mx-auto grid w-full max-w-[1400px] items-start gap-10 px-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_520px] lg:px-8">
+      <div className="relative z-10 mx-auto grid w-full max-w-[1400px] items-center gap-10 px-4 sm:px-6 md:-translate-y-6 lg:grid-cols-[minmax(0,1fr)_520px] lg:-translate-y-8 lg:px-8">
         <div className="max-w-[720px] text-white">
           {/* Restaurant name intentionally hidden from the banner per design request. */}
 
