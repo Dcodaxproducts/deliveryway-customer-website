@@ -191,6 +191,12 @@ export function OrderCartSidebar({
       totalBeforeDiscount - discount - loyaltyDiscount - walletAppliedAmount
     )
   );
+  const hasActualDiscount =
+    cartQuote?.hasDiscount === true ||
+    discount > 0 ||
+    loyaltyDiscount > 0 ||
+    scopedItemDiscountDisplays.size > 0;
+  const shouldShowTotalBeforeDiscount = hasActualDiscount;
 
   const updateQuantity = async (id: string, type: "inc" | "dec") => {
     const item = cartItems.find((cartItem) => String(cartItem.id) === id);
@@ -612,10 +618,12 @@ export function OrderCartSidebar({
               </div>
             ) : null}
 
-            <div className="flex items-center justify-between pt-2">
-              <span>{t("totalBeforeDiscount")}</span>
-              <span>{formatCurrency(totalBeforeDiscount, currency)}</span>
-            </div>
+            {shouldShowTotalBeforeDiscount ? (
+              <div className="flex items-center justify-between pt-2">
+                <span>{t("totalBeforeDiscount")}</span>
+                <span>{formatCurrency(totalBeforeDiscount, currency)}</span>
+              </div>
+            ) : null}
 
             {discount > 0 ? (
               <div className="flex items-center justify-between text-green-600">
