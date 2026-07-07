@@ -139,6 +139,8 @@ interface CartQuote {
   serviceChargeAmount?: number | string;
   tipAmount?: number | string;
   discountAmount?: number | string;
+  hasDiscount?: boolean;
+  totalBeforeDiscount?: number | string;
   couponCode?: string;
   walletAppliedAmount?: number | string;
   loyaltyDiscountAmount?: number | string;
@@ -907,7 +909,8 @@ export function CartSummarySection({
     tipAmount,
   });
 
-  const totalBeforeDiscount = getTotalBeforeDiscount({
+  const backendTotalBeforeDiscount = toNullableNumber(resolvedQuote?.totalBeforeDiscount);
+  const totalBeforeDiscount = backendTotalBeforeDiscount ?? getTotalBeforeDiscount({
     subtotal: quoteSubtotal !== null ? quoteSubtotal : itemTotal,
     orderFee: selectedOrderFee,
     tipAmount,
@@ -939,8 +942,14 @@ export function CartSummarySection({
         );
   const displayedFinalTotal = Math.max(0, finalTotal - loyaltyPreviewDiscount);
 
-  const hasAnyDiscount =
-    discount > 0 || loyaltyDiscount > 0 || loyaltyPreviewDiscount > 0 || walletAppliedAmount > 0;
+  const hasActualDiscount =
+    resolvedQuote?.hasDiscount === true ||
+    discount > 0 ||
+    loyaltyDiscount > 0 ||
+    loyaltyPreviewDiscount > 0 ||
+    scopedItemDiscountDisplays.size > 0;
+  const hasAnyDiscount = hasActualDiscount || walletAppliedAmount > 0;
+  const shouldShowTotalBeforeDiscount = hasActualDiscount;
 
   const handleEditItem = (item: CartItem) => {
     const menuItemId = getMenuItemId(item);
@@ -1700,10 +1709,12 @@ export function CartSummarySection({
         ) : null}
 
         <div className="space-y-[15px]">
-          <div className="flex items-center justify-between pt-[15px] text-sm text-gray-500">
-            <span>{t("totalBeforeDiscount")}</span>
-            <span>{formatCurrency(totalBeforeDiscount, currency)}</span>
-          </div>
+          {shouldShowTotalBeforeDiscount ? (
+            <div className="flex items-center justify-between pt-[15px] text-sm text-gray-500">
+              <span>{t("totalBeforeDiscount")}</span>
+              <span>{formatCurrency(totalBeforeDiscount, currency)}</span>
+            </div>
+          ) : null}
 
           {discount > 0 ? (
             <div className="flex items-center justify-between text-sm text-green-600">

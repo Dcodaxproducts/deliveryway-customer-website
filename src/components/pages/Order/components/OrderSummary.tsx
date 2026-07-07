@@ -85,11 +85,17 @@ export default function OrderSummary({
   order,
   onContinuePayment,
   continuingPayment,
+  onChangePaymentMethod,
+  changingPaymentMethod,
+  canSwitchPaymentMethod,
 }: {
   title?: string;
   order?: Order | null;
   onContinuePayment?: () => void;
   continuingPayment?: boolean;
+  onChangePaymentMethod?: (paymentMethod: string) => void;
+  changingPaymentMethod?: string | null;
+  canSwitchPaymentMethod?: boolean;
 }) {
   const t = useTranslations("orders");
   const orderStatusT = useTranslations("orderStatus");
@@ -143,6 +149,16 @@ export default function OrderSummary({
     Boolean(onContinuePayment && order?.id) &&
     paymentMethod === "STRIPE" &&
     (paymentStatus === "PENDING" || paymentStatus === "FAILED");
+  const fallbackPaymentMethods = ["COD", "WALLET", "STRIPE", "PAYPAL", "CARD_ON_DELIVERY"];
+  const paymentSwitchOptions = (order?.payment?.availableMethods?.length
+    ? order.payment.availableMethods
+    : order?.availablePaymentMethods?.length
+      ? order.availablePaymentMethods
+      : fallbackPaymentMethods
+  )
+    .map((method) => method.toUpperCase())
+    .filter((method, index, methods) => method && methods.indexOf(method) === index && method !== paymentMethod);
+  const showPaymentSwitcher = Boolean(canSwitchPaymentMethod && onChangePaymentMethod && paymentSwitchOptions.length > 0);
   const deliveryAddress = formatDisplayAddress(order?.deliveryAddress);
   const paymentPendingStripeOrder = isPaymentPendingStripeOrder(order);
   const couponCode = order?.coupon?.code?.trim() || "";
@@ -198,6 +214,23 @@ export default function OrderSummary({
         return t("paymentStatus.unknown");
     }
   })();
+
+  const getPaymentMethodLabel = (method: string) => {
+    switch (method) {
+      case "COD":
+        return t("paymentMethods.cod");
+      case "WALLET":
+        return t("paymentMethods.wallet");
+      case "STRIPE":
+        return t("paymentMethods.stripe");
+      case "PAYPAL":
+        return t("paymentMethods.paypal");
+      case "CARD_ON_DELIVERY":
+        return t("paymentMethods.cardOnDelivery");
+      default:
+        return humanizeEnum(method) || method;
+    }
+  };
 
   return (
     <div className="sticky top-10 space-y-[42.63px]">
@@ -627,7 +660,7 @@ export default function OrderSummary({
             <button
               type="button"
               onClick={onContinuePayment}
-              disabled={continuingPayment}
+              disabled={continuingPayment || Boolean(changingPaymentMethod)}
               className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(193,0,10,0.22)] transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {continuingPayment ? (
@@ -637,6 +670,31 @@ export default function OrderSummary({
               )}
               {paymentStatus === "FAILED" ? t("retryPayment") : t("continuePayment")}
             </button>
+          ) : null}
+
+          {showPaymentSwitcher ? (
+            <div className="mt-4 rounded-2xl border border-amber-100 bg-amber-50/70 p-3">
+              <p className="text-sm font-semibold text-gray-900">{t("switchPaymentMethod")}</p>
+              <p className="mt-1 text-xs leading-5 text-gray-600">{t("switchPaymentMethodDescription")}</p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                {paymentSwitchOptions.map((method) => {
+                  const isChanging = changingPaymentMethod === method;
+
+                  return (
+                    <button
+                      key={method}
+                      type="button"
+                      onClick={() => onChangePaymentMethod?.(method)}
+                      disabled={Boolean(changingPaymentMethod) || continuingPayment}
+                      className="flex h-10 items-center justify-center gap-2 rounded-full border border-white bg-white px-3 text-xs font-semibold text-gray-800 shadow-sm transition hover:border-primary/30 hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {isChanging ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                      {getPaymentMethodLabel(method)}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           ) : null}
         </section>
       ) : null}

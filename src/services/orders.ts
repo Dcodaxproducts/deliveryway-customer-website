@@ -171,6 +171,11 @@ export type Order = {
   statusDescription?: string | null;
   paymentStatus?: string | null;
   paymentMethod?: string | null;
+  availablePaymentMethods?: string[];
+  paymentOptions?: {
+    selected?: string | null;
+    available?: string[];
+  } | null;
   orderTime?: string | null;
   isScheduled?: boolean | null;
   scheduledFor?: string | null;
@@ -475,12 +480,16 @@ const normalizeOrderPayment = (value: unknown, fallback: Record<string, unknown>
   }
 
   return {
-    selectedMethod: getString(record?.selectedMethod || fallback.paymentMethod) || null,
+    selectedMethod: getString(record?.selectedMethod || getRecord(fallback.paymentOptions)?.selected || fallback.paymentMethod) || null,
     status: getString(record?.status || fallback.paymentStatus) || null,
     statusLabel: getString(record?.statusLabel) || null,
     availableMethods: Array.isArray(record?.availableMethods)
       ? record.availableMethods.map(getString).filter(Boolean)
-      : [],
+      : Array.isArray(getRecord(fallback.paymentOptions)?.available)
+        ? (getRecord(fallback.paymentOptions)?.available as unknown[]).map(getString).filter(Boolean)
+        : Array.isArray(fallback.availablePaymentMethods)
+          ? fallback.availablePaymentMethods.map(getString).filter(Boolean)
+          : [],
     canChangePaymentMethod: getBoolean(record?.canChangePaymentMethod),
     paidAt: getString(record?.paidAt || fallback.paidAt) || null,
     transactions,
@@ -550,6 +559,10 @@ export const normalizeOrderDetail = (value: unknown): Order | null => {
     statusDescription: getString(record.statusDescription) || null,
     paymentStatus: getString(payment?.status || record.paymentStatus) || null,
     paymentMethod: getString(payment?.selectedMethod || record.paymentMethod) || null,
+    availablePaymentMethods: Array.isArray(record.availablePaymentMethods)
+      ? record.availablePaymentMethods.map(getString).filter(Boolean)
+      : [],
+    paymentOptions: getRecord(record.paymentOptions) as Order["paymentOptions"],
     orderTime: getString(record.orderTime) || null,
     isScheduled: getBoolean(record.isScheduled),
     scheduledFor: getString(record.scheduledFor) || null,
