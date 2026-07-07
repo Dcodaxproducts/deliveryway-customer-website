@@ -140,6 +140,12 @@ export type OrderPricing = {
   breakdown?: OrderPricingBreakdownLine[];
 };
 
+export type OrderCoupon = {
+  id?: string | number | null;
+  code?: string | null;
+  title?: string | null;
+};
+
 export type OrderPayment = {
   selectedMethod?: string | null;
   status?: string | null;
@@ -178,6 +184,9 @@ export type Order = {
   discountAmount?: number | string | null;
   payableAmount?: number | string | null;
   totalAmount?: number | string | null;
+  itemCount?: number | string | null;
+  couponId?: string | number | null;
+  coupon?: OrderCoupon | null;
   items?: OrderItem[];
   itemsPreview?: OrderItem[];
   restaurant?: OrderRestaurant | null;
@@ -486,6 +495,28 @@ const normalizeOrderPayment = (value: unknown, fallback: Record<string, unknown>
   };
 };
 
+const normalizeOrderCoupon = (value: unknown): OrderCoupon | null => {
+  const record = getRecord(value);
+
+  if (!record) {
+    return null;
+  }
+
+  const id = getString(record.id);
+  const code = getString(record.code);
+  const title = getString(record.title || record.name);
+
+  if (!id && !code && !title) {
+    return null;
+  }
+
+  return {
+    id: id || null,
+    code: code || null,
+    title: title || null,
+  };
+};
+
 export const normalizeOrderDetail = (value: unknown): Order | null => {
   const record = getRecord(value);
 
@@ -532,6 +563,9 @@ export const normalizeOrderDetail = (value: unknown): Order | null => {
     discountAmount: pricing?.discountAmount ?? getAmount(record.discountAmount),
     payableAmount: pricing?.payableAmount ?? getAmount(record.payableAmount),
     totalAmount: pricing?.totalAmount ?? getAmount(record.totalAmount),
+    itemCount: getAmount(record.itemCount),
+    couponId: getString(record.couponId) || null,
+    coupon: normalizeOrderCoupon(record.coupon),
     items,
     itemsPreview,
     restaurant: getRecord(record.restaurant) as OrderRestaurant | null,
