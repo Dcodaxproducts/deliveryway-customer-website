@@ -1,9 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import { Check, Clock, CreditCard, MapPin, Power, ReceiptText, UsersRound } from "lucide-react";
+import { Check, Clock, CreditCard, MapPin, Power, ReceiptText, Tag, UsersRound } from "lucide-react";
 import { useTranslations } from "next-intl";
-import type { GroupOrderParticipant, GroupOrderSuccessData } from "@/types/group-order";
+
+import type {
+  GroupOrderSuccessData,
+  GroupOrderSuccessItem,
+  GroupOrderSuccessModifier,
+  GroupOrderParticipant,
+} from "@/types/group-order";
 
 type OrderSuccessProps = {
   data?: GroupOrderSuccessData | null;
@@ -13,6 +19,8 @@ const toNumber = (value: unknown, fallback = 0) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
 };
+
+const hasAmount = (value: unknown) => value !== null && value !== undefined && value !== "";
 
 const formatCurrency = (value: unknown) => `$${toNumber(value, 0).toFixed(2)}`;
 
@@ -29,22 +37,55 @@ const formatDateTime = (value?: string | null) => {
   }).format(date);
 };
 
-const formatLabel = (value?: string | null) =>
+const formatLabel = (value?: string | number | null) =>
   String(value || "—")
     .replace(/_/g, " ")
     .toLowerCase()
     .replace(/\b\w/g, (char) => char.toUpperCase());
 
+const getItemName = (item: GroupOrderSuccessItem) =>
+  item.menuItemName || item.name || item.menuItem?.name || "";
+
+const getItemLineTotal = (item: GroupOrderSuccessItem) =>
+  item.lineTotal ?? item.totalPrice ?? toNumber(item.unitPrice, 0) * toNumber(item.quantity, 0);
+
+const getItemModifiers = (item: GroupOrderSuccessItem): GroupOrderSuccessModifier[] => {
+  const snapshotModifiers = Array.isArray(item.snapshotModifiers) ? item.snapshotModifiers : [];
+  const addOns = Array.isArray(item.addOns) ? item.addOns : [];
+  const addons = Array.isArray(item.addons) ? item.addons : [];
+  const selectedAddons = Array.isArray(item.selectedAddons) ? item.selectedAddons : [];
+  const selectedAddOns = Array.isArray(item.selectedAddOns) ? item.selectedAddOns : [];
+
+  return [...snapshotModifiers, ...addOns, ...addons, ...selectedAddons, ...selectedAddOns];
+};
+
+const getModifierName = (modifier: GroupOrderSuccessModifier) =>
+  modifier.name || modifier.modifier?.name || modifier.addOn?.name || modifier.addon?.name || "";
+
+const getModifierUnitPrice = (modifier: GroupOrderSuccessModifier) =>
+  modifier.unitPrice ?? modifier.price ?? modifier.priceDelta ?? modifier.modifier?.unitPrice ?? modifier.addOn?.unitPrice ?? modifier.addon?.unitPrice;
+
 const OrderSuccess = ({ data }: OrderSuccessProps) => {
   const t = useTranslations("groupOrder.success");
   const order = data?.order;
   const session = data?.session;
+  const pricing = order?.pricing;
+  const payment = order?.payment;
 
-  const total = order?.payableAmount ?? order?.totalAmount ?? session?.finalOrder?.totalAmount ?? 0;
   const finalOrderId = order?.id || session?.finalOrder?.id || session?.finalOrderId || "";
+  const paymentMethod = payment?.selectedMethod || order?.paymentMethod;
+  const paymentStatus = payment?.statusLabel || payment?.status || order?.paymentStatus || order?.status;
+  const scheduledTime = order?.scheduledFor || order?.orderTime;
+  const totalAmount = pricing?.totalAmount ?? order?.totalAmount ?? session?.finalOrder?.totalAmount ?? 0;
+  const payableAmount = pricing?.payableAmount ?? order?.payableAmount ?? totalAmount;
+  const subtotal = pricing?.subtotal ?? order?.subtotal;
+  const taxAmount = pricing?.taxAmount ?? order?.taxAmount;
+  const deliveryFee = pricing?.deliveryFee ?? order?.deliveryFee;
+  const discountAmount = pricing?.discountAmount ?? order?.discountAmount;
+  const coupon = order?.coupon;
+  const couponLabel = [coupon?.title, coupon?.code].filter(Boolean).join(" · ");
   const participants = session?.participants || [];
   const items = order?.items || [];
-  const couponLabel = order?.coupon?.title || order?.coupon?.code || "";
 
   return (
     <section className="flex min-h-screen w-full flex-col items-center bg-[#FAFAF9] px-4 py-12 md:px-6">
@@ -88,7 +129,7 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
                   {t("totalPaid")}
                 </p>
                 <p className="mt-1 text-2xl font-semibold text-orange-500">
-                  {formatCurrency(total)}
+                  {formatCurrency(payableAmount)}
                 </p>
               </div>
             </div>
@@ -100,7 +141,7 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
                   {t("orderTiming")}
                 </div>
                 <p className="mt-2 text-sm font-semibold text-gray-900">
-                  {formatDateTime(order?.orderTime)}
+                  {order?.isScheduled ? formatDateTime(scheduledTime) : t("instantOrder")}
                 </p>
                 <p className="mt-1 text-xs text-gray-500">
                   {order?.isScheduled ? t("scheduledOrder") : t("asap")}
@@ -113,10 +154,10 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
                   {t("payment")}
                 </div>
                 <p className="mt-2 text-sm font-semibold text-gray-900">
-                  {formatLabel(order?.paymentMethod)}
+                  {formatLabel(paymentMethod)}
                 </p>
                 <p className="mt-1 text-xs text-gray-500">
-                  {formatLabel(order?.paymentStatus)}
+                  {formatLabel(paymentStatus)}
                 </p>
               </div>
 
@@ -142,44 +183,50 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
 
               {items.length > 0 ? (
                 <div className="space-y-3">
-                  {items.map((item, index) => (
-                    <div key={String(item.id || index)} className="rounded-2xl bg-gray-50 p-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-gray-900">
-                            {item.menuItemName || t("itemFallback")}
-                          </p>
-                          {item.variationName ? (
-                            <p className="mt-1 text-xs text-gray-500">{item.variationName}</p>
-                          ) : null}
-                          <p className="mt-1 text-xs text-gray-500">
-                            {t("quantity", { count: toNumber(item.quantity, 0) })} · {formatCurrency(item.unitPrice)}
-                          </p>
-                        </div>
-                        <p className="shrink-0 text-sm font-semibold text-gray-900">
-                          {formatCurrency(item.lineTotal)}
-                        </p>
-                      </div>
+                  {items.map((item, index) => {
+                    const modifiers = getItemModifiers(item);
 
-                      {item.snapshotModifiers?.length ? (
-                        <div className="mt-3 space-y-2 border-t border-gray-200 pt-3">
-                          {item.snapshotModifiers.map((modifier, modifierIndex) => (
-                            <div
-                              key={`${modifier.modifierId || modifier.name || modifierIndex}`}
-                              className="flex items-center justify-between gap-3 text-xs text-gray-600"
-                            >
-                              <span>
-                                {modifier.name || t("addonFallback")} × {toNumber(modifier.quantity, 1)}
-                              </span>
-                              <span className="font-medium text-gray-800">
-                                {formatCurrency(modifier.unitPrice)}
-                              </span>
-                            </div>
-                          ))}
+                    return (
+                      <div key={String(item.id || index)} className="rounded-2xl bg-gray-50 p-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-gray-900">
+                              {getItemName(item) || t("itemFallback")}
+                            </p>
+                            {item.variationName ? (
+                              <p className="mt-1 text-xs text-gray-500">
+                                {t("variation", { variation: item.variationName })}
+                              </p>
+                            ) : null}
+                            <p className="mt-1 text-xs text-gray-500">
+                              {t("quantity", { count: toNumber(item.quantity, 0) })} · {formatCurrency(item.unitPrice)}
+                            </p>
+                          </div>
+                          <p className="shrink-0 text-sm font-semibold text-gray-900">
+                            {formatCurrency(getItemLineTotal(item))}
+                          </p>
                         </div>
-                      ) : null}
-                    </div>
-                  ))}
+
+                        {modifiers.length > 0 ? (
+                          <div className="mt-3 space-y-2 border-t border-gray-200 pt-3">
+                            {modifiers.map((modifier, modifierIndex) => (
+                              <div
+                                key={`${modifier.modifierId || modifier.id || getModifierName(modifier) || modifierIndex}`}
+                                className="flex items-center justify-between gap-3 text-xs text-gray-600"
+                              >
+                                <span className="min-w-0">
+                                  {getModifierName(modifier) || t("addonFallback")} × {toNumber(modifier.quantity, 1)}
+                                </span>
+                                <span className="shrink-0 font-medium text-gray-800">
+                                  {formatCurrency(getModifierUnitPrice(modifier))}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
                 <p className="text-sm text-gray-500">{t("noItems")}</p>
@@ -201,42 +248,84 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
                 </span>
               </div>
 
-              <div className="space-y-4">
-                {participants.map((p: GroupOrderParticipant, i: number) => (
-                  <div key={String(p.id || i)} className="flex items-center gap-3">
-                    <div className="relative h-9 w-9 overflow-hidden rounded-full bg-gray-200">
-                      {p?.user?.avatarUrl ? (
-                        <Image
-                          src={p.user.avatarUrl}
-                          alt={p.user.firstName || ""}
-                          fill
-                          className="object-cover"
-                        />
-                      ) : null}
+              {participants.length > 0 ? (
+                <div className="space-y-4">
+                  {participants.map((p: GroupOrderParticipant, i: number) => (
+                    <div key={String(p.id || i)} className="flex items-center gap-3">
+                      <div className="relative h-9 w-9 overflow-hidden rounded-full bg-gray-200">
+                        {p?.user?.avatarUrl ? (
+                          <Image
+                            src={p.user.avatarUrl}
+                            alt={p.user.firstName || ""}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : null}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">
+                          {p?.user?.firstName} {p?.user?.lastName}
+                        </p>
+                        <p className="text-xs text-green-600">{formatLabel(p.status)}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">
-                        {p?.user?.firstName} {p?.user?.lastName}
-                      </p>
-                      <p className="text-xs text-green-600">{formatLabel(p.status)}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500">{t("noParticipants")}</p>
+              )}
             </div>
+
+            {(coupon?.code || coupon?.title || hasAmount(discountAmount)) ? (
+              <div className="rounded-2xl border border-green-100 bg-green-50 p-4 text-sm text-green-800">
+                <div className="flex items-center gap-2 font-semibold">
+                  <Tag className="h-4 w-4" />
+                  {t("couponTitle")}
+                </div>
+                <p className="mt-2">{couponLabel || t("discountApplied")}</p>
+                {(coupon?.discountType || hasAmount(coupon?.discountValue)) ? (
+                  <p className="mt-1 text-xs text-green-700">
+                    {[formatLabel(coupon?.discountType), hasAmount(coupon?.discountValue) ? coupon?.discountValue : null]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
 
             <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
               <h2 className="text-base font-semibold text-gray-900">{t("totalsTitle")}</h2>
               <div className="mt-4 space-y-3 text-sm text-gray-600">
-                <div className="flex justify-between"><span>{t("subtotal")}</span><span>{formatCurrency(order?.subtotal)}</span></div>
-                {toNumber(order?.taxAmount, 0) > 0 ? <div className="flex justify-between"><span>{t("tax")}</span><span>{formatCurrency(order?.taxAmount)}</span></div> : null}
-                {toNumber(order?.deliveryFee, 0) > 0 ? <div className="flex justify-between"><span>{t("deliveryFee")}</span><span>{formatCurrency(order?.deliveryFee)}</span></div> : null}
-                {toNumber(order?.discountAmount, 0) > 0 ? <div className="flex justify-between text-green-700"><span>{couponLabel || t("discount")}</span><span>- {formatCurrency(order?.discountAmount)}</span></div> : null}
-                {order?.totalBeforeDiscount ? <div className="flex justify-between"><span>{t("totalBeforeDiscount")}</span><span>{formatCurrency(order.totalBeforeDiscount)}</span></div> : null}
+                <div className="flex justify-between gap-4">
+                  <span>{t("subtotal")}</span>
+                  <span>{formatCurrency(subtotal)}</span>
+                </div>
+                {hasAmount(taxAmount) ? (
+                  <div className="flex justify-between gap-4">
+                    <span>{t("tax")}</span>
+                    <span>{formatCurrency(taxAmount)}</span>
+                  </div>
+                ) : null}
+                {hasAmount(deliveryFee) ? (
+                  <div className="flex justify-between gap-4">
+                    <span>{t("deliveryFee")}</span>
+                    <span>{formatCurrency(deliveryFee)}</span>
+                  </div>
+                ) : null}
+                {hasAmount(discountAmount) ? (
+                  <div className="flex justify-between gap-4 text-green-700">
+                    <span>{couponLabel || t("discount")}</span>
+                    <span>- {formatCurrency(discountAmount)}</span>
+                  </div>
+                ) : null}
+                <div className="flex justify-between gap-4">
+                  <span>{t("total")}</span>
+                  <span>{formatCurrency(totalAmount)}</span>
+                </div>
               </div>
-              <div className="mt-4 flex justify-between border-t border-gray-100 pt-4 text-base font-semibold text-gray-950">
+              <div className="mt-4 flex justify-between gap-4 border-t border-gray-100 pt-4 text-base font-semibold text-gray-950">
                 <span>{t("payable")}</span>
-                <span className="text-orange-500">{formatCurrency(total)}</span>
+                <span className="text-orange-500">{formatCurrency(payableAmount)}</span>
               </div>
             </div>
           </div>

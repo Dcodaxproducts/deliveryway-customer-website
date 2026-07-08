@@ -148,47 +148,86 @@ export type CheckoutGroupOrderPayload = {
   loyaltyPoints?: number;
 };
 
+export type GroupOrderSuccessModifier = GroupOrderSelectedOption & {
+  id?: string | number | null;
+  modifierId?: string | number | null;
+  name?: string | null;
+  quantity?: number | string | null;
+  unitPrice?: number | string | null;
+  price?: number | string | null;
+  priceDelta?: number | string | null;
+  modifier?: GroupOrderSelectedOption | null;
+  addOn?: GroupOrderSelectedOption | null;
+  addon?: GroupOrderSelectedOption | null;
+};
+
+export type GroupOrderSuccessItem = {
+  id?: string | number | null;
+  menuItemId?: string | number | null;
+  menuItemName?: string | null;
+  name?: string | null;
+  menuItem?: GroupOrderMenuItem | null;
+  variationId?: string | number | null;
+  variationName?: string | null;
+  unitPrice?: number | string | null;
+  quantity?: number | string | null;
+  lineTotal?: number | string | null;
+  totalPrice?: number | string | null;
+  snapshotModifiers?: GroupOrderSuccessModifier[];
+  addOns?: GroupOrderSuccessModifier[];
+  addons?: GroupOrderSuccessModifier[];
+  selectedAddons?: GroupOrderSuccessModifier[];
+  selectedAddOns?: GroupOrderSuccessModifier[];
+};
+
+export type GroupOrderSuccessPricing = {
+  subtotal?: number | string | null;
+  taxAmount?: number | string | null;
+  deliveryFee?: number | string | null;
+  discountAmount?: number | string | null;
+  totalAmount?: number | string | null;
+  payableAmount?: number | string | null;
+};
+
+export type GroupOrderSuccessPayment = {
+  selectedMethod?: string | null;
+  status?: string | null;
+  statusLabel?: string | null;
+};
+
+export type GroupOrderSuccessCoupon = {
+  code?: string | null;
+  title?: string | null;
+  discountType?: string | null;
+  discountValue?: number | string | null;
+};
+
 export type GroupOrderSuccessData = {
   order?: {
     id?: string | number | null;
+    displayId?: string | null;
     orderType?: string | null;
     paymentMethod?: string | null;
     paymentStatus?: string | null;
+    payment?: GroupOrderSuccessPayment | null;
     status?: string | null;
     subtotal?: number | string | null;
     taxAmount?: number | string | null;
     deliveryFee?: number | string | null;
     discountAmount?: number | string | null;
     payableAmount?: number | string | null;
-    totalBeforeDiscount?: number | string | null;
-    totalAmount?: number | null;
+    totalAmount?: number | string | null;
     orderTime?: string | null;
+    scheduledFor?: string | null;
     isScheduled?: boolean | null;
-    items?: Array<{
-      id?: string | number | null;
-      menuItemName?: string | null;
-      variationName?: string | null;
-      unitPrice?: number | string | null;
-      quantity?: number | string | null;
-      lineTotal?: number | string | null;
-      snapshotModifiers?: Array<{
-        name?: string | null;
-        quantity?: number | string | null;
-        unitPrice?: number | string | null;
-        modifierId?: string | number | null;
-      }>;
-    }>;
-    coupon?: {
-      code?: string | null;
-      title?: string | null;
-      discountType?: string | null;
-      discountValue?: number | string | null;
-    } | null;
+    pricing?: GroupOrderSuccessPricing | null;
+    items?: GroupOrderSuccessItem[];
+    coupon?: GroupOrderSuccessCoupon | null;
   } | null;
   session?: {
     finalOrder?: {
       id?: string | number | null;
-      totalAmount?: number | null;
+      totalAmount?: number | string | null;
     } | null;
     finalOrderId?: string | number | null;
     deliveryAddress?: string | number | Record<string, unknown> | null;
