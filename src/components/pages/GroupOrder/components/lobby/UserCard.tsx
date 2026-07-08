@@ -27,39 +27,109 @@ const getOptionName = (option: GroupOrderSelectedOption) =>
 const getOptionQuantity = (option: GroupOrderSelectedOption) =>
   Math.max(1, toNumber(option.quantity, 1));
 
-const getOptionPrice = (option: GroupOrderSelectedOption) =>
+const getOptionUnitPrice = (option: GroupOrderSelectedOption) =>
   toNumber(
-    option.totalPrice ??
+    option.unitPrice ??
+      option.priceDelta ??
       option.price ??
-      option.modifier?.totalPrice ??
+      option.modifier?.unitPrice ??
+      option.modifier?.priceDelta ??
       option.modifier?.price ??
-      option.addOn?.totalPrice ??
+      option.addOn?.unitPrice ??
+      option.addOn?.priceDelta ??
       option.addOn?.price ??
-      option.addon?.totalPrice ??
+      option.addon?.unitPrice ??
+      option.addon?.priceDelta ??
       option.addon?.price,
-    0
+    NaN
   );
 
-const getSelectedOptions = (item: GroupOrderItem) => [
-  ...(item.selectedAddons || []),
-  ...(item.selectedAddOns || []),
-  ...(item.addOns || []),
-  ...(item.addons || []),
-  ...(item.selectedModifiers || []),
-  ...(item.modifiers || []),
-].filter((option) => getOptionName(option));
+const getOptionTotalPrice = (option: GroupOrderSelectedOption) => {
+  const explicitTotal = toNumber(
+    option.total ??
+      option.totalPrice ??
+      option.modifier?.total ??
+      option.modifier?.totalPrice ??
+      option.addOn?.total ??
+      option.addOn?.totalPrice ??
+      option.addon?.total ??
+      option.addon?.totalPrice,
+    NaN
+  );
+
+  if (Number.isFinite(explicitTotal)) return explicitTotal;
+
+  const unitPrice = getOptionUnitPrice(option);
+
+  return Number.isFinite(unitPrice) ? unitPrice * getOptionQuantity(option) : NaN;
+};
+
+const getOptionModifierId = (option: GroupOrderSelectedOption) =>
+  option.modifierId || option.modifier?.modifierId || option.modifier?.id || option.id;
+
+const getFallbackModifierOptions = (item: GroupOrderItem) => {
+  const selectedModifiers = item.modifiers || [];
+
+  if (!selectedModifiers.length) return [];
+
+  const modifierMap = new Map<string, GroupOrderSelectedOption>();
+
+  item.menuItem?.modifierLinks?.forEach((groupLink) => {
+    groupLink.modifierGroup?.modifierLinks?.forEach((modifierLink) => {
+      const modifier = modifierLink.modifier;
+      const modifierId = modifier?.id ?? modifier?.modifierId ?? modifierLink.modifierId;
+
+      if (!modifierId || !modifier) return;
+
+      modifierMap.set(String(modifierId), {
+        id: modifier.id ?? modifierId,
+        modifierId,
+        name: modifier.name,
+        unitPrice: modifier.unitPrice ?? modifier.priceDelta ?? modifier.price,
+      });
+    });
+  });
+
+  return selectedModifiers
+    .map((selection) => {
+      if (getOptionName(selection)) return selection;
+
+      const modifierId = getOptionModifierId(selection);
+      const matchedModifier = modifierId ? modifierMap.get(String(modifierId)) : undefined;
+
+      return matchedModifier ? { ...matchedModifier, quantity: selection.quantity } : selection;
+    })
+    .filter((option) => getOptionName(option));
+};
+
+const getSelectedOptions = (item: GroupOrderItem) => {
+  const pricedModifiers = item.pricing?.modifiers?.filter((option) => getOptionName(option)) || [];
+
+  if (pricedModifiers.length > 0) return pricedModifiers;
+
+  const directOptions = [
+    ...(item.selectedAddons || []),
+    ...(item.selectedAddOns || []),
+    ...(item.addOns || []),
+    ...(item.addons || []),
+    ...(item.selectedModifiers || []),
+    ...(item.modifiers || []),
+  ].filter((option) => getOptionName(option));
+
+  return directOptions.length > 0 ? directOptions : getFallbackModifierOptions(item);
+};
 
 const getItemLineTotal = (item: GroupOrderItem) => {
-  const explicitTotal = toNumber(item.lineTotal ?? item.totalPrice, NaN);
+  const explicitTotal = toNumber(item.lineTotal ?? item.totalPrice ?? item.pricing?.lineTotal ?? item.pricing?.totalPrice ?? item.pricing?.total, NaN);
 
   if (Number.isFinite(explicitTotal)) return explicitTotal;
 
   const quantity = Math.max(1, toNumber(item.quantity, 1));
-  const unitPrice = toNumber(item.unitPrice ?? item.price ?? item.menuItem?.price, NaN);
+  const unitPrice = toNumber(item.unitPrice ?? item.price ?? item.pricing?.unitPrice ?? item.menuItem?.price, NaN);
 
   if (!Number.isFinite(unitPrice)) return null;
 
-  const modifiersTotal = toNumber(item.modifiersTotal, 0);
+  const modifiersTotal = toNumber(item.modifiersTotal ?? item.pricing?.modifiersTotal, 0);
 
   return (unitPrice + modifiersTotal) * quantity;
 };
@@ -205,12 +275,14 @@ const statusClassName = isCompleted
                   {selectedOptions.length > 0 ? (
                     <div className="mt-1 space-y-1 text-xs text-gray-500">
                       {selectedOptions.map((option, index) => {
-                        const optionPrice = getOptionPrice(option);
+                        const unitPrice = getOptionUnitPrice(option);
+                        const totalPrice = getOptionTotalPrice(option);
+                        const displayPrice = Number.isFinite(unitPrice) ? unitPrice : totalPrice;
 
                         return (
                           <p key={`${getOptionName(option)}-${index}`}>
                             {getOptionQuantity(option)}× {getOptionName(option)}
-                            {optionPrice > 0 ? ` · ${formatCurrency(optionPrice)}` : ""}
+                            {Number.isFinite(displayPrice) && displayPrice > 0 ? ` · ${formatCurrency(displayPrice)}` : ""}
                           </p>
                         );
                       })}

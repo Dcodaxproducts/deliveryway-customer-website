@@ -12,18 +12,46 @@ export type GroupOrderUser = {
   avatarUrl?: string | null;
 };
 
+export type GroupOrderModifier = {
+  id?: string | number | null;
+  modifierId?: string | number | null;
+  name?: string | null;
+  price?: number | string | null;
+  priceDelta?: number | string | null;
+  unitPrice?: number | string | null;
+};
+
+export type GroupOrderModifierLink = {
+  id?: string | number | null;
+  modifierId?: string | number | null;
+  modifier?: GroupOrderModifier | null;
+};
+
+export type GroupOrderModifierGroupLink = {
+  id?: string | number | null;
+  modifierGroup?: {
+    id?: string | number | null;
+    modifierLinks?: GroupOrderModifierLink[];
+  } | null;
+};
+
 export type GroupOrderMenuItem = {
   id?: string | number | null;
   name?: string | null;
   imageUrl?: string | null;
   price?: number | string | null;
+  modifierLinks?: GroupOrderModifierGroupLink[];
 };
 
 export type GroupOrderSelectedOption = {
   id?: string | number | null;
+  modifierId?: string | number | null;
   name?: string | null;
   quantity?: number | string | null;
   price?: number | string | null;
+  priceDelta?: number | string | null;
+  unitPrice?: number | string | null;
+  total?: number | string | null;
   totalPrice?: number | string | null;
   modifier?: GroupOrderSelectedOption | null;
   addOn?: GroupOrderSelectedOption | null;
@@ -38,6 +66,14 @@ export type GroupOrderItem = {
   totalPrice?: number | string | null;
   lineTotal?: number | string | null;
   modifiersTotal?: number | string | null;
+  pricing?: {
+    modifiers?: GroupOrderSelectedOption[];
+    lineTotal?: number | string | null;
+    totalPrice?: number | string | null;
+    total?: number | string | null;
+    unitPrice?: number | string | null;
+    modifiersTotal?: number | string | null;
+  } | null;
   menuItem?: GroupOrderMenuItem | null;
   selectedAddons?: GroupOrderSelectedOption[];
   selectedAddOns?: GroupOrderSelectedOption[];

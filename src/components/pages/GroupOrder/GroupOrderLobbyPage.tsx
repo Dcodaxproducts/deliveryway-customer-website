@@ -8,7 +8,7 @@ import OrderSuccess from "@/components/pages/GroupOrder/components/Success/Order
 import { useGroupOrder } from "@/hooks/useGroupOrder";
 import { useGroupOrderApi } from "@/hooks/useGroupOrder";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, RefreshCw } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -206,22 +206,11 @@ export function GroupOrderLobbyPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6 md:p-10 md:px-40">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <HeaderSection order={order} />
-        <button
-          type="button"
-          onClick={handleRefresh}
-          disabled={refreshing}
-          className="inline-flex items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/30 hover:text-primary disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
-        >
-          <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-          {refreshing ? t("refreshing") : t("refresh")}
-        </button>
-      </div>
-
-      <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
+      <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_400px]">
         {/* LEFT */}
-        <div className="space-y-5 lg:col-span-2">
+        <div className="space-y-5">
+          <HeaderSection order={order} />
+
           {order?.participants?.map((participant: GroupOrderParticipant) => (
             <UserCard
               key={participant.id}
@@ -247,6 +236,8 @@ export function GroupOrderLobbyPage() {
           participant={currentUserParticipant}
           onSuccess={setSuccessData}
           onParticipantStatusChange={updateParticipantStatus}
+          onRefresh={handleRefresh}
+          refreshing={refreshing}
         />
       </div>
     </div>

@@ -1,7 +1,6 @@
 "use client";
 
-import { Info, Loader2, LogOut, XCircle } from "lucide-react";
-import Image from "next/image";
+import { Info, Loader2, LogOut, RefreshCw, XCircle } from "lucide-react";
 import { useState } from "react";
 
 import { toast } from "sonner";
@@ -28,6 +27,8 @@ type OrderSummaryProps = {
   participant: GroupOrderParticipant | undefined;
   onSuccess: (data: GroupOrderSuccessData) => void;
   onParticipantStatusChange: (participantId: string | number, status: GroupOrderParticipant["status"]) => void;
+  onRefresh: () => void;
+  refreshing: boolean;
 };
 
 export function OrderSummary({
@@ -39,6 +40,8 @@ export function OrderSummary({
   participant,
   onSuccess,
   onParticipantStatusChange,
+  onRefresh,
+  refreshing,
 }: OrderSummaryProps) {
   const t = useTranslations("groupOrder.lobby.summary");
   const cartT = useTranslations("cart");
@@ -173,9 +176,21 @@ clearStoredGroupOrderCode();
 
         {/* TOP ROW */}
         <div className="flex justify-between items-center mb-5">
-          <h2 className="font-semibold text-gray-900 text-lg">
-            {t("title")}
-          </h2>
+          <div className="flex items-center gap-2">
+            <h2 className="font-semibold text-gray-900 text-lg">
+              {t("title")}
+            </h2>
+            <button
+              type="button"
+              onClick={onRefresh}
+              disabled={refreshing}
+              aria-label={refreshing ? t("refreshing") : t("refresh")}
+              title={refreshing ? t("refreshing") : t("refresh")}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 transition hover:border-primary/30 hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+            </button>
+          </div>
 
           {/* LEAVE BUTTON */}
        {isHost && canMutateGroupOrder ? (
@@ -283,24 +298,8 @@ clearStoredGroupOrderCode();
         </p>
       </div>
 
-      {/* OFFER */}
-      <div className="relative rounded-2xl overflow-hidden shadow-md hover:shadow-lg transition">
-        <Image
-          src="https://images.unsplash.com/photo-1604908176997-125f25cc6f3d"
-          alt={t("offerImageAlt")}
-          width={400}
-          height={200}
-          className="object-cover"
-        />
-
-        <div className="absolute inset-0 bg-black/50 p-4 flex flex-col justify-end">
-          <span className="text-xs bg-orange-500 text-white px-2 py-1 w-fit rounded">
-            {t("offer")}
-          </span>
-          <p className="text-white font-semibold mt-2">
-            {t("offerText")}
-          </p>
-        </div>
+      <div className="rounded-2xl border border-gray-100 bg-white p-4 text-sm leading-6 text-gray-600 shadow-sm">
+        {t("helpfulText")}
       </div>
 
       {/* NOTE MODAL */}
