@@ -7,8 +7,9 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useGroupOrderApi } from "@/hooks/useGroupOrder";
-import { getBackendErrorMessage, hasBackendError } from "@/components/pages/Checkout/utils/checkout-normalizers";
-import type { GroupOrderItem, GroupOrderParticipant } from "@/types/group-order";
+import { formatCurrency } from "@/components/pages/Checkout/components/CartSummarySection";
+import { getBackendErrorMessage, hasBackendError, toNumber } from "@/components/pages/Checkout/utils/checkout-normalizers";
+import type { GroupOrderItem, GroupOrderParticipant, GroupOrderSelectedOption } from "@/types/group-order";
 import { isGroupOrderParticipantCompleted } from "@/lib/group-order";
 
 type UserCardProps = {
@@ -18,6 +19,49 @@ type UserCardProps = {
   canEdit: boolean;
   onItemQuantityChange: (participantId: string | number, itemId: string | number, quantity: number) => void;
   onItemRemove: (participantId: string | number, itemId: string | number) => void;
+};
+
+const getOptionName = (option: GroupOrderSelectedOption) =>
+  option.name || option.modifier?.name || option.addOn?.name || option.addon?.name || "";
+
+const getOptionQuantity = (option: GroupOrderSelectedOption) =>
+  Math.max(1, toNumber(option.quantity, 1));
+
+const getOptionPrice = (option: GroupOrderSelectedOption) =>
+  toNumber(
+    option.totalPrice ??
+      option.price ??
+      option.modifier?.totalPrice ??
+      option.modifier?.price ??
+      option.addOn?.totalPrice ??
+      option.addOn?.price ??
+      option.addon?.totalPrice ??
+      option.addon?.price,
+    0
+  );
+
+const getSelectedOptions = (item: GroupOrderItem) => [
+  ...(item.selectedAddons || []),
+  ...(item.selectedAddOns || []),
+  ...(item.addOns || []),
+  ...(item.addons || []),
+  ...(item.selectedModifiers || []),
+  ...(item.modifiers || []),
+].filter((option) => getOptionName(option));
+
+const getItemLineTotal = (item: GroupOrderItem) => {
+  const explicitTotal = toNumber(item.lineTotal ?? item.totalPrice, NaN);
+
+  if (Number.isFinite(explicitTotal)) return explicitTotal;
+
+  const quantity = Math.max(1, toNumber(item.quantity, 1));
+  const unitPrice = toNumber(item.unitPrice ?? item.price ?? item.menuItem?.price, NaN);
+
+  if (!Number.isFinite(unitPrice)) return null;
+
+  const modifiersTotal = toNumber(item.modifiersTotal, 0);
+
+  return (unitPrice + modifiersTotal) * quantity;
 };
 
 export function UserCard({ participant, orderId, isHost, canEdit, onItemQuantityChange, onItemRemove }: UserCardProps) {
@@ -138,11 +182,15 @@ const statusClassName = isCompleted
 
       {!picking && (
         <div className="mt-5 space-y-3">
-          {items.map((item) => (
-            <div key={item.id} className={`flex items-center justify-between ${pendingItemIds.has(String(item.id)) ? "opacity-70" : ""}`}>
+          {items.map((item) => {
+            const selectedOptions = getSelectedOptions(item);
+            const lineTotal = getItemLineTotal(item);
 
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-md overflow-hidden relative border border-gray-200">
+            return (
+            <div key={item.id} className={`flex items-start justify-between gap-3 ${pendingItemIds.has(String(item.id)) ? "opacity-70" : ""}`}>
+
+              <div className="flex min-w-0 items-start gap-3">
+                <div className="w-11 h-11 shrink-0 rounded-md overflow-hidden relative border border-gray-200">
                   <Image
                     src={item.menuItem?.imageUrl || "/items/table.png"}
                     alt=""
@@ -150,12 +198,33 @@ const statusClassName = isCompleted
                     className="object-cover"
                   />
                 </div>
-                <p className="text-sm text-gray-700 font-medium">
-                  {item.menuItem?.name}
-                </p>
+                <div className="min-w-0">
+                  <p className="text-sm text-gray-700 font-medium">
+                    {item.menuItem?.name}
+                  </p>
+                  {selectedOptions.length > 0 ? (
+                    <div className="mt-1 space-y-1 text-xs text-gray-500">
+                      {selectedOptions.map((option, index) => {
+                        const optionPrice = getOptionPrice(option);
+
+                        return (
+                          <p key={`${getOptionName(option)}-${index}`}>
+                            {getOptionQuantity(option)}× {getOptionName(option)}
+                            {optionPrice > 0 ? ` · ${formatCurrency(optionPrice)}` : ""}
+                          </p>
+                        );
+                      })}
+                    </div>
+                  ) : null}
+                  {lineTotal !== null ? (
+                    <p className="mt-1 text-xs font-semibold text-gray-900">
+                      {formatCurrency(lineTotal)}
+                    </p>
+                  ) : null}
+                </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex shrink-0 items-center gap-3">
 
                 {/* QTY */}
                 <div className="flex items-center gap-2 border rounded-full px-2 py-1">
@@ -182,7 +251,8 @@ const statusClassName = isCompleted
 
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

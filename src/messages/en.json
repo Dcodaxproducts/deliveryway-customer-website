@@ -1610,6 +1610,10 @@
       "scheduleSubtitle": "Current date and time are selected by default. You can edit them before inviting your group.",
       "editSchedule": "Edit",
       "resetToNow": "Use current time",
+      "instantPickupUnavailable": "Pickup now is currently unavailable. Please schedule a later time.",
+      "instantDeliveryUnavailable": "Delivery now is currently unavailable. Please schedule a later time.",
+      "scheduledPickupUnavailable": "Pickup is not available at the selected time.",
+      "scheduledDeliveryUnavailable": "Delivery is not available at the selected time.",
       "hostNote": "Host Note (Optional)",
       "hostNotePlaceholder": "Any instructions for your group...",
       "creating": "Creating...",
@@ -1662,7 +1666,20 @@
         "fallbackTitle": "Lobby",
         "description": "Everyone's picks for tonight's feast.",
         "groupStatus": "Group Status",
-        "readyCount": "{ready}/{total} Ready"
+        "readyCount": "{ready}/{total} Ready",
+        "orderTiming": "Order timing",
+        "instantOrder": "ASAP / instant order",
+        "scheduledFor": "Scheduled for {date}",
+        "expiresAt": "Expires {date}",
+        "orderType": "Order type",
+        "orderTypes": {
+          "delivery": "Delivery",
+          "takeaway": "Pickup",
+          "dineIn": "Dine in",
+          "fallback": "Group order"
+        },
+        "branch": "Branch",
+        "branchFallback": "Selected branch"
       },
       "invite": {
         "linkCopied": "Link copied",

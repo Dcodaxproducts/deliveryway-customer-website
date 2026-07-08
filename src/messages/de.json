@@ -1610,6 +1610,10 @@
       "scheduleSubtitle": "Aktuelles Datum und aktuelle Uhrzeit sind standardmäßig ausgewählt. Sie können sie vor dem Einladen Ihrer Gruppe bearbeiten.",
       "editSchedule": "Bearbeiten",
       "resetToNow": "Aktuelle Zeit verwenden",
+      "instantPickupUnavailable": "Abholung sofort ist derzeit nicht verfügbar. Bitte wählen Sie eine spätere Zeit.",
+      "instantDeliveryUnavailable": "Lieferung sofort ist derzeit nicht verfügbar. Bitte wählen Sie eine spätere Zeit.",
+      "scheduledPickupUnavailable": "Abholung ist zur gewählten Zeit nicht verfügbar.",
+      "scheduledDeliveryUnavailable": "Lieferung ist zur gewählten Zeit nicht verfügbar.",
       "hostNote": "Gastgeber-Hinweis (optional)",
       "hostNotePlaceholder": "Anweisungen für Ihre Gruppe...",
       "creating": "Wird erstellt...",
@@ -1662,7 +1666,20 @@
         "fallbackTitle": "Lobby",
         "description": "Alle Auswahlen für das heutige gemeinsame Essen.",
         "groupStatus": "Gruppenstatus",
-        "readyCount": "{ready}/{total} bereit"
+        "readyCount": "{ready}/{total} bereit",
+        "orderTiming": "Bestellzeit",
+        "instantOrder": "Sofort / ASAP",
+        "scheduledFor": "Geplant für {date}",
+        "expiresAt": "Läuft ab {date}",
+        "orderType": "Bestellart",
+        "orderTypes": {
+          "delivery": "Lieferung",
+          "takeaway": "Abholung",
+          "dineIn": "Vor Ort",
+          "fallback": "Gruppenbestellung"
+        },
+        "branch": "Filiale",
+        "branchFallback": "Ausgewählte Filiale"
       },
       "invite": {
         "linkCopied": "Link kopiert",

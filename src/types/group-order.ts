@@ -16,12 +16,35 @@ export type GroupOrderMenuItem = {
   id?: string | number | null;
   name?: string | null;
   imageUrl?: string | null;
+  price?: number | string | null;
+};
+
+export type GroupOrderSelectedOption = {
+  id?: string | number | null;
+  name?: string | null;
+  quantity?: number | string | null;
+  price?: number | string | null;
+  totalPrice?: number | string | null;
+  modifier?: GroupOrderSelectedOption | null;
+  addOn?: GroupOrderSelectedOption | null;
+  addon?: GroupOrderSelectedOption | null;
 };
 
 export type GroupOrderItem = {
   id: string | number;
   quantity: number;
+  unitPrice?: number | string | null;
+  price?: number | string | null;
+  totalPrice?: number | string | null;
+  lineTotal?: number | string | null;
+  modifiersTotal?: number | string | null;
   menuItem?: GroupOrderMenuItem | null;
+  selectedAddons?: GroupOrderSelectedOption[];
+  selectedAddOns?: GroupOrderSelectedOption[];
+  addOns?: GroupOrderSelectedOption[];
+  addons?: GroupOrderSelectedOption[];
+  selectedModifiers?: GroupOrderSelectedOption[];
+  modifiers?: GroupOrderSelectedOption[];
 };
 
 export type GroupOrderParticipant = {
@@ -56,6 +79,10 @@ export type GroupOrder = {
   summary?: GroupOrderSummary | null;
   restaurantMenuId?: string | number | null;
   orderTime?: string | null;
+  expiresAt?: string | null;
+  expiryAt?: string | null;
+  expiresOn?: string | null;
+  isScheduled?: boolean | null;
   orderType?: GroupOrderType;
   branch?: BranchRecord | null;
 };
@@ -64,7 +91,7 @@ export type CreateGroupOrderPayload = {
   branchId: string | number;
   orderType: GroupOrderType;
   deliveryAddressId: string | number | null;
-  orderTime: string;
+  orderTime: string | null;
   hostNote: string | null;
 };
 

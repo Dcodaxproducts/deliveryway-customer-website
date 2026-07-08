@@ -16,6 +16,14 @@ import { useTranslations } from "next-intl";
 import { resolveGroupOrderDeliveryAddressId, setStoredGroupOrderCode } from "@/lib/group-order";
 import { formatDisplayAddress } from "@/lib/address-display";
 import { getBackendErrorMessage, hasBackendError } from "@/components/pages/Checkout/utils/checkout-normalizers";
+import {
+  getBranchScheduleTimeZone,
+  getDateValue,
+  getScheduleOrderTimeIso,
+  isImmediateScheduleAvailable,
+  isScheduleTimeAvailable,
+} from "@/components/pages/Checkout/utils/pickup-schedule";
+import { normalizeBranch } from "@/lib/branch-selector";
 import { fetchAddresses as fetchProfileAddresses, type AddressRecord } from "@/services/profile";
 import type { CreateGroupOrderPayload, GroupOrderType } from "@/types/group-order";
 import type { BranchRecord } from "@/types/branch-selector";
@@ -44,6 +52,9 @@ const getLocalScheduleDate = (date: string, time: string) => {
 };
 
 const isPastDateValue = (value: string) => Boolean(value) && value < getCurrentSchedule().date;
+
+const getScheduleType = (orderType: GroupOrderType) =>
+  orderType === "DELIVERY" ? "delivery" : "pickup";
 
 export function GroupOrderModal({ open, onClose }: GroupOrderModalProps) {
   const t = useTranslations("groupOrder.modal");
@@ -112,6 +123,10 @@ export function GroupOrderModal({ open, onClose }: GroupOrderModalProps) {
     () => getLocalScheduleDate(date, time),
     [date, time]
   );
+  const activeBranch = useMemo(
+    () => selectedBranch ?? normalizeBranch(user?.branch),
+    [selectedBranch, user?.branch]
+  );
 
   const selectedScheduleLabel = selectedScheduleDate
       ? new Intl.DateTimeFormat(undefined, {
@@ -131,15 +146,52 @@ export function GroupOrderModal({ open, onClose }: GroupOrderModalProps) {
 
   const handleSubmit = async () => {
     try {
-      const branchId = user?.branchId || selectedBranch?.id;
+      const branchId = user?.branchId || activeBranch?.id;
+      const scheduleType = getScheduleType(orderType);
 
       if (!branchId) return toast.error(t("selectBranch"));
-      if (!date || !time || !selectedScheduleDate) {
-        return toast.error(t("selectDateTime"));
-      }
 
-      if (isPastDateValue(date)) {
-        return toast.error(errorT("reservationPastDate"));
+      let orderTime: string | null = null;
+
+      if (!scheduleEditorOpen) {
+        if (!isImmediateScheduleAvailable({ branch: activeBranch, scheduleType })) {
+          return toast.error(
+            orderType === "DELIVERY"
+              ? t("instantDeliveryUnavailable")
+              : t("instantPickupUnavailable")
+          );
+        }
+      } else {
+        if (!date || !time || !selectedScheduleDate) {
+          return toast.error(t("selectDateTime"));
+        }
+
+        if (isPastDateValue(date)) {
+          return toast.error(errorT("reservationPastDate"));
+        }
+
+        const dateValue = getDateValue(selectedScheduleDate);
+
+        if (
+          !isScheduleTimeAvailable({
+            branch: activeBranch,
+            dateValue,
+            timeValue: time,
+            scheduleType,
+          })
+        ) {
+          return toast.error(
+            orderType === "DELIVERY"
+              ? t("scheduledDeliveryUnavailable")
+              : t("scheduledPickupUnavailable")
+          );
+        }
+
+        orderTime = getScheduleOrderTimeIso({
+          dateValue,
+          timeValue: time,
+          timeZone: getBranchScheduleTimeZone(activeBranch),
+        });
       }
 
       let deliveryAddressId = "";
@@ -160,7 +212,6 @@ export function GroupOrderModal({ open, onClose }: GroupOrderModalProps) {
         return toast.error(t("selectDeliveryAddress"));
       }
 
-      const orderTime = selectedScheduleDate.toISOString();
       const payload: CreateGroupOrderPayload = {
         branchId,
         orderType,
