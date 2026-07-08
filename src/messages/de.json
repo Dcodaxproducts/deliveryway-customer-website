@@ -1557,7 +1557,15 @@
       "checkoutText": "Eine gemeinsame Bestellung",
       "heroImageAlt": "Freunde teilen eine Mahlzeit",
       "experienceTitle": "Gruppenbestell-Erlebnis",
-      "experienceDescription": "Perfekt für Büromittagessen, Familienessen und Freunde."
+      "experienceDescription": "Perfekt für Büromittagessen, Familienessen und Freunde.",
+      "joinWithCodeTitle": "Mit Einladungscode beitreten",
+      "joinWithCodeDescription": "Haben Sie bereits einen Gruppenbestellcode? Geben Sie ihn hier ein, um beizutreten und Artikel hinzuzufügen.",
+      "joinCodePlaceholder": "CODE EINGEBEN",
+      "joinCodeRequired": "Bitte geben Sie einen Einladungscode ein",
+      "joinGroupOrder": "Gruppenbestellung beitreten",
+      "joining": "Beitreten...",
+      "joined": "Gruppenbestellung beigetreten",
+      "failedJoin": "Gruppenbestellung konnte nicht beigetreten werden"
     },
     "howItWorks": {
       "eyebrow": "Der Ablauf",
