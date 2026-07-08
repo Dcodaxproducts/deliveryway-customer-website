@@ -150,14 +150,17 @@ export type CheckoutGroupOrderPayload = {
 
 export type GroupOrderSuccessData = {
   order?: {
+    id?: string | number | null;
     totalAmount?: number | null;
     orderTime?: string | null;
     isScheduled?: boolean | null;
   } | null;
   session?: {
     finalOrder?: {
+      id?: string | number | null;
       totalAmount?: number | null;
     } | null;
+    finalOrderId?: string | number | null;
     deliveryAddress?: string | number | Record<string, unknown> | null;
     participants?: GroupOrderParticipant[];
   } | null;

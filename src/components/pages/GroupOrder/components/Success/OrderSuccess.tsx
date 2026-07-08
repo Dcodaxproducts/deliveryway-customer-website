@@ -15,6 +15,7 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
   const session = data?.session;
 
   const total = order?.totalAmount || session?.finalOrder?.totalAmount || 0;
+  const finalOrderId = order?.id || session?.finalOrder?.id || session?.finalOrderId || "";
 
   const participants =
     session?.participants?.filter((p) => p.status === "ACTIVE") || [];
@@ -142,7 +143,15 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
         </div>
       </div>
       <div className="mt-10 flex gap-4 flex-col sm:flex-row">
-        <button className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-full font-medium shadow-md hover:opacity-90 transition">
+        <button
+          onClick={() => {
+            if (!finalOrderId) return;
+
+            window.location.href = `/order?orderId=${encodeURIComponent(String(finalOrderId))}`;
+          }}
+          disabled={!finalOrderId}
+          className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-full font-medium shadow-md hover:opacity-90 transition disabled:cursor-not-allowed disabled:opacity-60"
+        >
           <Power className="w-4 h-4" />
           {t("trackOrder")}
         </button>

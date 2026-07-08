@@ -200,9 +200,9 @@ export function OrderSummary({
 
     const payload: CheckoutGroupOrderPayload = {
       paymentMethod,
-      orderTime: order?.orderTime,
       customerNote: note || "",
       couponCode: coupon || "",
+      ...(order?.orderTime ? { orderTime: order.orderTime } : {}),
       ...(normalizedLoyaltyPoints > 0 ? { loyaltyPoints: normalizedLoyaltyPoints } : {}),
     };
 
