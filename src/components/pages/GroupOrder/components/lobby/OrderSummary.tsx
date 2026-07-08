@@ -13,24 +13,38 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useGroupOrder, useGroupOrderApi } from "@/hooks/useGroupOrder";
+import { useGroupOrderApi } from "@/hooks/useGroupOrder";
 import { useAuth } from "@/hooks/useAuth";
 import { clearStoredGroupOrderCode } from "@/lib/group-order";
 import { getBackendErrorMessage, hasBackendError } from "@/components/pages/Checkout/utils/checkout-normalizers";
-import type { CheckoutGroupOrderPayload, GroupOrder, GroupOrderPaymentMethod, GroupOrderSuccessData } from "@/types/group-order";
+import type { CheckoutGroupOrderPayload, GroupOrder, GroupOrderParticipant, GroupOrderPaymentMethod, GroupOrderSuccessData } from "@/types/group-order";
 
 type OrderSummaryProps = {
   order: GroupOrder;
+  canCheckout: boolean;
+  canMutateGroupOrder: boolean;
+  isHost: boolean;
+  isParticipantCompleted: boolean;
+  participant: GroupOrderParticipant | undefined;
   onSuccess: (data: GroupOrderSuccessData) => void;
+  onParticipantStatusChange: (participantId: string | number, status: GroupOrderParticipant["status"]) => void;
 };
 
-export function OrderSummary({ order, onSuccess }: OrderSummaryProps) {
+export function OrderSummary({
+  order,
+  canCheckout,
+  canMutateGroupOrder,
+  isHost,
+  isParticipantCompleted,
+  participant,
+  onSuccess,
+  onParticipantStatusChange,
+}: OrderSummaryProps) {
   const t = useTranslations("groupOrder.lobby.summary");
   const cartT = useTranslations("cart");
   const errorT = useTranslations("errors");
   const summary = order?.summary;
   const { token } = useAuth();
-  const { canCheckout, canMutateGroupOrder, isHost, isParticipantCompleted, participant, refetch } = useGroupOrder();
   const { cancelGroupOrder, checkoutGroupOrder, leaveGroupOrder, updateMyGroupOrderParticipantStatus } = useGroupOrderApi(token);
 
   const [noteOpen, setNoteOpen] = useState(false);
@@ -49,19 +63,22 @@ export function OrderSummary({ order, onSuccess }: OrderSummaryProps) {
     if (isHost || !participant || !canMutateGroupOrder) return;
 
     const nextStatus = isParticipantCompleted ? "ACTIVE" : "COMPLETED";
+    const previousStatus = participant.status;
 
     try {
       setLoadingStatus(true);
+      onParticipantStatusChange(participant.id, nextStatus);
       const res = await updateMyGroupOrderParticipantStatus({ orderId: order.id, status: nextStatus });
 
       if (hasBackendError(res)) {
+        onParticipantStatusChange(participant.id, previousStatus);
         toast.error(getBackendErrorMessage(res, t("failedUpdateStatus")));
         return;
       }
 
       toast.success(nextStatus === "COMPLETED" ? t("markedDone") : t("editingEnabled"));
-      await refetch();
     } catch (err) {
+      onParticipantStatusChange(participant.id, previousStatus);
       toast.error(err instanceof Error ? err.message : t("failedUpdateStatus"));
     } finally {
       setLoadingStatus(false);

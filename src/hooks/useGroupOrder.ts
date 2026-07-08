@@ -131,6 +131,10 @@ export function useGroupOrder(): UseGroupOrderResult {
   const [loading, setLoading] = useState(true);
   const [redirecting, setRedirecting] = useState(false);
 
+  const updateOrder = useCallback((updater: GroupOrder | null | ((order: GroupOrder | null) => GroupOrder | null)) => {
+    setOrder((currentOrder) => typeof updater === "function" ? updater(currentOrder) : updater);
+  }, []);
+
   const persistGroupOrderBranch = useCallback((groupOrder: GroupOrder) => {
     if (user?.branchId || user?.branch?.id || !groupOrder.branch?.id) return;
 
@@ -139,9 +143,11 @@ export function useGroupOrder(): UseGroupOrderResult {
     });
   }, [setUser, user?.branch?.id, user?.branchId, user?.selectedOrderType]);
 
-  const fetchOrder = useCallback(async () => {
+  const fetchOrder = useCallback(async ({ silent = false }: { silent?: boolean } = {}) => {
     try {
-      setLoading(true);
+      if (!silent) {
+        setLoading(true);
+      }
 
       const groupOrderId = typeof window !== "undefined"
         ? new URLSearchParams(window.location.search).get("groupOrderId") || ""
@@ -188,7 +194,9 @@ export function useGroupOrder(): UseGroupOrderResult {
     } catch {
       setOrder(null);
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   }, [findGroupOrderById, findGroupOrderByInviteCode, persistGroupOrderBranch, router]);
 
@@ -220,9 +228,10 @@ export function useGroupOrder(): UseGroupOrderResult {
 
   return {
     order,
+    updateOrder,
     loading,
     redirecting,
-    refetch: fetchOrder,
+    refetch: () => fetchOrder({ silent: true }),
     isHost,
     isParticipant,
     participant,

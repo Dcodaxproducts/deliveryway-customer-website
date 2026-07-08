@@ -3,9 +3,11 @@
 import Image from "next/image";
 import { Trash2, Plus, Minus } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
-import { useGroupOrder, useGroupOrderApi } from "@/hooks/useGroupOrder";
+import { useGroupOrderApi } from "@/hooks/useGroupOrder";
+import { getBackendErrorMessage, hasBackendError } from "@/components/pages/Checkout/utils/checkout-normalizers";
 import type { GroupOrderItem, GroupOrderParticipant } from "@/types/group-order";
 import { isGroupOrderParticipantCompleted } from "@/lib/group-order";
 
@@ -13,12 +15,17 @@ type UserCardProps = {
   participant: GroupOrderParticipant;
   orderId: string | number;
   isHost?: boolean;
+  canEdit: boolean;
+  onItemQuantityChange: (participantId: string | number, itemId: string | number, quantity: number) => void;
+  onItemRemove: (participantId: string | number, itemId: string | number) => void;
 };
 
-export function UserCard({ participant, orderId, isHost }: UserCardProps) {
+export function UserCard({ participant, orderId, isHost, canEdit, onItemQuantityChange, onItemRemove }: UserCardProps) {
   const t = useTranslations("groupOrder.lobby.userCard");
+  const cartT = useTranslations("cart");
   const { token } = useAuth();
   const { deleteGroupOrderItem, updateGroupOrderItemQuantity } = useGroupOrderApi(token);
+  const [pendingItemIds, setPendingItemIds] = useState<Set<string>>(new Set());
 
   const user = participant?.user;
   const items = participant?.items || [];
@@ -30,8 +37,30 @@ export function UserCard({ participant, orderId, isHost }: UserCardProps) {
       return;
     }
 
-    await deleteGroupOrderItem({ orderId, itemId });
-    location.reload();
+    const itemKey = String(itemId);
+
+    if (pendingItemIds.has(itemKey)) return;
+
+    setPendingItemIds((current) => new Set(current).add(itemKey));
+
+    try {
+      const response = await deleteGroupOrderItem({ orderId, itemId });
+
+      if (hasBackendError(response)) {
+        toast.error(getBackendErrorMessage(response, cartT("failedRemoveItem")));
+        return;
+      }
+
+      onItemRemove(participant.id, itemId);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : cartT("failedRemoveItem"));
+    } finally {
+      setPendingItemIds((current) => {
+        const next = new Set(current);
+        next.delete(itemKey);
+        return next;
+      });
+    }
   };
 
   const updateQty = async (item: GroupOrderItem, qty: number) => {
@@ -42,14 +71,33 @@ export function UserCard({ participant, orderId, isHost }: UserCardProps) {
 
     if (qty < 1) return;
 
-    await updateGroupOrderItemQuantity({ orderId, itemId: item.id, quantity: qty });
+    const itemKey = String(item.id);
+    if (pendingItemIds.has(itemKey)) return;
 
-    location.reload();
+    const previousQuantity = item.quantity;
+
+    onItemQuantityChange(participant.id, item.id, qty);
+    setPendingItemIds((current) => new Set(current).add(itemKey));
+
+    try {
+      const response = await updateGroupOrderItemQuantity({ orderId, itemId: item.id, quantity: qty });
+
+      if (hasBackendError(response)) {
+        onItemQuantityChange(participant.id, item.id, previousQuantity);
+        toast.error(getBackendErrorMessage(response, cartT("failedUpdateQuantity")));
+      }
+    } catch (err) {
+      onItemQuantityChange(participant.id, item.id, previousQuantity);
+      toast.error(err instanceof Error ? err.message : cartT("failedUpdateQuantity"));
+    } finally {
+      setPendingItemIds((current) => {
+        const next = new Set(current);
+        next.delete(itemKey);
+        return next;
+      });
+    }
   };
-const { canEditItems, participant: currentUserParticipant } = useGroupOrder();
   const picking = items.length === 0 && !isCompleted;
-const isCurrentUser = participant?.userId === currentUserParticipant?.userId;
-const canEdit = canEditItems && isCurrentUser;
 const statusLabel = isCompleted ? t("completed") : picking ? t("pickingItems") : t("active");
 const statusClassName = isCompleted
   ? "bg-emerald-100 text-emerald-700"
@@ -91,7 +139,7 @@ const statusClassName = isCompleted
       {!picking && (
         <div className="mt-5 space-y-3">
           {items.map((item) => (
-            <div key={item.id} className="flex items-center justify-between">
+            <div key={item.id} className={`flex items-center justify-between ${pendingItemIds.has(String(item.id)) ? "opacity-70" : ""}`}>
 
               <div className="flex items-center gap-3">
                 <div className="w-11 h-11 rounded-md overflow-hidden relative border border-gray-200">
@@ -111,22 +159,22 @@ const statusClassName = isCompleted
 
                 {/* QTY */}
                 <div className="flex items-center gap-2 border rounded-full px-2 py-1">
-                  <button onClick={() => updateQty(item, item.quantity - 1)}  disabled={!canEdit}>
+                  <button onClick={() => updateQty(item, item.quantity - 1)}  disabled={!canEdit || pendingItemIds.has(String(item.id))}>
                     <Minus className="w-3 h-3" />
                   </button>
 
                   <span className="text-sm">{item.quantity}</span>
 
-                  <button onClick={() => updateQty(item, item.quantity + 1)}  disabled={!canEdit}>
+                  <button onClick={() => updateQty(item, item.quantity + 1)}  disabled={!canEdit || pendingItemIds.has(String(item.id))}>
                     <Plus className="w-3 h-3" />
                   </button>
                 </div>
 
                 {/* DELETE */}
                  <button
-  disabled={!canEdit}
+  disabled={!canEdit || pendingItemIds.has(String(item.id))}
   onClick={() => handleDelete(item.id)}
-  className={`text-red-500 ${!canEdit && "opacity-40 cursor-not-allowed"}`}
+  className={`text-red-500 ${(!canEdit || pendingItemIds.has(String(item.id))) && "opacity-40 cursor-not-allowed"}`}
 >
 
                   <Trash2 className="w-4 h-4" />

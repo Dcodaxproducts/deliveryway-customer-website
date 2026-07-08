@@ -92,6 +92,7 @@ export type GroupOrderSuccessData = {
 
 export type UseGroupOrderResult = {
   order: GroupOrder | null;
+  updateOrder: (updater: GroupOrder | null | ((order: GroupOrder | null) => GroupOrder | null)) => void;
   loading: boolean;
   redirecting: boolean;
   refetch: () => Promise<void>;

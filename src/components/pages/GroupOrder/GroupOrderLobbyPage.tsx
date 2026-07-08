@@ -16,7 +16,62 @@ export function GroupOrderLobbyPage() {
   const [successData, setSuccessData] = useState<GroupOrderSuccessData | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  const { order, loading, redirecting, refetch } = useGroupOrder();
+  const {
+    order,
+    updateOrder,
+    loading,
+    redirecting,
+    refetch,
+    canCheckout,
+    canEditItems,
+    canMutateGroupOrder,
+    isHost,
+    isParticipantCompleted,
+    participant: currentUserParticipant,
+  } = useGroupOrder();
+
+  const updateParticipantStatus = (participantId: string | number, status: GroupOrderParticipant["status"]) => {
+    updateOrder((currentOrder) => currentOrder ? {
+      ...currentOrder,
+      participants: currentOrder.participants?.map((participant) => (
+        String(participant.id) === String(participantId)
+          ? { ...participant, status }
+          : participant
+      )),
+    } : currentOrder);
+  };
+
+  const updateParticipantItemQuantity = (participantId: string | number, itemId: string | number, quantity: number) => {
+    updateOrder((currentOrder) => currentOrder ? {
+      ...currentOrder,
+      participants: currentOrder.participants?.map((participant) => (
+        String(participant.id) === String(participantId)
+          ? {
+              ...participant,
+              items: participant.items?.map((item) => (
+                String(item.id) === String(itemId)
+                  ? { ...item, quantity }
+                  : item
+              )),
+            }
+          : participant
+      )),
+    } : currentOrder);
+  };
+
+  const removeParticipantItem = (participantId: string | number, itemId: string | number) => {
+    updateOrder((currentOrder) => currentOrder ? {
+      ...currentOrder,
+      participants: currentOrder.participants?.map((participant) => (
+        String(participant.id) === String(participantId)
+          ? {
+              ...participant,
+              items: participant.items?.filter((item) => String(item.id) !== String(itemId)),
+            }
+          : participant
+      )),
+    } : currentOrder);
+  };
 
   const handleRefresh = async () => {
     if (refreshing) return;
@@ -102,6 +157,9 @@ export function GroupOrderLobbyPage() {
               participant={participant}
               orderId={order?.id}
               isHost={participant.isHost}
+              canEdit={canEditItems && String(participant.userId || "") === String(currentUserParticipant?.userId || "")}
+              onItemQuantityChange={updateParticipantItemQuantity}
+              onItemRemove={removeParticipantItem}
             />
           ))}
 
@@ -109,7 +167,16 @@ export function GroupOrderLobbyPage() {
         </div>
 
         {/* RIGHT */}
-        <OrderSummary order={order} onSuccess={setSuccessData} />
+        <OrderSummary
+          order={order}
+          canCheckout={canCheckout}
+          canMutateGroupOrder={canMutateGroupOrder}
+          isHost={isHost}
+          isParticipantCompleted={isParticipantCompleted}
+          participant={currentUserParticipant}
+          onSuccess={setSuccessData}
+          onParticipantStatusChange={updateParticipantStatus}
+        />
       </div>
     </div>
   );
