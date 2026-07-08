@@ -58,7 +58,6 @@ export function OrderSummary({
   const [note, setNote] = useState("");
   const [coupon, setCoupon] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<GroupOrderPaymentMethod>("COD");
-  const [tipAmount, setTipAmount] = useState("");
   const [loyalty, setLoyalty] = useState<LoyaltySummary | null>(null);
   const [loyaltyPoints, setLoyaltyPoints] = useState("");
   const [loadingLoyalty, setLoadingLoyalty] = useState(false);
@@ -69,7 +68,6 @@ export function OrderSummary({
   const [loadingStatus, setLoadingStatus] = useState(false);
   const actionsDisabled = !canMutateGroupOrder || loadingCancel || loadingCheckout || loadingLeave || loadingStatus;
   const isDeliveryOrder = String(order?.orderType || "").toUpperCase() === "DELIVERY";
-  const normalizedTipAmount = Math.max(0, Number(tipAmount) || 0);
   const normalizedLoyaltyPoints = Math.max(0, Math.floor(Number(loyaltyPoints) || 0));
   const loyaltyCanRedeem = Boolean(
     loyalty &&
@@ -205,7 +203,6 @@ export function OrderSummary({
       orderTime: order?.orderTime,
       customerNote: note || "",
       couponCode: coupon || "",
-      ...(normalizedTipAmount > 0 ? { tipAmount: normalizedTipAmount } : {}),
       ...(normalizedLoyaltyPoints > 0 ? { loyaltyPoints: normalizedLoyaltyPoints } : {}),
     };
 
@@ -431,32 +428,6 @@ clearStoredGroupOrderCode();
       />
     </div>
 
-    <div className="mt-5 rounded-2xl bg-white p-4 shadow-sm">
-      <label htmlFor="group-order-tip" className="mb-1 block text-sm font-semibold text-gray-900">
-        {t("tipLabel")}
-      </label>
-      <p className="mb-3 text-xs leading-5 text-gray-500">{t("tipHelper")}</p>
-      <div className="flex gap-2">
-        <input
-          id="group-order-tip"
-          type="number"
-          min="0"
-          value={tipAmount}
-          onChange={(event) => setTipAmount(event.target.value)}
-          placeholder="0"
-          className="h-11 flex-1 rounded-full border border-gray-200 bg-white px-4 text-sm outline-none transition focus:border-primary/40 focus:ring-4 focus:ring-primary/10"
-        />
-        {normalizedTipAmount > 0 ? (
-          <button
-            type="button"
-            onClick={() => setTipAmount("")}
-            className="h-11 rounded-full border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-600 transition hover:border-primary/30 hover:text-primary"
-          >
-            {t("tipRemove")}
-          </button>
-        ) : null}
-      </div>
-    </div>
 
     <div className="mt-5 rounded-2xl border border-primary/10 bg-[linear-gradient(135deg,rgba(206,24,27,0.07),rgba(17,24,39,0.03))] p-4">
       <div className="flex items-start gap-3">

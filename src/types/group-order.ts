@@ -145,7 +145,6 @@ export type CheckoutGroupOrderPayload = {
   orderTime?: string | null;
   customerNote: string;
   couponCode: string;
-  tipAmount?: number;
   loyaltyPoints?: number;
 };
 
