@@ -1713,6 +1713,7 @@
         "platformFee": "Service charge",
         "onlyHostCanFinalize": "Only host can finalize order",
         "finalizeCheckout": "Finalize and Checkout",
+        "instantCheckoutUnavailable": "This branch is not available for immediate checkout right now. Please schedule the group order for an available time.",
         "addRestaurantNote": "Add a Note for Restaurant",
         "hostFinalizeNotice": "Orders will only be processed once the host clicks finalize.",
         "editNotice": "Orders will only be processed once the host clicks finalize. You can still edit your individual items.",

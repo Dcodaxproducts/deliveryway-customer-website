@@ -16,6 +16,7 @@ import { useGroupOrderApi } from "@/hooks/useGroupOrder";
 import { useAuth } from "@/hooks/useAuth";
 import { clearStoredGroupOrderCode } from "@/lib/group-order";
 import { PaymentMethodSection } from "@/components/pages/Checkout/components/PaymentMethodSection";
+import { isImmediateScheduleAvailable } from "@/components/pages/Checkout/utils/pickup-schedule";
 import { getBackendErrorMessage, hasBackendError } from "@/components/pages/Checkout/utils/checkout-normalizers";
 import { fetchCustomerLoyaltyPoints, type LoyaltySummary } from "@/services/loyalty";
 import type { CheckoutGroupOrderPayload, GroupOrder, GroupOrderParticipant, GroupOrderPaymentMethod, GroupOrderSuccessData } from "@/types/group-order";
@@ -68,6 +69,15 @@ export function OrderSummary({
   const [loadingStatus, setLoadingStatus] = useState(false);
   const actionsDisabled = !canMutateGroupOrder || loadingCancel || loadingCheckout || loadingLeave || loadingStatus;
   const isDeliveryOrder = String(order?.orderType || "").toUpperCase() === "DELIVERY";
+  const normalizedOrderType = String(order?.orderType || "").toUpperCase();
+  const scheduleType = normalizedOrderType === "DELIVERY" ? "delivery" : "pickup";
+  const isScheduledGroupOrder = Boolean(order?.isScheduled || summary?.isScheduled);
+  const immediateCheckoutUnavailable = Boolean(
+    !isScheduledGroupOrder &&
+    order?.branch &&
+    !isImmediateScheduleAvailable({ branch: order.branch, scheduleType })
+  );
+  const checkoutDisabled = !canCheckout || actionsDisabled || immediateCheckoutUnavailable;
   const normalizedLoyaltyPoints = Math.max(0, Math.floor(Number(loyaltyPoints) || 0));
   const loyaltyCanRedeem = Boolean(
     loyalty &&
@@ -202,7 +212,7 @@ export function OrderSummary({
       paymentMethod,
       customerNote: note || "",
       couponCode: coupon || "",
-      ...(order?.orderTime ? { orderTime: order.orderTime } : {}),
+      ...(isScheduledGroupOrder && order?.orderTime ? { orderTime: order.orderTime } : {}),
       ...(normalizedLoyaltyPoints > 0 ? { loyaltyPoints: normalizedLoyaltyPoints } : {}),
     };
 
@@ -342,13 +352,25 @@ clearStoredGroupOrderCode();
       toast.error(t("onlyHostCanFinalize"));
       return;
     }
+
+    if (immediateCheckoutUnavailable) {
+      toast.error(t("instantCheckoutUnavailable"));
+      return;
+    }
+
     setCheckoutOpen(true);
   }}
-  disabled={!canCheckout || actionsDisabled}
+  disabled={checkoutDisabled}
   className={`${!isHost && participant ? "mt-2" : "mt-5"} w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 rounded-full font-medium shadow-md hover:shadow-lg transition disabled:cursor-not-allowed disabled:opacity-60`}
 >
   {t("finalizeCheckout")}
 </button>
+
+        {immediateCheckoutUnavailable ? (
+          <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-700">
+            {t("instantCheckoutUnavailable")}
+          </p>
+        ) : null}
 
         {/* NOTE BUTTON */}
         <button

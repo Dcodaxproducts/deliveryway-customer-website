@@ -1713,6 +1713,7 @@
         "platformFee": "Servicegebühr",
         "onlyHostCanFinalize": "Nur der Gastgeber kann die Bestellung finalisieren",
         "finalizeCheckout": "Finalisieren und auschecken",
+        "instantCheckoutUnavailable": "Diese Filiale ist derzeit nicht für eine sofortige Bestellung verfügbar. Bitte planen Sie die Gruppenbestellung für eine verfügbare Zeit.",
         "addRestaurantNote": "Hinweis für das Restaurant hinzufügen",
         "hostFinalizeNotice": "Bestellungen werden erst verarbeitet, wenn der Gastgeber finalisiert.",
         "editNotice": "Bestellungen werden erst verarbeitet, wenn der Gastgeber finalisiert. Sie können Ihre eigenen Artikel weiterhin bearbeiten.",

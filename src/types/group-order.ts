@@ -105,6 +105,8 @@ export type GroupOrderRestaurant = {
 
 export type GroupOrderSummary = {
   itemCount?: number;
+  orderTime?: string | null;
+  isScheduled?: boolean | null;
   subtotal?: number;
   deliveryFee?: number;
   tipAmount?: number;
