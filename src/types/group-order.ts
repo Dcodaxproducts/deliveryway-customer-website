@@ -151,9 +151,39 @@ export type CheckoutGroupOrderPayload = {
 export type GroupOrderSuccessData = {
   order?: {
     id?: string | number | null;
+    orderType?: string | null;
+    paymentMethod?: string | null;
+    paymentStatus?: string | null;
+    status?: string | null;
+    subtotal?: number | string | null;
+    taxAmount?: number | string | null;
+    deliveryFee?: number | string | null;
+    discountAmount?: number | string | null;
+    payableAmount?: number | string | null;
+    totalBeforeDiscount?: number | string | null;
     totalAmount?: number | null;
     orderTime?: string | null;
     isScheduled?: boolean | null;
+    items?: Array<{
+      id?: string | number | null;
+      menuItemName?: string | null;
+      variationName?: string | null;
+      unitPrice?: number | string | null;
+      quantity?: number | string | null;
+      lineTotal?: number | string | null;
+      snapshotModifiers?: Array<{
+        name?: string | null;
+        quantity?: number | string | null;
+        unitPrice?: number | string | null;
+        modifierId?: string | number | null;
+      }>;
+    }>;
+    coupon?: {
+      code?: string | null;
+      title?: string | null;
+      discountType?: string | null;
+      discountValue?: number | string | null;
+    } | null;
   } | null;
   session?: {
     finalOrder?: {
