@@ -407,11 +407,11 @@ clearStoredGroupOrderCode();
   </DialogContent>
 </Dialog>
 
-      {/* CHECKOUT MODAL */}
+    {/* CHECKOUT MODAL */}
     <Dialog open={checkoutOpen} onOpenChange={setCheckoutOpen}>
-  <DialogContent className="rounded-3xl bg-[#f7f7f7] p-6 max-w-md border-none">
+  <DialogContent className="flex max-h-[min(92dvh,900px)] max-w-[min(96vw,920px)] flex-col overflow-hidden rounded-3xl border-none bg-[#f7f7f7] p-0">
 
-    <DialogHeader>
+    <DialogHeader className="shrink-0 border-b border-gray-100 bg-white px-6 py-5">
       <DialogTitle className="text-xl font-semibold text-gray-900">
         {t("checkoutDetails")}
       </DialogTitle>
@@ -420,7 +420,9 @@ clearStoredGroupOrderCode();
       </p>
     </DialogHeader>
 
-    <div className="mt-5 rounded-2xl bg-white p-4 shadow-sm">
+    <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+
+    <div className="rounded-2xl bg-white p-4 shadow-sm">
       <PaymentMethodSection
         paymentMethod={paymentMethod}
         setPaymentMethod={(value) => setPaymentMethod(value as GroupOrderPaymentMethod)}
@@ -517,17 +519,21 @@ clearStoredGroupOrderCode();
       />
     </div>
 
+    </div>
+
     {/* SUBMIT */}
+    <div className="shrink-0 border-t border-gray-100 bg-white px-6 py-4">
     <button
       onClick={handleCheckout}
       disabled={loadingCheckout}
-      className="w-full mt-6 bg-primary text-white py-3 rounded-full flex items-center justify-center gap-2 font-medium hover:opacity-90 transition"
+      className="flex w-full items-center justify-center gap-2 rounded-full bg-primary py-3 font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
     >
       {loadingCheckout && (
         <Loader2 className="w-4 h-4 animate-spin" />
       )}
       {t("confirmOrder")}
     </button>
+    </div>
 
   </DialogContent>
 </Dialog>

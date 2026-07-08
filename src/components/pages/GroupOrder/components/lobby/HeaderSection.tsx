@@ -32,8 +32,13 @@ const getOrderTypeLabelKey = (orderType?: string) => {
 
 export default function HeaderSection({ order }: HeaderSectionProps) {
   const t = useTranslations("groupOrder.lobby.header");
-  const total = order?.participantCount || 0;
-  const ready = order?.participants?.filter((p) => String(p.status || "").toUpperCase() === "COMPLETED")?.length || 0;
+  const participants = order?.participants ?? [];
+  const total = order?.participantCount || participants.length || 0;
+  const ready = participants.filter((p) => {
+    if (p.isHost || String(p.userId || "") === String(order.hostUserId || "")) return true;
+
+    return String(p.status || "").toUpperCase() === "COMPLETED";
+  }).length;
 
   const percent = total ? (ready / total) * 100 : 0;
   const scheduledAt = formatDateTime(order.orderTime);
