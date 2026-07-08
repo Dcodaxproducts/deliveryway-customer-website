@@ -46,6 +46,7 @@ export function OrderSummary({
   refreshing,
 }: OrderSummaryProps) {
   const t = useTranslations("groupOrder.lobby.summary");
+  const checkoutT = useTranslations("checkout");
   const cartT = useTranslations("cart");
   const errorT = useTranslations("errors");
   const summary = order?.summary;
@@ -67,6 +68,7 @@ export function OrderSummary({
   const [loadingLeave, setLoadingLeave] = useState(false);
   const [loadingStatus, setLoadingStatus] = useState(false);
   const actionsDisabled = !canMutateGroupOrder || loadingCancel || loadingCheckout || loadingLeave || loadingStatus;
+  const isDeliveryOrder = String(order?.orderType || "").toUpperCase() === "DELIVERY";
   const normalizedTipAmount = Math.max(0, Number(tipAmount) || 0);
   const normalizedLoyaltyPoints = Math.max(0, Math.floor(Number(loyaltyPoints) || 0));
   const loyaltyCanRedeem = Boolean(
@@ -181,6 +183,23 @@ export function OrderSummary({
   try {
     setLoadingCheckout(true);
 
+    if (normalizedLoyaltyPoints > 0) {
+      if (!loyalty) {
+        toast.error(checkoutT("toast.loyaltyUnavailable"));
+        return;
+      }
+
+      if (normalizedLoyaltyPoints < loyalty.minimumRedeemPoints) {
+        toast.error(checkoutT("toast.minimumLoyaltyPoints", { points: loyalty.minimumRedeemPoints }));
+        return;
+      }
+
+      if (normalizedLoyaltyPoints > loyalty.availablePoints) {
+        toast.error(checkoutT("toast.insufficientLoyaltyPoints"));
+        return;
+      }
+    }
+
     const payload: CheckoutGroupOrderPayload = {
       paymentMethod,
       orderTime: order?.orderTime,
@@ -199,6 +218,7 @@ export function OrderSummary({
     }
 
     toast.success(t("orderPlaced"));
+    window.dispatchEvent(new Event("loyalty-updated"));
     setCheckoutOpen(false);
 onSuccess((res?.data || {}) as GroupOrderSuccessData);
 clearStoredGroupOrderCode();
@@ -280,6 +300,18 @@ clearStoredGroupOrderCode();
             <span>{t("platformFee")}</span>
             <span>$1.50</span>
           </div>
+          {Number(summary?.tipAmount || 0) > 0 ? (
+            <div className="flex justify-between">
+              <span>{cartT("tip")}</span>
+              <span>${Number(summary?.tipAmount || 0).toFixed(2)}</span>
+            </div>
+          ) : null}
+          {Number(summary?.loyaltyDiscountAmount || 0) > 0 ? (
+            <div className="flex justify-between text-green-700">
+              <span>{cartT("loyaltyDiscount")}</span>
+              <span>- ${Number(summary?.loyaltyDiscountAmount || 0).toFixed(2)}</span>
+            </div>
+          ) : null}
         </div>
 
         <div className="border-t my-5" />
@@ -392,8 +424,8 @@ clearStoredGroupOrderCode();
       <PaymentMethodSection
         paymentMethod={paymentMethod}
         setPaymentMethod={(value) => setPaymentMethod(value as GroupOrderPaymentMethod)}
-        cashLabel={t("paymentMethods.COD")}
-        allowCardOnDelivery
+        cashLabel={isDeliveryOrder ? t("paymentMethods.COD") : checkoutT("cash")}
+        allowCardOnDelivery={isDeliveryOrder}
       />
     </div>
 
