@@ -47,6 +47,7 @@
     "items": "Items",
     "menus": "Menus",
     "groupOrder": "Group order",
+    "activeGroupOrder": "Active lobby",
     "reservations": "Reservations",
     "searchFood": "Search Food",
     "reserveTable": "Reserve a Table",

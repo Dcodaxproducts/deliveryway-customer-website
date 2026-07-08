@@ -6,13 +6,15 @@ import { useRouter } from "next/navigation";
 import { queryKeys } from "@/config/query-keys";
 import { useAuth } from "@/hooks/useAuth";
 import { useDomainApi } from "@/hooks/useDomainApi";
-import { canMutateGroupOrder, canParticipantEditGroupOrderItems, clearStoredGroupOrderCode, getStoredGroupOrderCode, isClosedGroupOrder, isGroupOrderParticipantCompleted } from "@/lib/group-order";
+import { getDefaultBranchOrderType, persistSelectedBranch } from "@/lib/branch-selector";
+import { canMutateGroupOrder, canParticipantEditGroupOrderItems, clearStoredGroupOrderCode, getStoredGroupOrderCode, isClosedGroupOrder, isGroupOrderParticipantCompleted, setStoredGroupOrderCode } from "@/lib/group-order";
 import {
   cancelGroupOrder,
   checkoutGroupOrder,
   createGroupOrder,
   deleteGroupOrderItem,
   deleteGroupOrders,
+  fetchGroupOrderById,
   fetchGroupOrders,
   getGroupOrders,
   joinGroupOrder,
@@ -42,6 +44,11 @@ export const useGroupOrderApi = (token: string | null) => {
   const api = useDomainApi(token, { service, requestKey: queryKeys.orders.request });
 
   const listGroupOrders = useCallback(() => fetchGroupOrders(token), [token]);
+
+  const getGroupOrderById = useCallback(
+    ({ orderId }: { orderId: string | number }) => fetchGroupOrderById({ orderId, token }),
+    [token]
+  );
 
   const findGroupOrderByInviteCode = useCallback(
     ({ inviteCode }: { inviteCode: string }) => searchGroupOrdersByInviteCode({ inviteCode, token }),
@@ -96,6 +103,7 @@ export const useGroupOrderApi = (token: string | null) => {
     () => ({
       ...api,
       fetchGroupOrders: listGroupOrders,
+      fetchGroupOrderById: getGroupOrderById,
       searchGroupOrdersByInviteCode: findGroupOrderByInviteCode,
       createGroupOrder: addGroupOrder,
       leaveGroupOrder: leaveOrder,
@@ -106,32 +114,48 @@ export const useGroupOrderApi = (token: string | null) => {
       deleteGroupOrderItem: deleteItem,
       updateMyGroupOrderParticipantStatus: updateMyParticipantStatus,
     }),
-    [api, addGroupOrder, cancelOrder, checkoutOrder, deleteItem, findGroupOrderByInviteCode, joinOrder, leaveOrder, listGroupOrders, updateItemQuantity, updateMyParticipantStatus]
+    [api, addGroupOrder, cancelOrder, checkoutOrder, deleteItem, findGroupOrderByInviteCode, getGroupOrderById, joinOrder, leaveOrder, listGroupOrders, updateItemQuantity, updateMyParticipantStatus]
   );
 };
 
 export function useGroupOrder(): UseGroupOrderResult {
   const router = useRouter();
 
-  const { token, user } = useAuth();
-  const { searchGroupOrdersByInviteCode: findGroupOrderByInviteCode } = useGroupOrderApi(token);
+  const { token, user, setUser } = useAuth();
+  const {
+    fetchGroupOrderById: findGroupOrderById,
+    searchGroupOrdersByInviteCode: findGroupOrderByInviteCode,
+  } = useGroupOrderApi(token);
 
   const [order, setOrder] = useState<GroupOrder | null>(null);
   const [loading, setLoading] = useState(true);
   const [redirecting, setRedirecting] = useState(false);
 
+  const persistGroupOrderBranch = useCallback((groupOrder: GroupOrder) => {
+    if (user?.branchId || user?.branch?.id || !groupOrder.branch?.id) return;
+
+    persistSelectedBranch(groupOrder.branch, setUser, {
+      orderType: getDefaultBranchOrderType(groupOrder.branch, groupOrder.orderType || user?.selectedOrderType),
+    });
+  }, [setUser, user?.branch?.id, user?.branchId, user?.selectedOrderType]);
+
   const fetchOrder = useCallback(async () => {
     try {
       setLoading(true);
 
+      const groupOrderId = typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("groupOrderId") || ""
+        : "";
       const code = getStoredGroupOrderCode();
 
-      if (!code) {
+      if (!groupOrderId && !code) {
         setOrder(null);
         return;
       }
 
-      const { response, groupOrder } = await findGroupOrderByInviteCode({ inviteCode: code });
+      const { response, groupOrder } = groupOrderId
+        ? await findGroupOrderById({ orderId: groupOrderId })
+        : await findGroupOrderByInviteCode({ inviteCode: code });
 
       if (!response || response.error) {
         setOrder(null);
@@ -139,10 +163,18 @@ export function useGroupOrder(): UseGroupOrderResult {
       }
 
       if (!groupOrder) {
-        clearStoredGroupOrderCode();
+        if (!groupOrderId) {
+          clearStoredGroupOrderCode();
+        }
         setOrder(null);
         return;
       }
+
+      if (groupOrder.inviteCode) {
+        setStoredGroupOrderCode(groupOrder.inviteCode);
+      }
+
+      persistGroupOrderBranch(groupOrder);
 
       if (isClosedGroupOrder(groupOrder)) {
         clearStoredGroupOrderCode();
@@ -158,7 +190,7 @@ export function useGroupOrder(): UseGroupOrderResult {
     } finally {
       setLoading(false);
     }
-  }, [findGroupOrderByInviteCode, router]);
+  }, [findGroupOrderById, findGroupOrderByInviteCode, persistGroupOrderBranch, router]);
 
   useEffect(() => {
     if (!token) {
