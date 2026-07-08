@@ -1649,6 +1649,13 @@
       "notFoundTitle": "Gruppenbestellung nicht gefunden",
       "notFoundDescription": "Diese Gruppenbestellung ist möglicherweise abgelaufen, wurde abgeschlossen oder der Einladungscode ist nicht mehr gültig.",
       "goToGroupOrder": "Zur Gruppenbestellung",
+      "joinWithCodeTitle": "Mit Einladungscode beitreten",
+      "joinCodePlaceholder": "CODE EINGEBEN",
+      "joinCodeRequired": "Bitte geben Sie einen Einladungscode ein",
+      "joinGroupOrder": "Beitreten",
+      "joining": "Beitreten...",
+      "joined": "Gruppenbestellung beigetreten",
+      "failedJoin": "Gruppenbestellung konnte nicht beigetreten werden",
       "refresh": "Aktualisieren",
       "refreshing": "Wird aktualisiert...",
       "header": {
@@ -1663,7 +1670,9 @@
         "description": "Senden Sie diesen Link an alle, die beim Essen dabei sein sollen.",
         "generating": "Wird erstellt...",
         "copied": "Kopiert",
-        "copy": "Kopieren"
+        "copy": "Kopieren",
+        "copyCode": "Code kopieren",
+        "codeCopied": "Code kopiert"
       },
       "userCard": {
         "hostSuffix": "(Gastgeber)",

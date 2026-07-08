@@ -6,15 +6,26 @@ import { OrderSummary } from "@/components/pages/GroupOrder/components/lobby/Ord
 import InviteSection from "@/components/pages/GroupOrder/components/lobby/InviteSection";
 import OrderSuccess from "@/components/pages/GroupOrder/components/Success/OrderSuccess";
 import { useGroupOrder } from "@/hooks/useGroupOrder";
+import { useGroupOrderApi } from "@/hooks/useGroupOrder";
+import { useAuth } from "@/hooks/useAuth";
 import { Loader2, RefreshCw } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
+import { getBackendErrorMessage, hasBackendError } from "@/components/pages/Checkout/utils/checkout-normalizers";
+import { setStoredGroupOrderCode } from "@/lib/group-order";
 import type { GroupOrderParticipant, GroupOrderSuccessData } from "@/types/group-order";
 
 export function GroupOrderLobbyPage() {
   const t = useTranslations("groupOrder.lobby");
+  const router = useRouter();
+  const { token } = useAuth();
+  const { joinGroupOrder } = useGroupOrderApi(token);
   const [successData, setSuccessData] = useState<GroupOrderSuccessData | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [joinCode, setJoinCode] = useState("");
+  const [joining, setJoining] = useState(false);
 
   const {
     order,
@@ -84,6 +95,39 @@ export function GroupOrderLobbyPage() {
     }
   };
 
+  const handleJoinWithCode = async () => {
+    const code = joinCode.trim();
+
+    if (!code) {
+      toast.error(t("joinCodeRequired"));
+      return;
+    }
+
+    setStoredGroupOrderCode(code);
+
+    if (!token) {
+      router.push(`/login?code=${encodeURIComponent(code)}`);
+      return;
+    }
+
+    try {
+      setJoining(true);
+      const res = await joinGroupOrder({ inviteCode: code });
+
+      if (hasBackendError(res)) {
+        toast.error(getBackendErrorMessage(res, t("failedJoin")));
+        return;
+      }
+
+      toast.success(t("joined"));
+      router.push(`/items?code=${encodeURIComponent(code)}`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t("failedJoin"));
+    } finally {
+      setJoining(false);
+    }
+  };
+
   if (successData) {
     return <OrderSuccess data={successData} />;
   }
@@ -121,6 +165,33 @@ export function GroupOrderLobbyPage() {
           <p className="mt-2 text-sm leading-6 text-gray-500">
             {t("notFoundDescription")}
           </p>
+
+          <div className="mt-5 rounded-2xl border border-gray-100 bg-gray-50 p-3 text-left">
+            <p className="text-sm font-semibold text-gray-900">{t("joinWithCodeTitle")}</p>
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+              <input
+                value={joinCode}
+                onChange={(event) => setJoinCode(event.target.value.toUpperCase())}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    void handleJoinWithCode();
+                  }
+                }}
+                placeholder={t("joinCodePlaceholder")}
+                className="h-11 min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-3 text-sm font-semibold uppercase tracking-[0.18em] text-gray-900 outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10"
+              />
+              <button
+                type="button"
+                onClick={handleJoinWithCode}
+                disabled={joining}
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {joining ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                {joining ? t("joining") : t("joinGroupOrder")}
+              </button>
+            </div>
+          </div>
 
           <a
             href="/group-order"

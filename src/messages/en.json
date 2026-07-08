@@ -1649,6 +1649,13 @@
       "notFoundTitle": "Group order not found",
       "notFoundDescription": "This group order may have expired, been checked out, or the invite code is no longer valid.",
       "goToGroupOrder": "Go to Group Order",
+      "joinWithCodeTitle": "Join with invite code",
+      "joinCodePlaceholder": "ENTER CODE",
+      "joinCodeRequired": "Please enter an invite code",
+      "joinGroupOrder": "Join",
+      "joining": "Joining...",
+      "joined": "Joined group order",
+      "failedJoin": "Failed to join group order",
       "refresh": "Refresh",
       "refreshing": "Refreshing...",
       "header": {
@@ -1663,7 +1670,9 @@
         "description": "Send this link to anyone you want to join the feast.",
         "generating": "Generating...",
         "copied": "Copied",
-        "copy": "Copy"
+        "copy": "Copy",
+        "copyCode": "Copy code",
+        "codeCopied": "Code copied"
       },
       "userCard": {
         "hostSuffix": "(Host)",
