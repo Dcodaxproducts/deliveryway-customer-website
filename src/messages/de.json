@@ -1728,9 +1728,22 @@
         "paymentMethod": "Zahlungsmethode",
         "paymentMethods": {
           "COD": "Barzahlung bei Lieferung",
+          "CARD_ON_DELIVERY": "Kartenzahlung bei Lieferung",
           "PAYPAL": "PayPal",
-          "STRIPE": "Online-Kartenzahlung"
+          "STRIPE": "Online-Kartenzahlung",
+          "WALLET": "Wallet"
         },
+        "tipLabel": "Trinkgeld hinzufügen",
+        "tipHelper": "Optionales Trinkgeld für das Restaurant-Team.",
+        "tipRemove": "Entfernen",
+        "loyaltyTitle": "Punkte einlösen",
+        "loyaltyLoading": "Punkte werden geladen...",
+        "loyaltyAvailable": "{points} Punkte verfügbar. Mindesteinlösung: {minimum} Punkte.",
+        "loyaltyUnavailable": "Treuepunkte sind derzeit nicht verfügbar.",
+        "loyaltyPlaceholder": "Punkte",
+        "loyaltyClear": "Leeren",
+        "loyaltyEstimatedDiscount": "Geschätzter Rabatt: {amount}",
+        "loyaltyRequirements": "Geben Sie verfügbare Punkte über dem Minimum ein, um sie einzulösen.",
         "couponCode": "Gutscheincode",
         "couponPlaceholder": "Gutschein eingeben",
         "confirmOrder": "Bestellung bestätigen",

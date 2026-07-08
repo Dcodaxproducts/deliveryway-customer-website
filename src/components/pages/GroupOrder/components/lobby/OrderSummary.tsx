@@ -1,7 +1,7 @@
 "use client";
 
-import { Info, Loader2, LogOut, RefreshCw, XCircle } from "lucide-react";
-import { useState } from "react";
+import { Coins, Info, Loader2, LogOut, RefreshCw, XCircle } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -15,7 +15,9 @@ import {
 import { useGroupOrderApi } from "@/hooks/useGroupOrder";
 import { useAuth } from "@/hooks/useAuth";
 import { clearStoredGroupOrderCode } from "@/lib/group-order";
+import { PaymentMethodSection } from "@/components/pages/Checkout/components/PaymentMethodSection";
 import { getBackendErrorMessage, hasBackendError } from "@/components/pages/Checkout/utils/checkout-normalizers";
+import { fetchCustomerLoyaltyPoints, type LoyaltySummary } from "@/services/loyalty";
 import type { CheckoutGroupOrderPayload, GroupOrder, GroupOrderParticipant, GroupOrderPaymentMethod, GroupOrderSuccessData } from "@/types/group-order";
 
 type OrderSummaryProps = {
@@ -55,12 +57,50 @@ export function OrderSummary({
   const [note, setNote] = useState("");
   const [coupon, setCoupon] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<GroupOrderPaymentMethod>("COD");
+  const [tipAmount, setTipAmount] = useState("");
+  const [loyalty, setLoyalty] = useState<LoyaltySummary | null>(null);
+  const [loyaltyPoints, setLoyaltyPoints] = useState("");
+  const [loadingLoyalty, setLoadingLoyalty] = useState(false);
 
   const [loadingCheckout, setLoadingCheckout] = useState(false);
   const [loadingCancel, setLoadingCancel] = useState(false);
   const [loadingLeave, setLoadingLeave] = useState(false);
   const [loadingStatus, setLoadingStatus] = useState(false);
   const actionsDisabled = !canMutateGroupOrder || loadingCancel || loadingCheckout || loadingLeave || loadingStatus;
+  const normalizedTipAmount = Math.max(0, Number(tipAmount) || 0);
+  const normalizedLoyaltyPoints = Math.max(0, Math.floor(Number(loyaltyPoints) || 0));
+  const loyaltyCanRedeem = Boolean(
+    loyalty &&
+    normalizedLoyaltyPoints >= Math.max(0, loyalty.minimumRedeemPoints) &&
+    normalizedLoyaltyPoints <= Math.max(0, loyalty.availablePoints)
+  );
+  const loyaltyEstimatedDiscount = loyalty
+    ? normalizedLoyaltyPoints * Math.max(0, loyalty.redemptionValuePerPoint)
+    : 0;
+
+  useEffect(() => {
+    if (!checkoutOpen || !token) return;
+
+    let active = true;
+
+    const loadLoyalty = async () => {
+      try {
+        setLoadingLoyalty(true);
+        const { loyalty: nextLoyalty } = await fetchCustomerLoyaltyPoints(token);
+        if (active) setLoyalty(nextLoyalty);
+      } catch {
+        if (active) setLoyalty(null);
+      } finally {
+        if (active) setLoadingLoyalty(false);
+      }
+    };
+
+    void loadLoyalty();
+
+    return () => {
+      active = false;
+    };
+  }, [checkoutOpen, token]);
 
   const handleParticipantStatusToggle = async () => {
     if (isHost || !participant || !canMutateGroupOrder) return;
@@ -146,6 +186,8 @@ export function OrderSummary({
       orderTime: order?.orderTime,
       customerNote: note || "",
       couponCode: coupon || "",
+      ...(normalizedTipAmount > 0 ? { tipAmount: normalizedTipAmount } : {}),
+      ...(normalizedLoyaltyPoints > 0 ? { loyaltyPoints: normalizedLoyaltyPoints } : {}),
     };
 
     const res = await checkoutGroupOrder({ orderId: order.id, payload });
@@ -346,26 +388,87 @@ clearStoredGroupOrderCode();
       </p>
     </DialogHeader>
 
-    {/* PAYMENT */}
-    <div className="mt-5">
-      <p className="text-sm font-medium text-gray-700 mb-2">
-        {t("paymentMethod")}
-      </p>
+    <div className="mt-5 rounded-2xl bg-white p-4 shadow-sm">
+      <PaymentMethodSection
+        paymentMethod={paymentMethod}
+        setPaymentMethod={(value) => setPaymentMethod(value as GroupOrderPaymentMethod)}
+        cashLabel={t("paymentMethods.COD")}
+        allowCardOnDelivery
+      />
+    </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        {(["COD", "PAYPAL", "STRIPE"] as GroupOrderPaymentMethod[]).map((method) => (
+    <div className="mt-5 rounded-2xl bg-white p-4 shadow-sm">
+      <label htmlFor="group-order-tip" className="mb-1 block text-sm font-semibold text-gray-900">
+        {t("tipLabel")}
+      </label>
+      <p className="mb-3 text-xs leading-5 text-gray-500">{t("tipHelper")}</p>
+      <div className="flex gap-2">
+        <input
+          id="group-order-tip"
+          type="number"
+          min="0"
+          value={tipAmount}
+          onChange={(event) => setTipAmount(event.target.value)}
+          placeholder="0"
+          className="h-11 flex-1 rounded-full border border-gray-200 bg-white px-4 text-sm outline-none transition focus:border-primary/40 focus:ring-4 focus:ring-primary/10"
+        />
+        {normalizedTipAmount > 0 ? (
           <button
-            key={method}
-            onClick={() => setPaymentMethod(method as GroupOrderPaymentMethod)}
-            className={`rounded-full py-2 text-sm font-medium transition border ${
-              paymentMethod === method
-                ? "bg-primary text-white border-primary"
-                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-100"
-            }`}
+            type="button"
+            onClick={() => setTipAmount("")}
+            className="h-11 rounded-full border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-600 transition hover:border-primary/30 hover:text-primary"
           >
-            {t(`paymentMethods.${method}`)}
+            {t("tipRemove")}
           </button>
-        ))}
+        ) : null}
+      </div>
+    </div>
+
+    <div className="mt-5 rounded-2xl border border-primary/10 bg-[linear-gradient(135deg,rgba(206,24,27,0.07),rgba(17,24,39,0.03))] p-4">
+      <div className="flex items-start gap-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <Coins size={18} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-gray-950">{t("loyaltyTitle")}</p>
+          <p className="mt-1 text-xs leading-5 text-gray-500">
+            {loadingLoyalty
+              ? t("loyaltyLoading")
+              : loyalty
+                ? t("loyaltyAvailable", {
+                    points: Math.max(0, Math.round(loyalty.availablePoints)),
+                    minimum: Math.max(0, Math.round(loyalty.minimumRedeemPoints)),
+                  })
+                : t("loyaltyUnavailable")}
+          </p>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+            <input
+              type="number"
+              min="0"
+              value={loyaltyPoints}
+              onChange={(event) => setLoyaltyPoints(event.target.value)}
+              disabled={loadingLoyalty || !loyalty}
+              placeholder={t("loyaltyPlaceholder")}
+              className="h-11 flex-1 rounded-full border border-gray-200 bg-white px-4 text-sm outline-none transition focus:border-primary/40 focus:ring-4 focus:ring-primary/10 disabled:cursor-not-allowed disabled:opacity-60"
+            />
+            {normalizedLoyaltyPoints > 0 ? (
+              <button
+                type="button"
+                onClick={() => setLoyaltyPoints("")}
+                className="h-11 rounded-full border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-600 transition hover:border-primary/30 hover:text-primary"
+              >
+                {t("loyaltyClear")}
+              </button>
+            ) : null}
+          </div>
+          {normalizedLoyaltyPoints > 0 ? (
+            <p className={`mt-2 text-xs font-medium ${loyaltyCanRedeem ? "text-green-700" : "text-amber-700"}`}>
+              {loyaltyCanRedeem
+                ? t("loyaltyEstimatedDiscount", { amount: `$${loyaltyEstimatedDiscount.toFixed(2)}` })
+                : t("loyaltyRequirements")}
+            </p>
+          ) : null}
+        </div>
       </div>
     </div>
 

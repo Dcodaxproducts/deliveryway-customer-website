@@ -3,7 +3,13 @@ import type { BranchRecord } from "@/types/branch-selector";
 export type GroupOrderStatus = "OPEN" | "LOCKED" | "CHECKED_OUT" | "CANCELLED" | "EXPIRED" | string;
 export type GroupOrderParticipantStatus = "ACTIVE" | "PENDING" | "COMPLETED" | string;
 export type GroupOrderType = "DINE_IN" | "TAKEAWAY" | "DELIVERY" | string;
-export type GroupOrderPaymentMethod = "COD" | "PAYPAL" | "STRIPE";
+export type GroupOrderPaymentMethod =
+  | "COD"
+  | "CARD_ON_DELIVERY"
+  | "PAYPAL"
+  | "STRIPE"
+  | "WALLET"
+  | string;
 
 export type GroupOrderUser = {
   id?: string | number | null;
@@ -101,6 +107,9 @@ export type GroupOrderSummary = {
   itemCount?: number;
   subtotal?: number;
   deliveryFee?: number;
+  tipAmount?: number;
+  loyaltyDiscountAmount?: number;
+  loyaltyPointsRedeemed?: number;
   totalAmount?: number;
 };
 
@@ -136,6 +145,8 @@ export type CheckoutGroupOrderPayload = {
   orderTime?: string | null;
   customerNote: string;
   couponCode: string;
+  tipAmount?: number;
+  loyaltyPoints?: number;
 };
 
 export type GroupOrderSuccessData = {

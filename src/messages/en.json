@@ -1728,9 +1728,22 @@
         "paymentMethod": "Payment Method",
         "paymentMethods": {
           "COD": "Cash on delivery",
+          "CARD_ON_DELIVERY": "Card on delivery",
           "PAYPAL": "PayPal",
-          "STRIPE": "Online card"
+          "STRIPE": "Online card",
+          "WALLET": "Wallet"
         },
+        "tipLabel": "Add a tip",
+        "tipHelper": "Optional tip for the restaurant team.",
+        "tipRemove": "Remove",
+        "loyaltyTitle": "Redeem points",
+        "loyaltyLoading": "Loading your points...",
+        "loyaltyAvailable": "{points} points available. Minimum redeem: {minimum} points.",
+        "loyaltyUnavailable": "Loyalty points are unavailable right now.",
+        "loyaltyPlaceholder": "Points",
+        "loyaltyClear": "Clear",
+        "loyaltyEstimatedDiscount": "Estimated discount: {amount}",
+        "loyaltyRequirements": "Enter available points above the minimum to redeem.",
         "couponCode": "Coupon Code",
         "couponPlaceholder": "Enter coupon",
         "confirmOrder": "Confirm Order",
