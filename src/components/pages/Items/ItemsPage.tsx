@@ -195,7 +195,7 @@ function ItemsPageContent() {
       ) : null}
 
       {showGroupOrderLobbyCta ? (
-        <div className="sticky top-3 z-30 mx-4 mt-4 overflow-hidden rounded-3xl border border-emerald-200/80 bg-white/95 shadow-[0_18px_55px_rgba(15,118,110,0.16)] backdrop-blur md:mx-10">
+        <div className="relative mx-4 mt-4 overflow-hidden rounded-3xl border border-emerald-200/80 bg-white/95 shadow-[0_18px_55px_rgba(15,118,110,0.16)] backdrop-blur md:mx-10">
           <div className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
             <div className="flex items-start gap-3">
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
