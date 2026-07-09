@@ -69,7 +69,7 @@ function SectionHeading({
       <span className="flex size-9 items-center justify-center rounded-[12px] bg-primary/[0.08] text-primary">
         {icon}
       </span>
-      <h2 className="text-[18px] font-black leading-none text-gray-950">{title}</h2>
+      <h2 className="text-[18px] font-semibold leading-none text-gray-950">{title}</h2>
     </div>
   );
 }
@@ -82,7 +82,7 @@ function EmptyLockedState() {
           <LockKeyhole className="h-6 w-6" />
         </span>
         <div>
-          <h3 className="text-base font-black text-gray-950">No locked group orders</h3>
+          <h3 className="text-base font-semibold text-gray-950">No locked group orders</h3>
           <p className="mt-1 text-sm font-medium text-gray-500">Locked orders will appear here.</p>
         </div>
       </div>
@@ -196,22 +196,22 @@ export function OngoingGroupOrdersPage() {
             </div>
 
             <div className="min-w-0">
-              <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-[12px] font-black uppercase leading-none text-emerald-700">
+              <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-[12px] font-semibold uppercase leading-none text-emerald-700">
                 <span className="size-2 rounded-full bg-emerald-500" />
                 {status}
               </span>
 
-              <h3 className="mt-3 truncate text-[21px] font-black leading-tight tracking-[-0.03em] text-gray-950">
+              <h3 className="mt-3 truncate text-[20px] font-semibold leading-tight tracking-[-0.02em] text-gray-950">
                 {getOrderTitle(order)}
               </h3>
 
-              <p className="mt-2 flex flex-wrap items-center gap-2 text-[14px] font-semibold text-gray-500">
+              <p className="mt-2 flex flex-wrap items-center gap-2 text-[14px] font-medium text-gray-500">
                 <CalendarDays className="h-4 w-4" />
                 {formatDateTime(order.orderTime)}
               </p>
 
               {order.inviteCode ? (
-                <p className="mt-3 flex items-center gap-2 text-[13px] font-black uppercase tracking-[0.14em] text-gray-500">
+                <p className="mt-3 flex items-center gap-2 text-[13px] font-semibold uppercase tracking-[0.12em] text-gray-500">
                   Code:
                   <span className="rounded-[10px] bg-gray-100 px-3 py-1.5 text-[13px] tracking-normal text-gray-950 shadow-sm">
                     {order.inviteCode}
@@ -225,7 +225,7 @@ export function OngoingGroupOrdersPage() {
             <Link
               href={`/group-order/lobby?groupOrderId=${encodeURIComponent(String(order.id))}`}
               onClick={() => void handleOpenLobby(order)}
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-primary px-6 text-[15px] font-black text-white shadow-[0_12px_22px_rgba(206,24,27,0.20)] transition hover:-translate-y-0.5 hover:bg-primary/90"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-primary px-6 text-[15px] font-semibold text-white shadow-[0_12px_22px_rgba(206,24,27,0.18)] transition hover:-translate-y-0.5 hover:bg-primary/90"
             >
               View lobby
               <ArrowRight className="h-5 w-5" />
@@ -236,7 +236,7 @@ export function OngoingGroupOrdersPage() {
               variant="outline"
               onClick={() => void handleCancel(order)}
               disabled={isCancelling}
-              className="h-11 rounded-full border-primary/35 bg-white px-6 text-[14px] font-black text-primary hover:border-primary hover:bg-primary/[0.04]"
+              className="h-11 rounded-full border-primary/35 bg-white px-6 text-[14px] font-semibold text-primary hover:border-primary hover:bg-primary/[0.04]"
             >
               {isCancelling ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <XCircle className="mr-2 h-5 w-5" />}
               Cancel order
@@ -252,16 +252,16 @@ export function OngoingGroupOrdersPage() {
       <section className="mx-auto max-w-[1280px] overflow-hidden rounded-[22px] bg-white px-6 py-8 shadow-[0_14px_50px_rgba(15,23,42,0.06)] sm:px-9 lg:px-12">
         <div className="mb-8 grid items-center gap-7 lg:grid-cols-[minmax(0,1fr)_280px_140px] xl:grid-cols-[minmax(0,1fr)_320px_140px]">
           <div className="min-w-0">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-primary/[0.09] px-4 py-2 text-[14px] font-black text-primary">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-primary/[0.09] px-4 py-2 text-[14px] font-semibold text-primary">
               <UsersRound className="h-4 w-4" />
               Group orders
             </div>
 
-            <h1 className="max-w-[680px] text-[38px] font-black leading-[1.04] tracking-[-0.06em] text-gray-950 sm:text-[48px] lg:text-[52px]">
+            <h1 className="max-w-[680px] text-[34px] font-semibold leading-[1.08] tracking-[-0.045em] text-gray-950 sm:text-[42px] lg:text-[46px]">
               Ongoing <span className="text-primary">group orders</span>
             </h1>
 
-            <p className="mt-5 max-w-[600px] text-[16px] font-medium leading-7 text-gray-500">
+            <p className="mt-4 max-w-[600px] text-[15px] font-normal leading-7 text-gray-500">
               Review your open and locked group orders, jump back into the lobby, or cancel orders that should not continue.
             </p>
           </div>
@@ -274,7 +274,7 @@ export function OngoingGroupOrdersPage() {
               variant="outline"
               onClick={() => void loadOrders({ silent: true })}
               disabled={refreshing || loading}
-              className="h-12 min-w-[130px] rounded-[14px] border-gray-200 bg-white px-5 text-[15px] font-black text-primary shadow-sm hover:border-primary/40 hover:bg-primary/[0.04]"
+              className="h-11 min-w-[120px] rounded-[14px] border-gray-200 bg-white px-5 text-[14px] font-semibold text-primary shadow-sm hover:border-primary/40 hover:bg-primary/[0.04]"
             >
               {refreshing ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <RefreshCw className="mr-2 h-5 w-5" />}
               Refresh
@@ -290,13 +290,13 @@ export function OngoingGroupOrdersPage() {
           </div>
         ) : orders.length === 0 ? (
           <div className="rounded-[22px] border border-dashed border-gray-200 bg-gray-50 px-6 py-14 text-center">
-            <h2 className="text-xl font-black text-gray-950">No ongoing group orders</h2>
+            <h2 className="text-xl font-semibold text-gray-950">No ongoing group orders</h2>
             <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-500">
               Open or locked group orders will appear here. Start a new group order when you are ready to invite people.
             </p>
             <Link
               href="/group-order"
-              className="mt-6 inline-flex h-12 items-center justify-center rounded-full bg-primary px-6 text-sm font-black text-white shadow-[0_12px_26px_rgba(206,24,27,0.22)]"
+              className="mt-6 inline-flex h-11 items-center justify-center rounded-full bg-primary px-6 text-sm font-semibold text-white shadow-[0_12px_26px_rgba(206,24,27,0.18)]"
             >
               Start group order
             </Link>
@@ -324,12 +324,12 @@ export function OngoingGroupOrdersPage() {
                 <Headphones className="h-6 w-6" />
               </span>
               <div>
-                <h2 className="text-[18px] font-black leading-tight text-gray-950">Need help with a group order?</h2>
-                <p className="mt-1 text-[14px] font-medium text-gray-500">If you have any issues or questions, our support team is here to help.</p>
+                <h2 className="text-[18px] font-semibold leading-tight text-gray-950">Need help with a group order?</h2>
+                <p className="mt-1 text-[14px] font-normal text-gray-500">If you have any issues or questions, our support team is here to help.</p>
               </div>
               <Link
                 href="/contact"
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-[12px] border border-primary/40 bg-white px-5 text-[14px] font-black text-primary transition hover:bg-primary/[0.04]"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-[12px] border border-primary/40 bg-white px-5 text-[14px] font-semibold text-primary transition hover:bg-primary/[0.04]"
               >
                 <MessageSquare className="h-4 w-4" />
                 Contact Support
