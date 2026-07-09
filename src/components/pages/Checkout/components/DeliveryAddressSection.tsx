@@ -44,7 +44,6 @@ export function DeliveryAddressSection({
   const {
     railRef: addressRailRef,
     canScrollRight,
-    scrollByPage,
     updateScrollState,
     dragScrollHandlers,
   } = useHorizontalDragScroll<HTMLDivElement>();
@@ -144,6 +143,15 @@ export function DeliveryAddressSection({
     if (newAddress) {
       setSelectedAddress(newAddress.id);
     }
+  };
+
+  const scrollAddressPage = () => {
+    const rail = addressRailRef.current;
+
+    if (!rail) return;
+
+    rail.scrollBy({ left: rail.clientWidth, behavior: "smooth" });
+    window.setTimeout(updateScrollState, 220);
   };
 
   if (isGuest) {
@@ -295,15 +303,16 @@ export function DeliveryAddressSection({
       ) : addresses.length === 0 ? (
         <p className="text-gray-400">{t("noAddressesFound")}</p>
       ) : (
-        <div className="relative overflow-visible pb-4">
-          <div
-            ref={addressRailRef}
-            role="listbox"
-            aria-label="Saved delivery addresses"
-            tabIndex={0}
-            {...dragScrollHandlers}
-            className="flex cursor-grab snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-1 pb-6 pt-2 [scrollbar-width:none] active:cursor-grabbing sm:gap-5 sm:pr-20 [&::-webkit-scrollbar]:hidden"
-          >
+        <div className="grid grid-cols-[minmax(0,1fr)_52px] items-center gap-3 overflow-visible pb-4">
+          <div className="min-w-0 overflow-visible">
+            <div
+              ref={addressRailRef}
+              role="listbox"
+              aria-label="Saved delivery addresses"
+              tabIndex={0}
+              {...dragScrollHandlers}
+              className="flex cursor-grab snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-5 pb-8 pt-4 [scrollbar-width:none] active:cursor-grabbing sm:gap-5 sm:px-6 [&::-webkit-scrollbar]:hidden"
+            >
 
           {addresses.map((addr) => {
             const isSelected = selectedAddress === addr.id;
@@ -317,7 +326,7 @@ export function DeliveryAddressSection({
                 role="option"
                 aria-selected={isSelected}
                 onClick={() => setSelectedAddress(addr.id)}
-                className={`min-h-[112px] w-[220px] shrink-0 snap-start rounded-[10px] border p-4 text-left shadow-[0_14px_32px_rgba(15,23,42,0.10)] transition-all duration-200 sm:w-[236px] md:w-[250px]
+                className={`min-h-[112px] w-[calc((100%-1rem)/2)] shrink-0 snap-start rounded-[10px] border p-4 text-left shadow-[0_14px_32px_rgba(15,23,42,0.12)] transition-all duration-200 sm:w-[calc((100%-1.25rem)/2)]
                   ${
                     isSelected
                       ? "border-primary bg-primary text-white shadow-[0_18px_36px_rgba(211,18,26,0.28)] hover:-translate-y-0.5"
@@ -359,19 +368,21 @@ export function DeliveryAddressSection({
               </button>
             );
           })}
-            <div aria-hidden="true" className="hidden w-14 shrink-0 sm:block" />
+            </div>
           </div>
 
+          <div className="flex justify-end">
           {canScrollRight ? (
             <button
               type="button"
               aria-label="Scroll delivery addresses"
-              onClick={() => scrollByPage("right")}
-              className="absolute right-3 top-1/2 z-10 flex size-11 -translate-y-1/2 items-center justify-center rounded-[12px] bg-white text-gray-900 shadow-[0_12px_30px_rgba(15,23,42,0.14)] transition hover:-translate-y-[52%] hover:text-primary sm:right-4"
+              onClick={scrollAddressPage}
+              className="flex size-11 items-center justify-center rounded-[12px] bg-white text-gray-900 shadow-[0_12px_30px_rgba(15,23,42,0.14)] transition hover:-translate-y-0.5 hover:text-primary"
             >
               <ChevronRight size={22} strokeWidth={2.5} />
             </button>
           ) : null}
+          </div>
         </div>
       )}
     </section>
