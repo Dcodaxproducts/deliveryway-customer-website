@@ -350,14 +350,23 @@ export function GroupOrderScheduleDialog({
           ) : null}
         </div>
 
-        <div className="flex shrink-0 justify-end gap-3 border-t border-gray-100 px-6 py-4 md:px-8">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+        <div className="grid shrink-0 grid-cols-1 gap-3 border-t border-gray-100 bg-white px-5 py-4 sm:grid-cols-2 sm:px-6 md:px-8">
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            className="inline-flex h-11 w-full items-center justify-center rounded-[12px] border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:border-gray-300 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
+          >
             Cancel
-          </Button>
-          <Button type="button" onClick={saveSchedule} disabled={saving}>
+          </button>
+          <button
+            type="button"
+            onClick={saveSchedule}
+            disabled={saving}
+            className="inline-flex h-11 w-full items-center justify-center rounded-[12px] bg-primary px-4 text-sm font-semibold text-white shadow-[0_10px_22px_rgba(206,24,27,0.20)] transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25 disabled:cursor-not-allowed disabled:opacity-60"
+          >
             {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Save schedule
-          </Button>
+          </button>
         </div>
       </div>
     </div>
