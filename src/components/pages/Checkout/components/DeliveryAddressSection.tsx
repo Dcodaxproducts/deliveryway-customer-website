@@ -295,14 +295,14 @@ export function DeliveryAddressSection({
       ) : addresses.length === 0 ? (
         <p className="text-gray-400">{t("noAddressesFound")}</p>
       ) : (
-        <div className="relative">
+        <div className="relative overflow-visible pb-4">
           <div
             ref={addressRailRef}
             role="listbox"
             aria-label="Saved delivery addresses"
             tabIndex={0}
             {...dragScrollHandlers}
-            className="flex cursor-grab snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-3 [scrollbar-width:none] active:cursor-grabbing sm:gap-5 [&::-webkit-scrollbar]:hidden"
+            className="flex cursor-grab snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-1 pb-6 pt-2 [scrollbar-width:none] active:cursor-grabbing sm:gap-5 sm:pr-20 [&::-webkit-scrollbar]:hidden"
           >
 
           {addresses.map((addr) => {
@@ -317,10 +317,10 @@ export function DeliveryAddressSection({
                 role="option"
                 aria-selected={isSelected}
                 onClick={() => setSelectedAddress(addr.id)}
-                className={`min-h-[112px] w-[220px] shrink-0 snap-start rounded-[10px] border p-4 text-left shadow-[0_10px_30px_rgba(15,23,42,0.08)] transition-all duration-200 sm:w-[236px] md:w-[250px]
+                className={`min-h-[112px] w-[220px] shrink-0 snap-start rounded-[10px] border p-4 text-left shadow-[0_14px_32px_rgba(15,23,42,0.10)] transition-all duration-200 sm:w-[236px] md:w-[250px]
                   ${
                     isSelected
-                      ? "border-primary bg-primary text-white shadow-[0_16px_34px_rgba(211,18,26,0.25)] hover:-translate-y-0.5"
+                      ? "border-primary bg-primary text-white shadow-[0_18px_36px_rgba(211,18,26,0.28)] hover:-translate-y-0.5"
                       : "border-gray-100 bg-white text-gray-900 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-[0_16px_36px_rgba(15,23,42,0.12)]"
                   }
                 `}
@@ -359,6 +359,7 @@ export function DeliveryAddressSection({
               </button>
             );
           })}
+            <div aria-hidden="true" className="hidden w-14 shrink-0 sm:block" />
           </div>
 
           {canScrollRight ? (
@@ -366,7 +367,7 @@ export function DeliveryAddressSection({
               type="button"
               aria-label="Scroll delivery addresses"
               onClick={() => scrollByPage("right")}
-              className="absolute right-0 top-1/2 z-10 flex size-11 -translate-y-1/2 items-center justify-center rounded-[12px] bg-white text-gray-900 shadow-[0_12px_30px_rgba(15,23,42,0.14)] transition hover:-translate-y-[52%] hover:text-primary"
+              className="absolute right-3 top-1/2 z-10 flex size-11 -translate-y-1/2 items-center justify-center rounded-[12px] bg-white text-gray-900 shadow-[0_12px_30px_rgba(15,23,42,0.14)] transition hover:-translate-y-[52%] hover:text-primary sm:right-4"
             >
               <ChevronRight size={22} strokeWidth={2.5} />
             </button>
