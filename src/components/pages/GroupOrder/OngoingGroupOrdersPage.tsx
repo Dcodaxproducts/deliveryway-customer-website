@@ -10,7 +10,6 @@ import {
   LockKeyhole,
   MessageSquare,
   RefreshCw,
-  ShoppingBag,
   Store,
   UsersRound,
   XCircle,
@@ -22,6 +21,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { cancelGroupOrder, fetchGroupOrderById, fetchGroupOrders } from "@/services/group-orders";
 import { setStoredGroupOrderCode } from "@/lib/group-order";
 import type { GroupOrder } from "@/types/group-order";
+
+const BAG_IMAGE_SRC = "/bag.png";
 
 const formatDateTime = (value?: string | null) => {
   if (!value) return "Instant order";
@@ -43,21 +44,15 @@ const getOrderTitle = (order: GroupOrder) => {
   return branchName || `Group order #${String(order.id || "").slice(-6)}`;
 };
 
-function HeroIllustration() {
+function HeroBagImage() {
   return (
-    <div className="relative hidden h-[230px] min-w-[340px] items-end justify-center lg:flex">
-      <div className="absolute right-12 top-3 h-44 w-44 rounded-full bg-primary/10" />
-      <div className="absolute right-0 top-24 h-32 w-32 rounded-full bg-primary/5" />
-      <div className="absolute bottom-4 left-8 h-10 w-10 rounded-full bg-emerald-100" />
-      <div className="absolute bottom-12 left-1 h-8 w-3 rounded-full bg-green-500" />
-      <div className="absolute bottom-12 left-8 h-8 w-3 rounded-full bg-lime-500" />
-      <div className="relative z-10 flex items-end gap-3">
-        <div className="flex h-36 w-28 items-center justify-center rounded-b-2xl rounded-t-[8px] border border-primary/10 bg-white shadow-[0_24px_55px_rgba(15,23,42,0.12)]">
-          <UsersRound className="h-12 w-12 text-primary/20" />
-          <span className="absolute -top-5 h-14 w-14 rounded-t-full border-x-4 border-t-4 border-[#6F2E23]" />
-        </div>
-        <div className="h-32 w-20 rounded-b-2xl rounded-t-[8px] bg-primary shadow-[0_24px_55px_rgba(206,24,27,0.20)]" />
-      </div>
+    <div className="hidden items-center justify-center lg:flex">
+      <img
+        src={BAG_IMAGE_SRC}
+        alt="Group orders"
+        className="h-auto w-[300px] object-contain xl:w-[340px]"
+        draggable={false}
+      />
     </div>
   );
 }
@@ -70,29 +65,32 @@ function SectionHeading({
   title: string;
 }) {
   return (
-    <div className="mb-4 flex items-center gap-4">
-      <span className="flex size-11 items-center justify-center rounded-[14px] bg-primary/8 text-primary">
+    <div className="mb-4 flex items-center gap-3">
+      <span className="flex size-11 items-center justify-center rounded-[14px] bg-primary/[0.08] text-primary">
         {icon}
       </span>
-      <h2 className="text-xl font-black text-gray-950">{title}</h2>
+      <h2 className="text-[20px] font-black leading-none text-gray-950">{title}</h2>
     </div>
   );
 }
 
 function EmptyLockedState() {
   return (
-    <div className="relative overflow-hidden rounded-[22px] border border-dashed border-gray-300 bg-white px-7 py-8 shadow-sm">
-      <div className="flex items-center gap-5">
-        <span className="flex size-20 items-center justify-center rounded-full bg-violet-100 text-violet-600">
-          <LockKeyhole className="h-9 w-9" />
+    <div className="relative overflow-hidden rounded-[18px] border border-dashed border-gray-300 bg-white px-6 py-6">
+      <div className="relative z-10 flex items-center gap-5">
+        <span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-600">
+          <LockKeyhole className="h-7 w-7" />
         </span>
         <div>
           <h3 className="text-lg font-black text-gray-950">No locked group orders</h3>
-          <p className="mt-1 text-sm text-gray-500">Locked orders will appear here.</p>
+          <p className="mt-1 text-sm font-medium text-gray-500">Locked orders will appear here.</p>
         </div>
       </div>
-      <div className="absolute bottom-2 right-12 hidden h-24 w-36 rounded-t-full bg-violet-100/70 md:block" />
-      <LockKeyhole className="absolute bottom-8 right-24 hidden h-12 w-12 text-violet-500 md:block" />
+      <div className="absolute bottom-0 right-16 hidden h-20 w-36 rounded-t-full bg-violet-100/70 md:block" />
+      <LockKeyhole className="absolute bottom-7 right-28 hidden h-10 w-10 text-violet-500 md:block" />
+      <span className="absolute right-20 top-6 hidden text-lg font-black text-violet-300 md:block">+</span>
+      <span className="absolute right-36 top-9 hidden text-xs font-black text-violet-200 md:block">+</span>
+      <span className="absolute bottom-10 right-9 hidden text-lg font-black text-violet-300 md:block">+</span>
     </div>
   );
 }
@@ -189,46 +187,56 @@ export function OngoingGroupOrdersPage() {
     return (
       <article
         key={String(order.id)}
-        className="overflow-hidden rounded-[20px] border border-gray-200 bg-white shadow-[0_22px_50px_rgba(15,23,42,0.10)]"
+        className="overflow-hidden rounded-[18px] border border-gray-200 bg-white shadow-[0_16px_36px_rgba(15,23,42,0.09)]"
       >
-        <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_420px]">
-          <div className="flex min-w-0 items-center gap-8 border-l-[3px] border-emerald-500 px-8 py-8">
-            <div className="hidden size-32 shrink-0 items-center justify-center rounded-[18px] bg-emerald-50 text-emerald-600 sm:flex">
-              <Store className="h-16 w-16" />
+        <div className="grid lg:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="flex min-w-0 items-center gap-7 border-l-[2px] border-emerald-500 px-8 py-7">
+            <div className="hidden size-[106px] shrink-0 items-center justify-center rounded-[18px] bg-emerald-50 text-emerald-600 sm:flex">
+              <Store className="h-12 w-12" strokeWidth={2.4} />
             </div>
+
             <div className="min-w-0">
-              <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-black uppercase text-emerald-700">
+              <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-[12px] font-black uppercase leading-none text-emerald-700">
                 <span className="size-2 rounded-full bg-emerald-500" />
                 {status}
               </span>
-              <h3 className="mt-5 truncate text-2xl font-black text-gray-950">{getOrderTitle(order)}</h3>
-              <p className="mt-3 flex flex-wrap items-center gap-2 text-sm font-semibold text-gray-500">
+
+              <h3 className="mt-4 truncate text-[24px] font-black leading-tight tracking-[-0.03em] text-gray-950">
+                {getOrderTitle(order)}
+              </h3>
+
+              <p className="mt-3 flex flex-wrap items-center gap-2 text-[15px] font-semibold text-gray-500">
                 <CalendarDays className="h-4 w-4" />
                 {formatDateTime(order.orderTime)}
               </p>
+
               {order.inviteCode ? (
-                <p className="mt-4 text-sm font-black uppercase tracking-[0.14em] text-gray-500">
-                  Code: <span className="rounded-xl bg-gray-100 px-4 py-2 tracking-normal text-gray-950">{order.inviteCode}</span>
+                <p className="mt-3 flex items-center gap-3 text-[15px] font-black uppercase tracking-[0.14em] text-gray-500">
+                  Code:
+                  <span className="rounded-xl bg-gray-100 px-4 py-2 text-[15px] tracking-normal text-gray-950 shadow-sm">
+                    {order.inviteCode}
+                  </span>
                 </p>
               ) : null}
             </div>
           </div>
 
-          <div className="flex flex-col justify-center gap-5 border-t border-gray-200 px-8 py-7 lg:border-l lg:border-t-0">
+          <div className="flex flex-col justify-center gap-4 border-t border-gray-200 px-8 py-6 lg:border-l lg:border-t-0">
             <Link
               href={`/group-order/lobby?groupOrderId=${encodeURIComponent(String(order.id))}`}
               onClick={() => void handleOpenLobby(order)}
-              className="inline-flex h-14 items-center justify-center gap-3 rounded-full bg-primary px-8 text-base font-black text-white shadow-[0_16px_32px_rgba(206,24,27,0.24)] transition hover:-translate-y-0.5 hover:bg-primary/90"
+              className="inline-flex h-[52px] items-center justify-center gap-3 rounded-full bg-primary px-7 text-[16px] font-black text-white shadow-[0_14px_26px_rgba(206,24,27,0.22)] transition hover:-translate-y-0.5 hover:bg-primary/90"
             >
               View lobby
               <ArrowRight className="h-5 w-5" />
             </Link>
+
             <Button
               type="button"
               variant="outline"
               onClick={() => void handleCancel(order)}
               disabled={isCancelling}
-              className="h-14 rounded-full border-primary/30 bg-white px-8 text-base font-black text-primary hover:border-primary hover:bg-primary/5"
+              className="h-[52px] rounded-full border-primary/35 bg-white px-7 text-[15px] font-black text-primary hover:border-primary hover:bg-primary/[0.04]"
             >
               {isCancelling ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <XCircle className="mr-2 h-5 w-5" />}
               Cancel order
@@ -240,42 +248,48 @@ export function OngoingGroupOrdersPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#F7F7F7] px-4 py-8 sm:px-6 lg:px-8">
-      <section className="mx-auto max-w-[1480px] overflow-hidden rounded-[28px] bg-white px-6 py-10 shadow-[0_18px_60px_rgba(15,23,42,0.07)] sm:px-10 lg:px-16">
-        <div className="mb-10 grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_auto_auto]">
-          <div>
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-black text-primary">
+    <main className="min-h-screen bg-[#f7f7f7] px-4 py-6 sm:px-6 lg:px-8">
+      <section className="mx-auto max-w-[1540px] overflow-hidden rounded-[28px] bg-white px-7 py-10 shadow-[0_14px_50px_rgba(15,23,42,0.06)] sm:px-10 lg:px-16">
+        <div className="mb-10 grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_360px_160px] xl:grid-cols-[minmax(0,1fr)_430px_160px]">
+          <div className="min-w-0">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-primary/[0.09] px-5 py-2.5 text-[15px] font-black text-primary">
               <UsersRound className="h-4 w-4" />
               Group orders
             </div>
-            <h1 className="max-w-3xl text-4xl font-black tracking-[-0.06em] text-gray-950 sm:text-6xl">
+
+            <h1 className="max-w-[760px] text-[44px] font-black leading-[1.04] tracking-[-0.065em] text-gray-950 sm:text-[58px] lg:text-[60px]">
               Ongoing <span className="text-primary">group orders</span>
             </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-gray-500">
+
+            <p className="mt-6 max-w-[620px] text-[18px] font-medium leading-8 text-gray-500">
               Review your open and locked group orders, jump back into the lobby, or cancel orders that should not continue.
             </p>
           </div>
-          <HeroIllustration />
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => void loadOrders({ silent: true })}
-            disabled={refreshing || loading}
-            className="h-14 rounded-[16px] bg-white px-7 text-base font-black text-primary shadow-sm hover:border-primary/40 hover:bg-primary/5"
-          >
-            {refreshing ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <RefreshCw className="mr-2 h-5 w-5" />}
-            Refresh
-          </Button>
+
+          <HeroBagImage />
+
+          <div className="flex justify-start lg:justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => void loadOrders({ silent: true })}
+              disabled={refreshing || loading}
+              className="h-[54px] min-w-[150px] rounded-[16px] border-gray-200 bg-white px-7 text-[16px] font-black text-primary shadow-sm hover:border-primary/40 hover:bg-primary/[0.04]"
+            >
+              {refreshing ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <RefreshCw className="mr-2 h-5 w-5" />}
+              Refresh
+            </Button>
+          </div>
         </div>
 
         {loading ? (
           <div className="grid gap-4">
             {[0, 1, 2].map((item) => (
-              <div key={item} className="h-[190px] animate-pulse rounded-[22px] bg-gray-100" />
+              <div key={item} className="h-[160px] animate-pulse rounded-[18px] bg-gray-100" />
             ))}
           </div>
         ) : orders.length === 0 ? (
-          <div className="rounded-[24px] border border-dashed border-gray-200 bg-gray-50 px-6 py-16 text-center">
+          <div className="rounded-[22px] border border-dashed border-gray-200 bg-gray-50 px-6 py-14 text-center">
             <h2 className="text-xl font-black text-gray-950">No ongoing group orders</h2>
             <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-500">
               Open or locked group orders will appear here. Start a new group order when you are ready to invite people.
@@ -288,12 +302,12 @@ export function OngoingGroupOrdersPage() {
             </Link>
           </div>
         ) : (
-          <div className="space-y-9">
+          <div className="space-y-8">
             <section>
               <SectionHeading icon={<CalendarDays className="h-5 w-5" />} title={`Open orders (${openOrders.length})`} />
               <div className="grid gap-5">
                 {openOrders.length ? openOrders.map(renderOrder) : (
-                  <p className="rounded-[22px] bg-gray-50 px-6 py-6 text-sm font-semibold text-gray-500">No open group orders.</p>
+                  <p className="rounded-[18px] bg-gray-50 px-6 py-5 text-sm font-semibold text-gray-500">No open group orders.</p>
                 )}
               </div>
             </section>
@@ -305,17 +319,17 @@ export function OngoingGroupOrdersPage() {
               </div>
             </section>
 
-            <section className="grid gap-5 rounded-[18px] border border-primary/15 bg-primary/5 px-6 py-6 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center">
-              <span className="flex size-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <section className="grid gap-5 rounded-[18px] border border-primary/15 bg-primary/[0.045] px-6 py-6 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center">
+              <span className="flex size-16 items-center justify-center rounded-full bg-primary/[0.08] text-primary">
                 <Headphones className="h-8 w-8" />
               </span>
               <div>
-                <h2 className="text-xl font-black text-gray-950">Need help with a group order?</h2>
-                <p className="mt-1 text-sm text-gray-500">If you have any issues or questions, our support team is here to help.</p>
+                <h2 className="text-[20px] font-black leading-tight text-gray-950">Need help with a group order?</h2>
+                <p className="mt-1 text-[15px] font-medium text-gray-500">If you have any issues or questions, our support team is here to help.</p>
               </div>
               <Link
                 href="/contact"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-[14px] border border-primary/40 bg-white px-6 text-sm font-black text-primary transition hover:bg-primary/5"
+                className="inline-flex h-[52px] items-center justify-center gap-2 rounded-[14px] border border-primary/40 bg-white px-7 text-[15px] font-black text-primary transition hover:bg-primary/[0.04]"
               >
                 <MessageSquare className="h-4 w-4" />
                 Contact Support
