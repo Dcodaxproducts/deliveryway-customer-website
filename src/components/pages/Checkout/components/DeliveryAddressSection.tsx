@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { ChevronRight, Loader2, MapPin, Navigation, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, MapPin, Navigation, Plus } from "lucide-react";
 import { AddressModal } from "@/components/forms/AddressModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +43,7 @@ export function DeliveryAddressSection({
   const [addressModalOpen, setAddressModalOpen] = useState(false);
   const {
     railRef: addressRailRef,
+    canScrollLeft,
     canScrollRight,
     updateScrollState,
     dragScrollHandlers,
@@ -145,12 +146,15 @@ export function DeliveryAddressSection({
     }
   };
 
-  const scrollAddressPage = () => {
+  const scrollAddressPage = (direction: "left" | "right") => {
     const rail = addressRailRef.current;
 
     if (!rail) return;
 
-    rail.scrollBy({ left: rail.clientWidth, behavior: "smooth" });
+    rail.scrollBy({
+      left: direction === "left" ? -rail.clientWidth : rail.clientWidth,
+      behavior: "smooth",
+    });
     window.setTimeout(updateScrollState, 220);
   };
 
@@ -303,14 +307,28 @@ export function DeliveryAddressSection({
       ) : addresses.length === 0 ? (
         <p className="text-gray-400">{t("noAddressesFound")}</p>
       ) : (
-        <div className="rounded-[18px] bg-white/70 p-2 shadow-[inset_0_-24px_36px_rgba(15,23,42,0.04)] sm:p-3">
+        <div className="grid grid-cols-[44px_minmax(0,1fr)_44px] items-center gap-3 overflow-visible">
+          <div className="flex justify-start">
+            {canScrollLeft ? (
+              <button
+                type="button"
+                aria-label="Previous delivery addresses"
+                onClick={() => scrollAddressPage("left")}
+                className="flex size-11 items-center justify-center rounded-[12px] bg-white text-gray-900 shadow-[0_12px_30px_rgba(15,23,42,0.14)] transition hover:-translate-y-0.5 hover:text-primary"
+              >
+                <ChevronLeft size={22} strokeWidth={2.5} />
+              </button>
+            ) : null}
+          </div>
+          <div className="min-w-0 overflow-visible py-2">
+            <div className="-mx-4 overflow-visible px-4 py-4 sm:-mx-5 sm:px-5">
             <div
               ref={addressRailRef}
               role="listbox"
               aria-label="Saved delivery addresses"
               tabIndex={0}
               {...dragScrollHandlers}
-              className="grid auto-cols-[calc((100%_-_0.875rem)/2)] grid-flow-col grid-rows-1 gap-3.5 overflow-x-auto scroll-smooth px-3 pb-8 pt-3 [scrollbar-width:none] active:cursor-grabbing sm:auto-cols-[calc((100%_-_1rem)/2)] sm:gap-4 sm:px-4 [&::-webkit-scrollbar]:hidden"
+              className="grid auto-cols-[calc((100%_-_0.875rem)/2)] grid-flow-col grid-rows-1 gap-3.5 overflow-x-auto scroll-smooth px-1 pb-8 pt-3 [scrollbar-width:none] active:cursor-grabbing sm:auto-cols-[calc((100%_-_1rem)/2)] sm:gap-4 [&::-webkit-scrollbar]:hidden"
             >
 
           {addresses.map((addr) => {
@@ -368,12 +386,14 @@ export function DeliveryAddressSection({
             );
           })}
             </div>
-          <div className="mt-3 flex justify-end">
+            </div>
+          </div>
+          <div className="flex justify-end">
           {canScrollRight ? (
             <button
               type="button"
-              aria-label="Scroll delivery addresses"
-              onClick={scrollAddressPage}
+              aria-label="Next delivery addresses"
+              onClick={() => scrollAddressPage("right")}
               className="flex size-11 items-center justify-center rounded-[12px] bg-white text-gray-900 shadow-[0_12px_30px_rgba(15,23,42,0.14)] transition hover:-translate-y-0.5 hover:text-primary"
             >
               <ChevronRight size={22} strokeWidth={2.5} />

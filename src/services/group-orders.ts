@@ -49,12 +49,28 @@ export const normalizeGroupOrderDetail = (response: ApiResult): GroupOrder | nul
     : null;
 };
 
+const mergeGroupOrders = (...groups: GroupOrder[][]) => {
+  const seen = new Set<string>();
+
+  return groups.flat().filter((order) => {
+    const id = String(order?.id || "");
+
+    if (!id || seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+};
+
 export const fetchGroupOrders = async (token?: string | null) => {
-  const response = await getGroupOrders("/v1/group-orders", token);
+  const openResponse = await getGroupOrders("/v1/group-orders?status=OPEN", token);
+  const lockedResponse = await getGroupOrders("/v1/group-orders?status=LOCKED", token);
+  const openOrders = openResponse?.error ? [] : normalizeGroupOrderList(openResponse);
+  const lockedOrders = lockedResponse?.error ? [] : normalizeGroupOrderList(lockedResponse);
+  const groupOrders = mergeGroupOrders(openOrders, lockedOrders);
 
   return {
-    response,
-    groupOrders: response?.error ? [] : normalizeGroupOrderList(response),
+    response: openResponse?.error && lockedResponse?.error ? openResponse : openResponse?.error ? lockedResponse : openResponse,
+    groupOrders,
   };
 };
 
@@ -80,14 +96,22 @@ export const searchGroupOrdersByInviteCode = async ({
   inviteCode: string;
   token?: string | null;
 }) => {
-  const response = await getGroupOrders(
-    `/v1/group-orders?search=${encodeURIComponent(inviteCode)}`,
+  const encodedInviteCode = encodeURIComponent(inviteCode);
+  const openResponse = await getGroupOrders(
+    `/v1/group-orders?status=OPEN&search=${encodedInviteCode}`,
     token
   );
-  const groupOrders = response?.error ? [] : normalizeGroupOrderList(response);
+  const lockedResponse = await getGroupOrders(
+    `/v1/group-orders?status=LOCKED&search=${encodedInviteCode}`,
+    token
+  );
+  const groupOrders = mergeGroupOrders(
+    openResponse?.error ? [] : normalizeGroupOrderList(openResponse),
+    lockedResponse?.error ? [] : normalizeGroupOrderList(lockedResponse),
+  );
 
   return {
-    response,
+    response: openResponse?.error && lockedResponse?.error ? openResponse : openResponse?.error ? lockedResponse : openResponse,
     groupOrders,
     groupOrder: groupOrders.find((item) => String(item.inviteCode || "") === String(inviteCode)) || null,
   };
