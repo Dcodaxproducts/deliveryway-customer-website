@@ -110,10 +110,10 @@ function ItemsPageContent() {
             return;
           }
 
-          toast.success(t("joined"));
         }
 
         await refetchGroupOrder();
+        toast.success(t("joined"));
       } finally {
         setJoiningGroupOrder(false);
       }

@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { useCart } from "@/hooks/useCart";
+import { useGroupOrderApi } from "@/hooks/useGroupOrder";
 import { FavoriteHeartButton } from "@/components/common/favorites/FavoriteHeartButton";
 import { useHome } from "@/hooks/useHome";
 import useMenu from "@/hooks/useMenu";
@@ -24,6 +25,7 @@ import { setStoredRestaurantMenuId } from "@/lib/timed-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { formatMoney as formatDisplayMoney, resolveCustomerCurrency } from "@/lib/money";
 import { getSignatureMenuViewMode, setSignatureMenuViewMode } from "@/lib/view-preferences";
+import { getStoredGroupOrderCode } from "@/lib/group-order";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AsyncSelect } from "@/components/ui/AsyncSelect";
 import type { ApiRecord, CartPayload, ItemPriceOverride, MenuItem, MenuRecord, MenuVariation, Modifier, ModifierGroup, ModifierLink, ProductCardData, RawModifierLink, SelectedModifier, SelectedModifiersMap, SplitPizzaSelection, VariationPriceOverride } from "./types";
@@ -509,7 +511,8 @@ export function SignatureSelectionContent({
   const tErrors = useTranslations("errors");
   const { token } = useAuth();
   const { fetchSignatureMenus, fetchSignatureSplitPizzaItems } = useMenu(token);
-  const { addCustomerCartItem, clearCustomerCart } = useCart(token);
+  const { addCustomerCartItem, addGroupOrderItem, clearCustomerCart, fetchGroupOrders } = useCart(token);
+  const { searchGroupOrdersByInviteCode } = useGroupOrderApi(token);
   const homeQuery = useHome(
     restaurantId,
     branchId,
@@ -1764,13 +1767,41 @@ export function SignatureSelectionContent({
         payload.sections = splitSections;
       }
 
+      const groupCode = getStoredGroupOrderCode();
+
       const addCartItem = async () => {
-        return addCustomerCartItem({ customerId, payload });
+        if (!groupCode) {
+          return addCustomerCartItem({ customerId, payload });
+        }
+
+        const { groupOrder: searchedGroupOrder } = await searchGroupOrdersByInviteCode({ inviteCode: groupCode });
+        let groupOrder: ApiRecord | null = searchedGroupOrder as ApiRecord | null;
+
+        if (!groupOrder) {
+          const { response: groupOrdersRes, groupOrders } = await fetchGroupOrders();
+
+          if (!groupOrdersRes || groupOrdersRes.error) {
+            toast.error(tProduct("failedFetchGroupOrder"));
+            return null;
+          }
+
+          groupOrder = groupOrders.find((order: ApiRecord) => order?.inviteCode === groupCode) || null;
+        }
+
+        if (!groupOrder?.id) {
+          toast.error(tProduct("invalidGroupOrder"));
+          return null;
+        }
+
+        return addGroupOrderItem({
+          groupOrderId: String(groupOrder.id),
+          payload,
+        });
       };
 
       let res = await addCartItem();
 
-      if (isBranchCartConflictResponse(res)) {
+      if (!groupCode && isBranchCartConflictResponse(res)) {
         toast.info(tSignature("cartBranchConflict"));
 
         const clearCartRes = await clearCustomerCart({ customerId });
@@ -1790,7 +1821,10 @@ export function SignatureSelectionContent({
         return;
       }
 
-      toast.success(tProduct("addedToCart"));
+      toast.success(groupCode ? tProduct("addedToGroupOrder") : tProduct("addedToCart"));
+      if (groupCode) {
+        window.dispatchEvent(new Event("deliveryway:group-order:item-added"));
+      }
       setModalOpen(false);
       onCartRefresh?.();
     } catch (error) {

@@ -858,7 +858,7 @@ function ProductDetailsPageContent() {
     fetchGroupOrders,
     updateCustomerCartItem,
   } = useCart(token);
-  const { updateMyGroupOrderParticipantStatus } = useGroupOrderApi(token);
+  const { searchGroupOrdersByInviteCode, updateMyGroupOrderParticipantStatus } = useGroupOrderApi(token);
   const router = useRouter();
 
   const [item, setItem] = useState<MenuItem | null>(null);
@@ -2272,16 +2272,21 @@ function ProductDetailsPageContent() {
       let res: ApiRecord | null = null;
 
       if (groupCode) {
-        const { response: groupOrdersRes, groupOrders } = await fetchGroupOrders();
+        const { groupOrder: searchedGroupOrder } = await searchGroupOrdersByInviteCode({ inviteCode: groupCode });
+        let groupOrder: ApiRecord | null = searchedGroupOrder as ApiRecord | null;
 
-        if (!groupOrdersRes || groupOrdersRes.error) {
-          toast.error(t("failedFetchGroupOrder"));
-          return;
+        if (!groupOrder) {
+          const { response: groupOrdersRes, groupOrders } = await fetchGroupOrders();
+
+          if (!groupOrdersRes || groupOrdersRes.error) {
+            toast.error(t("failedFetchGroupOrder"));
+            return;
+          }
+
+          groupOrder = groupOrders.find(
+            (order: ApiRecord) => order?.inviteCode === groupCode
+          ) || null;
         }
-
-        const groupOrder = groupOrders.find(
-          (order: ApiRecord) => order?.inviteCode === groupCode
-        );
 
         if (!groupOrder) {
           toast.error(t("invalidGroupOrder"));
