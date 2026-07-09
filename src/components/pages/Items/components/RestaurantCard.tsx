@@ -559,7 +559,7 @@ export function RestaurantCard({
   const { token } = useAuthContext();
   const { fetchSplitPizzaMenuItems } = useItems(token);
   const { addCustomerCartItem, addGroupOrderItem, clearCustomerCart, fetchGroupOrders } = useCart(token);
-  const { updateMyGroupOrderParticipantStatus } = useGroupOrderApi(token);
+  const { searchGroupOrdersByInviteCode, updateMyGroupOrderParticipantStatus } = useGroupOrderApi(token);
   const { user } = useAuth();
 
   const [infoOpen, setInfoOpen] = useState(false);
@@ -1846,11 +1846,16 @@ export function RestaurantCard({
       let res: ApiRecord | null = null;
 
       if (groupCode) {
-        const { response: groupOrdersRes, groupOrders } = await fetchGroupOrders();
+        const { groupOrder: searchedGroupOrder } = await searchGroupOrdersByInviteCode({ inviteCode: groupCode });
+        let groupOrder: ApiRecord | null = searchedGroupOrder as ApiRecord | null;
 
-        const groupOrder = groupOrders.find(
-          (order: ApiRecord) => order?.inviteCode === groupCode,
-        );
+        if (!groupOrder) {
+          const { groupOrders } = await fetchGroupOrders();
+
+          groupOrder = groupOrders.find(
+            (order: ApiRecord) => order?.inviteCode === groupCode,
+          ) || null;
+        }
 
         if (!groupOrder) {
           toast.error(t("invalidGroupOrder"));

@@ -134,6 +134,16 @@ export const cancelGroupOrder = ({
   token?: string | null;
 }) => patchGroupOrders(`/v1/group-orders/${orderId}/status`, { status: "CANCELLED" }, token);
 
+export const updateGroupOrderSchedule = ({
+  orderId,
+  orderTime,
+  token,
+}: {
+  orderId: string | number;
+  orderTime: string | null;
+  token?: string | null;
+}) => patchGroupOrders(`/v1/group-orders/${orderId}`, { orderTime }, token);
+
 export const checkoutGroupOrder = ({
   orderId,
   payload,

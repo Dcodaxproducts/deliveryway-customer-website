@@ -303,15 +303,14 @@ export function DeliveryAddressSection({
       ) : addresses.length === 0 ? (
         <p className="text-gray-400">{t("noAddressesFound")}</p>
       ) : (
-        <div className="grid grid-cols-[minmax(0,1fr)_52px] items-center gap-3 overflow-visible pb-4">
-          <div className="min-w-0 overflow-visible">
+        <div className="rounded-[18px] bg-white/70 p-2 shadow-[inset_0_-24px_36px_rgba(15,23,42,0.04)] sm:p-3">
             <div
               ref={addressRailRef}
               role="listbox"
               aria-label="Saved delivery addresses"
               tabIndex={0}
               {...dragScrollHandlers}
-              className="flex cursor-grab snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-5 pb-8 pt-4 [scrollbar-width:none] active:cursor-grabbing sm:gap-5 sm:px-6 [&::-webkit-scrollbar]:hidden"
+              className="grid auto-cols-[calc((100%_-_0.875rem)/2)] grid-flow-col grid-rows-1 gap-3.5 overflow-x-auto scroll-smooth px-3 pb-8 pt-3 [scrollbar-width:none] active:cursor-grabbing sm:auto-cols-[calc((100%_-_1rem)/2)] sm:gap-4 sm:px-4 [&::-webkit-scrollbar]:hidden"
             >
 
           {addresses.map((addr) => {
@@ -326,11 +325,11 @@ export function DeliveryAddressSection({
                 role="option"
                 aria-selected={isSelected}
                 onClick={() => setSelectedAddress(addr.id)}
-                className={`min-h-[112px] w-[calc((100%-1rem)/2)] shrink-0 snap-start rounded-[10px] border p-4 text-left shadow-[0_14px_32px_rgba(15,23,42,0.12)] transition-all duration-200 sm:w-[calc((100%-1.25rem)/2)]
+                className={`min-h-[124px] w-full snap-start rounded-[14px] border p-5 text-left shadow-[0_18px_35px_rgba(15,23,42,0.13)] transition-all duration-200
                   ${
                     isSelected
-                      ? "border-primary bg-primary text-white shadow-[0_18px_36px_rgba(211,18,26,0.28)] hover:-translate-y-0.5"
-                      : "border-gray-100 bg-white text-gray-900 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-[0_16px_36px_rgba(15,23,42,0.12)]"
+                      ? "border-primary bg-primary text-white shadow-[0_20px_42px_rgba(211,18,26,0.30)] hover:-translate-y-0.5"
+                      : "border-gray-100 bg-white text-gray-900 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-[0_20px_42px_rgba(15,23,42,0.15)]"
                   }
                 `}
               >
@@ -369,9 +368,7 @@ export function DeliveryAddressSection({
             );
           })}
             </div>
-          </div>
-
-          <div className="flex justify-end">
+          <div className="mt-3 flex justify-end">
           {canScrollRight ? (
             <button
               type="button"
