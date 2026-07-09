@@ -15,14 +15,12 @@ import {
   getDateFromValue,
   getDateValue,
   getScheduleOrderTimeIso,
-  isImmediateScheduleAvailable,
   isPastDateValue,
   isScheduleTimeAvailable,
 } from "@/components/pages/Checkout/utils/pickup-schedule";
-import { Button } from "@/components/ui/button";
-import { Time24Picker } from "@/components/ui/time-24-picker";
 import { useAuth } from "@/hooks/useAuth";
 import { useGroupOrderApi } from "@/hooks/useGroupOrder";
+import { fetchReservationBranch } from "@/services/reservations";
 import type { BranchRecord } from "@/types/branch-selector";
 import type { GroupOrder } from "@/types/group-order";
 
@@ -89,17 +87,15 @@ export function GroupOrderScheduleDialog({
   const initialSchedule = useMemo(() => getCurrentSchedule(), []);
   const scheduleDates = useMemo(() => buildUpcomingDates(), []);
   const parsedOrderTime = useMemo(() => parseOrderTime(order.orderTime), [order.orderTime]);
-  const activeBranch = order.branch as BranchRecord | null | undefined;
+  const [resolvedBranch, setResolvedBranch] = useState<BranchRecord | null>(null);
+  const branchId = String(order.branch?.id || (order as { branchId?: string | number | null }).branchId || "");
+  const activeBranch = resolvedBranch || (order.branch as BranchRecord | null | undefined);
   const scheduleType = getScheduleType(order.orderType);
   const [date, setDate] = useState(parsedOrderTime?.date || initialSchedule.date);
   const [time, setTime] = useState(parsedOrderTime?.time || "");
-  const [scheduleMode, setScheduleMode] = useState<ScheduleMode>(parsedOrderTime ? "schedule" : "now");
+  const [scheduleMode, setScheduleMode] = useState<ScheduleMode>("schedule");
   const [saving, setSaving] = useState(false);
 
-  const immediateAvailable = useMemo(
-    () => isImmediateScheduleAvailable({ branch: activeBranch, scheduleType }),
-    [activeBranch, scheduleType]
-  );
   const scheduleState = useMemo(
     () => getBranchScheduleForDate({ branch: activeBranch, dateValue: date, scheduleType }),
     [activeBranch, date, scheduleType]
@@ -129,14 +125,34 @@ export function GroupOrderScheduleDialog({
     const parsed = parseOrderTime(order.orderTime);
     setDate(parsed?.date || initialSchedule.date);
     setTime(parsed?.time || "");
-    setScheduleMode(parsed ? "schedule" : immediateAvailable ? "now" : "schedule");
-  }, [immediateAvailable, initialSchedule.date, open, order.orderTime]);
+    setScheduleMode("schedule");
+  }, [initialSchedule.date, open, order.orderTime]);
 
   useEffect(() => {
-    if (!immediateAvailable && scheduleMode === "now") {
-      setScheduleMode("schedule");
-    }
-  }, [immediateAvailable, scheduleMode]);
+    if (!open || !branchId) return;
+
+    let mounted = true;
+
+    const loadBranchSchedule = async () => {
+      try {
+        const { branch } = await fetchReservationBranch({ branchId, token });
+
+        if (mounted && branch) {
+          setResolvedBranch(branch);
+        }
+      } catch {
+        if (mounted) {
+          setResolvedBranch((order.branch as BranchRecord | null | undefined) ?? null);
+        }
+      }
+    };
+
+    void loadBranchSchedule();
+
+    return () => {
+      mounted = false;
+    };
+  }, [branchId, open, order.branch, token]);
 
   useEffect(() => {
     if (time && scheduleState.hasOpeningHours && !timeSlots.some((slot) => slot.value === time)) {
@@ -151,12 +167,7 @@ export function GroupOrderScheduleDialog({
 
     let orderTime: string | null = null;
 
-    if (scheduleMode === "now") {
-      if (!isImmediateScheduleAvailable({ branch: activeBranch, scheduleType })) {
-        toast.error("Instant ordering is not available right now.");
-        return;
-      }
-    } else {
+    if (scheduleMode === "schedule") {
       if (!date || !time) {
         toast.error("Select a date and time.");
         return;
@@ -198,7 +209,7 @@ export function GroupOrderScheduleDialog({
       }
 
       onSaved(orderTime);
-      toast.success("Group order schedule updated.");
+      toast.success("Group order rescheduled.");
       onOpenChange(false);
     } catch {
       toast.error("Unable to update schedule.");
@@ -220,44 +231,20 @@ export function GroupOrderScheduleDialog({
         </button>
 
         <div className="shrink-0 px-6 pb-4 pt-6 md:px-8 md:pt-8">
-          <h2 className="text-2xl font-semibold text-gray-900">Edit schedule</h2>
-          <p className="mt-1 text-sm text-gray-500">Switch between instant ordering and scheduled date/time.</p>
+          <h2 className="text-2xl font-semibold text-gray-900">Reschedule group order</h2>
+          <p className="mt-1 text-sm text-gray-500">Choose an allowed business time for this group order.</p>
         </div>
 
         <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 pb-4 md:px-8">
-          <div>
-            <label className="text-sm font-medium text-gray-700">Schedule</label>
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              <button
-                type="button"
-                onClick={() => immediateAvailable && setScheduleMode("now")}
-                disabled={!immediateAvailable}
-                className={`rounded-2xl border p-4 text-left transition ${
-                  !immediateAvailable
-                    ? disabledTileClass
-                    : scheduleMode === "now"
-                      ? activeTileClass
-                      : interactiveTileClass
-                }`}
-              >
-                <Clock className="mb-3 h-5 w-5 text-primary" />
-                <span className="block text-sm font-semibold">Order now</span>
-                <span className="mt-1 block text-xs text-gray-500">
-                  {immediateAvailable ? "Prepare as soon as possible" : "Not available right now"}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setScheduleMode("schedule")}
-                className={`rounded-2xl border p-4 text-left transition ${
-                  scheduleMode === "schedule" ? activeTileClass : interactiveTileClass
-                }`}
-              >
-                <Clock className="mb-3 h-5 w-5 text-primary" />
-                <span className="block text-sm font-semibold">Schedule</span>
-                <span className="mt-1 block text-xs text-gray-500">Choose date and time</span>
-              </button>
+          <div className="rounded-2xl border border-primary/15 bg-primary/5 p-4">
+            <div className="flex items-start gap-3">
+              <Clock className="mt-0.5 h-5 w-5 text-primary" />
+              <div>
+                <p className="text-sm font-semibold text-gray-900">Schedule</p>
+                <p className="mt-1 text-xs leading-5 text-gray-500">
+                  Time cards below are generated from branch business hours.
+                </p>
+              </div>
             </div>
           </div>
 
@@ -343,7 +330,9 @@ export function GroupOrderScheduleDialog({
                     ))}
                   </ScheduleRail>
                 ) : (
-                  <Time24Picker value={time} onChange={setTime} />
+                  <div className="rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-700">
+                    No available business time slots for this date. Please choose another date.
+                  </div>
                 )}
               </div>
             </div>
@@ -365,7 +354,7 @@ export function GroupOrderScheduleDialog({
             className="inline-flex h-11 w-full items-center justify-center rounded-[12px] bg-primary px-4 text-sm font-semibold text-white shadow-[0_10px_22px_rgba(206,24,27,0.20)] transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            Save schedule
+            Reschedule group order
           </button>
         </div>
       </div>

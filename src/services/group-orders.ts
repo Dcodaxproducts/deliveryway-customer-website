@@ -166,7 +166,7 @@ export const updateGroupOrderSchedule = ({
   orderId: string | number;
   orderTime: string | null;
   token?: string | null;
-}) => patchGroupOrders(`/v1/group-orders/${orderId}`, { orderTime }, token);
+}) => patchGroupOrders(`/v1/group-orders/${orderId}/settings`, { orderTime }, token);
 
 export const checkoutGroupOrder = ({
   orderId,
