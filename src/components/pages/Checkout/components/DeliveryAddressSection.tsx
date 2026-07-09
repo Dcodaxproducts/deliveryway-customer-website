@@ -279,7 +279,7 @@ export function DeliveryAddressSection({
   }
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-3">
       <AddressModal
         open={addressModalOpen}
         onOpenChange={setAddressModalOpen}
@@ -307,7 +307,7 @@ export function DeliveryAddressSection({
       ) : addresses.length === 0 ? (
         <p className="text-gray-400">{t("noAddressesFound")}</p>
       ) : (
-        <div className="grid grid-cols-[44px_minmax(0,1fr)_44px] items-center gap-3 overflow-visible">
+        <div className="grid grid-cols-[56px_minmax(0,1fr)_56px] items-center gap-4 overflow-visible pt-1">
           <div className="flex justify-start">
             {canScrollLeft ? (
               <button
@@ -320,15 +320,15 @@ export function DeliveryAddressSection({
               </button>
             ) : null}
           </div>
-          <div className="min-w-0 overflow-visible py-2">
-            <div className="-mx-4 overflow-visible px-4 py-4 sm:-mx-5 sm:px-5">
+          <div className="min-w-0 overflow-visible py-1">
+            <div className="-mx-8 overflow-visible px-8 py-7 sm:-mx-10 sm:px-10">
             <div
               ref={addressRailRef}
               role="listbox"
               aria-label="Saved delivery addresses"
               tabIndex={0}
               {...dragScrollHandlers}
-              className="grid auto-cols-[calc((100%_-_0.875rem)/2)] grid-flow-col grid-rows-1 gap-3.5 overflow-x-auto scroll-smooth px-1 pb-8 pt-3 [scrollbar-width:none] active:cursor-grabbing sm:auto-cols-[calc((100%_-_1rem)/2)] sm:gap-4 [&::-webkit-scrollbar]:hidden"
+              className="grid auto-cols-[calc((100%_-_1.25rem)/2)] grid-flow-col grid-rows-1 gap-5 overflow-x-auto scroll-smooth px-4 pb-10 pt-5 [scrollbar-width:none] active:cursor-grabbing [&::-webkit-scrollbar]:hidden"
             >
 
           {addresses.map((addr) => {
@@ -343,11 +343,11 @@ export function DeliveryAddressSection({
                 role="option"
                 aria-selected={isSelected}
                 onClick={() => setSelectedAddress(addr.id)}
-                className={`min-h-[124px] w-full snap-start rounded-[14px] border p-5 text-left shadow-[0_18px_35px_rgba(15,23,42,0.13)] transition-all duration-200
+                className={`min-h-[124px] w-full snap-start rounded-[18px] border p-6 text-left shadow-[0_20px_48px_rgba(15,23,42,0.13)] transition-all duration-200
                   ${
                     isSelected
-                      ? "border-primary bg-primary text-white shadow-[0_20px_42px_rgba(211,18,26,0.30)] hover:-translate-y-0.5"
-                      : "border-gray-100 bg-white text-gray-900 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-[0_20px_42px_rgba(15,23,42,0.15)]"
+                      ? "border-primary bg-primary text-white shadow-[0_22px_52px_rgba(211,18,26,0.30)] hover:-translate-y-0.5"
+                      : "border-gray-100 bg-white text-gray-900 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-[0_24px_56px_rgba(15,23,42,0.16)]"
                   }
                 `}
               >

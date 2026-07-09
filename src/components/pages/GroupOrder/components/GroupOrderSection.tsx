@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, Loader2, UsersRound, Utensils, Share2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -152,6 +153,13 @@ export function GroupOrderSection() {
             {hasActiveGroupOrder ? t("viewLobby") : t("startGroupOrder")}
             <ArrowRight size={18} />
           </button>
+
+          <Link
+            href="/group-order/ongoing"
+            className="mt-3 inline-flex h-12 items-center justify-center rounded-full border border-primary/15 bg-white px-6 text-sm font-bold text-primary shadow-sm transition hover:border-primary/30 hover:bg-primary/5"
+          >
+            View ongoing group orders
+          </Link>
 
           {hasActiveGroupOrder ? (
             <p className="mt-3 text-sm text-gray-500">
