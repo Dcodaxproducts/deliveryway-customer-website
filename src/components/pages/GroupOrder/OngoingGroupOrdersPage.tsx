@@ -46,11 +46,11 @@ const getOrderTitle = (order: GroupOrder) => {
 
 function HeroBagImage() {
   return (
-    <div className="hidden items-center justify-center lg:flex">
+    <div className="pointer-events-none hidden shrink-0 items-center justify-center md:flex">
       <img
         src={BAG_IMAGE_SRC}
         alt="Group orders"
-        className="h-auto w-[230px] object-contain xl:w-[260px]"
+        className="h-auto w-[150px] object-contain lg:w-[170px]"
         draggable={false}
       />
     </div>
@@ -189,10 +189,10 @@ export function OngoingGroupOrdersPage() {
         key={String(order.id)}
         className="overflow-hidden rounded-[16px] border border-gray-200 bg-white shadow-[0_12px_28px_rgba(15,23,42,0.08)]"
       >
-        <div className="grid lg:grid-cols-[minmax(0,1fr)_300px]">
-          <div className="flex min-w-0 items-center gap-5 border-l-[2px] border-emerald-500 px-6 py-5">
-            <div className="hidden size-[84px] shrink-0 items-center justify-center rounded-[16px] bg-emerald-50 text-emerald-600 sm:flex">
-              <Store className="h-10 w-10" strokeWidth={2.4} />
+        <div className="grid lg:grid-cols-[minmax(0,1fr)_220px]">
+          <div className="flex min-w-0 items-center gap-4 border-l-[2px] border-emerald-500 px-5 py-4">
+            <div className="hidden size-14 shrink-0 items-center justify-center rounded-[14px] bg-emerald-50 text-emerald-600 sm:flex">
+              <Store className="h-7 w-7" strokeWidth={2.4} />
             </div>
 
             <div className="min-w-0">
@@ -201,12 +201,12 @@ export function OngoingGroupOrdersPage() {
                 {status}
               </span>
 
-              <h3 className="mt-3 truncate text-[20px] font-semibold leading-tight tracking-[-0.02em] text-gray-950">
+              <h3 className="mt-3 truncate text-[17px] font-semibold leading-tight tracking-[-0.01em] text-gray-950">
                 {getOrderTitle(order)}
               </h3>
 
-              <p className="mt-2 flex flex-wrap items-center gap-2 text-[14px] font-medium text-gray-500">
-                <CalendarDays className="h-4 w-4" />
+              <p className="mt-2 flex flex-wrap items-center gap-2 text-[13px] font-medium text-gray-500">
+                <CalendarDays className="h-3.5 w-3.5" />
                 {formatDateTime(order.orderTime)}
               </p>
 
@@ -221,14 +221,14 @@ export function OngoingGroupOrdersPage() {
             </div>
           </div>
 
-          <div className="flex flex-col justify-center gap-3 border-t border-gray-200 px-6 py-5 lg:border-l lg:border-t-0">
+          <div className="flex flex-col justify-center gap-2.5 border-t border-gray-200 px-5 py-4 lg:border-l lg:border-t-0">
             <Link
               href={`/group-order/lobby?groupOrderId=${encodeURIComponent(String(order.id))}`}
               onClick={() => void handleOpenLobby(order)}
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-primary px-6 text-[15px] font-semibold text-white shadow-[0_12px_22px_rgba(206,24,27,0.18)] transition hover:-translate-y-0.5 hover:bg-primary/90"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-primary px-4 text-[13px] font-semibold text-white shadow-[0_10px_18px_rgba(206,24,27,0.16)] transition hover:-translate-y-0.5 hover:bg-primary/90"
             >
               View lobby
-              <ArrowRight className="h-5 w-5" />
+              <ArrowRight className="h-4 w-4" />
             </Link>
 
             <Button
@@ -236,9 +236,9 @@ export function OngoingGroupOrdersPage() {
               variant="outline"
               onClick={() => void handleCancel(order)}
               disabled={isCancelling}
-              className="h-11 rounded-full border-primary/35 bg-white px-6 text-[14px] font-semibold text-primary hover:border-primary hover:bg-primary/[0.04]"
+              className="h-10 rounded-full border-primary/35 bg-white px-4 text-[13px] font-semibold text-primary hover:border-primary hover:bg-primary/[0.04]"
             >
-              {isCancelling ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <XCircle className="mr-2 h-5 w-5" />}
+              {isCancelling ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <XCircle className="mr-2 h-4 w-4" />}
               Cancel order
             </Button>
           </div>
@@ -249,34 +249,33 @@ export function OngoingGroupOrdersPage() {
 
   return (
     <main className="min-h-screen bg-[#f7f7f7] px-4 py-6 sm:px-6 lg:px-8">
-      <section className="mx-auto max-w-[1280px] overflow-hidden rounded-[22px] bg-white px-6 py-8 shadow-[0_14px_50px_rgba(15,23,42,0.06)] sm:px-9 lg:px-12">
-        <div className="mb-8 grid items-center gap-7 lg:grid-cols-[minmax(0,1fr)_280px_140px] xl:grid-cols-[minmax(0,1fr)_320px_140px]">
-          <div className="min-w-0">
+      <section className="mx-auto max-w-[980px] overflow-hidden rounded-[20px] bg-white px-5 py-7 shadow-[0_12px_38px_rgba(15,23,42,0.055)] sm:px-8 lg:px-10">
+        <div className="mb-8 flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+          <div className="min-w-0 max-w-[620px]">
             <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-primary/[0.09] px-4 py-2 text-[14px] font-semibold text-primary">
               <UsersRound className="h-4 w-4" />
               Group orders
             </div>
 
-            <h1 className="max-w-[680px] text-[34px] font-semibold leading-[1.08] tracking-[-0.045em] text-gray-950 sm:text-[42px] lg:text-[46px]">
+            <h1 className="max-w-[620px] text-[30px] font-semibold leading-[1.12] tracking-[-0.035em] text-gray-950 sm:text-[34px] md:text-[36px]">
               Ongoing <span className="text-primary">group orders</span>
             </h1>
 
-            <p className="mt-4 max-w-[600px] text-[15px] font-normal leading-7 text-gray-500">
+            <p className="mt-3 max-w-[560px] text-[14px] font-normal leading-6 text-gray-500">
               Review your open and locked group orders, jump back into the lobby, or cancel orders that should not continue.
             </p>
           </div>
 
-          <HeroBagImage />
-
-          <div className="flex justify-start lg:justify-end">
+          <div className="flex shrink-0 flex-row items-center gap-4 md:flex-col md:items-end">
+            <HeroBagImage />
             <Button
               type="button"
               variant="outline"
               onClick={() => void loadOrders({ silent: true })}
               disabled={refreshing || loading}
-              className="h-11 min-w-[120px] rounded-[14px] border-gray-200 bg-white px-5 text-[14px] font-semibold text-primary shadow-sm hover:border-primary/40 hover:bg-primary/[0.04]"
+              className="h-9 min-w-0 rounded-[12px] border-gray-200 bg-white px-3.5 text-[13px] font-semibold text-primary shadow-sm hover:border-primary/40 hover:bg-primary/[0.04]"
             >
-              {refreshing ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <RefreshCw className="mr-2 h-5 w-5" />}
+              {refreshing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="mr-1.5 h-3.5 w-3.5" />}
               Refresh
             </Button>
           </div>
