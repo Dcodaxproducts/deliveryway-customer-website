@@ -19,7 +19,9 @@ const formatDateTime = (value?: string | null) => {
   if (Number.isNaN(date.getTime())) return "";
 
   return new Intl.DateTimeFormat(undefined, {
-    dateStyle: "medium",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
     hourCycle: "h23",
