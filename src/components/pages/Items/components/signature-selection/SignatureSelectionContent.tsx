@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { useCart } from "@/hooks/useCart";
 import { useGroupOrderApi } from "@/hooks/useGroupOrder";
+import { useGroupOrderApi } from "@/hooks/useGroupOrder";
 import { FavoriteHeartButton } from "@/components/common/favorites/FavoriteHeartButton";
 import { useHome } from "@/hooks/useHome";
 import useMenu from "@/hooks/useMenu";
@@ -25,7 +26,8 @@ import { setStoredRestaurantMenuId } from "@/lib/timed-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { formatMoney as formatDisplayMoney, resolveCustomerCurrency } from "@/lib/money";
 import { getSignatureMenuViewMode, setSignatureMenuViewMode } from "@/lib/view-preferences";
-import { getStoredGroupOrderCode } from "@/lib/group-order";
+import { getStoredGroupOrderCode, getStoredGroupOrderId, setStoredGroupOrderId } from "@/lib/group-order";
+import { getStoredGroupOrderCode, getStoredGroupOrderId, setStoredGroupOrderId } from "@/lib/group-order";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AsyncSelect } from "@/components/ui/AsyncSelect";
 import type { ApiRecord, CartPayload, ItemPriceOverride, MenuItem, MenuRecord, MenuVariation, Modifier, ModifierGroup, ModifierLink, ProductCardData, RawModifierLink, SelectedModifier, SelectedModifiersMap, SplitPizzaSelection, VariationPriceOverride } from "./types";
@@ -512,7 +514,7 @@ export function SignatureSelectionContent({
   const { token } = useAuth();
   const { fetchSignatureMenus, fetchSignatureSplitPizzaItems } = useMenu(token);
   const { addCustomerCartItem, addGroupOrderItem, clearCustomerCart, fetchGroupOrders } = useCart(token);
-  const { searchGroupOrdersByInviteCode } = useGroupOrderApi(token);
+  const { fetchGroupOrderById, searchGroupOrdersByInviteCode } = useGroupOrderApi(token);
   const homeQuery = useHome(
     restaurantId,
     branchId,
@@ -1768,16 +1770,26 @@ export function SignatureSelectionContent({
       }
 
       const groupCode = getStoredGroupOrderCode();
+      const groupOrderId = getStoredGroupOrderId();
 
       const addCartItem = async () => {
-        if (!groupCode) {
+        if (!groupCode && !groupOrderId) {
           return addCustomerCartItem({ customerId, payload });
         }
 
-        const { groupOrder: searchedGroupOrder } = await searchGroupOrdersByInviteCode({ inviteCode: groupCode });
-        let groupOrder: ApiRecord | null = searchedGroupOrder as ApiRecord | null;
+        let groupOrder: ApiRecord | null = null;
 
-        if (!groupOrder) {
+        if (groupOrderId) {
+          const { groupOrder: directGroupOrder } = await fetchGroupOrderById({ orderId: groupOrderId });
+          groupOrder = directGroupOrder as ApiRecord | null;
+        }
+
+        if (!groupOrder && groupCode) {
+          const { groupOrder: searchedGroupOrder } = await searchGroupOrdersByInviteCode({ inviteCode: groupCode });
+          groupOrder = searchedGroupOrder as ApiRecord | null;
+        }
+
+        if (!groupOrder && groupCode) {
           const { response: groupOrdersRes, groupOrders } = await fetchGroupOrders();
 
           if (!groupOrdersRes || groupOrdersRes.error) {
@@ -1793,6 +1805,8 @@ export function SignatureSelectionContent({
           return null;
         }
 
+        setStoredGroupOrderId(String(groupOrder.id));
+
         return addGroupOrderItem({
           groupOrderId: String(groupOrder.id),
           payload,
@@ -1801,7 +1815,7 @@ export function SignatureSelectionContent({
 
       let res = await addCartItem();
 
-      if (!groupCode && isBranchCartConflictResponse(res)) {
+      if (!groupCode && !groupOrderId && isBranchCartConflictResponse(res)) {
         toast.info(tSignature("cartBranchConflict"));
 
         const clearCartRes = await clearCustomerCart({ customerId });
@@ -1821,8 +1835,8 @@ export function SignatureSelectionContent({
         return;
       }
 
-      toast.success(groupCode ? tProduct("addedToGroupOrder") : tProduct("addedToCart"));
-      if (groupCode) {
+      toast.success(groupCode || groupOrderId ? tProduct("addedToGroupOrder") : tProduct("addedToCart"));
+      if (groupCode || groupOrderId) {
         window.dispatchEvent(new Event("deliveryway:group-order:item-added"));
       }
       setModalOpen(false);

@@ -7,7 +7,7 @@ import { queryKeys } from "@/config/query-keys";
 import { useAuth } from "@/hooks/useAuth";
 import { useDomainApi } from "@/hooks/useDomainApi";
 import { getDefaultBranchOrderType, persistSelectedBranch } from "@/lib/branch-selector";
-import { canMutateGroupOrder, canParticipantEditGroupOrderItems, clearStoredGroupOrderCode, getStoredGroupOrderCode, isClosedGroupOrder, isGroupOrderParticipantCompleted, setStoredGroupOrderCode } from "@/lib/group-order";
+import { canMutateGroupOrder, canParticipantEditGroupOrderItems, clearStoredGroupOrderCode, getStoredGroupOrderCode, getStoredGroupOrderId, isClosedGroupOrder, isGroupOrderParticipantCompleted, setStoredGroupOrderCode, setStoredGroupOrderId } from "@/lib/group-order";
 import {
   cancelGroupOrder,
   checkoutGroupOrder,
@@ -167,8 +167,9 @@ export function useGroupOrder(): UseGroupOrderResult {
         : null;
       const groupOrderId = searchParams?.get("groupOrderId") || "";
       const codeFromUrl = searchParams?.get("code") || "";
+      const storedGroupOrderId = getStoredGroupOrderId();
       const currentGroupOrderId = orderRef.current?.id ? String(orderRef.current.id) : "";
-      const directGroupOrderId = groupOrderId || currentGroupOrderId;
+      const directGroupOrderId = groupOrderId || currentGroupOrderId || storedGroupOrderId;
       const code = codeFromUrl || getStoredGroupOrderCode();
 
       if (codeFromUrl) {
@@ -204,6 +205,9 @@ export function useGroupOrder(): UseGroupOrderResult {
 
       if (groupOrder.inviteCode) {
         setStoredGroupOrderCode(groupOrder.inviteCode);
+      }
+      if (groupOrder.id) {
+        setStoredGroupOrderId(groupOrder.id);
       }
 
       persistGroupOrderBranch(groupOrder);
