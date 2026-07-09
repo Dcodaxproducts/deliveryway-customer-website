@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Loader2, MapPin, Navigation, Plus } from "lucide-react";
+import { ChevronRight, Loader2, MapPin, Navigation, Plus } from "lucide-react";
 import { AddressModal } from "@/components/forms/AddressModal";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useHorizontalDragScroll } from "@/components/pages/Checkout/hooks/use-horizontal-drag-scroll";
 import { useCheckout } from "@/hooks/useCheckout";
 import { useAuth } from "@/hooks/useAuth";
 import { formatDisplayAddress } from "@/lib/address-display";
@@ -41,6 +41,13 @@ export function DeliveryAddressSection({
   const [loading, setLoading] = useState(false);
   const [locating, setLocating] = useState(false);
   const [addressModalOpen, setAddressModalOpen] = useState(false);
+  const {
+    railRef: addressRailRef,
+    canScrollRight,
+    scrollByPage,
+    updateScrollState,
+    dragScrollHandlers,
+  } = useHorizontalDragScroll<HTMLDivElement>();
 
   const updateGuestAddressField = (field: keyof CheckoutAddressValues, value: string) => {
     setGuestDeliveryAddress({
@@ -76,6 +83,10 @@ export function DeliveryAddressSection({
 
     void fetchAddresses();
   }, [fetchAddresses, isGuest]);
+
+  useEffect(() => {
+    requestAnimationFrame(updateScrollState);
+  }, [addresses.length, updateScrollState]);
 
   const handleGetCurrentLocation = async () => {
     if (!navigator.geolocation) {
@@ -263,21 +274,17 @@ export function DeliveryAddressSection({
         onSuccess={handleAddressCreated}
       />
 
-      {/* HEADER */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
-          <MapPin className="text-primary" size={28} />
-          <h2 className="text-[24px] font-semibold text-gray-900">
-            {t("deliveryAddress")}
-          </h2>
-        </div>
+        <h2 className="text-[24px] font-semibold text-gray-900">
+          Where should we deliver?
+        </h2>
 
         <Button
           type="button"
           onClick={() => setAddressModalOpen(true)}
-          className="h-9 rounded-full border border-primary/15 bg-primary/5 px-3.5 text-[13px] font-semibold text-primary shadow-none hover:border-primary/30 hover:bg-primary/10"
+          className="h-9 rounded-[12px] border border-primary/10 bg-primary/5 px-4 text-[13px] font-bold text-primary shadow-none hover:border-primary/30 hover:bg-primary/10"
         >
-          <Plus className="mr-1.5 h-3.5 w-3.5" />
+          <Plus className="mr-1.5 h-3.5 w-3.5 stroke-[3]" />
           {addressT("addNewAddress")}
         </Button>
       </div>
@@ -288,32 +295,49 @@ export function DeliveryAddressSection({
       ) : addresses.length === 0 ? (
         <p className="text-gray-400">{t("noAddressesFound")}</p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-[20px] md:gap-[30px]">
+        <div className="relative">
+          <div
+            ref={addressRailRef}
+            role="listbox"
+            aria-label="Saved delivery addresses"
+            tabIndex={0}
+            {...dragScrollHandlers}
+            className="flex cursor-grab snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-3 [scrollbar-width:none] active:cursor-grabbing sm:gap-5 [&::-webkit-scrollbar]:hidden"
+          >
 
           {addresses.map((addr) => {
             const isSelected = selectedAddress === addr.id;
+            const addressLabel = formatDisplayAddress(addr);
+            const addressTitle = addr.houseNumber || addr.area || addr.city || addressT("deliveryAddress");
 
             return (
-              <Card
+              <button
                 key={addr.id}
+                type="button"
+                role="option"
+                aria-selected={isSelected}
                 onClick={() => setSelectedAddress(addr.id)}
-                className={`rounded-[10px] p-5 md:p-6 cursor-pointer transition-all
+                className={`min-h-[112px] w-[220px] shrink-0 snap-start rounded-[10px] border p-4 text-left shadow-[0_10px_30px_rgba(15,23,42,0.08)] transition-all duration-200 sm:w-[236px] md:w-[250px]
                   ${
                     isSelected
-                      ? "bg-primary text-white border-none hover:scale-[1.02]"
-                      : "bg-white border-2 border-dashed border-primary text-gray-700 hover:border-primary"
+                      ? "border-primary bg-primary text-white shadow-[0_16px_34px_rgba(211,18,26,0.25)] hover:-translate-y-0.5"
+                      : "border-gray-100 bg-white text-gray-900 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-[0_16px_36px_rgba(15,23,42,0.12)]"
                   }
                 `}
               >
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <MapPin
-                      size={28}
-                      className={isSelected ? "" : "text-gray-400"}
-                    />
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    {isSelected ? (
+                      <span className="flex items-center gap-2 text-sm font-bold text-white">
+                        <span className="flex size-6 items-center justify-center rounded-full border-2 border-white/80">
+                          <MapPin size={13} strokeWidth={3} />
+                        </span>
+                        {addressTitle}
+                      </span>
+                    ) : null}
                     {addr.isDefault ? (
                       <span
-                        className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                        className={`ml-auto rounded-full px-2.5 py-1 text-[11px] font-semibold ${
                           isSelected
                             ? "bg-white/15 text-white"
                             : "bg-primary/10 text-primary"
@@ -325,17 +349,28 @@ export function DeliveryAddressSection({
                   </div>
 
                   <p
-                    className={`text-sm md:text-base font-medium leading-relaxed ${
-                      isSelected ? "" : "text-gray-700"
+                    className={`line-clamp-3 text-sm font-semibold leading-relaxed ${
+                      isSelected ? "text-white" : "text-gray-800"
                     }`}
                   >
-                    {formatDisplayAddress(addr)}
+                    {addressLabel}
                   </p>
                 </div>
-              </Card>
+              </button>
             );
           })}
+          </div>
 
+          {canScrollRight ? (
+            <button
+              type="button"
+              aria-label="Scroll delivery addresses"
+              onClick={() => scrollByPage("right")}
+              className="absolute right-0 top-1/2 z-10 flex size-11 -translate-y-1/2 items-center justify-center rounded-[12px] bg-white text-gray-900 shadow-[0_12px_30px_rgba(15,23,42,0.14)] transition hover:-translate-y-[52%] hover:text-primary"
+            >
+              <ChevronRight size={22} strokeWidth={2.5} />
+            </button>
+          ) : null}
         </div>
       )}
     </section>
