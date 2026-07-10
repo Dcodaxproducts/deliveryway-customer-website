@@ -1065,12 +1065,17 @@ export function CartSummarySection({
       orderFee: selectedOrderFee,
       tipAmount,
     });
+  const payableBeforeLoyaltyPreview = Math.max(
+    0,
+    quotePayableAmount ??
+      totalBeforeDiscount - discount - loyaltyDiscount - walletAppliedAmount,
+  );
   const loyaltyPreviewDiscount =
     loyaltyDiscount > 0 || !loyaltyCanRedeem
       ? 0
       : Math.min(
           Math.max(0, loyaltyEstimatedDiscount),
-          totalBeforeDiscount - discount,
+          payableBeforeLoyaltyPreview,
         );
 
   const totalWithoutTip = Math.max(
@@ -1100,10 +1105,6 @@ export function CartSummarySection({
             loyaltyDiscount -
             walletAppliedAmount,
         );
-  const payableBeforeLoyaltyPreview = Math.max(
-    0,
-    totalBeforeDiscount - discount - loyaltyDiscount - walletAppliedAmount,
-  );
   const displayedFinalTotal =
     loyaltyPreviewDiscount > 0
       ? Math.max(0, payableBeforeLoyaltyPreview - loyaltyPreviewDiscount)
