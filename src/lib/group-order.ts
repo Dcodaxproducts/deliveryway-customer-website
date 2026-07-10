@@ -1,6 +1,14 @@
-import { safeGetLocalStorageItem, safeRemoveLocalStorageItem, safeSetLocalStorageItem } from "@/lib/browser-storage";
+import {
+  safeGetLocalStorageItem,
+  safeRemoveLocalStorageItem,
+  safeSetLocalStorageItem,
+} from "@/lib/browser-storage";
 import type { AddressRecord } from "@/services/profile";
-import type { GroupOrder, GroupOrderParticipant, GroupOrderStatus } from "@/types/group-order";
+import type {
+  GroupOrder,
+  GroupOrderParticipant,
+  GroupOrderStatus,
+} from "@/types/group-order";
 
 export const GROUP_ORDER_CODE_KEY = "***";
 export const GROUP_ORDER_ID_KEY = "deliveryway:group-order-id";
@@ -16,9 +24,11 @@ export const GROUP_ORDER_MUTABLE_STATUSES: GroupOrderStatus[] = [
   "LOCKED",
 ];
 
-export const getStoredGroupOrderCode = () => safeGetLocalStorageItem(GROUP_ORDER_CODE_KEY) || "";
+export const getStoredGroupOrderCode = () =>
+  safeGetLocalStorageItem(GROUP_ORDER_CODE_KEY) || "";
 
-export const getStoredGroupOrderId = () => safeGetLocalStorageItem(GROUP_ORDER_ID_KEY) || "";
+export const getStoredGroupOrderId = () =>
+  safeGetLocalStorageItem(GROUP_ORDER_ID_KEY) || "";
 
 export const setStoredGroupOrderCode = (inviteCode: string) => {
   safeSetLocalStorageItem(GROUP_ORDER_CODE_KEY, inviteCode);
@@ -46,7 +56,7 @@ export const canMutateGroupOrder = (order: GroupOrder | null | undefined) => {
 };
 
 export const isGroupOrderParticipantCompleted = (
-  participant: GroupOrderParticipant | null | undefined
+  participant: GroupOrderParticipant | null | undefined,
 ) => String(participant?.status || "").toUpperCase() === "COMPLETED";
 
 export const canParticipantEditGroupOrderItems = ({
@@ -55,7 +65,10 @@ export const canParticipantEditGroupOrderItems = ({
 }: {
   order: GroupOrder | null | undefined;
   participant: GroupOrderParticipant | null | undefined;
-}) => Boolean(participant) && canMutateGroupOrder(order) && !isGroupOrderParticipantCompleted(participant);
+}) =>
+  Boolean(participant) &&
+  canMutateGroupOrder(order) &&
+  !isGroupOrderParticipantCompleted(participant);
 
 export const findCurrentGroupOrderParticipant = ({
   order,
@@ -68,9 +81,14 @@ export const findCurrentGroupOrderParticipant = ({
 
   if (!normalizedUserId) return null;
 
-  return order?.participants?.find((participant) => {
-    return String(participant.userId || "") === normalizedUserId;
-  }) ?? null;
+  return (
+    order?.participants?.find((participant) => {
+      return (
+        String(participant.userId || "") === normalizedUserId ||
+        String(participant.user?.id || "") === normalizedUserId
+      );
+    }) ?? null
+  );
 };
 
 export const buildGroupOrderInviteLink = ({
@@ -98,8 +116,6 @@ export const resolveGroupOrderDeliveryAddressId = ({
   }
 
   return (
-    addresses.find((address) => address.isDefault)?.id ||
-    addresses[0]?.id ||
-    ""
+    addresses.find((address) => address.isDefault)?.id || addresses[0]?.id || ""
   );
 };
