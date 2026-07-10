@@ -1100,7 +1100,14 @@ export function CartSummarySection({
             loyaltyDiscount -
             walletAppliedAmount,
         );
-  const displayedFinalTotal = Math.max(0, finalTotal - loyaltyPreviewDiscount);
+  const payableBeforeLoyaltyPreview = Math.max(
+    0,
+    totalBeforeDiscount - discount - loyaltyDiscount - walletAppliedAmount,
+  );
+  const displayedFinalTotal =
+    loyaltyPreviewDiscount > 0
+      ? Math.max(0, payableBeforeLoyaltyPreview - loyaltyPreviewDiscount)
+      : finalTotal;
 
   const hasActualDiscount =
     resolvedQuote?.hasDiscount === true ||
@@ -1989,7 +1996,7 @@ export function CartSummarySection({
             <span className="flex flex-col items-end leading-none">
               {loyaltyPreviewDiscount > 0 ? (
                 <span className="mb-1 text-sm font-medium text-gray-400 line-through">
-                  {formatCurrency(finalTotal, currency)}
+                  {formatCurrency(payableBeforeLoyaltyPreview, currency)}
                 </span>
               ) : null}
               <span>{formatCurrency(displayedFinalTotal, currency)}</span>
