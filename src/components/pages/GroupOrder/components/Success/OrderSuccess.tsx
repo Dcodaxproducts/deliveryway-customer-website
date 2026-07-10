@@ -63,6 +63,9 @@ const formatLabel = (value?: string | number | null) =>
 const getItemName = (item: GroupOrderSuccessItem) =>
   item.menuItemName || item.name || item.menuItem?.name || "";
 
+const getItemImageUrl = (item: GroupOrderSuccessItem) =>
+  item.imageUrl || item.thumbnailUrl || item.menuItem?.imageUrl || null;
+
 const getItemLineTotal = (item: GroupOrderSuccessItem) =>
   item.lineTotal ??
   item.totalPrice ??
@@ -288,23 +291,36 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
                         className="rounded-2xl bg-gray-50 p-4"
                       >
                         <div className="flex items-start justify-between gap-4">
-                          <div className="min-w-0">
-                            <p className="text-sm font-semibold text-gray-900">
-                              {getItemName(item) || t("itemFallback")}
-                            </p>
-                            {item.variationName ? (
-                              <p className="mt-1 text-xs text-gray-500">
-                                {t("variation", {
-                                  variation: item.variationName,
-                                })}
+                          <div className="flex min-w-0 items-start gap-3">
+                            <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl bg-gray-200">
+                              <Image
+                                src={
+                                  getItemImageUrl(item) || "/items/table.png"
+                                }
+                                alt={getItemName(item) || t("itemFallback")}
+                                fill
+                                className="object-cover"
+                                sizes="56px"
+                              />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold text-gray-900">
+                                {getItemName(item) || t("itemFallback")}
                               </p>
-                            ) : null}
-                            <p className="mt-1 text-xs text-gray-500">
-                              {t("quantity", {
-                                count: toNumber(item.quantity, 0),
-                              })}{" "}
-                              · {formatCurrency(item.unitPrice)}
-                            </p>
+                              {item.variationName ? (
+                                <p className="mt-1 text-xs text-gray-500">
+                                  {t("variation", {
+                                    variation: item.variationName,
+                                  })}
+                                </p>
+                              ) : null}
+                              <p className="mt-1 text-xs text-gray-500">
+                                {t("quantity", {
+                                  count: toNumber(item.quantity, 0),
+                                })}{" "}
+                                · {formatCurrency(item.unitPrice)}
+                              </p>
+                            </div>
                           </div>
                           <p className="shrink-0 text-sm font-semibold text-gray-900">
                             {formatCurrency(getItemLineTotal(item))}

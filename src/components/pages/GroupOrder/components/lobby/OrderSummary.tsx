@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  Coins,
-  Info,
-  Loader2,
-  LogOut,
-  RefreshCw,
-  X,
-  XCircle,
-} from "lucide-react";
+import { Info, Loader2, LogOut, RefreshCw, X, XCircle } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -46,10 +38,6 @@ import {
   getBackendErrorMessage,
   hasBackendError,
 } from "@/components/pages/Checkout/utils/checkout-normalizers";
-import {
-  fetchCustomerLoyaltyPoints,
-  type LoyaltySummary,
-} from "@/services/loyalty";
 import type {
   CheckoutGroupOrderPayload,
   GroupOrder,
@@ -108,10 +96,6 @@ export function OrderSummary({
   const [coupon, setCoupon] = useState("");
   const [paymentMethod, setPaymentMethod] =
     useState<GroupOrderPaymentMethod>("COD");
-  const [loyalty, setLoyalty] = useState<LoyaltySummary | null>(null);
-  const [loyaltyPoints, setLoyaltyPoints] = useState("");
-  const [loadingLoyalty, setLoadingLoyalty] = useState(false);
-
   const [loadingCheckout, setLoadingCheckout] = useState(false);
   const [loadingCancel, setLoadingCancel] = useState(false);
   const [loadingLeave, setLoadingLeave] = useState(false);
@@ -176,19 +160,6 @@ export function OrderSummary({
   );
   const checkoutDisabled =
     !canCheckout || actionsDisabled || immediateCheckoutUnavailable;
-  const normalizedLoyaltyPoints = Math.max(
-    0,
-    Math.floor(Number(loyaltyPoints) || 0),
-  );
-  const loyaltyCanRedeem = Boolean(
-    loyalty &&
-    normalizedLoyaltyPoints >= Math.max(0, loyalty.minimumRedeemPoints) &&
-    normalizedLoyaltyPoints <= Math.max(0, loyalty.availablePoints),
-  );
-  const loyaltyEstimatedDiscount = loyalty
-    ? normalizedLoyaltyPoints * Math.max(0, loyalty.redemptionValuePerPoint)
-    : 0;
-
   const amount = (value: unknown, fallback = 0) => {
     const parsed = Number(value);
     return Number.isFinite(parsed) ? parsed : fallback;
@@ -233,31 +204,6 @@ export function OrderSummary({
   const transactionFeeLabel =
     summary?.chargeBreakdown?.transactionFees?.[0]?.label ||
     cartT("transactionFee");
-
-  useEffect(() => {
-    if (!checkoutOpen || !token) return;
-
-    let active = true;
-
-    const loadLoyalty = async () => {
-      try {
-        setLoadingLoyalty(true);
-        const { loyalty: nextLoyalty } =
-          await fetchCustomerLoyaltyPoints(token);
-        if (active) setLoyalty(nextLoyalty);
-      } catch {
-        if (active) setLoyalty(null);
-      } finally {
-        if (active) setLoadingLoyalty(false);
-      }
-    };
-
-    void loadLoyalty();
-
-    return () => {
-      active = false;
-    };
-  }, [checkoutOpen, token]);
 
   const handleParticipantStatusToggle = async () => {
     if (isHost || !participant || !canMutateGroupOrder) return;
@@ -361,36 +307,12 @@ export function OrderSummary({
     try {
       setLoadingCheckout(true);
 
-      if (normalizedLoyaltyPoints > 0) {
-        if (!loyalty) {
-          toast.error(checkoutT("toast.loyaltyUnavailable"));
-          return;
-        }
-
-        if (normalizedLoyaltyPoints < loyalty.minimumRedeemPoints) {
-          toast.error(
-            checkoutT("toast.minimumLoyaltyPoints", {
-              points: loyalty.minimumRedeemPoints,
-            }),
-          );
-          return;
-        }
-
-        if (normalizedLoyaltyPoints > loyalty.availablePoints) {
-          toast.error(checkoutT("toast.insufficientLoyaltyPoints"));
-          return;
-        }
-      }
-
       const payload: CheckoutGroupOrderPayload = {
         paymentMethod,
         customerNote: note || "",
         couponCode: coupon || "",
         ...(isScheduledGroupOrder && order?.orderTime
           ? { orderTime: order.orderTime }
-          : {}),
-        ...(normalizedLoyaltyPoints > 0
-          ? { loyaltyPoints: normalizedLoyaltyPoints }
           : {}),
       };
 
@@ -684,66 +606,6 @@ export function OrderSummary({
                 }
                 allowCardOnDelivery={isDeliveryOrder}
               />
-            </div>
-
-            <div className="mt-5 rounded-2xl border border-primary/10 bg-[linear-gradient(135deg,rgba(206,24,27,0.07),rgba(17,24,39,0.03))] p-4">
-              <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                  <Coins size={18} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-gray-950">
-                    {t("loyaltyTitle")}
-                  </p>
-                  <p className="mt-1 text-xs leading-5 text-gray-500">
-                    {loadingLoyalty
-                      ? t("loyaltyLoading")
-                      : loyalty
-                        ? t("loyaltyAvailable", {
-                            points: Math.max(
-                              0,
-                              Math.round(loyalty.availablePoints),
-                            ),
-                            minimum: Math.max(
-                              0,
-                              Math.round(loyalty.minimumRedeemPoints),
-                            ),
-                          })
-                        : t("loyaltyUnavailable")}
-                  </p>
-                  <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-                    <input
-                      type="number"
-                      min="0"
-                      value={loyaltyPoints}
-                      onChange={(event) => setLoyaltyPoints(event.target.value)}
-                      disabled={loadingLoyalty || !loyalty}
-                      placeholder={t("loyaltyPlaceholder")}
-                      className="h-11 flex-1 rounded-full border border-gray-200 bg-white px-4 text-sm outline-none transition focus:border-primary/40 focus:ring-4 focus:ring-primary/10 disabled:cursor-not-allowed disabled:opacity-60"
-                    />
-                    {normalizedLoyaltyPoints > 0 ? (
-                      <button
-                        type="button"
-                        onClick={() => setLoyaltyPoints("")}
-                        className="h-11 rounded-full border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-600 transition hover:border-primary/30 hover:text-primary"
-                      >
-                        {t("loyaltyClear")}
-                      </button>
-                    ) : null}
-                  </div>
-                  {normalizedLoyaltyPoints > 0 ? (
-                    <p
-                      className={`mt-2 text-xs font-medium ${loyaltyCanRedeem ? "text-green-700" : "text-amber-700"}`}
-                    >
-                      {loyaltyCanRedeem
-                        ? t("loyaltyEstimatedDiscount", {
-                            amount: `$${loyaltyEstimatedDiscount.toFixed(2)}`,
-                          })
-                        : t("loyaltyRequirements")}
-                    </p>
-                  ) : null}
-                </div>
-              </div>
             </div>
 
             {/* COUPON */}

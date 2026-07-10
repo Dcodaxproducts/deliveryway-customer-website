@@ -170,7 +170,6 @@ export type CheckoutGroupOrderPayload = {
   orderTime?: string | null;
   customerNote: string;
   couponCode: string;
-  loyaltyPoints?: number;
 };
 
 export type GroupOrderSuccessModifier = GroupOrderSelectedOption & {
@@ -192,6 +191,8 @@ export type GroupOrderSuccessItem = {
   menuItemName?: string | null;
   name?: string | null;
   menuItem?: GroupOrderMenuItem | null;
+  imageUrl?: string | null;
+  thumbnailUrl?: string | null;
   variationId?: string | number | null;
   variationName?: string | null;
   unitPrice?: number | string | null;
