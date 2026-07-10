@@ -1756,7 +1756,8 @@
         "markedDone": "Your selection is marked done",
         "editingEnabled": "You can edit your order again",
         "failedUpdateStatus": "Failed to update group order status",
-        "completedEditNotice": "Your selection is marked done. Click Edit Order if you need to change your items."
+        "completedEditNotice": "Your selection is marked done. Click Edit Order if you need to change your items.",
+        "includedTax": "Tax (included)"
       }
     },
     "success": {
@@ -1801,7 +1802,8 @@
       "transactionFee": "Transaction fee",
       "tip": "Tip",
       "loyaltyDiscount": "Loyalty discount",
-      "walletApplied": "Wallet applied"
+      "walletApplied": "Wallet applied",
+      "includedTax": "Tax (included)"
     }
   },
   "branchSelector": {

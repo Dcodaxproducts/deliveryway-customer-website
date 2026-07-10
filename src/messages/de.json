@@ -1756,7 +1756,8 @@
         "markedDone": "Ihre Auswahl ist als fertig markiert",
         "editingEnabled": "Sie können Ihre Bestellung wieder bearbeiten",
         "failedUpdateStatus": "Status der Gruppenbestellung konnte nicht aktualisiert werden",
-        "completedEditNotice": "Ihre Auswahl ist als fertig markiert. Klicken Sie auf Bestellung bearbeiten, wenn Sie Ihre Artikel ändern müssen."
+        "completedEditNotice": "Ihre Auswahl ist als fertig markiert. Klicken Sie auf Bestellung bearbeiten, wenn Sie Ihre Artikel ändern müssen.",
+        "includedTax": "Steuer (enthalten)"
       }
     },
     "success": {
@@ -1801,7 +1802,8 @@
       "transactionFee": "Transaktionsgebühr",
       "tip": "Trinkgeld",
       "loyaltyDiscount": "Treuerabatt",
-      "walletApplied": "Wallet angewendet"
+      "walletApplied": "Wallet angewendet",
+      "includedTax": "Steuer (enthalten)"
     }
   },
   "branchSelector": {

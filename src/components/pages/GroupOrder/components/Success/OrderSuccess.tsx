@@ -407,7 +407,7 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
                 </div>
                 {hasPositiveAmount(taxAmount) ? (
                   <div className="flex justify-between gap-4 text-gray-500">
-                    <span>{t("tax")}</span>
+                    <span>{t("includedTax")}</span>
                     <span>{formatCurrency(taxAmount)}</span>
                   </div>
                 ) : null}

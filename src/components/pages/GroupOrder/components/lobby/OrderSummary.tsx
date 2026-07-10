@@ -424,7 +424,7 @@ export function OrderSummary({
           </div>
           {positiveAmount(taxAmount) ? (
             <div className="flex justify-between text-gray-500">
-              <span>{cartT("tax")}</span>
+              <span>{t("includedTax")}</span>
               <span>{formatAmount(taxAmount)}</span>
             </div>
           ) : null}
