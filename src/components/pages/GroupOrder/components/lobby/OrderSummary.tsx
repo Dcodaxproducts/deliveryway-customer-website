@@ -422,12 +422,6 @@ export function OrderSummary({
             </span>
             <span>{formatAmount(summary?.subtotal || 0)}</span>
           </div>
-          {positiveAmount(taxAmount) ? (
-            <div className="flex justify-between text-gray-500">
-              <span>{t("includedTax")}</span>
-              <span>{formatAmount(taxAmount)}</span>
-            </div>
-          ) : null}
           <div className="flex justify-between">
             <span>{cartT("deliveryFee")}</span>
             <span>{formatAmount(summary?.deliveryFee || 0)}</span>

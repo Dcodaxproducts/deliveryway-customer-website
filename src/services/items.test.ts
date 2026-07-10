@@ -118,7 +118,7 @@ describe("fetchMenuItemDetailsByIds", () => {
     });
 
     expect(getItemsMock).toHaveBeenCalledWith(
-      "/v1/menu/items?restaurantId=restaurant-1&page=2&limit=12&sortBy=sortOrder&sortOrder=ASC&categoryId=category-1&branchId=branch-1",
+      "/v1/menu/items?restaurantId=restaurant-1&page=2&limit=12&sortBy=sortOrder&sortOrder=DESC&categoryId=category-1&branchId=branch-1",
       "token-1",
     );
   });
