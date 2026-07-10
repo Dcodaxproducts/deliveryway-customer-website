@@ -36,6 +36,10 @@ const toNumber = (value: unknown, fallback = 0) => {
 const hasAmount = (value: unknown) =>
   value !== null && value !== undefined && value !== "";
 const hasPositiveAmount = (value: unknown) => toNumber(value, 0) > 0;
+const firstPositiveAmount = (...values: unknown[]) => {
+  const match = values.find((value) => hasPositiveAmount(value));
+  return match ?? 0;
+};
 
 const formatDateTime = (value?: string | null) => {
   if (!value) return "—";
@@ -144,11 +148,6 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
   const subtotal = pricing?.subtotal ?? order?.subtotal;
   const taxAmount = pricing?.taxAmount ?? order?.taxAmount;
   const deliveryFee = pricing?.deliveryFee ?? order?.deliveryFee;
-  const serviceChargeAmount =
-    pricing?.serviceChargeAmount ??
-    order?.serviceChargeAmount ??
-    pricing?.serviceChargeValue ??
-    order?.serviceChargeValue;
   const transactionFeeAmount =
     pricing?.transactionFeeAmount ?? order?.transactionFeeAmount;
   const tipAmount = pricing?.tipAmount ?? order?.tipAmount;
@@ -157,6 +156,22 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
     pricing?.loyaltyDiscountAmount ?? order?.loyaltyDiscountAmount;
   const walletAppliedAmount =
     pricing?.walletAppliedAmount ?? order?.walletAppliedAmount;
+  const inferredServiceChargeAmount = Math.max(
+    0,
+    toNumber(payableAmount, 0) -
+      toNumber(subtotal, 0) -
+      toNumber(deliveryFee, 0) -
+      toNumber(transactionFeeAmount, 0) -
+      toNumber(tipAmount, 0) +
+      toNumber(discountAmount, 0) +
+      toNumber(loyaltyDiscountAmount, 0) +
+      toNumber(walletAppliedAmount, 0),
+  );
+  const serviceChargeAmount = firstPositiveAmount(
+    pricing?.serviceChargeAmount ?? order?.serviceChargeAmount,
+    pricing?.serviceChargeValue ?? order?.serviceChargeValue,
+    inferredServiceChargeAmount,
+  );
   const coupon = order?.coupon;
   const couponLabel = [coupon?.title, coupon?.code].filter(Boolean).join(" · ");
   const participants = session?.participants || [];
