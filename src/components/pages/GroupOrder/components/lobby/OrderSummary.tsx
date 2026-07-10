@@ -10,6 +10,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Elements,
   PaymentElement,
@@ -92,6 +93,7 @@ export function OrderSummary({
   const cartT = useTranslations("cart");
   const errorT = useTranslations("errors");
   const summary = order?.summary;
+  const router = useRouter();
   const { token } = useAuth();
   const {
     cancelGroupOrder,
@@ -127,9 +129,30 @@ export function OrderSummary({
     return loadStripe(stripePayment.publishableKey);
   }, [stripePayment.publishableKey]);
 
+  const getPendingStripeOrderId = () => {
+    const successData = pendingSuccessData;
+    const directOrderId = successData?.order?.id;
+    const finalOrderId = successData?.session?.finalOrderId;
+
+    return String(directOrderId || finalOrderId || "");
+  };
+
   const resetStripePayment = () => {
     setStripePayment({ open: false, clientSecret: "", publishableKey: "" });
     setPendingSuccessData(null);
+  };
+
+  const handleCloseStripePayment = () => {
+    const pendingOrderId = getPendingStripeOrderId();
+
+    resetStripePayment();
+
+    if (pendingOrderId) {
+      toast.info(checkoutT("toast.paymentPending"));
+      setCheckoutOpen(false);
+      clearStoredGroupOrderCode();
+      router.push(`/order?orderId=${encodeURIComponent(pendingOrderId)}`);
+    }
   };
 
   const actionsDisabled =
@@ -388,27 +411,21 @@ export function OrderSummary({
           orderRecord.payment || dataRecord.payment,
         );
         const paymentSession = asRecord(
-          dataRecord.paymentSession ||
-            orderRecord.paymentSession ||
-            res?.paymentSession,
-        );
-        const providerData = asRecord(
-          paymentRecord.providerData ||
+          res?.paymentSession ||
+            dataRecord.paymentSession ||
+            res?.providerData ||
             dataRecord.providerData ||
-            res?.providerData,
+            orderRecord.paymentSession ||
+            paymentRecord.providerData,
         );
         const clientSecret =
           typeof paymentSession.clientSecret === "string"
             ? paymentSession.clientSecret
-            : typeof providerData.clientSecret === "string"
-              ? providerData.clientSecret
-              : "";
+            : "";
         const publishableKey =
           typeof paymentSession.publishableKey === "string"
             ? paymentSession.publishableKey
-            : typeof providerData.publishableKey === "string"
-              ? providerData.publishableKey
-              : "";
+            : "";
 
         if (!clientSecret || !publishableKey) {
           toast.error(checkoutT("toast.failedInitiatePayment"));
@@ -761,7 +778,7 @@ export function OrderSummary({
           <div className="relative max-h-[90vh] w-[min(420px,calc(100vw-32px))] overflow-auto rounded-2xl bg-white p-6 shadow-[0_24px_70px_rgba(15,23,42,0.22)]">
             <button
               type="button"
-              onClick={resetStripePayment}
+              onClick={handleCloseStripePayment}
               className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
               aria-label="Close payment popup"
             >
