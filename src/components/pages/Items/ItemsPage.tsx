@@ -1,7 +1,14 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { CheckCircle2, Loader2, Users } from "lucide-react";
@@ -20,6 +27,7 @@ import {
   clearStoredGroupOrderCode,
   findCurrentGroupOrderParticipant,
   getStoredGroupOrderCode,
+  isGroupOrderParticipantCompleted,
   setStoredGroupOrderCode,
   setStoredGroupOrderId,
 } from "@/lib/group-order";
@@ -28,6 +36,7 @@ import type { GroupOrder } from "@/types/group-order";
 function ItemsPageContent() {
   const t = useTranslations("items.groupOrder");
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
 
   const categoryId = searchParams.get("categoryId") || "";
@@ -53,6 +62,18 @@ function ItemsPageContent() {
   const [markingDone, setMarkingDone] = useState(false);
 
   const handledInviteCodeRef = useRef<string | null>(null);
+
+  const stripInviteCodeFromUrl = useCallback(() => {
+    if (!codeFromUrl) return;
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("code");
+    const query = params.toString();
+
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
+  }, [codeFromUrl, pathname, router, searchParams]);
 
   const findJoinedGroupOrder = async (
     code: string,
@@ -137,6 +158,20 @@ function ItemsPageContent() {
           joinedOrder = await findJoinedGroupOrder(inviteCode);
         }
 
+        const currentParticipant = joinedOrder
+          ? findCurrentGroupOrderParticipant({
+              order: joinedOrder,
+              userId: user?.id,
+            })
+          : null;
+
+        if (isGroupOrderParticipantCompleted(currentParticipant)) {
+          clearStoredGroupOrderCode();
+          stripInviteCodeFromUrl();
+          await refetchGroupOrder();
+          return;
+        }
+
         if (joinedOrder?.id) {
           setStoredGroupOrderId(joinedOrder.id);
         }
@@ -151,7 +186,18 @@ function ItemsPageContent() {
     };
 
     processGroupOrderInvite();
-  }, [token, user?.id, codeFromUrl, refetchGroupOrder]);
+  }, [token, user?.id, codeFromUrl, refetchGroupOrder, stripInviteCodeFromUrl]);
+
+  const participantSelectionDone =
+    !isHost && isGroupOrderParticipantCompleted(participant);
+
+  useEffect(() => {
+    if (!participantSelectionDone) return;
+
+    clearStoredGroupOrderCode();
+    stripInviteCodeFromUrl();
+    setHasAddedGroupOrderItem(false);
+  }, [participantSelectionDone, stripInviteCodeFromUrl]);
 
   useEffect(() => {
     const autoSelectSoleBranch = async () => {
@@ -215,7 +261,9 @@ function ItemsPageContent() {
   }, [participant?.items]);
 
   const showGroupOrderLobbyCta = Boolean(
-    order?.inviteCode && (hasAddedGroupOrderItem || participantItemCount > 0),
+    order?.inviteCode &&
+    !participantSelectionDone &&
+    (hasAddedGroupOrderItem || participantItemCount > 0),
   );
 
   const handleDoneSelecting = async () => {
