@@ -1,9 +1,22 @@
 "use client";
 
 import Image from "next/image";
-import { Check, Clock, CreditCard, MapPin, Power, ReceiptText, Tag, UsersRound } from "lucide-react";
+import {
+  Check,
+  Clock,
+  CreditCard,
+  MapPin,
+  Power,
+  ReceiptText,
+  Tag,
+  UsersRound,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 
+import { useAuth } from "@/hooks/useAuth";
+import { useHome } from "@/hooks/useHome";
+import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
+import { formatMoney, resolveCustomerCurrency } from "@/lib/money";
 import type {
   GroupOrderSuccessData,
   GroupOrderSuccessItem,
@@ -20,9 +33,8 @@ const toNumber = (value: unknown, fallback = 0) => {
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
-const hasAmount = (value: unknown) => value !== null && value !== undefined && value !== "";
-
-const formatCurrency = (value: unknown) => `$${toNumber(value, 0).toFixed(2)}`;
+const hasAmount = (value: unknown) =>
+  value !== null && value !== undefined && value !== "";
 
 const formatDateTime = (value?: string | null) => {
   if (!value) return "—";
@@ -47,37 +59,87 @@ const getItemName = (item: GroupOrderSuccessItem) =>
   item.menuItemName || item.name || item.menuItem?.name || "";
 
 const getItemLineTotal = (item: GroupOrderSuccessItem) =>
-  item.lineTotal ?? item.totalPrice ?? toNumber(item.unitPrice, 0) * toNumber(item.quantity, 0);
+  item.lineTotal ??
+  item.totalPrice ??
+  toNumber(item.unitPrice, 0) * toNumber(item.quantity, 0);
 
-const getItemModifiers = (item: GroupOrderSuccessItem): GroupOrderSuccessModifier[] => {
-  const snapshotModifiers = Array.isArray(item.snapshotModifiers) ? item.snapshotModifiers : [];
+const getItemModifiers = (
+  item: GroupOrderSuccessItem,
+): GroupOrderSuccessModifier[] => {
+  const snapshotModifiers = Array.isArray(item.snapshotModifiers)
+    ? item.snapshotModifiers
+    : [];
   const addOns = Array.isArray(item.addOns) ? item.addOns : [];
   const addons = Array.isArray(item.addons) ? item.addons : [];
-  const selectedAddons = Array.isArray(item.selectedAddons) ? item.selectedAddons : [];
-  const selectedAddOns = Array.isArray(item.selectedAddOns) ? item.selectedAddOns : [];
+  const selectedAddons = Array.isArray(item.selectedAddons)
+    ? item.selectedAddons
+    : [];
+  const selectedAddOns = Array.isArray(item.selectedAddOns)
+    ? item.selectedAddOns
+    : [];
 
-  return [...snapshotModifiers, ...addOns, ...addons, ...selectedAddons, ...selectedAddOns];
+  return [
+    ...snapshotModifiers,
+    ...addOns,
+    ...addons,
+    ...selectedAddons,
+    ...selectedAddOns,
+  ];
 };
 
 const getModifierName = (modifier: GroupOrderSuccessModifier) =>
-  modifier.name || modifier.modifier?.name || modifier.addOn?.name || modifier.addon?.name || "";
+  modifier.name ||
+  modifier.modifier?.name ||
+  modifier.addOn?.name ||
+  modifier.addon?.name ||
+  "";
 
 const getModifierUnitPrice = (modifier: GroupOrderSuccessModifier) =>
-  modifier.unitPrice ?? modifier.price ?? modifier.priceDelta ?? modifier.modifier?.unitPrice ?? modifier.addOn?.unitPrice ?? modifier.addon?.unitPrice;
+  modifier.unitPrice ??
+  modifier.price ??
+  modifier.priceDelta ??
+  modifier.modifier?.unitPrice ??
+  modifier.addOn?.unitPrice ??
+  modifier.addon?.unitPrice;
 
 const OrderSuccess = ({ data }: OrderSuccessProps) => {
   const t = useTranslations("groupOrder.success");
+  const { user, restaurantId } = useAuth();
+  const homeRestaurantId = resolveHomeRestaurantId(user, restaurantId);
+  const homeBranchId = resolveHomeBranchId(user);
+  const homeQuery = useHome(
+    homeRestaurantId,
+    homeBranchId,
+    Boolean(homeRestaurantId),
+  );
   const order = data?.order;
   const session = data?.session;
   const pricing = order?.pricing;
   const payment = order?.payment;
+  const currency = resolveCustomerCurrency({
+    moneyCurrency:
+      pricing?.currency || order?.currency || session?.finalOrder?.currency,
+    configCurrency: homeQuery.data?.data.config?.currency,
+    restaurant: homeQuery.data?.data.restaurant,
+  });
+  const formatCurrency = (value: unknown) => formatMoney(value, currency);
 
-  const finalOrderId = order?.id || session?.finalOrder?.id || session?.finalOrderId || "";
+  const finalOrderId =
+    order?.id || session?.finalOrder?.id || session?.finalOrderId || "";
   const paymentMethod = payment?.selectedMethod || order?.paymentMethod;
-  const paymentStatus = payment?.statusLabel || payment?.status || order?.paymentStatus || order?.status;
+  const paymentStatus =
+    payment?.statusLabel ||
+    payment?.status ||
+    order?.paymentStatus ||
+    order?.status;
   const scheduledTime = order?.scheduledFor || order?.orderTime;
-  const totalAmount = pricing?.totalAmount ?? order?.totalAmount ?? session?.finalOrder?.totalAmount ?? 0;
-  const payableAmount = pricing?.payableAmount ?? order?.payableAmount ?? totalAmount;
+  const totalAmount =
+    pricing?.totalAmount ??
+    order?.totalAmount ??
+    session?.finalOrder?.totalAmount ??
+    0;
+  const payableAmount =
+    pricing?.payableAmount ?? order?.payableAmount ?? totalAmount;
   const subtotal = pricing?.subtotal ?? order?.subtotal;
   const taxAmount = pricing?.taxAmount ?? order?.taxAmount;
   const deliveryFee = pricing?.deliveryFee ?? order?.deliveryFee;
@@ -141,7 +203,9 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
                   {t("orderTiming")}
                 </div>
                 <p className="mt-2 text-sm font-semibold text-gray-900">
-                  {order?.isScheduled ? formatDateTime(scheduledTime) : t("instantOrder")}
+                  {order?.isScheduled
+                    ? formatDateTime(scheduledTime)
+                    : t("instantOrder")}
                 </p>
                 <p className="mt-1 text-xs text-gray-500">
                   {order?.isScheduled ? t("scheduledOrder") : t("asap")}
@@ -170,7 +234,9 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
                   {formatLabel(order?.orderType)}
                 </p>
                 <p className="mt-1 text-xs text-gray-500">
-                  {session?.deliveryAddress ? t("savedAddress") : t("pickupFromRestaurant")}
+                  {session?.deliveryAddress
+                    ? t("savedAddress")
+                    : t("pickupFromRestaurant")}
                 </p>
               </div>
             </div>
@@ -178,7 +244,9 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
             <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
               <div className="mb-4 flex items-center gap-2">
                 <ReceiptText className="h-5 w-5 text-primary" />
-                <h2 className="text-base font-semibold text-gray-900">{t("itemsTitle")}</h2>
+                <h2 className="text-base font-semibold text-gray-900">
+                  {t("itemsTitle")}
+                </h2>
               </div>
 
               {items.length > 0 ? (
@@ -187,7 +255,10 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
                     const modifiers = getItemModifiers(item);
 
                     return (
-                      <div key={String(item.id || index)} className="rounded-2xl bg-gray-50 p-4">
+                      <div
+                        key={String(item.id || index)}
+                        className="rounded-2xl bg-gray-50 p-4"
+                      >
                         <div className="flex items-start justify-between gap-4">
                           <div className="min-w-0">
                             <p className="text-sm font-semibold text-gray-900">
@@ -195,11 +266,16 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
                             </p>
                             {item.variationName ? (
                               <p className="mt-1 text-xs text-gray-500">
-                                {t("variation", { variation: item.variationName })}
+                                {t("variation", {
+                                  variation: item.variationName,
+                                })}
                               </p>
                             ) : null}
                             <p className="mt-1 text-xs text-gray-500">
-                              {t("quantity", { count: toNumber(item.quantity, 0) })} · {formatCurrency(item.unitPrice)}
+                              {t("quantity", {
+                                count: toNumber(item.quantity, 0),
+                              })}{" "}
+                              · {formatCurrency(item.unitPrice)}
                             </p>
                           </div>
                           <p className="shrink-0 text-sm font-semibold text-gray-900">
@@ -215,10 +291,14 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
                                 className="flex items-center justify-between gap-3 text-xs text-gray-600"
                               >
                                 <span className="min-w-0">
-                                  {getModifierName(modifier) || t("addonFallback")} × {toNumber(modifier.quantity, 1)}
+                                  {getModifierName(modifier) ||
+                                    t("addonFallback")}{" "}
+                                  × {toNumber(modifier.quantity, 1)}
                                 </span>
                                 <span className="shrink-0 font-medium text-gray-800">
-                                  {formatCurrency(getModifierUnitPrice(modifier))}
+                                  {formatCurrency(
+                                    getModifierUnitPrice(modifier),
+                                  )}
                                 </span>
                               </div>
                             ))}
@@ -251,7 +331,10 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
               {participants.length > 0 ? (
                 <div className="space-y-4">
                   {participants.map((p: GroupOrderParticipant, i: number) => (
-                    <div key={String(p.id || i)} className="flex items-center gap-3">
+                    <div
+                      key={String(p.id || i)}
+                      className="flex items-center gap-3"
+                    >
                       <div className="relative h-9 w-9 overflow-hidden rounded-full bg-gray-200">
                         {p?.user?.avatarUrl ? (
                           <Image
@@ -266,7 +349,9 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
                         <p className="text-sm font-medium text-gray-900">
                           {p?.user?.firstName} {p?.user?.lastName}
                         </p>
-                        <p className="text-xs text-green-600">{formatLabel(p.status)}</p>
+                        <p className="text-xs text-green-600">
+                          {formatLabel(p.status)}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -276,16 +361,21 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
               )}
             </div>
 
-            {(coupon?.code || coupon?.title || hasAmount(discountAmount)) ? (
+            {coupon?.code || coupon?.title || hasAmount(discountAmount) ? (
               <div className="rounded-2xl border border-green-100 bg-green-50 p-4 text-sm text-green-800">
                 <div className="flex items-center gap-2 font-semibold">
                   <Tag className="h-4 w-4" />
                   {t("couponTitle")}
                 </div>
                 <p className="mt-2">{couponLabel || t("discountApplied")}</p>
-                {(coupon?.discountType || hasAmount(coupon?.discountValue)) ? (
+                {coupon?.discountType || hasAmount(coupon?.discountValue) ? (
                   <p className="mt-1 text-xs text-green-700">
-                    {[formatLabel(coupon?.discountType), hasAmount(coupon?.discountValue) ? coupon?.discountValue : null]
+                    {[
+                      formatLabel(coupon?.discountType),
+                      hasAmount(coupon?.discountValue)
+                        ? coupon?.discountValue
+                        : null,
+                    ]
                       .filter(Boolean)
                       .join(" · ")}
                   </p>
@@ -294,7 +384,9 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
             ) : null}
 
             <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-              <h2 className="text-base font-semibold text-gray-900">{t("totalsTitle")}</h2>
+              <h2 className="text-base font-semibold text-gray-900">
+                {t("totalsTitle")}
+              </h2>
               <div className="mt-4 space-y-3 text-sm text-gray-600">
                 <div className="flex justify-between gap-4">
                   <span>{t("subtotal")}</span>
@@ -325,7 +417,9 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
               </div>
               <div className="mt-4 flex justify-between gap-4 border-t border-gray-100 pt-4 text-base font-semibold text-gray-950">
                 <span>{t("payable")}</span>
-                <span className="text-orange-500">{formatCurrency(payableAmount)}</span>
+                <span className="text-orange-500">
+                  {formatCurrency(payableAmount)}
+                </span>
               </div>
             </div>
           </div>

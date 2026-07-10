@@ -1,15 +1,12 @@
 import type { BranchRecord } from "@/types/branch-selector";
 
-export type GroupOrderStatus = "OPEN" | "LOCKED" | "CHECKED_OUT" | "CANCELLED" | "EXPIRED" | string;
-export type GroupOrderParticipantStatus = "ACTIVE" | "PENDING" | "COMPLETED" | string;
+export type GroupOrderStatus =
+  "OPEN" | "LOCKED" | "CHECKED_OUT" | "CANCELLED" | "EXPIRED" | string;
+export type GroupOrderParticipantStatus =
+  "ACTIVE" | "PENDING" | "COMPLETED" | string;
 export type GroupOrderType = "DINE_IN" | "TAKEAWAY" | "DELIVERY" | string;
 export type GroupOrderPaymentMethod =
-  | "COD"
-  | "CARD_ON_DELIVERY"
-  | "PAYPAL"
-  | "STRIPE"
-  | "WALLET"
-  | string;
+  "COD" | "CARD_ON_DELIVERY" | "PAYPAL" | "STRIPE" | "WALLET" | string;
 
 export type GroupOrderUser = {
   id?: string | number | null;
@@ -183,6 +180,7 @@ export type GroupOrderSuccessItem = {
 };
 
 export type GroupOrderSuccessPricing = {
+  currency?: string | null;
   subtotal?: number | string | null;
   taxAmount?: number | string | null;
   deliveryFee?: number | string | null;
@@ -211,6 +209,7 @@ export type GroupOrderSuccessData = {
     orderType?: string | null;
     paymentMethod?: string | null;
     paymentStatus?: string | null;
+    currency?: string | null;
     payment?: GroupOrderSuccessPayment | null;
     status?: string | null;
     subtotal?: number | string | null;
@@ -229,6 +228,7 @@ export type GroupOrderSuccessData = {
   session?: {
     finalOrder?: {
       id?: string | number | null;
+      currency?: string | null;
       totalAmount?: number | string | null;
     } | null;
     finalOrderId?: string | number | null;
@@ -239,7 +239,10 @@ export type GroupOrderSuccessData = {
 
 export type UseGroupOrderResult = {
   order: GroupOrder | null;
-  updateOrder: (updater: GroupOrder | null | ((order: GroupOrder | null) => GroupOrder | null)) => void;
+  updateOrder: (
+    updater:
+      GroupOrder | null | ((order: GroupOrder | null) => GroupOrder | null),
+  ) => void;
   loading: boolean;
   redirecting: boolean;
   refetch: () => Promise<void>;
