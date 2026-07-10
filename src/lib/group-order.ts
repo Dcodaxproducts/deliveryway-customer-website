@@ -13,6 +13,8 @@ import type {
 export const GROUP_ORDER_CODE_KEY = "***";
 export const GROUP_ORDER_ID_KEY = "deliveryway:group-order-id";
 export const GROUP_ORDER_COMPLETED_KEY = "deliveryway:completed-group-orders";
+export const GROUP_ORDER_LAST_LOBBY_ID_KEY =
+  "deliveryway:last-group-order-lobby-id";
 
 export const GROUP_ORDER_CLOSED_STATUSES: GroupOrderStatus[] = [
   "CHECKED_OUT",
