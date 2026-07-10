@@ -248,11 +248,18 @@ export function useGroupOrder(): UseGroupOrderResult {
         const groupOrderId = searchParams?.get("groupOrderId") || "";
         const codeFromUrl = searchParams?.get("code") || "";
         const storedGroupOrderId = getStoredGroupOrderId();
+        const storedLobbyGroupOrderId = getStoredGroupOrderLobbyId();
         const currentGroupOrderId = orderRef.current?.id
           ? String(orderRef.current.id)
           : "";
+        const isLobbyRoute =
+          typeof window !== "undefined" &&
+          window.location.pathname === "/group-order/lobby";
         const directGroupOrderId =
-          groupOrderId || currentGroupOrderId || storedGroupOrderId;
+          groupOrderId ||
+          currentGroupOrderId ||
+          storedGroupOrderId ||
+          (isLobbyRoute ? storedLobbyGroupOrderId : "");
         const code = codeFromUrl || getStoredGroupOrderCode();
 
         if (
