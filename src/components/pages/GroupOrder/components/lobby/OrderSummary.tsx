@@ -1,7 +1,22 @@
 "use client";
 
-import { Coins, Info, Loader2, LogOut, RefreshCw, XCircle } from "lucide-react";
+import {
+  Coins,
+  Info,
+  Loader2,
+  LogOut,
+  RefreshCw,
+  X,
+  XCircle,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import {
+  Elements,
+  PaymentElement,
+  useElements,
+  useStripe,
+} from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
 
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -26,6 +41,7 @@ import { PaymentMethodSection } from "@/components/pages/Checkout/components/Pay
 import { formatMoney } from "@/lib/money";
 import { isImmediateScheduleAvailable } from "@/components/pages/Checkout/utils/pickup-schedule";
 import {
+  asRecord,
   getBackendErrorMessage,
   hasBackendError,
 } from "@/components/pages/Checkout/utils/checkout-normalizers";
@@ -98,6 +114,24 @@ export function OrderSummary({
   const [loadingCancel, setLoadingCancel] = useState(false);
   const [loadingLeave, setLoadingLeave] = useState(false);
   const [loadingStatus, setLoadingStatus] = useState(false);
+  const [stripePayment, setStripePayment] = useState({
+    open: false,
+    clientSecret: "",
+    publishableKey: "",
+  });
+  const [pendingSuccessData, setPendingSuccessData] =
+    useState<GroupOrderSuccessData | null>(null);
+  const stripePromise = useMemo(() => {
+    if (!stripePayment.publishableKey) return null;
+
+    return loadStripe(stripePayment.publishableKey);
+  }, [stripePayment.publishableKey]);
+
+  const resetStripePayment = () => {
+    setStripePayment({ open: false, clientSecret: "", publishableKey: "" });
+    setPendingSuccessData(null);
+  };
+
   const actionsDisabled =
     !canMutateGroupOrder ||
     loadingCancel ||
@@ -345,10 +379,51 @@ export function OrderSummary({
         return;
       }
 
+      const successData = (res?.data || {}) as GroupOrderSuccessData;
+
+      if (paymentMethod === "STRIPE") {
+        const dataRecord = asRecord(res?.data);
+        const orderRecord = asRecord(dataRecord.order);
+        const paymentRecord = asRecord(
+          orderRecord.payment || dataRecord.payment,
+        );
+        const paymentSession = asRecord(
+          dataRecord.paymentSession ||
+            orderRecord.paymentSession ||
+            res?.paymentSession,
+        );
+        const providerData = asRecord(
+          paymentRecord.providerData ||
+            dataRecord.providerData ||
+            res?.providerData,
+        );
+        const clientSecret =
+          typeof paymentSession.clientSecret === "string"
+            ? paymentSession.clientSecret
+            : typeof providerData.clientSecret === "string"
+              ? providerData.clientSecret
+              : "";
+        const publishableKey =
+          typeof paymentSession.publishableKey === "string"
+            ? paymentSession.publishableKey
+            : typeof providerData.publishableKey === "string"
+              ? providerData.publishableKey
+              : "";
+
+        if (!clientSecret || !publishableKey) {
+          toast.error(checkoutT("toast.failedInitiatePayment"));
+          return;
+        }
+
+        setPendingSuccessData(successData);
+        setStripePayment({ open: true, clientSecret, publishableKey });
+        return;
+      }
+
       toast.success(t("orderPlaced"));
       window.dispatchEvent(new Event("loyalty-updated"));
       setCheckoutOpen(false);
-      onSuccess((res?.data || {}) as GroupOrderSuccessData);
+      onSuccess(successData);
       clearStoredGroupOrderCode();
     } catch {
       toast.error(errorT("somethingWentWrong"));
@@ -680,6 +755,110 @@ export function OrderSummary({
           </div>
         </DialogContent>
       </Dialog>
+
+      {stripePayment.open && stripePromise && stripePayment.clientSecret ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="relative max-h-[90vh] w-[min(420px,calc(100vw-32px))] overflow-auto rounded-2xl bg-white p-6 shadow-[0_24px_70px_rgba(15,23,42,0.22)]">
+            <button
+              type="button"
+              onClick={resetStripePayment}
+              className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
+              aria-label="Close payment popup"
+            >
+              <X className="h-4 w-4" />
+            </button>
+
+            <h2 className="mb-2 pr-10 text-lg font-semibold">
+              {checkoutT("completePayment")}
+            </h2>
+            <p className="mb-5 text-sm leading-6 text-gray-500">
+              {checkoutT("paymentPendingDescription")}
+            </p>
+
+            <Elements
+              stripe={stripePromise}
+              options={{ clientSecret: stripePayment.clientSecret }}
+            >
+              <GroupOrderStripeCheckout
+                onSuccess={() => {
+                  const successData = pendingSuccessData;
+
+                  resetStripePayment();
+
+                  if (!successData) {
+                    toast.success(
+                      checkoutT("toast.paymentSuccessfulPendingWebhook"),
+                    );
+                    setCheckoutOpen(false);
+                    clearStoredGroupOrderCode();
+                    return;
+                  }
+
+                  toast.success(
+                    checkoutT("toast.paymentSuccessfulPendingWebhook"),
+                  );
+                  window.dispatchEvent(new Event("loyalty-updated"));
+                  setCheckoutOpen(false);
+                  onSuccess(successData);
+                  clearStoredGroupOrderCode();
+                }}
+              />
+            </Elements>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
+
+const GroupOrderStripeCheckout = ({ onSuccess }: { onSuccess: () => void }) => {
+  const checkoutT = useTranslations("checkout");
+  const stripe = useStripe();
+  const elements = useElements();
+  const [paying, setPaying] = useState(false);
+
+  const handlePay = async () => {
+    if (!stripe || !elements) return;
+
+    try {
+      setPaying(true);
+
+      const { error, paymentIntent } = await stripe.confirmPayment({
+        elements,
+        redirect: "if_required",
+      });
+
+      if (error) {
+        toast.error(error.message || checkoutT("toast.paymentFailed"));
+        return;
+      }
+
+      if (paymentIntent?.status === "succeeded") {
+        onSuccess();
+        return;
+      }
+
+      toast.error(checkoutT("toast.paymentNotCompleted"));
+    } catch {
+      toast.error(checkoutT("toast.paymentFailed"));
+    } finally {
+      setPaying(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <PaymentElement />
+
+      <button
+        type="button"
+        onClick={handlePay}
+        disabled={paying || !stripe || !elements}
+        className="h-11 w-full rounded-xl text-white disabled:opacity-60"
+        style={{ background: "var(--primary)" }}
+      >
+        {paying ? checkoutT("processing") : checkoutT("payNow")}
+      </button>
+    </div>
+  );
+};

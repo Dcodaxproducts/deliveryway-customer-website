@@ -300,7 +300,11 @@ export function UserCard({
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-full overflow-hidden relative border border-gray-200">
             <Image
-              src={user?.avatarUrl || "https://i.pravatar.cc/150"}
+              src={
+                user?.avatarUrl?.startsWith("http")
+                  ? user.avatarUrl
+                  : "/profile-user.png"
+              }
               alt={user?.firstName || ""}
               fill
               className="object-cover"

@@ -364,14 +364,16 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
                       className="flex items-center gap-3"
                     >
                       <div className="relative h-9 w-9 overflow-hidden rounded-full bg-gray-200">
-                        {p?.user?.avatarUrl ? (
-                          <Image
-                            src={p.user.avatarUrl}
-                            alt={p.user.firstName || ""}
-                            fill
-                            className="object-cover"
-                          />
-                        ) : null}
+                        <Image
+                          src={
+                            p?.user?.avatarUrl?.startsWith("http")
+                              ? p.user.avatarUrl
+                              : "/profile-user.png"
+                          }
+                          alt={p.user?.firstName || ""}
+                          fill
+                          className="object-cover"
+                        />
                       </div>
                       <div>
                         <p className="text-sm font-medium text-gray-900">
