@@ -7,10 +7,13 @@ import {
   clearStoredGroupOrderCode,
   findCurrentGroupOrderParticipant,
   getStoredGroupOrderCode,
+  isStoredGroupOrderCompleted,
   isClosedGroupOrder,
   isGroupOrderParticipantCompleted,
+  markStoredGroupOrderCompleted,
   resolveGroupOrderDeliveryAddressId,
   setStoredGroupOrderCode,
+  unmarkStoredGroupOrderCompleted,
 } from "./group-order";
 
 const storage = new Map<string, string>();
@@ -45,6 +48,23 @@ describe("group order helpers", () => {
 
     clearStoredGroupOrderCode();
     expect(getStoredGroupOrderCode()).toBe("");
+  });
+
+  it("remembers completed group orders by id and invite code", () => {
+    markStoredGroupOrderCompleted({ orderId: "group-1", inviteCode: "ABC123" });
+
+    expect(isStoredGroupOrderCompleted({ orderId: "group-1" })).toBe(true);
+    expect(isStoredGroupOrderCompleted({ inviteCode: "ABC123" })).toBe(true);
+    expect(
+      isStoredGroupOrderCompleted({ orderId: "group-2", inviteCode: "XYZ" }),
+    ).toBe(false);
+
+    unmarkStoredGroupOrderCompleted({
+      orderId: "group-1",
+      inviteCode: "ABC123",
+    });
+    expect(isStoredGroupOrderCompleted({ orderId: "group-1" })).toBe(false);
+    expect(isStoredGroupOrderCompleted({ inviteCode: "ABC123" })).toBe(false);
   });
 
   it("detects closed group order statuses", () => {

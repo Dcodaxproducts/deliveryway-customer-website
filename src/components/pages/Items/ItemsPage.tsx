@@ -28,6 +28,8 @@ import {
   findCurrentGroupOrderParticipant,
   getStoredGroupOrderCode,
   isGroupOrderParticipantCompleted,
+  isStoredGroupOrderCompleted,
+  markStoredGroupOrderCompleted,
   setStoredGroupOrderCode,
   setStoredGroupOrderId,
 } from "@/lib/group-order";
@@ -121,9 +123,15 @@ function ItemsPageContent() {
     if (typeof window === "undefined") return;
 
     if (codeFromUrl) {
+      if (isStoredGroupOrderCompleted({ inviteCode: codeFromUrl })) {
+        clearStoredGroupOrderCode();
+        stripInviteCodeFromUrl();
+        return;
+      }
+
       setStoredGroupOrderCode(codeFromUrl);
     }
-  }, [codeFromUrl]);
+  }, [codeFromUrl, stripInviteCodeFromUrl]);
 
   useEffect(() => {
     const processGroupOrderInvite = async () => {
@@ -132,6 +140,12 @@ function ItemsPageContent() {
       const inviteCode = codeFromUrl || getStoredGroupOrderCode();
 
       if (!inviteCode) return;
+
+      if (isStoredGroupOrderCompleted({ inviteCode })) {
+        clearStoredGroupOrderCode();
+        stripInviteCodeFromUrl();
+        return;
+      }
 
       if (handledInviteCodeRef.current === inviteCode) return;
 
@@ -166,6 +180,10 @@ function ItemsPageContent() {
           : null;
 
         if (isGroupOrderParticipantCompleted(currentParticipant)) {
+          markStoredGroupOrderCompleted({
+            orderId: joinedOrder?.id,
+            inviteCode: joinedOrder?.inviteCode || inviteCode,
+          });
           clearStoredGroupOrderCode();
           stripInviteCodeFromUrl();
           await refetchGroupOrder();
@@ -194,10 +212,19 @@ function ItemsPageContent() {
   useEffect(() => {
     if (!participantSelectionDone) return;
 
+    markStoredGroupOrderCompleted({
+      orderId: order?.id,
+      inviteCode: order?.inviteCode,
+    });
     clearStoredGroupOrderCode();
     stripInviteCodeFromUrl();
     setHasAddedGroupOrderItem(false);
-  }, [participantSelectionDone, stripInviteCodeFromUrl]);
+  }, [
+    participantSelectionDone,
+    order?.id,
+    order?.inviteCode,
+    stripInviteCodeFromUrl,
+  ]);
 
   useEffect(() => {
     const autoSelectSoleBranch = async () => {
@@ -283,6 +310,10 @@ function ItemsPageContent() {
 
       toast.success(t("markedDone"));
       await refetchGroupOrder();
+      markStoredGroupOrderCompleted({
+        orderId: order.id,
+        inviteCode: order.inviteCode,
+      });
       clearStoredGroupOrderCode();
       router.push(
         `/group-order/lobby?groupOrderId=${encodeURIComponent(String(order.id))}`,
