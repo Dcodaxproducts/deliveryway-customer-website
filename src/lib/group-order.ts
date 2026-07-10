@@ -15,6 +15,8 @@ export const GROUP_ORDER_ID_KEY = "deliveryway:group-order-id";
 export const GROUP_ORDER_COMPLETED_KEY = "deliveryway:completed-group-orders";
 export const GROUP_ORDER_LAST_LOBBY_ID_KEY =
   "deliveryway:last-group-order-lobby-id";
+export const GROUP_ORDER_LOBBY_CHANGED_EVENT =
+  "deliveryway:group-order:lobby-changed";
 
 export const GROUP_ORDER_CLOSED_STATUSES: GroupOrderStatus[] = [
   "CHECKED_OUT",
@@ -44,8 +46,16 @@ export const setStoredGroupOrderId = (orderId: string | number) => {
 export const getStoredGroupOrderLobbyId = () =>
   safeGetLocalStorageItem(GROUP_ORDER_LAST_LOBBY_ID_KEY) || "";
 
+const dispatchGroupOrderLobbyChanged = () => {
+  if (typeof window === "undefined") return;
+  if (typeof window.dispatchEvent !== "function") return;
+
+  window.dispatchEvent(new Event(GROUP_ORDER_LOBBY_CHANGED_EVENT));
+};
+
 export const setStoredGroupOrderLobbyId = (orderId: string | number) => {
   safeSetLocalStorageItem(GROUP_ORDER_LAST_LOBBY_ID_KEY, String(orderId));
+  dispatchGroupOrderLobbyChanged();
 };
 
 export const clearStoredGroupOrderCode = () => {
