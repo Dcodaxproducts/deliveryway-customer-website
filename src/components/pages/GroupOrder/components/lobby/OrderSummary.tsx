@@ -433,6 +433,7 @@ export function OrderSummary({
         }
 
         setPendingSuccessData(successData);
+        setCheckoutOpen(false);
         setStripePayment({ open: true, clientSecret, publishableKey });
         return;
       }
