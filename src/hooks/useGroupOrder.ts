@@ -16,6 +16,7 @@ import {
   clearStoredGroupOrderCode,
   getStoredGroupOrderCode,
   getStoredGroupOrderId,
+  getStoredGroupOrderLobbyId,
   isClosedGroupOrder,
   isGroupOrderParticipantCompleted,
   isStoredGroupOrderCompleted,

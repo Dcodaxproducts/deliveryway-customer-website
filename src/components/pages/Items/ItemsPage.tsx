@@ -32,6 +32,7 @@ import {
   markStoredGroupOrderCompleted,
   setStoredGroupOrderCode,
   setStoredGroupOrderId,
+  setStoredGroupOrderLobbyId,
 } from "@/lib/group-order";
 import type { GroupOrder } from "@/types/group-order";
 
@@ -314,6 +315,7 @@ function ItemsPageContent() {
         orderId: order.id,
         inviteCode: order.inviteCode,
       });
+      setStoredGroupOrderLobbyId(order.id);
       clearStoredGroupOrderCode();
       router.push(
         `/group-order/lobby?groupOrderId=${encodeURIComponent(String(order.id))}`,

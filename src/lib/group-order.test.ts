@@ -7,6 +7,7 @@ import {
   clearStoredGroupOrderCode,
   findCurrentGroupOrderParticipant,
   getStoredGroupOrderCode,
+  getStoredGroupOrderLobbyId,
   isStoredGroupOrderCompleted,
   isClosedGroupOrder,
   isGroupOrderParticipantCompleted,
@@ -54,6 +55,7 @@ describe("group order helpers", () => {
     markStoredGroupOrderCompleted({ orderId: "group-1", inviteCode: "ABC123" });
 
     expect(isStoredGroupOrderCompleted({ orderId: "group-1" })).toBe(true);
+    expect(getStoredGroupOrderLobbyId()).toBe("group-1");
     expect(isStoredGroupOrderCompleted({ inviteCode: "ABC123" })).toBe(true);
     expect(
       isStoredGroupOrderCompleted({ orderId: "group-2", inviteCode: "XYZ" }),

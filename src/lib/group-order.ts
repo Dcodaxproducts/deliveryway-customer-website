@@ -39,6 +39,13 @@ export const setStoredGroupOrderId = (orderId: string | number) => {
   safeSetLocalStorageItem(GROUP_ORDER_ID_KEY, String(orderId));
 };
 
+export const getStoredGroupOrderLobbyId = () =>
+  safeGetLocalStorageItem(GROUP_ORDER_LAST_LOBBY_ID_KEY) || "";
+
+export const setStoredGroupOrderLobbyId = (orderId: string | number) => {
+  safeSetLocalStorageItem(GROUP_ORDER_LAST_LOBBY_ID_KEY, String(orderId));
+};
+
 export const clearStoredGroupOrderCode = () => {
   safeRemoveLocalStorageItem(GROUP_ORDER_CODE_KEY);
   safeRemoveLocalStorageItem(GROUP_ORDER_ID_KEY);
@@ -89,6 +96,10 @@ export const markStoredGroupOrderCompleted = ({
   const normalizedInviteCode = normalizeStorageValue(inviteCode);
 
   if (!normalizedOrderId && !normalizedInviteCode) return;
+
+  if (normalizedOrderId) {
+    setStoredGroupOrderLobbyId(normalizedOrderId);
+  }
 
   const store = readCompletedGroupOrderStore();
 

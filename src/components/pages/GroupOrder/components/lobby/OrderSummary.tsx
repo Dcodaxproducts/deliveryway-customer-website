@@ -19,6 +19,7 @@ import {
   markStoredGroupOrderCompleted,
   setStoredGroupOrderCode,
   setStoredGroupOrderId,
+  setStoredGroupOrderLobbyId,
   unmarkStoredGroupOrderCompleted,
 } from "@/lib/group-order";
 import { PaymentMethodSection } from "@/components/pages/Checkout/components/PaymentMethodSection";
@@ -185,6 +186,7 @@ export function OrderSummary({
           inviteCode: order.inviteCode,
         });
         setStoredGroupOrderId(order.id);
+        setStoredGroupOrderLobbyId(order.id);
         if (order.inviteCode) {
           setStoredGroupOrderCode(order.inviteCode);
         }
