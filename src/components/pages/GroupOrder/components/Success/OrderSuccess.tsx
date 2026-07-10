@@ -35,6 +35,7 @@ const toNumber = (value: unknown, fallback = 0) => {
 
 const hasAmount = (value: unknown) =>
   value !== null && value !== undefined && value !== "";
+const hasPositiveAmount = (value: unknown) => toNumber(value, 0) > 0;
 
 const formatDateTime = (value?: string | null) => {
   if (!value) return "—";
@@ -143,7 +144,19 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
   const subtotal = pricing?.subtotal ?? order?.subtotal;
   const taxAmount = pricing?.taxAmount ?? order?.taxAmount;
   const deliveryFee = pricing?.deliveryFee ?? order?.deliveryFee;
+  const serviceChargeAmount =
+    pricing?.serviceChargeAmount ??
+    order?.serviceChargeAmount ??
+    pricing?.serviceChargeValue ??
+    order?.serviceChargeValue;
+  const transactionFeeAmount =
+    pricing?.transactionFeeAmount ?? order?.transactionFeeAmount;
+  const tipAmount = pricing?.tipAmount ?? order?.tipAmount;
   const discountAmount = pricing?.discountAmount ?? order?.discountAmount;
+  const loyaltyDiscountAmount =
+    pricing?.loyaltyDiscountAmount ?? order?.loyaltyDiscountAmount;
+  const walletAppliedAmount =
+    pricing?.walletAppliedAmount ?? order?.walletAppliedAmount;
   const coupon = order?.coupon;
   const couponLabel = [coupon?.title, coupon?.code].filter(Boolean).join(" · ");
   const participants = session?.participants || [];
@@ -392,8 +405,8 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
                   <span>{t("subtotal")}</span>
                   <span>{formatCurrency(subtotal)}</span>
                 </div>
-                {hasAmount(taxAmount) ? (
-                  <div className="flex justify-between gap-4">
+                {hasPositiveAmount(taxAmount) ? (
+                  <div className="flex justify-between gap-4 text-gray-500">
                     <span>{t("tax")}</span>
                     <span>{formatCurrency(taxAmount)}</span>
                   </div>
@@ -404,10 +417,40 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
                     <span>{formatCurrency(deliveryFee)}</span>
                   </div>
                 ) : null}
-                {hasAmount(discountAmount) ? (
+                {hasPositiveAmount(serviceChargeAmount) ? (
+                  <div className="flex justify-between gap-4">
+                    <span>{t("serviceCharge")}</span>
+                    <span>{formatCurrency(serviceChargeAmount)}</span>
+                  </div>
+                ) : null}
+                {hasPositiveAmount(transactionFeeAmount) ? (
+                  <div className="flex justify-between gap-4">
+                    <span>{t("transactionFee")}</span>
+                    <span>{formatCurrency(transactionFeeAmount)}</span>
+                  </div>
+                ) : null}
+                {hasPositiveAmount(tipAmount) ? (
+                  <div className="flex justify-between gap-4">
+                    <span>{t("tip")}</span>
+                    <span>{formatCurrency(tipAmount)}</span>
+                  </div>
+                ) : null}
+                {hasPositiveAmount(discountAmount) ? (
                   <div className="flex justify-between gap-4 text-green-700">
                     <span>{couponLabel || t("discount")}</span>
                     <span>- {formatCurrency(discountAmount)}</span>
+                  </div>
+                ) : null}
+                {hasPositiveAmount(loyaltyDiscountAmount) ? (
+                  <div className="flex justify-between gap-4 text-green-700">
+                    <span>{t("loyaltyDiscount")}</span>
+                    <span>- {formatCurrency(loyaltyDiscountAmount)}</span>
+                  </div>
+                ) : null}
+                {hasPositiveAmount(walletAppliedAmount) ? (
+                  <div className="flex justify-between gap-4 text-green-700">
+                    <span>{t("walletApplied")}</span>
+                    <span>- {formatCurrency(walletAppliedAmount)}</span>
                   </div>
                 ) : null}
                 <div className="flex justify-between gap-4">

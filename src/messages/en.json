@@ -797,7 +797,9 @@
     "failedAddDealItem": "Failed to add deal item to cart",
     "failedRefreshQuote": "Failed to refresh cart quote",
     "dealItemsAdded": "Deal items added to cart",
-    "failedAddDeal": "Failed to add deal to cart"
+    "failedAddDeal": "Failed to add deal to cart",
+    "transactionFee": "Transaction fee",
+    "tax": "Tax"
   },
   "checkout": {
     "delivery": "Delivery",
@@ -1794,7 +1796,12 @@
       "noParticipants": "No participant details returned.",
       "couponTitle": "Coupon / discount",
       "discountApplied": "Discount applied",
-      "total": "Total"
+      "total": "Total",
+      "serviceCharge": "Service charge",
+      "transactionFee": "Transaction fee",
+      "tip": "Tip",
+      "loyaltyDiscount": "Loyalty discount",
+      "walletApplied": "Wallet applied"
     }
   },
   "branchSelector": {

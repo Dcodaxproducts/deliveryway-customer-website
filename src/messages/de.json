@@ -797,7 +797,9 @@
     "failedAddDealItem": "Angebotsartikel konnte nicht zum Warenkorb hinzugefügt werden",
     "failedRefreshQuote": "Warenkorbangebot konnte nicht aktualisiert werden",
     "dealItemsAdded": "Angebotsartikel zum Warenkorb hinzugefügt",
-    "failedAddDeal": "Angebot konnte nicht zum Warenkorb hinzugefügt werden"
+    "failedAddDeal": "Angebot konnte nicht zum Warenkorb hinzugefügt werden",
+    "transactionFee": "Transaktionsgebühr",
+    "tax": "Tax"
   },
   "checkout": {
     "delivery": "Lieferung",
@@ -1794,7 +1796,12 @@
       "noParticipants": "Keine Teilnehmerdetails zurückgegeben.",
       "couponTitle": "Gutschein / Rabatt",
       "discountApplied": "Rabatt angewendet",
-      "total": "Gesamt"
+      "total": "Gesamt",
+      "serviceCharge": "Servicegebühr",
+      "transactionFee": "Transaktionsgebühr",
+      "tip": "Trinkgeld",
+      "loyaltyDiscount": "Treuerabatt",
+      "walletApplied": "Wallet angewendet"
     }
   },
   "branchSelector": {

@@ -1,7 +1,7 @@
 "use client";
 
 import { Coins, Info, Loader2, LogOut, RefreshCw, XCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -23,6 +23,7 @@ import {
   unmarkStoredGroupOrderCompleted,
 } from "@/lib/group-order";
 import { PaymentMethodSection } from "@/components/pages/Checkout/components/PaymentMethodSection";
+import { formatMoney } from "@/lib/money";
 import { isImmediateScheduleAvailable } from "@/components/pages/Checkout/utils/pickup-schedule";
 import {
   getBackendErrorMessage,
@@ -54,6 +55,7 @@ type OrderSummaryProps = {
   ) => void;
   onRefresh: () => void;
   refreshing: boolean;
+  currency?: string | null;
 };
 
 export function OrderSummary({
@@ -67,6 +69,7 @@ export function OrderSummary({
   onParticipantStatusChange,
   onRefresh,
   refreshing,
+  currency,
 }: OrderSummaryProps) {
   const t = useTranslations("groupOrder.lobby.summary");
   const checkoutT = useTranslations("checkout");
@@ -128,6 +131,51 @@ export function OrderSummary({
   const loyaltyEstimatedDiscount = loyalty
     ? normalizedLoyaltyPoints * Math.max(0, loyalty.redemptionValuePerPoint)
     : 0;
+
+  const amount = (value: unknown, fallback = 0) => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  };
+  const positiveAmount = (value: unknown) => amount(value) > 0;
+  const formatAmount = (value: unknown) => formatMoney(value, currency);
+  const serviceChargeAmount =
+    summary?.serviceChargeAmount ??
+    summary?.chargeBreakdown?.totalServiceChargeAmount ??
+    0;
+  const transactionFeeAmount =
+    summary?.transactionFeeAmount ??
+    summary?.chargeBreakdown?.totalTransactionFeeAmount ??
+    0;
+  const taxAmount =
+    summary?.taxAmount ?? summary?.chargeBreakdown?.totalTaxAmount ?? 0;
+  const payableAmount = summary?.payableAmount ?? summary?.totalAmount ?? 0;
+  const serviceChargeLabel = useMemo(() => {
+    const firstCharge = summary?.chargeBreakdown?.serviceCharges?.[0];
+    const label = firstCharge?.label || t("platformFee");
+    const type = String(
+      summary?.serviceChargeType || firstCharge?.type || "",
+    ).toUpperCase();
+    const value = summary?.serviceChargeValue ?? firstCharge?.value;
+
+    if (
+      type === "PERCENTAGE" &&
+      value !== null &&
+      value !== undefined &&
+      value !== ""
+    ) {
+      return `${label} (${Number(value).toString()}%)`;
+    }
+
+    return label;
+  }, [
+    summary?.chargeBreakdown?.serviceCharges,
+    summary?.serviceChargeType,
+    summary?.serviceChargeValue,
+    t,
+  ]);
+  const transactionFeeLabel =
+    summary?.chargeBreakdown?.transactionFees?.[0]?.label ||
+    cartT("transactionFee");
 
   useEffect(() => {
     if (!checkoutOpen || !token) return;
@@ -372,28 +420,52 @@ export function OrderSummary({
               {cartT("subtotal")} (
               {cartT("itemCount", { count: summary?.itemCount || 0 })})
             </span>
-            <span>${summary?.subtotal || 0}</span>
+            <span>{formatAmount(summary?.subtotal || 0)}</span>
           </div>
-          <div className="flex justify-between">
-            <span>{cartT("deliveryFee")}</span>
-            <span>${summary?.deliveryFee || 0}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>{t("platformFee")}</span>
-            <span>$1.50</span>
-          </div>
-          {Number(summary?.tipAmount || 0) > 0 ? (
-            <div className="flex justify-between">
-              <span>{cartT("tip")}</span>
-              <span>${Number(summary?.tipAmount || 0).toFixed(2)}</span>
+          {positiveAmount(taxAmount) ? (
+            <div className="flex justify-between text-gray-500">
+              <span>{cartT("tax")}</span>
+              <span>{formatAmount(taxAmount)}</span>
             </div>
           ) : null}
-          {Number(summary?.loyaltyDiscountAmount || 0) > 0 ? (
+          <div className="flex justify-between">
+            <span>{cartT("deliveryFee")}</span>
+            <span>{formatAmount(summary?.deliveryFee || 0)}</span>
+          </div>
+          {positiveAmount(serviceChargeAmount) ? (
+            <div className="flex justify-between">
+              <span>{serviceChargeLabel}</span>
+              <span>{formatAmount(serviceChargeAmount)}</span>
+            </div>
+          ) : null}
+          {positiveAmount(transactionFeeAmount) ? (
+            <div className="flex justify-between">
+              <span>{transactionFeeLabel}</span>
+              <span>{formatAmount(transactionFeeAmount)}</span>
+            </div>
+          ) : null}
+          {positiveAmount(summary?.tipAmount) ? (
+            <div className="flex justify-between">
+              <span>{cartT("tip")}</span>
+              <span>{formatAmount(summary?.tipAmount)}</span>
+            </div>
+          ) : null}
+          {positiveAmount(summary?.discountAmount) ? (
+            <div className="flex justify-between text-green-700">
+              <span>{cartT("discount")}</span>
+              <span>- {formatAmount(summary?.discountAmount)}</span>
+            </div>
+          ) : null}
+          {positiveAmount(summary?.loyaltyDiscountAmount) ? (
             <div className="flex justify-between text-green-700">
               <span>{cartT("loyaltyDiscount")}</span>
-              <span>
-                - ${Number(summary?.loyaltyDiscountAmount || 0).toFixed(2)}
-              </span>
+              <span>- {formatAmount(summary?.loyaltyDiscountAmount)}</span>
+            </div>
+          ) : null}
+          {positiveAmount(summary?.walletAppliedAmount) ? (
+            <div className="flex justify-between text-green-700">
+              <span>{cartT("walletApplied")}</span>
+              <span>- {formatAmount(summary?.walletAppliedAmount)}</span>
             </div>
           ) : null}
         </div>
@@ -402,7 +474,7 @@ export function OrderSummary({
 
         <div className="flex justify-between font-semibold text-lg">
           <span>{cartT("total")}</span>
-          <span className="text-orange-500">${summary?.totalAmount || 0}</span>
+          <span className="text-orange-500">{formatAmount(payableAmount)}</span>
         </div>
 
         {/* CHECKOUT BUTTON */}

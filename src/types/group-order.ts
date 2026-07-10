@@ -104,12 +104,38 @@ export type GroupOrderSummary = {
   itemCount?: number;
   orderTime?: string | null;
   isScheduled?: boolean | null;
+  currency?: string | null;
   subtotal?: number;
+  taxAmount?: number;
   deliveryFee?: number;
+  serviceChargeType?: string | null;
+  serviceChargeValue?: number | string | null;
+  serviceChargeAmount?: number;
+  transactionFeeAmount?: number;
   tipAmount?: number;
+  discountAmount?: number;
+  walletAppliedAmount?: number;
   loyaltyDiscountAmount?: number;
   loyaltyPointsRedeemed?: number;
   totalAmount?: number;
+  payableAmount?: number;
+  chargeBreakdown?: {
+    totalTaxAmount?: number | string | null;
+    totalServiceChargeAmount?: number | string | null;
+    totalTransactionFeeAmount?: number | string | null;
+    serviceCharges?: Array<{
+      label?: string | null;
+      type?: string | null;
+      value?: number | string | null;
+      amount?: number | string | null;
+    }>;
+    transactionFees?: Array<{
+      label?: string | null;
+      type?: string | null;
+      value?: number | string | null;
+      amount?: number | string | null;
+    }>;
+  } | null;
 };
 
 export type GroupOrder = {
@@ -184,7 +210,14 @@ export type GroupOrderSuccessPricing = {
   subtotal?: number | string | null;
   taxAmount?: number | string | null;
   deliveryFee?: number | string | null;
+  serviceChargeType?: string | null;
+  serviceChargeValue?: number | string | null;
+  serviceChargeAmount?: number | string | null;
+  transactionFeeAmount?: number | string | null;
+  tipAmount?: number | string | null;
   discountAmount?: number | string | null;
+  walletAppliedAmount?: number | string | null;
+  loyaltyDiscountAmount?: number | string | null;
   totalAmount?: number | string | null;
   payableAmount?: number | string | null;
 };
@@ -215,7 +248,14 @@ export type GroupOrderSuccessData = {
     subtotal?: number | string | null;
     taxAmount?: number | string | null;
     deliveryFee?: number | string | null;
+    serviceChargeType?: string | null;
+    serviceChargeValue?: number | string | null;
+    serviceChargeAmount?: number | string | null;
+    transactionFeeAmount?: number | string | null;
+    tipAmount?: number | string | null;
     discountAmount?: number | string | null;
+    walletAppliedAmount?: number | string | null;
+    loyaltyDiscountAmount?: number | string | null;
     payableAmount?: number | string | null;
     totalAmount?: number | string | null;
     orderTime?: string | null;
