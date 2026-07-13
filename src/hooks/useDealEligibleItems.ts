@@ -6,15 +6,23 @@ import { useAuth } from "@/hooks/useAuth";
 import useItems from "@/hooks/useItems";
 import { isFlexibleAllItemsDeal } from "@/components/pages/Home/utils/customer-deal-cart";
 import type { MenuItem } from "@/components/pages/Items/types";
-import type { CustomerDeal, CustomerDealMenuItem, CustomerDealMenuItemOption } from "@/types/customer-deals";
+import type {
+  CustomerDeal,
+  CustomerDealMenuItem,
+  CustomerDealMenuItemOption,
+} from "@/types/customer-deals";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
-const normalizeOptions = (value: unknown): CustomerDealMenuItemOption[] | undefined =>
+const normalizeOptions = (
+  value: unknown,
+): CustomerDealMenuItemOption[] | undefined =>
   Array.isArray(value) ? value.filter(isRecord) : undefined;
 
-export const toDealEligibleMenuItem = (item: MenuItem): CustomerDealMenuItem | null => {
+export const toDealEligibleMenuItem = (
+  item: MenuItem,
+): CustomerDealMenuItem | null => {
   const id = item.id ? String(item.id) : "";
 
   if (!id) {
@@ -31,7 +39,10 @@ export const toDealEligibleMenuItem = (item: MenuItem): CustomerDealMenuItem | n
     discountedBasePrice: item.discountedBasePrice,
     category: {
       id: item.categoryId ? String(item.categoryId) : undefined,
-      name: typeof item.category?.name === "string" ? item.category.name : undefined,
+      name:
+        typeof item.category?.name === "string"
+          ? item.category.name
+          : undefined,
     },
     variations: normalizeOptions(item.variations),
     modifierGroups: [],
@@ -50,7 +61,7 @@ export const toDealEligibleMenuItem = (item: MenuItem): CustomerDealMenuItem | n
 };
 
 export const mergeUniqueDealEligibleItems = (
-  groups: CustomerDealMenuItem[][]
+  groups: CustomerDealMenuItem[][],
 ): CustomerDealMenuItem[] => {
   const itemsById = new Map<string, CustomerDealMenuItem>();
 
@@ -67,22 +78,26 @@ export const mergeUniqueDealEligibleItems = (
 
 export const filterDealItemsForForcedCategoryVariations = (
   deal: CustomerDeal | null,
-  items: CustomerDealMenuItem[]
+  items: CustomerDealMenuItem[],
 ): CustomerDealMenuItem[] => {
-  const forcedRules = (deal?.scopeCategoryRules ?? []).filter((rule) => rule.variationId?.trim());
+  const forcedRules = (deal?.scopeCategoryRules ?? []).filter((rule) =>
+    rule.variationId?.trim(),
+  );
 
   if (forcedRules.length === 0) {
     return items;
   }
 
   const forcedRulesByCategoryId = new Map(
-    forcedRules.map((rule) => [rule.menuCategoryId, rule])
+    forcedRules.map((rule) => [rule.menuCategoryId, rule]),
   );
 
   return items.filter((item) => {
     const itemId = item.id.trim();
     const categoryId = item.category?.id?.trim();
-    const rule = categoryId ? forcedRulesByCategoryId.get(categoryId) : undefined;
+    const rule = categoryId
+      ? forcedRulesByCategoryId.get(categoryId)
+      : undefined;
 
     if (!itemId || !rule) {
       return true;
@@ -107,7 +122,7 @@ export const getDealRequiredSelectionCount = (deal: CustomerDeal | null) => {
 
   const categoryRuleQuantity = (deal.scopeCategoryRules ?? []).reduce(
     (total, rule) => total + rule.itemLimit,
-    0
+    0,
   );
 
   if (categoryRuleQuantity > 0) {
@@ -120,7 +135,10 @@ export const getDealRequiredSelectionCount = (deal: CustomerDeal | null) => {
     return Math.floor(parsed);
   }
 
-  if (deal.dealSelectionMode === "FIXED_ITEMS" && deal.scopeMenuItems.length > 0) {
+  if (
+    deal.dealSelectionMode === "FIXED_ITEMS" &&
+    deal.scopeMenuItems.length > 0
+  ) {
     return deal.scopeMenuItems.length;
   }
 
@@ -144,20 +162,23 @@ export const useDealEligibleItems = ({
 }) => {
   const { token, restaurantId: authRestaurantId, user } = useAuth();
   const { fetchMenuItemsPage } = useItems(token);
-  const [categoryItems, setCategoryItems] = useState<CustomerDealMenuItem[]>([]);
+  const [categoryItems, setCategoryItems] = useState<CustomerDealMenuItem[]>(
+    [],
+  );
   const [allMenuItems, setAllMenuItems] = useState<CustomerDealMenuItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const categoryIds = useMemo(
-    () => {
-      const ruleCategoryIds = deal?.scopeCategoryRules?.map(({ menuCategoryId }) => menuCategoryId) ?? [];
-      const scopedCategoryIds = deal?.scopeCategories.map(({ id }) => id) ?? [];
+  const categoryIds = useMemo(() => {
+    const ruleCategoryIds =
+      deal?.scopeCategoryRules?.map(({ menuCategoryId }) => menuCategoryId) ??
+      [];
+    const scopedCategoryIds = deal?.scopeCategories.map(({ id }) => id) ?? [];
 
-      return Array.from(new Set([...ruleCategoryIds, ...scopedCategoryIds].filter(Boolean)));
-    },
-    [deal]
-  );
+    return Array.from(
+      new Set([...ruleCategoryIds, ...scopedCategoryIds].filter(Boolean)),
+    );
+  }, [deal]);
   const categoryIdsKey = categoryIds.join(":");
   const restaurantId = deal?.restaurant?.id || authRestaurantId || "";
   const branchId = user?.branchId || user?.branch?.id || null;
@@ -167,7 +188,11 @@ export const useDealEligibleItems = ({
     let isMounted = true;
 
     const fetchEligibleItems = async () => {
-      if (!open || !deal || (!shouldFetchAllMenuItems && categoryIds.length === 0)) {
+      if (
+        !open ||
+        !deal ||
+        (!shouldFetchAllMenuItems && categoryIds.length === 0)
+      ) {
         setCategoryItems([]);
         setAllMenuItems([]);
         setError(null);
@@ -202,8 +227,10 @@ export const useDealEligibleItems = ({
           setCategoryItems([]);
           setAllMenuItems(
             mergeUniqueDealEligibleItems([
-              items.map(toDealEligibleMenuItem).filter((item): item is CustomerDealMenuItem => item !== null),
-            ])
+              items
+                .map(toDealEligibleMenuItem)
+                .filter((item): item is CustomerDealMenuItem => item !== null),
+            ]),
           );
           return;
         }
@@ -216,8 +243,8 @@ export const useDealEligibleItems = ({
               categoryId,
               page: 1,
               limit: 100,
-            })
-          )
+            }),
+          ),
         );
 
         if (!isMounted) {
@@ -226,8 +253,10 @@ export const useDealEligibleItems = ({
 
         const nextItems = mergeUniqueDealEligibleItems(
           responses.map(({ items }) =>
-            items.map(toDealEligibleMenuItem).filter((item): item is CustomerDealMenuItem => item !== null)
-          )
+            items
+              .map(toDealEligibleMenuItem)
+              .filter((item): item is CustomerDealMenuItem => item !== null),
+          ),
         );
 
         setAllMenuItems([]);
@@ -250,15 +279,34 @@ export const useDealEligibleItems = ({
     return () => {
       isMounted = false;
     };
-  }, [branchId, categoryIds, categoryIdsKey, deal, fetchMenuItemsPage, open, restaurantId, shouldFetchAllMenuItems]);
-
-  const items = filterDealItemsForForcedCategoryVariations(
+  }, [
+    branchId,
+    categoryIds,
+    categoryIdsKey,
     deal,
-    shouldFetchAllMenuItems
-      ? allMenuItems
-      : categoryIds.length > 0
-        ? categoryItems
-        : deal?.scopeMenuItems ?? []
+    fetchMenuItemsPage,
+    open,
+    restaurantId,
+    shouldFetchAllMenuItems,
+  ]);
+
+  const items = useMemo(
+    () =>
+      filterDealItemsForForcedCategoryVariations(
+        deal,
+        shouldFetchAllMenuItems
+          ? allMenuItems
+          : categoryIds.length > 0
+            ? categoryItems
+            : (deal?.scopeMenuItems ?? []),
+      ),
+    [
+      allMenuItems,
+      categoryIds.length,
+      categoryItems,
+      deal,
+      shouldFetchAllMenuItems,
+    ],
   );
 
   return {
