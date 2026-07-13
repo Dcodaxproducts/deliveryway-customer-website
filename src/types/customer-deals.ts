@@ -62,6 +62,8 @@ export type CustomerDealCategoryRule = {
     name?: string;
     displayText?: string | null;
   } | null;
+  eligibleMenuItemIds?: string[];
+  excludedMenuItemIds?: string[];
 };
 
 export type CustomerDealRestaurant = {
@@ -230,6 +232,20 @@ const normalizeCategories = (value: unknown): CustomerDealCategory[] => {
     .filter((category) => category.id);
 };
 
+const normalizeStringArray = (value: unknown): string[] | undefined => {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  return Array.from(
+    new Set(
+      value
+        .map((item) => (typeof item === "string" || typeof item === "number" ? String(item).trim() : ""))
+        .filter(Boolean)
+    )
+  );
+};
+
 const normalizeCategoryRules = (value: unknown): CustomerDealCategoryRule[] => {
   if (!Array.isArray(value)) {
     return [];
@@ -239,6 +255,9 @@ const normalizeCategoryRules = (value: unknown): CustomerDealCategoryRule[] => {
     .filter(isRecord)
     .map((rule) => {
       const variation = isRecord(rule.variation) ? rule.variation : null;
+
+      const eligibleMenuItemIds = normalizeStringArray(rule.eligibleMenuItemIds);
+      const excludedMenuItemIds = normalizeStringArray(rule.excludedMenuItemIds);
 
       return {
         menuCategoryId: getString(rule.menuCategoryId) ?? "",
@@ -251,6 +270,8 @@ const normalizeCategoryRules = (value: unknown): CustomerDealCategoryRule[] => {
               displayText: getNullableString(variation.displayText),
             }
           : null,
+        ...(eligibleMenuItemIds ? { eligibleMenuItemIds } : {}),
+        ...(excludedMenuItemIds ? { excludedMenuItemIds } : {}),
       };
     })
     .filter((rule) => rule.menuCategoryId && rule.itemLimit > 0);

@@ -65,6 +65,41 @@ export const mergeUniqueDealEligibleItems = (
   return Array.from(itemsById.values());
 };
 
+export const filterDealItemsForForcedCategoryVariations = (
+  deal: CustomerDeal | null,
+  items: CustomerDealMenuItem[]
+): CustomerDealMenuItem[] => {
+  const forcedRules = (deal?.scopeCategoryRules ?? []).filter((rule) => rule.variationId?.trim());
+
+  if (forcedRules.length === 0) {
+    return items;
+  }
+
+  const forcedRulesByCategoryId = new Map(
+    forcedRules.map((rule) => [rule.menuCategoryId, rule])
+  );
+
+  return items.filter((item) => {
+    const itemId = item.id.trim();
+    const categoryId = item.category?.id?.trim();
+    const rule = categoryId ? forcedRulesByCategoryId.get(categoryId) : undefined;
+
+    if (!itemId || !rule) {
+      return true;
+    }
+
+    if (Array.isArray(rule.eligibleMenuItemIds)) {
+      return rule.eligibleMenuItemIds.includes(itemId);
+    }
+
+    if (Array.isArray(rule.excludedMenuItemIds)) {
+      return !rule.excludedMenuItemIds.includes(itemId);
+    }
+
+    return true;
+  });
+};
+
 export const getDealRequiredSelectionCount = (deal: CustomerDeal | null) => {
   if (!deal) {
     return 1;
@@ -217,11 +252,14 @@ export const useDealEligibleItems = ({
     };
   }, [branchId, categoryIds, categoryIdsKey, deal, fetchMenuItemsPage, open, restaurantId, shouldFetchAllMenuItems]);
 
-  const items = shouldFetchAllMenuItems
-    ? allMenuItems
-    : categoryIds.length > 0
-      ? categoryItems
-      : deal?.scopeMenuItems ?? [];
+  const items = filterDealItemsForForcedCategoryVariations(
+    deal,
+    shouldFetchAllMenuItems
+      ? allMenuItems
+      : categoryIds.length > 0
+        ? categoryItems
+        : deal?.scopeMenuItems ?? []
+  );
 
   return {
     items,

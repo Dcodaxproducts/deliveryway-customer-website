@@ -206,6 +206,24 @@ export function DealChooserDrawer({
     }
   }, [open]);
 
+  useEffect(() => {
+    if (!open) return;
+
+    const visibleItemIds = new Set(itemIds);
+
+    setSelectedMenuItemIds((current) => current.filter((id) => visibleItemIds.has(id)));
+    setExpandedItemIds((current) => current.filter((id) => visibleItemIds.has(id)));
+    setConfigurationsByItemId((current) => Object.fromEntries(
+      Object.entries(current).filter(([id]) => visibleItemIds.has(id))
+    ));
+    setItemErrorsById((current) => Object.fromEntries(
+      Object.entries(current).filter(([id]) => visibleItemIds.has(id))
+    ));
+    setGroupErrorsByItemId((current) => Object.fromEntries(
+      Object.entries(current).filter(([id]) => visibleItemIds.has(id))
+    ));
+  }, [itemIds, open]);
+
   const updateItemConfiguration = useCallback(
     (
       menuItemId: string,
