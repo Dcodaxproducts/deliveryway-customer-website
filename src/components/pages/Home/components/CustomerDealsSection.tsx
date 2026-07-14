@@ -28,10 +28,12 @@ import {
 } from "@/components/pages/Home/utils/customer-deal-cart";
 import {
   formatDealPrice,
+  getDealCategoryRequirementHighlights,
   getDealForcedVariationBadges,
   getDealItemNames,
   isDealActive,
 } from "@/components/pages/Home/utils/customer-deals-formatters";
+import type { DealCategoryRequirementHighlight } from "@/components/pages/Home/utils/customer-deals-formatters";
 import { useDealScopedItemsDetails } from "@/hooks/useDealScopedItemsDetails";
 import type { CustomerDeal } from "@/types/customer-deals";
 
@@ -76,20 +78,6 @@ const toNumber = (value: number | string | null | undefined) => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
-const getDealCategoryRuleHighlights = (deal: CustomerDeal) => {
-  const categoryNamesById = new Map(
-    deal.scopeCategories.map((category) => [category.id, category.name]),
-  );
-
-  return (deal.scopeCategoryRules ?? [])
-    .map((rule) => ({
-      id: rule.menuCategoryId,
-      count: rule.itemLimit,
-      name: categoryNamesById.get(rule.menuCategoryId) || "Category",
-    }))
-    .filter(({ id, count }) => id && count > 0);
-};
-
 const getDealNameChips = (names: string) =>
   names
     .split(",")
@@ -101,14 +89,15 @@ const getDealHighlights = (
   deal: CustomerDeal,
   itemNames: string,
   categoryNames: string,
-) => {
-  const categoryRules = getDealCategoryRuleHighlights(deal);
-  const chips = getDealNameChips(itemNames || categoryNames);
+): DealCategoryRequirementHighlight[] => {
+  const categoryRules = getDealCategoryRequirementHighlights(deal);
+  const chips = getDealNameChips(itemNames || categoryNames).map((chip) => ({
+    id: chip,
+    label: chip,
+  }));
 
   if (isFlexibleCategoryDeal(deal) && categoryRules.length > 0) {
-    return categoryRules
-      .map((rule) => `${rule.count} ${rule.name}`)
-      .slice(0, 3);
+    return categoryRules.slice(0, 3);
   }
 
   return chips;
@@ -148,7 +137,9 @@ const CustomerDealCard = ({
   const categoryNames = getDealItemNames(deal.scopeCategories);
   const actionLabel = getDealActionLabel(deal);
   const highlights = getDealHighlights(deal, itemNames, categoryNames);
-  const forcedVariationBadges = getDealForcedVariationBadges(deal);
+  const forcedVariationBadges = isFlexibleCategoryDeal(deal)
+    ? []
+    : getDealForcedVariationBadges(deal);
   const visibleVariationBadges = forcedVariationBadges.slice(0, 2);
   const hiddenVariationBadgeCount =
     forcedVariationBadges.length - visibleVariationBadges.length;
@@ -215,13 +206,21 @@ const CustomerDealCard = ({
           ) : null}
 
           <ul className="mt-3 space-y-1.5 text-[13px] font-medium leading-5 text-gray-700">
-            {(highlights.length > 0 ? highlights : [getDealTypeLabel(deal)])
+            {(highlights.length > 0
+              ? highlights
+              : [{ id: "deal-type", label: getDealTypeLabel(deal) }]
+            )
               .slice(0, 3)
               .map((highlight) => (
-                <li key={highlight} className="flex min-w-0 items-start gap-2">
+                <li key={highlight.id} className="flex min-w-0 items-start gap-2">
                   <span className="mt-[9px] h-1 w-1 shrink-0 rounded-full bg-gray-700" />
                   <span className="line-clamp-2 min-w-0 break-words">
-                    {highlight}
+                    {highlight.label}
+                    {highlight.variationLabel ? (
+                      <span className="ml-1.5 inline-flex rounded-full border border-primary/15 bg-primary/[0.07] px-1.5 py-0.5 text-[10px] font-extrabold leading-3 text-primary">
+                        {highlight.variationLabel}
+                      </span>
+                    ) : null}
                   </span>
                 </li>
               ))}
@@ -289,7 +288,9 @@ const CustomerDealMenuCard = ({
   const categoryNames = getDealItemNames(deal.scopeCategories);
   const actionLabel = getDealActionLabel(deal);
   const highlights = getDealHighlights(deal, itemNames, categoryNames);
-  const forcedVariationBadges = getDealForcedVariationBadges(deal);
+  const forcedVariationBadges = isFlexibleCategoryDeal(deal)
+    ? []
+    : getDealForcedVariationBadges(deal);
   const visibleVariationBadges = forcedVariationBadges.slice(0, 2);
   const hiddenVariationBadgeCount =
     forcedVariationBadges.length - visibleVariationBadges.length;
@@ -406,18 +407,27 @@ const CustomerDealMenuCard = ({
         ) : null}
 
         <div className="mt-3 flex h-7 flex-nowrap gap-1.5 overflow-hidden">
-          {(highlights.length > 0 ? highlights : [getDealTypeLabel(deal)])
+          {(highlights.length > 0
+            ? highlights
+            : [{ id: "deal-type", label: getDealTypeLabel(deal) }]
+          )
             .slice(0, 2)
             .map((highlight) => (
               <span
-                key={highlight}
+                key={highlight.id}
                 className={`max-w-[48%] truncate rounded-full px-2.5 py-1 text-[10px] font-semibold leading-[18px] ${
                   isFeatured
                     ? "bg-white/[0.11] text-[#FFF4EA]"
                     : "bg-[#F0EAE2] text-[#74675E]"
                 }`}
+                title={
+                  highlight.variationLabel
+                    ? `${highlight.label} · ${highlight.variationLabel}`
+                    : highlight.label
+                }
               >
-                {highlight}
+                {highlight.label}
+                {highlight.variationLabel ? ` · ${highlight.variationLabel}` : ""}
               </span>
             ))}
         </div>

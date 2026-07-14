@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   formatDealDateRange,
   formatDealPrice,
+  getDealCategoryRequirementHighlights,
   getDealForcedVariationBadges,
   getDealImage,
   getDealItemNames,
@@ -74,6 +75,27 @@ describe("customer deals formatters", () => {
     ).toEqual([{ id: "cat-pizza-large", label: "Size: Large" }]);
   });
 
+  it("includes category names when only one of multiple category requirements forces a variation", () => {
+    expect(
+      getDealForcedVariationBadges({
+        ...deal,
+        scopeCategories: [
+          { id: "cat-noodles", name: "Nudeln" },
+          { id: "cat-drinks", name: "Getränke" },
+        ],
+        scopeCategoryRules: [
+          { menuCategoryId: "cat-noodles", itemLimit: 1 },
+          {
+            menuCategoryId: "cat-drinks",
+            itemLimit: 1,
+            variationId: "large",
+            variation: { id: "large", name: "Large" },
+          },
+        ],
+      })
+    ).toEqual([{ id: "cat-drinks-large", label: "Getränke: Large" }]);
+  });
+
   it("includes category names when a deal forces multiple variations", () => {
     expect(
       getDealForcedVariationBadges({
@@ -100,6 +122,30 @@ describe("customer deals formatters", () => {
     ).toEqual([
       { id: "cat-pizza-large", label: "Pizza Bianca: Large" },
       { id: "cat-side-regular", label: "Side: Regular" },
+    ]);
+  });
+
+  it("formats category requirement highlights with category-specific variation labels", () => {
+    expect(
+      getDealCategoryRequirementHighlights({
+        ...deal,
+        scopeCategories: [
+          { id: "cat-noodles", name: "Nudeln" },
+          { id: "cat-drinks", name: "Getränke" },
+        ],
+        scopeCategoryRules: [
+          { menuCategoryId: "cat-noodles", itemLimit: 1 },
+          {
+            menuCategoryId: "cat-drinks",
+            itemLimit: 1,
+            variationId: "large",
+            variation: { id: "large", name: "Large" },
+          },
+        ],
+      })
+    ).toEqual([
+      { id: "cat-noodles", label: "1 Nudeln", variationLabel: undefined },
+      { id: "cat-drinks", label: "1 Getränke", variationLabel: "Large" },
     ]);
   });
 

@@ -62,6 +62,12 @@ export const getDealItemNames = (items: CustomerDealMenuItem[]): string =>
     .filter(Boolean)
     .join(", ");
 
+export type DealCategoryRequirementHighlight = {
+  id: string;
+  label: string;
+  variationLabel?: string;
+};
+
 type DealForcedVariationBadge = {
   id: string;
   label: string;
@@ -70,12 +76,53 @@ type DealForcedVariationBadge = {
 const getVariationLabel = (variation?: CustomerDealCategoryRule["variation"]) =>
   variation?.displayText?.trim() || variation?.name?.trim() || "";
 
+const getCategoryNamesById = (deal: CustomerDeal) =>
+  new Map(
+    deal.scopeCategories.map((category) => [category.id, category.name.trim()])
+  );
+
+export const getDealCategoryRequirementHighlights = (
+  deal: CustomerDeal
+): DealCategoryRequirementHighlight[] => {
+  const categoryNamesById = getCategoryNamesById(deal);
+
+  const seenCategoryIds = new Set<string>();
+
+  return (deal.scopeCategoryRules ?? []).reduce<DealCategoryRequirementHighlight[]>(
+    (highlights, rule) => {
+      if (!rule.menuCategoryId || rule.itemLimit <= 0 || seenCategoryIds.has(rule.menuCategoryId)) {
+        return highlights;
+      }
+
+      const categoryName = categoryNamesById.get(rule.menuCategoryId) || "Category";
+      const variationLabel = categoryNamesById.has(rule.menuCategoryId)
+        ? getVariationLabel(rule.variation)
+        : "";
+
+      seenCategoryIds.add(rule.menuCategoryId);
+      highlights.push({
+        id: rule.menuCategoryId,
+        label: `${rule.itemLimit} ${categoryName}`,
+        variationLabel: variationLabel || undefined,
+      });
+
+      return highlights;
+    },
+    []
+  );
+};
+
 export const getDealForcedVariationBadges = (
   deal: CustomerDeal
 ): DealForcedVariationBadge[] => {
+  const categoryNamesById = getCategoryNamesById(deal);
+  const categoryRequirementCount = (deal.scopeCategoryRules ?? []).filter(
+    (rule) => rule.menuCategoryId && rule.itemLimit > 0
+  ).length;
   const rulesWithVariation = (deal.scopeCategoryRules ?? [])
     .map((rule) => ({
       categoryId: rule.menuCategoryId,
+      categoryName: categoryNamesById.get(rule.menuCategoryId) || "",
       variationId: rule.variationId ?? rule.variation?.id ?? "",
       variationLabel: getVariationLabel(rule.variation),
     }))
@@ -87,16 +134,17 @@ export const getDealForcedVariationBadges = (
     return [];
   }
 
-  const categoryNamesById = new Map(
-    deal.scopeCategories.map((category) => [category.id, category.name.trim()])
-  );
-  const includeCategoryName = rulesWithVariation.length > 1;
+  const includeCategoryName =
+    rulesWithVariation.length > 1 || categoryRequirementCount > 1;
   const seenLabels = new Set<string>();
 
   return rulesWithVariation.reduce<DealForcedVariationBadge[]>((badges, rule) => {
-    const categoryName = categoryNamesById.get(rule.categoryId) || "Category";
+    if (includeCategoryName && !rule.categoryName) {
+      return badges;
+    }
+
     const label = includeCategoryName
-      ? `${categoryName}: ${rule.variationLabel}`
+      ? `${rule.categoryName}: ${rule.variationLabel}`
       : `Size: ${rule.variationLabel}`;
 
     if (seenLabels.has(label)) {
