@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   formatDealDateRange,
   formatDealPrice,
+  getDealForcedVariationBadges,
   getDealImage,
   getDealItemNames,
 } from "./customer-deals-formatters";
@@ -54,5 +55,63 @@ describe("customer deals formatters", () => {
   it("handles missing items", () => {
     expect(getDealItemNames([])).toBe("");
     expect(getDealImage(deal)).toBeNull();
+  });
+
+  it("formats a single forced variation as a compact size badge", () => {
+    expect(
+      getDealForcedVariationBadges({
+        ...deal,
+        scopeCategories: [{ id: "cat-pizza", name: "Pizza" }],
+        scopeCategoryRules: [
+          {
+            menuCategoryId: "cat-pizza",
+            itemLimit: 1,
+            variationId: "large",
+            variation: { id: "large", name: "Large" },
+          },
+        ],
+      })
+    ).toEqual([{ id: "cat-pizza-large", label: "Size: Large" }]);
+  });
+
+  it("includes category names when a deal forces multiple variations", () => {
+    expect(
+      getDealForcedVariationBadges({
+        ...deal,
+        scopeCategories: [
+          { id: "cat-pizza", name: "Pizza Bianca" },
+          { id: "cat-side", name: "Side" },
+        ],
+        scopeCategoryRules: [
+          {
+            menuCategoryId: "cat-pizza",
+            itemLimit: 1,
+            variationId: "large",
+            variation: { id: "large", name: "Large" },
+          },
+          {
+            menuCategoryId: "cat-side",
+            itemLimit: 1,
+            variationId: "regular",
+            variation: { id: "regular", displayText: "Regular" },
+          },
+        ],
+      })
+    ).toEqual([
+      { id: "cat-pizza-large", label: "Pizza Bianca: Large" },
+      { id: "cat-side-regular", label: "Side: Regular" },
+    ]);
+  });
+
+  it("ignores category rules without a usable forced variation label", () => {
+    expect(
+      getDealForcedVariationBadges({
+        ...deal,
+        scopeCategories: [{ id: "cat-pizza", name: "Pizza" }],
+        scopeCategoryRules: [
+          { menuCategoryId: "cat-pizza", itemLimit: 1, variationId: "large" },
+        ],
+      })
+    ).toEqual([]);
   });
 });

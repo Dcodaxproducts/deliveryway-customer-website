@@ -28,6 +28,7 @@ import {
 } from "@/components/pages/Home/utils/customer-deal-cart";
 import {
   formatDealPrice,
+  getDealForcedVariationBadges,
   getDealItemNames,
   isDealActive,
 } from "@/components/pages/Home/utils/customer-deals-formatters";
@@ -147,6 +148,10 @@ const CustomerDealCard = ({
   const categoryNames = getDealItemNames(deal.scopeCategories);
   const actionLabel = getDealActionLabel(deal);
   const highlights = getDealHighlights(deal, itemNames, categoryNames);
+  const forcedVariationBadges = getDealForcedVariationBadges(deal);
+  const visibleVariationBadges = forcedVariationBadges.slice(0, 2);
+  const hiddenVariationBadgeCount =
+    forcedVariationBadges.length - visibleVariationBadges.length;
   const comparablePrice = getComparableDealPrice(deal, currency);
   const hasDealItems = isFlexibleCategoryDeal(deal)
     ? deal.scopeCategories.length > 0
@@ -189,6 +194,25 @@ const CustomerDealCard = ({
           <p className="mt-2 line-clamp-2 break-words text-[12px] font-bold leading-5 text-gray-500">
             {getDealRequirementText(deal) || getDealTypeLabel(deal)}
           </p>
+
+          {visibleVariationBadges.length > 0 ? (
+            <div className="mt-3 flex max-w-full flex-wrap gap-1.5">
+              {visibleVariationBadges.map((badge) => (
+                <span
+                  key={badge.id}
+                  className="max-w-full truncate rounded-full border border-primary/15 bg-primary/[0.07] px-2.5 py-1 text-[10.5px] font-extrabold leading-4 text-primary shadow-[0_5px_14px_rgba(165,31,48,0.08)]"
+                  title={badge.label}
+                >
+                  {badge.label}
+                </span>
+              ))}
+              {hiddenVariationBadgeCount > 0 ? (
+                <span className="rounded-full border border-gray-200 bg-gray-50 px-2 py-1 text-[10px] font-bold leading-4 text-gray-500">
+                  +{hiddenVariationBadgeCount}
+                </span>
+              ) : null}
+            </div>
+          ) : null}
 
           <ul className="mt-3 space-y-1.5 text-[13px] font-medium leading-5 text-gray-700">
             {(highlights.length > 0 ? highlights : [getDealTypeLabel(deal)])
@@ -265,6 +289,10 @@ const CustomerDealMenuCard = ({
   const categoryNames = getDealItemNames(deal.scopeCategories);
   const actionLabel = getDealActionLabel(deal);
   const highlights = getDealHighlights(deal, itemNames, categoryNames);
+  const forcedVariationBadges = getDealForcedVariationBadges(deal);
+  const visibleVariationBadges = forcedVariationBadges.slice(0, 2);
+  const hiddenVariationBadgeCount =
+    forcedVariationBadges.length - visibleVariationBadges.length;
   const comparablePrice = getComparableDealPrice(deal, currency);
   const isFeatured = index === 1;
   const hasDealItems = isFlexibleCategoryDeal(deal)
@@ -347,6 +375,35 @@ const CustomerDealMenuCard = ({
         >
           {getDealRequirementText(deal) || getDealTypeLabel(deal)}
         </p>
+
+        {visibleVariationBadges.length > 0 ? (
+          <div className="mt-3 flex h-7 flex-nowrap gap-1.5 overflow-hidden">
+            {visibleVariationBadges.map((badge) => (
+              <span
+                key={badge.id}
+                className={`max-w-[calc(50%-3px)] truncate rounded-full border px-2.5 py-1 text-[10px] font-bold leading-[18px] ${
+                  isFeatured
+                    ? "border-[#E1BC73]/35 bg-[#E1BC73]/15 text-[#FFE4A7]"
+                    : "border-[#A51F30]/12 bg-[#A51F30]/[0.07] text-[#A51F30]"
+                }`}
+                title={badge.label}
+              >
+                {badge.label}
+              </span>
+            ))}
+            {hiddenVariationBadgeCount > 0 ? (
+              <span
+                className={`rounded-full border px-2 py-1 text-[10px] font-bold leading-[18px] ${
+                  isFeatured
+                    ? "border-white/15 bg-white/10 text-white/70"
+                    : "border-[#E7DDD3] bg-[#FFFBF7] text-[#9B8A7C]"
+                }`}
+              >
+                +{hiddenVariationBadgeCount}
+              </span>
+            ) : null}
+          </div>
+        ) : null}
 
         <div className="mt-3 flex h-7 flex-nowrap gap-1.5 overflow-hidden">
           {(highlights.length > 0 ? highlights : [getDealTypeLabel(deal)])
