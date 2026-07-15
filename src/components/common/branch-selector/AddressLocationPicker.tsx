@@ -47,11 +47,34 @@ const getAddressComponent = (
   name: "long_name" | "short_name" = "long_name"
 ) => components?.find((component) => component.types.includes(type))?.[name] ?? "";
 
-const parseAddressDetails = (
-  components: GoogleAddressComponent[] | undefined
+const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const getFirstAddressLine = (value: string | undefined) =>
+  (value || "").split(",")[0]?.trim() || "";
+
+const stripStreetNumberFromStreet = (street: string, streetNumber: string) => {
+  const trimmedStreet = street.trim();
+
+  if (!streetNumber) return trimmedStreet;
+
+  const escapedStreetNumber = escapeRegExp(streetNumber.trim());
+
+  return trimmedStreet
+    .replace(new RegExp(`^${escapedStreetNumber}\\s+`, "i"), "")
+    .replace(new RegExp(`\\s+${escapedStreetNumber}$`, "i"), "")
+    .trim();
+};
+
+export const parseAddressDetails = (
+  components: GoogleAddressComponent[] | undefined,
+  fallbackLabel?: string
 ): GoogleAddressDetails => {
   const streetNumber = getAddressComponent(components, "street_number");
   const route = getAddressComponent(components, "route");
+  const fallbackStreet = stripStreetNumberFromStreet(
+    getFirstAddressLine(fallbackLabel),
+    streetNumber
+  );
   const city =
     getAddressComponent(components, "locality") ||
     getAddressComponent(components, "postal_town") ||
@@ -60,7 +83,7 @@ const parseAddressDetails = (
     getAddressComponent(components, "neighborhood");
 
   return {
-    street: route,
+    street: route || fallbackStreet,
     houseNumber: streetNumber,
     postalCode: getAddressComponent(components, "postal_code"),
     city,
@@ -196,7 +219,11 @@ export function AddressLocationPicker({
             ? firstResult.formatted_address
             : "Selected map location";
 
-        onSelectLocation(nextCoordinates, label, parseAddressDetails(firstResult?.address_components));
+        onSelectLocation(
+          nextCoordinates,
+          label,
+          parseAddressDetails(firstResult?.address_components, firstResult?.formatted_address)
+        );
       });
     },
     [googleMaps, onSelectLocation]
@@ -295,7 +322,10 @@ export function AddressLocationPicker({
         onSelectLocation(
           nextCoordinates,
           place.formatted_address ?? prediction.description,
-          parseAddressDetails(place.address_components)
+          parseAddressDetails(
+            place.address_components,
+            place.formatted_address ?? prediction.description
+          )
         );
       }
     );
