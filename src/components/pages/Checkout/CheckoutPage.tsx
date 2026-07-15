@@ -60,11 +60,6 @@ import {
 import { dispatchCartChanged } from "@/lib/cart-events";
 import { resolveCustomerCurrency } from "@/lib/money";
 import {
-  getPendingDeliveryAddress,
-  hasUsablePendingDeliveryAddress,
-  type PendingDeliveryAddress,
-} from "@/lib/pending-delivery-address";
-import {
   getBranchScheduleTimeZone,
   getScheduledDateTime,
   getDateValue,
@@ -696,8 +691,6 @@ function CheckoutPageContent() {
   const [selectedAddress, setSelectedAddress] = useState<string | null>("");
   const [guestDeliveryAddress, setGuestDeliveryAddress] =
     useState<CheckoutAddressValues>(emptyGuestDeliveryAddress);
-  const [pendingDeliveryAddress, setPendingDeliveryAddress] =
-    useState<PendingDeliveryAddress | null>(null);
   const [note, setNote] = useState("");
   const [customer, setCustomer] = useState({
     name: "",
@@ -793,38 +786,6 @@ function CheckoutPageContent() {
       isMounted = false;
     };
   }, [get, isGuest, restaurantId]);
-
-  useEffect(() => {
-    setPendingDeliveryAddress(getPendingDeliveryAddress());
-  }, []);
-
-  useEffect(() => {
-    if (
-      activeTab !== "delivery" ||
-      !isGuest ||
-      hasGuestDeliveryAddress(guestDeliveryAddress) ||
-      !hasUsablePendingDeliveryAddress(pendingDeliveryAddress)
-    ) {
-      return;
-    }
-
-    const address = pendingDeliveryAddress;
-
-    if (!address) return;
-
-    setGuestDeliveryAddress({
-      street: address.street,
-      houseNumber: address.houseNumber,
-      postalCode: address.postalCode,
-      city: address.city,
-      state: address.state,
-      country: address.country,
-      area: address.houseNumber || address.area,
-      lat: address.lat,
-      lng: address.lng,
-      isDefault: false,
-    });
-  }, [activeTab, guestDeliveryAddress, isGuest, pendingDeliveryAddress]);
 
   useEffect(() => {
     if (!customerId || loadingCart) return;
@@ -1624,7 +1585,6 @@ function CheckoutPageContent() {
               privacyPolicyLoading={privacyPolicyLoading}
               guestDeliveryAddress={guestDeliveryAddress}
               setGuestDeliveryAddress={setGuestDeliveryAddress}
-              pendingDeliveryAddress={pendingDeliveryAddress}
               paymentMethod={checkoutPaymentMethod}
               setPaymentMethod={setPaymentMethod}
               scheduledDeliveryValue={scheduledDeliveryValue}

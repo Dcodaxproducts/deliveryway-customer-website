@@ -528,7 +528,7 @@ describe("cart service", () => {
     );
   });
 
-  it("sends deliveryAddressId in cart quote payload", async () => {
+  it("does not send deliveryAddressId in cart quote payload", async () => {
     postCartMock.mockResolvedValue({ success: true });
 
     await quoteCustomerCart({
@@ -541,7 +541,7 @@ describe("cart service", () => {
 
     expect(postCartMock).toHaveBeenCalledWith(
       "/v1/cart/quote?customerId=customer-1",
-      { deliveryAddressId: "address-1", tipAmount: 2 },
+      { tipAmount: 2 },
       undefined
     );
   });

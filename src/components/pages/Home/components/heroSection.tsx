@@ -28,15 +28,8 @@ import {
   setStoredCheckoutTypePreference,
 } from "@/lib/checkout-type-preference";
 import { isRemoteHttpsImageUrl, resolveHttpsImageUrl } from "@/lib/image-fallback";
-import {
-  getPendingDeliveryAddress,
-  hasUsablePendingDeliveryAddress,
-  setPendingDeliveryAddress,
-  type PendingDeliveryAddress,
-} from "@/lib/pending-delivery-address";
 import type { AuthBranch } from "@/types/auth";
 import type { BranchOrderType, NearbyBranch } from "@/types/branches";
-import type { GoogleAddressDetails } from "@/types/google-maps";
 import type { HomeBranch } from "@/types/home";
 
 type HeroSectionProps = {
@@ -66,8 +59,6 @@ export const HeroSection = ({
   const branchSearchRef = useRef<HTMLDivElement | null>(null);
   const [mode, setMode] = useState<BranchSearchMode>("delivery");
   const [showResults, setShowResults] = useState(false);
-  const [pendingDeliveryAddress, setPendingDeliveryAddressState] =
-    useState<PendingDeliveryAddress | null>(() => getPendingDeliveryAddress());
   const {
     coordinates,
     locationLabel,
@@ -188,12 +179,6 @@ export const HeroSection = ({
   };
 
   const handleFindFood = () => {
-    if (mode === "delivery" && !hasUsablePendingDeliveryAddress(pendingDeliveryAddress)) {
-      toast.error("Please select your delivery address from the map first.");
-      setShowResults(true);
-      return;
-    }
-
     router.push("/items");
   };
 
@@ -202,35 +187,9 @@ export const HeroSection = ({
     requestLocation();
   };
 
-  const handleSelectSearchLocation = (
-    nextCoordinates: { lat: number; lng: number },
-    label?: string,
-    details?: GoogleAddressDetails
-  ) => {
+  const handleSelectSearchLocation = (nextCoordinates: { lat: number; lng: number }, label?: string) => {
     acceptCoordinates(nextCoordinates, label || "Selected address");
     setShowResults(true);
-
-    if (mode !== "delivery" || !details) return;
-
-    const address: PendingDeliveryAddress = {
-      street: details.street || "",
-      houseNumber: details.houseNumber || "",
-      postalCode: details.postalCode || "",
-      city: details.city || "",
-      state: details.state || "",
-      country: details.country || "",
-      area: details.houseNumber || "",
-      lat: String(nextCoordinates.lat),
-      lng: String(nextCoordinates.lng),
-      isDefault: false,
-      label: label || "Selected address",
-    };
-
-    if (hasUsablePendingDeliveryAddress(address)) {
-      setPendingDeliveryAddress(address);
-      setPendingDeliveryAddressState(address);
-      toast.success("Delivery address selected. We’ll use it for checkout pricing.");
-    }
   };
 
   const handleSelectBranch = (branch: NearbyBranch) => {
@@ -346,32 +305,6 @@ export const HeroSection = ({
               >
                 {isSingleBranchRestaurant ? t("findFood") : "Change"}
               </button>
-            </div>
-          ) : null}
-
-          {isSingleBranchRestaurant && mode === "delivery" ? (
-            <div ref={branchSearchRef} className="mb-4 rounded-2xl border border-gray-100 bg-gray-50/70 p-3">
-              <p className="mb-3 text-sm font-semibold text-[#111827]">
-                Select your delivery address
-              </p>
-              <AddressLocationPicker
-                coordinates={coordinates}
-                locationLabel={locationLabel}
-                onSelectLocation={handleSelectSearchLocation}
-                onUseCurrentLocation={handleUseCurrentLocation}
-                isLocating={permissionState === "requesting"}
-                showSelectedLabel
-                actionsBelow
-                trailingAction={
-                  <button
-                    type="button"
-                    onClick={handleFindFood}
-                    className="inline-flex h-[49px] min-w-0 items-center justify-center whitespace-nowrap rounded-xl bg-primary px-4 text-sm font-semibold text-white transition hover:bg-primary/90"
-                  >
-                    {t("findFood")}
-                  </button>
-                }
-              />
             </div>
           ) : null}
 
