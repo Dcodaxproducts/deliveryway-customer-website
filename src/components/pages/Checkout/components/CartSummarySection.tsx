@@ -712,6 +712,17 @@ export const getTotalBeforeDiscount = ({
   tipAmount?: number;
 }) => subtotal + orderFee + tipAmount;
 
+export const getCheckoutDisplaySubtotal = (
+  quoteSubtotal: unknown,
+  itemTotal: number,
+) => {
+  if (quoteSubtotal === null || quoteSubtotal === undefined) {
+    return itemTotal;
+  }
+
+  return toNullableNumber(quoteSubtotal) ?? itemTotal;
+};
+
 export const getServiceChargeAmountFromQuote = (quote?: CartQuote | null) => {
   const breakdownTotal = toNullableNumber(
     quote?.chargeBreakdown?.totalServiceChargeAmount,
@@ -969,6 +980,7 @@ export function CartSummarySection({
 
   const resolvedQuote = quote ?? cartQuote ?? null;
   const quoteSubtotal = toNullableNumber(resolvedQuote?.subtotal);
+  const displaySubtotal = getCheckoutDisplaySubtotal(quoteSubtotal, itemTotal);
   const quoteDeliveryFee = toNullableNumber(resolvedQuote?.deliveryFee);
   const quoteTipAmount =
     toNullableNumber(resolvedQuote?.tipAmount) ??
@@ -1052,7 +1064,7 @@ export function CartSummarySection({
   );
 
   const computedTotalBeforeDiscount = getTotalBeforeDiscount({
-    subtotal: itemTotal,
+    subtotal: displaySubtotal,
     orderFee: selectedOrderFee,
     tipAmount,
   });
@@ -1061,12 +1073,7 @@ export function CartSummarySection({
     resolvedQuote?.totalBeforeDiscount,
   );
   const totalBeforeDiscount =
-    backendTotalBeforeDiscount ??
-    getTotalBeforeDiscount({
-      subtotal: quoteSubtotal !== null ? quoteSubtotal : itemTotal,
-      orderFee: selectedOrderFee,
-      tipAmount,
-    });
+    backendTotalBeforeDiscount ?? computedTotalBeforeDiscount;
   const payableBeforeLoyaltyPreview = Math.max(
     0,
     quotePayableAmount ??
@@ -1696,7 +1703,7 @@ export function CartSummarySection({
         <div className="space-y-4 text-sm text-gray-500">
           <div className="flex items-center justify-between">
             <span>{t("itemTotal")}</span>
-            <span>{formatCurrency(quoteSubtotal ?? itemTotal, currency)}</span>
+            <span>{formatCurrency(displaySubtotal, currency)}</span>
           </div>
 
           {depositTotal > 0 ? (

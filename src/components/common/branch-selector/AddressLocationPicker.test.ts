@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { parseAddressDetails } from "@/components/common/branch-selector/AddressLocationPicker";
+import {
+  parseAddressDetails,
+  parseCoordinateQuery,
+} from "@/components/common/branch-selector/AddressLocationPicker";
 import type { GoogleAddressComponent } from "@/types/google-maps";
 
 const component = (
@@ -40,5 +43,20 @@ describe("parseAddressDetails", () => {
 
     expect(details.street).toBe("Example Street");
     expect(details.houseNumber).toBe("40");
+  });
+});
+
+describe("parseCoordinateQuery", () => {
+  it("accepts valid latitude/longitude searches", () => {
+    expect(parseCoordinateQuery("51.496504, 7.048057")).toEqual({
+      lat: 51.496504,
+      lng: 7.048057,
+    });
+  });
+
+  it("rejects invalid or out-of-range coordinates", () => {
+    expect(parseCoordinateQuery("Katernberger Straße 7-9")).toBeNull();
+    expect(parseCoordinateQuery("151.496504, 7.048057")).toBeNull();
+    expect(parseCoordinateQuery("51.496504, 207.048057")).toBeNull();
   });
 });

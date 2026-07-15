@@ -732,4 +732,34 @@ describe("cart service", () => {
       payableAmount: 27.58,
     });
   });
+
+  it("merges cart-level subtotal into partial saved cart quote", async () => {
+    getCartMock.mockResolvedValue({
+      success: true,
+      data: {
+        cart: {
+          id: "cart-1",
+          items: [],
+          subtotal: 24.5,
+          deliveryFee: 5,
+          serviceChargeAmount: 3,
+          payableAmount: 30.58,
+          quote: {
+            deliveryFee: 5,
+            serviceChargeAmount: 3,
+            payableAmount: 30.58,
+          },
+        },
+      },
+    });
+
+    const cart = await fetchCustomerCart({ customerId: "customer-1" });
+
+    expect(cart.quote).toMatchObject({
+      subtotal: 24.5,
+      deliveryFee: 5,
+      serviceChargeAmount: 3,
+      payableAmount: 30.58,
+    });
+  });
 });

@@ -41,6 +41,23 @@ const DEFAULT_MAP_CENTER: GoogleLatLngLiteral = {
 
 const MIN_QUERY_LENGTH = 3;
 
+const COORDINATE_QUERY_PATTERN =
+  /^\s*(-?(?:\d+(?:\.\d+)?|\.\d+))\s*,\s*(-?(?:\d+(?:\.\d+)?|\.\d+))\s*$/;
+
+export const parseCoordinateQuery = (value: string): GoogleLatLngLiteral | null => {
+  const match = value.match(COORDINATE_QUERY_PATTERN);
+
+  if (!match) return null;
+
+  const lat = Number(match[1]);
+  const lng = Number(match[2]);
+
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+
+  return { lat, lng };
+};
+
 const getAddressComponent = (
   components: GoogleAddressComponent[] | undefined,
   type: string,
@@ -167,7 +184,12 @@ export function AddressLocationPicker({
   }, [isPredictionPanelOpen]);
 
   useEffect(() => {
-    if (!isReady || !googleMaps || trimmedQuery.length < MIN_QUERY_LENGTH) {
+    if (
+      !isReady ||
+      !googleMaps ||
+      trimmedQuery.length < MIN_QUERY_LENGTH ||
+      parseCoordinateQuery(trimmedQuery)
+    ) {
       setPredictions([]);
       setIsSearching(false);
       return;
@@ -294,6 +316,21 @@ export function AddressLocationPicker({
     }
   }, [center, coordinates, googleMaps, isReady, isMapOpen, reverseGeocode, syncMarker]);
 
+  const handleCoordinateSearch = () => {
+    const nextCoordinates = parseCoordinateQuery(trimmedQuery);
+
+    if (!nextCoordinates) return false;
+
+    setPredictions([]);
+    setIsPredictionPanelOpen(false);
+    setQuery(`${nextCoordinates.lat}, ${nextCoordinates.lng}`);
+    setMapOpenState(true);
+    syncMarker(nextCoordinates);
+    reverseGeocode(nextCoordinates);
+
+    return true;
+  };
+
   const handlePredictionSelect = (prediction: GooglePlacePrediction) => {
     if (!googleMaps) return;
 
@@ -347,6 +384,11 @@ export function AddressLocationPicker({
             onChange={(event) => {
               setQuery(event.target.value);
               setIsPredictionPanelOpen(true);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && handleCoordinateSearch()) {
+                event.preventDefault();
+              }
             }}
             onFocus={() => {
               if (predictions.length > 0 || isSearching) {

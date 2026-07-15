@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  getCheckoutDisplaySubtotal,
   getItemPricing,
   getScopedItemDiscountDisplays,
   getServiceChargeAmountFromQuote,
@@ -33,6 +34,16 @@ describe("getTotalBeforeDiscount", () => {
         tipAmount: 25,
       })
     ).toBe(1075);
+  });
+});
+
+describe("getCheckoutDisplaySubtotal", () => {
+  it("uses backend quote subtotal for deal bill item total", () => {
+    expect(getCheckoutDisplaySubtotal(24.5, 22.58)).toBe(24.5);
+  });
+
+  it("falls back to derived item total when quote subtotal is unavailable", () => {
+    expect(getCheckoutDisplaySubtotal(null, 22.58)).toBe(22.58);
   });
 });
 

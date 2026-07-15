@@ -159,6 +159,37 @@ export const normalizeCartQuote = (value: unknown): CartQuote | null => {
   };
 };
 
+const getCartQuoteSource = (cart: ApiRecord | null) => {
+  if (!cart) {
+    return null;
+  }
+
+  const quote = getRecord(cart.quote);
+
+  if (!quote) {
+    return cart;
+  }
+
+  return {
+    ...quote,
+    subtotal: quote.subtotal ?? cart.subtotal,
+    taxAmount: quote.taxAmount ?? cart.taxAmount,
+    deliveryFee: quote.deliveryFee ?? cart.deliveryFee,
+    serviceChargeType: quote.serviceChargeType ?? cart.serviceChargeType,
+    serviceChargeValue: quote.serviceChargeValue ?? cart.serviceChargeValue,
+    serviceChargeAmount: quote.serviceChargeAmount ?? cart.serviceChargeAmount,
+    tipAmount: quote.tipAmount ?? cart.tipAmount,
+    discountAmount: quote.discountAmount ?? cart.discountAmount,
+    loyaltyDiscountAmount: quote.loyaltyDiscountAmount ?? cart.loyaltyDiscountAmount,
+    loyaltyPointsRedeemed: quote.loyaltyPointsRedeemed ?? cart.loyaltyPointsRedeemed,
+    walletAppliedAmount: quote.walletAppliedAmount ?? cart.walletAppliedAmount,
+    totalAmount: quote.totalAmount ?? cart.totalAmount,
+    payableAmount: quote.payableAmount ?? cart.payableAmount,
+    appliedPromotion: quote.appliedPromotion ?? cart.appliedPromotion,
+    chargeBreakdown: quote.chargeBreakdown ?? cart.chargeBreakdown,
+  };
+};
+
 const resolveCartRecord = (responseData: unknown) => {
   const resData = getRecord(responseData);
   const nestedData = getRecord(resData?.data);
@@ -190,7 +221,7 @@ export const fetchCustomerCart = async ({
   return {
     response,
     items: normalizeArray<CartItemRecord>(cart?.items),
-    quote: normalizeCartQuote(cart?.quote) ?? normalizeCartQuote(cart),
+    quote: normalizeCartQuote(getCartQuoteSource(cart)),
   };
 };
 
