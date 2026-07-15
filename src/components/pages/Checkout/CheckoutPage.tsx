@@ -916,11 +916,9 @@ function CheckoutPageContent() {
     );
 
     try {
-      const dealId =
-        typeof currentItem.dealId === "string" ? currentItem.dealId.trim() : "";
       const endpoint =
-        isDealCartItem(currentItem) && dealId
-          ? `/v1/cart/deals/${dealId}?customerId=${customerId}`
+        isDealCartItem(currentItem)
+          ? `/v1/cart/deals/${encodeURIComponent(id)}?customerId=${customerId}`
           : `/v1/cart/items/${id}?customerId=${customerId}`;
       const res = await patch(endpoint, {
         quantity: newQty,
@@ -959,15 +957,12 @@ function CheckoutPageContent() {
   const deleteItem = async (id: string) => {
     const previousCartItems = cartItems;
     const currentItem = cartItems.find((item) => String(item.id) === id);
-    const dealId =
-      typeof currentItem?.dealId === "string" ? currentItem.dealId.trim() : "";
-
     try {
       setCartItems((prev) => prev.filter((item) => String(item.id) !== id));
 
       const endpoint =
-        currentItem && isDealCartItem(currentItem) && dealId
-          ? `/v1/cart/deals/${dealId}?customerId=${customerId}`
+        currentItem && isDealCartItem(currentItem)
+          ? `/v1/cart/deals/${encodeURIComponent(id)}?customerId=${customerId}`
           : `/v1/cart/items/${id}?customerId=${customerId}`;
       const res = await del(endpoint);
 
