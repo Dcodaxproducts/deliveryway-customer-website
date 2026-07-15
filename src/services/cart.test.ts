@@ -703,4 +703,33 @@ describe("cart service", () => {
       payableAmount: 1200,
     });
   });
+
+  it("normalizes top-level cart totals as quote fallback", async () => {
+    getCartMock.mockResolvedValue({
+      success: true,
+      data: {
+        id: "cart-1",
+        items: [],
+        subtotal: 24.5,
+        taxAmount: 0.53,
+        deliveryFee: 2,
+        serviceChargeAmount: 3,
+        discountAmount: 0,
+        totalAmount: 27.58,
+        payableAmount: 27.58,
+      },
+    });
+
+    const cart = await fetchCustomerCart({ customerId: "customer-1" });
+
+    expect(getCartMock).toHaveBeenCalledWith("/v1/cart?customerId=customer-1", undefined);
+    expect(cart.quote).toMatchObject({
+      subtotal: 24.5,
+      taxAmount: 0.53,
+      deliveryFee: 2,
+      serviceChargeAmount: 3,
+      totalAmount: 27.58,
+      payableAmount: 27.58,
+    });
+  });
 });

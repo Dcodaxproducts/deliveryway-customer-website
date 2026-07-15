@@ -190,7 +190,7 @@ export const fetchCustomerCart = async ({
   return {
     response,
     items: normalizeArray<CartItemRecord>(cart?.items),
-    quote: normalizeCartQuote(cart?.quote),
+    quote: normalizeCartQuote(cart?.quote) ?? normalizeCartQuote(cart),
   };
 };
 
