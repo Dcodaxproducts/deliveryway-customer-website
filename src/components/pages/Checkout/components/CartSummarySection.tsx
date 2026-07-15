@@ -321,7 +321,9 @@ export const getItemImage = (item: CartItem) => {
 };
 
 export const isDealCartItem = (item: CartItem) =>
-  String(item.type || "").toUpperCase() === "DEAL";
+  String(item.type || "").toUpperCase() === "DEAL" ||
+  Boolean(item.dealId) ||
+  Boolean(item.includedItems?.length);
 
 export const getSelectedVariationName = (item: CartItem) => {
   return (

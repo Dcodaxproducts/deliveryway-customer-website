@@ -5,6 +5,7 @@ import {
   getScopedItemDiscountDisplays,
   getServiceChargeAmountFromQuote,
   getTotalBeforeDiscount,
+  isDealCartItem,
   type CartItem,
 } from "./CartSummarySection";
 
@@ -32,6 +33,15 @@ describe("getTotalBeforeDiscount", () => {
         tipAmount: 25,
       })
     ).toBe(1075);
+  });
+});
+
+describe("isDealCartItem", () => {
+  it("treats backend deal rows and deal-included rows as deal cart items", () => {
+    expect(isDealCartItem({ id: "deal-row", type: "DEAL", name: "Deal", price: 10, quantity: 1 })).toBe(true);
+    expect(isDealCartItem({ id: "included-row", dealId: "deal-1", name: "Included", price: 10, quantity: 1 })).toBe(true);
+    expect(isDealCartItem({ id: "parent-row", name: "Parent", price: 10, quantity: 1, includedItems: [{ name: "Included", quantity: 1, selectedModifiers: [] }] })).toBe(true);
+    expect(isDealCartItem({ id: "item-row", name: "Regular", price: 10, quantity: 1 })).toBe(false);
   });
 });
 
