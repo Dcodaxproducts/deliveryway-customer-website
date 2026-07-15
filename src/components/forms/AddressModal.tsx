@@ -28,6 +28,7 @@ type AddressModalProps = {
   onOpenChange: (open: boolean) => void;
   onSuccess?: (address?: { id?: string | number }) => void;
   editData?: (Partial<CheckoutAddressValues> & { id?: string | number }) | null;
+  initialValues?: Partial<CheckoutAddressValues> | null;
 };
 
 const initialForm: CheckoutAddressValues = {
@@ -70,6 +71,7 @@ export function AddressModal({
   onOpenChange,
   onSuccess,
   editData,
+  initialValues,
 }: AddressModalProps) {
   const t = useTranslations("addresses");
   const commonT = useTranslations("common");
@@ -125,10 +127,23 @@ export function AddressModal({
         lng: editData.lng ? String(editData.lng) : "",
         isDefault: Boolean(editData.isDefault),
       });
+    } else if (initialValues) {
+      reset({
+        street: initialValues.street || "",
+        houseNumber: initialValues.houseNumber || initialValues.area || "",
+        postalCode: initialValues.postalCode || "",
+        city: initialValues.city || "",
+        state: initialValues.state || "",
+        country: initialValues.country || "",
+        area: initialValues.houseNumber || initialValues.area || "",
+        lat: initialValues.lat ? String(initialValues.lat) : "",
+        lng: initialValues.lng ? String(initialValues.lng) : "",
+        isDefault: Boolean(initialValues.isDefault),
+      });
     } else {
       reset(initialForm);
     }
-  }, [editData, open, reset]);
+  }, [editData, initialValues, open, reset]);
 
   const setAddressValue = useCallback(
     (field: keyof CheckoutAddressValues, value: string | boolean) => {

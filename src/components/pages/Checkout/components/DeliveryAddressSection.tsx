@@ -15,6 +15,10 @@ import {
   type AddressRecord,
 } from "@/services/profile";
 import type { CheckoutAddressValues } from "@/validations/checkout";
+import {
+  clearPendingDeliveryAddress,
+  type PendingDeliveryAddress,
+} from "@/lib/pending-delivery-address";
 import { useTranslations } from "next-intl";
 
 interface Props {
@@ -23,6 +27,7 @@ interface Props {
   isGuest?: boolean;
   guestDeliveryAddress: CheckoutAddressValues;
   setGuestDeliveryAddress: (value: CheckoutAddressValues) => void;
+  pendingDeliveryAddress?: PendingDeliveryAddress | null;
 }
 
 export function DeliveryAddressSection({
@@ -31,6 +36,7 @@ export function DeliveryAddressSection({
   isGuest = false,
   guestDeliveryAddress,
   setGuestDeliveryAddress,
+  pendingDeliveryAddress = null,
 }: Props) {
   const t = useTranslations("checkout");
   const addressT = useTranslations("addresses");
@@ -62,6 +68,10 @@ export function DeliveryAddressSection({
       const addressList = await fetchProfileAddresses({ get });
 
       setAddresses(addressList);
+      if (addressList.length === 0 && pendingDeliveryAddress) {
+        setAddressModalOpen(true);
+      }
+
       if (!selectedAddress) {
         const defaultAddress = addressList.find((item) => item.isDefault);
 
@@ -76,7 +86,7 @@ export function DeliveryAddressSection({
     } finally {
       setLoading(false);
     }
-  }, [get, selectedAddress, setSelectedAddress]);
+  }, [get, pendingDeliveryAddress, selectedAddress, setSelectedAddress]);
 
   useEffect(() => {
     if (isGuest) return;
@@ -143,6 +153,7 @@ export function DeliveryAddressSection({
 
     if (newAddress) {
       setSelectedAddress(newAddress.id);
+      clearPendingDeliveryAddress();
     }
   };
 
@@ -284,6 +295,7 @@ export function DeliveryAddressSection({
         open={addressModalOpen}
         onOpenChange={setAddressModalOpen}
         onSuccess={handleAddressCreated}
+        initialValues={pendingDeliveryAddress}
       />
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

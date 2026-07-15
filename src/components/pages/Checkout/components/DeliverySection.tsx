@@ -20,6 +20,7 @@ import {
   isPastDateValue,
 } from '@/components/pages/Checkout/utils/pickup-schedule';
 import type { BranchRecord } from '@/types/branch-selector';
+import type { PendingDeliveryAddress } from '@/lib/pending-delivery-address';
 import type { CheckoutAddressValues } from '@/validations/checkout';
 
 type DeliverySectionProps = {
@@ -47,6 +48,7 @@ type DeliverySectionProps = {
   privacyPolicyLoading?: boolean;
   guestDeliveryAddress: CheckoutAddressValues;
   setGuestDeliveryAddress: (value: CheckoutAddressValues) => void;
+  pendingDeliveryAddress?: PendingDeliveryAddress | null;
   totalPreparationMinutes?: number;
 };
 
