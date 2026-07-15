@@ -9,8 +9,10 @@ import { useRouter } from "next/navigation";
 
 import { useAuthContext } from "@/hooks/useAuth";
 import { useNearbyBranches } from "@/hooks/useBranches";
+import { useCheckout } from "@/hooks/useCheckout";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import { AddressLocationPicker } from "@/components/common/branch-selector/AddressLocationPicker";
+import { AddressModal } from "@/components/forms/AddressModal";
 import {
   branchSupportsDelivery,
   branchSupportsPickup,
@@ -28,6 +30,7 @@ import {
   setStoredCheckoutTypePreference,
 } from "@/lib/checkout-type-preference";
 import { isRemoteHttpsImageUrl, resolveHttpsImageUrl } from "@/lib/image-fallback";
+import { fetchAddresses } from "@/services/profile";
 import type { AuthBranch } from "@/types/auth";
 import type { BranchOrderType, NearbyBranch } from "@/types/branches";
 import type { HomeBranch } from "@/types/home";
@@ -46,6 +49,9 @@ type BranchSearchMode = "delivery" | "pickup";
 const getOrderType = (mode: BranchSearchMode): BranchOrderType =>
   mode === "pickup" ? "TAKEAWAY" : "DELIVERY";
 
+const isGuestUser = (user: ReturnType<typeof useAuthContext>["user"]) =>
+  user?.isGuest === true || String(user?.role || "").toUpperCase() === "GUEST";
+
 export const HeroSection = ({
   title,
   description,
@@ -54,11 +60,15 @@ export const HeroSection = ({
 }: HeroSectionProps) => {
   const t = useTranslations("home.hero");
   const router = useRouter();
-  const { user, setUser } = useAuthContext();
+  const { user, setUser, token } = useAuthContext();
+  const { get } = useCheckout(token);
   const resolvedHeroImage = resolveHttpsImageUrl(heroImage, "/hero.png");
   const branchSearchRef = useRef<HTMLDivElement | null>(null);
-  const [mode, setMode] = useState<BranchSearchMode>("delivery");
+  const deliveryAddressPromptedRef = useRef(false);
+  const [mode, setMode] = useState<BranchSearchMode>("pickup");
   const [showResults, setShowResults] = useState(false);
+  const [isCheckingDeliveryAddresses, setIsCheckingDeliveryAddresses] = useState(false);
+  const [addressModalOpen, setAddressModalOpen] = useState(false);
   const {
     coordinates,
     locationLabel,
@@ -83,6 +93,7 @@ export const HeroSection = ({
   const isSingleBranchRestaurant = Boolean(selectedBranch?.isOnlyBranch);
   const selectedOrderType = getSelectedOrderType(user) ?? selectedBranch?.selectedOrderType ?? null;
   const selectedOrderLabel = selectedOrderType === "TAKEAWAY" ? "Pickup" : selectedOrderType === "DELIVERY" ? "Delivery" : "";
+  const isAuthenticatedCustomer = Boolean(token && user && !isGuestUser(user));
   const isSelectedBranchAvailable = selectedBranch ? isBranchCurrentlyAvailable(selectedBranch) : true;
   const orderPanelTitle = mode === "delivery"
     ? isSelectedBranchAvailable
@@ -152,11 +163,12 @@ export const HeroSection = ({
     const storedMode = getStoredCheckoutTypePreference();
 
     if (!storedMode || !availableModes.includes(storedMode)) return;
+    if (storedMode === "delivery" && availableModes.includes("pickup")) return;
 
     setMode(storedMode);
   }, [availableModes]);
 
-  const handleModeChange = (nextMode: BranchSearchMode) => {
+  const applyModeChange = (nextMode: BranchSearchMode) => {
     setMode(nextMode);
     setStoredCheckoutTypePreference(nextMode);
 
@@ -170,6 +182,57 @@ export const HeroSection = ({
     }
   };
 
+  useEffect(() => {
+    if (mode !== "delivery" || !isAuthenticatedCustomer || deliveryAddressPromptedRef.current) return;
+
+    deliveryAddressPromptedRef.current = true;
+    void (async () => {
+      try {
+        setIsCheckingDeliveryAddresses(true);
+        const savedAddresses = await fetchAddresses({ get });
+
+        if (savedAddresses.length === 0) {
+          setAddressModalOpen(true);
+          toast.info("Please add your delivery address first so we can calculate the correct delivery fee.");
+        }
+      } catch {
+        toast.error("We could not check your saved addresses. Please try again.");
+      } finally {
+        setIsCheckingDeliveryAddresses(false);
+      }
+    })();
+  }, [get, isAuthenticatedCustomer, mode]);
+
+  const handleModeChange = async (nextMode: BranchSearchMode) => {
+    if (nextMode !== "delivery") {
+      applyModeChange(nextMode);
+      return;
+    }
+
+    if (isAuthenticatedCustomer) {
+      try {
+        setIsCheckingDeliveryAddresses(true);
+        const savedAddresses = await fetchAddresses({ get });
+
+        if (savedAddresses.length === 0) {
+          setAddressModalOpen(true);
+          toast.info("Please add your delivery address first so we can calculate the correct delivery fee.");
+          return;
+        }
+      } catch {
+        toast.error("We could not check your saved addresses. Please try again.");
+        return;
+      } finally {
+        setIsCheckingDeliveryAddresses(false);
+      }
+    } else {
+      toast.info("Please select your delivery location from the map first.");
+      setShowResults(true);
+    }
+
+    applyModeChange(nextMode);
+  };
+
   const handleFindNearbyBranches = () => {
     setShowResults(true);
 
@@ -179,6 +242,12 @@ export const HeroSection = ({
   };
 
   const handleFindFood = () => {
+    if (mode === "delivery" && !isAuthenticatedCustomer && !coordinates) {
+      toast.error("Please select your delivery location first.");
+      setShowResults(true);
+      return;
+    }
+
     router.push("/items");
   };
 
@@ -269,8 +338,9 @@ export const HeroSection = ({
                 <button
                   key={nextMode}
                   type="button"
-                  onClick={() => handleModeChange(nextMode)}
-                  className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
+                  onClick={() => void handleModeChange(nextMode)}
+                  disabled={isCheckingDeliveryAddresses && nextMode === "delivery"}
+                  className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition-all disabled:cursor-not-allowed disabled:opacity-70 ${
                     mode === nextMode
                       ? "bg-primary text-white shadow-sm"
                       : "text-[#757575] hover:bg-white"
@@ -308,7 +378,17 @@ export const HeroSection = ({
             </div>
           ) : null}
 
-          {isSingleBranchRestaurant ? null : (
+          <AddressModal
+            open={addressModalOpen}
+            onOpenChange={setAddressModalOpen}
+            onSuccess={() => {
+              setAddressModalOpen(false);
+              applyModeChange("delivery");
+              toast.success("Delivery address saved. You can continue with delivery.");
+            }}
+          />
+
+          {isSingleBranchRestaurant && !(mode === "delivery" && !isAuthenticatedCustomer) ? null : (
           <div ref={branchSearchRef} className="relative">
             <AddressLocationPicker
               coordinates={coordinates}
