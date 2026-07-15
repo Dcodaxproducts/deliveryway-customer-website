@@ -49,9 +49,6 @@ type BranchSearchMode = "delivery" | "pickup";
 const getOrderType = (mode: BranchSearchMode): BranchOrderType =>
   mode === "pickup" ? "TAKEAWAY" : "DELIVERY";
 
-const isGuestUser = (user: ReturnType<typeof useAuthContext>["user"]) =>
-  user?.isGuest === true || String(user?.role || "").toUpperCase() === "GUEST";
-
 export const HeroSection = ({
   title,
   description,
@@ -93,7 +90,7 @@ export const HeroSection = ({
   const isSingleBranchRestaurant = Boolean(selectedBranch?.isOnlyBranch);
   const selectedOrderType = getSelectedOrderType(user) ?? selectedBranch?.selectedOrderType ?? null;
   const selectedOrderLabel = selectedOrderType === "TAKEAWAY" ? "Pickup" : selectedOrderType === "DELIVERY" ? "Delivery" : "";
-  const isAuthenticatedCustomer = Boolean(token && user && !isGuestUser(user));
+  const hasAddressBookSession = Boolean(token && user);
   const isSelectedBranchAvailable = selectedBranch ? isBranchCurrentlyAvailable(selectedBranch) : true;
   const orderPanelTitle = mode === "delivery"
     ? isSelectedBranchAvailable
@@ -183,7 +180,7 @@ export const HeroSection = ({
   };
 
   useEffect(() => {
-    if (mode !== "delivery" || !isAuthenticatedCustomer || deliveryAddressPromptedRef.current) return;
+    if (mode !== "delivery" || !hasAddressBookSession || deliveryAddressPromptedRef.current) return;
 
     deliveryAddressPromptedRef.current = true;
     void (async () => {
@@ -201,7 +198,7 @@ export const HeroSection = ({
         setIsCheckingDeliveryAddresses(false);
       }
     })();
-  }, [get, isAuthenticatedCustomer, mode]);
+  }, [get, hasAddressBookSession, mode]);
 
   const handleModeChange = async (nextMode: BranchSearchMode) => {
     if (nextMode !== "delivery") {
@@ -209,7 +206,7 @@ export const HeroSection = ({
       return;
     }
 
-    if (isAuthenticatedCustomer) {
+    if (hasAddressBookSession) {
       try {
         setIsCheckingDeliveryAddresses(true);
         const savedAddresses = await fetchAddresses({ get });
@@ -241,8 +238,29 @@ export const HeroSection = ({
     }
   };
 
-  const handleFindFood = () => {
-    if (mode === "delivery" && !isAuthenticatedCustomer && !coordinates) {
+  const handleFindFood = async () => {
+    if (mode !== "delivery") {
+      router.push("/items");
+      return;
+    }
+
+    if (hasAddressBookSession) {
+      try {
+        setIsCheckingDeliveryAddresses(true);
+        const savedAddresses = await fetchAddresses({ get });
+
+        if (savedAddresses.length === 0) {
+          setAddressModalOpen(true);
+          toast.info("Please add your delivery address first so we can calculate the correct delivery fee.");
+          return;
+        }
+      } catch {
+        toast.error("We could not check your saved addresses. Please try again.");
+        return;
+      } finally {
+        setIsCheckingDeliveryAddresses(false);
+      }
+    } else if (!coordinates) {
       toast.error("Please select your delivery location first.");
       setShowResults(true);
       return;
@@ -370,7 +388,7 @@ export const HeroSection = ({
               </div>
               <button
                 type="button"
-                onClick={isSingleBranchRestaurant ? handleFindFood : handleFindNearbyBranches}
+                onClick={isSingleBranchRestaurant ? () => void handleFindFood() : handleFindNearbyBranches}
                 className="h-10 rounded-xl border border-primary/20 bg-white px-4 text-sm font-semibold text-primary transition hover:bg-primary/5"
               >
                 {isSingleBranchRestaurant ? t("findFood") : "Change"}
@@ -388,7 +406,7 @@ export const HeroSection = ({
             }}
           />
 
-          {isSingleBranchRestaurant && !(mode === "delivery" && !isAuthenticatedCustomer) ? null : (
+          {isSingleBranchRestaurant && !(mode === "delivery" && !hasAddressBookSession) ? null : (
           <div ref={branchSearchRef} className="relative">
             <AddressLocationPicker
               coordinates={coordinates}
@@ -401,7 +419,7 @@ export const HeroSection = ({
               trailingAction={
                 <button
                   type="button"
-                  onClick={handleFindFood}
+                  onClick={() => void handleFindFood()}
                   className="inline-flex h-[49px] min-w-0 items-center justify-center whitespace-nowrap rounded-xl border border-primary/20 bg-white px-2.5 text-xs font-semibold text-primary transition hover:bg-primary/5 sm:px-4 sm:text-sm"
                 >
                   {t("findFood")}
