@@ -133,6 +133,42 @@ const PrivacyPage = () => {
               className="mt-10 space-y-5 text-[15px] leading-7 text-gray-700 [&_a]:font-semibold [&_a]:text-primary [&_a]:underline [&_font[color]]:font-semibold [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:leading-tight [&_h1]:text-gray-950 [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:leading-tight [&_h2]:text-gray-950 [&_h3]:pt-3 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-gray-950 [&_h4]:pt-2 [&_h4]:font-semibold [&_h4]:text-gray-950 [&_li]:ml-5 [&_li]:list-disc [&_ol_li]:list-decimal [&_p]:text-gray-700"
               dangerouslySetInnerHTML={{ __html: safePolicyContent }}
             />
+          ) : !loadingPolicy ? (
+            <article className="mt-10 space-y-8 text-[15px] leading-7 text-gray-700">
+              <section>
+                <h2 className="text-2xl font-bold leading-tight text-gray-950">
+                  {t("dataCollectionTitle")}
+                </h2>
+                <p className="mt-4">{t("dataCollectionDescription")}</p>
+
+                <div className="mt-5 grid gap-4 md:grid-cols-2">
+                  <div className="rounded-2xl border border-gray-100 bg-[#F9F9F9] p-5">
+                    <h3 className="font-semibold text-gray-950">{t("identityDataTitle")}</h3>
+                    <p className="mt-2 text-sm leading-6 text-gray-600">
+                      {t("identityDataDescription")}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-gray-100 bg-[#F9F9F9] p-5">
+                    <h3 className="font-semibold text-gray-950">{t("contactDataTitle")}</h3>
+                    <p className="mt-2 text-sm leading-6 text-gray-600">
+                      {t("contactDataDescription")}
+                    </p>
+                  </div>
+                </div>
+
+                <p className="mt-5">{t("technicalDataDescription")}</p>
+              </section>
+
+              <section>
+                <h2 className="text-2xl font-bold leading-tight text-gray-950">
+                  {t("cookiesTitle")}
+                </h2>
+                <p className="mt-4">{t("cookiesDescription")}</p>
+                <blockquote className="mt-5 rounded-2xl border-l-4 border-[#E74C3C] bg-[#FFF7F5] px-5 py-4 text-sm italic leading-6 text-gray-600">
+                  {t("cookiesQuote")}
+                </blockquote>
+              </section>
+            </article>
           ) : null}
 
         </div>
