@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { BadgePercent, Clock3, MapPinned, ShoppingBag, Store, Truck } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type SyntheticEvent } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
@@ -46,20 +46,27 @@ type HeroSectionProps = {
 
 type BranchSearchMode = "delivery" | "pickup";
 
+const HERO_FALLBACK_IMAGE = "/hero-fallback-v1.webp";
+const loadedHeroImages = new Set<string>();
+
 const getOrderType = (mode: BranchSearchMode): BranchOrderType =>
   mode === "pickup" ? "TAKEAWAY" : "DELIVERY";
 
 export const HeroSection = ({
   title,
   description,
-  heroImage = "/hero.png",
+  heroImage = HERO_FALLBACK_IMAGE,
   branch,
 }: HeroSectionProps) => {
   const t = useTranslations("home.hero");
   const router = useRouter();
   const { user, setUser, token } = useAuthContext();
   const { get } = useCheckout(token);
-  const resolvedHeroImage = resolveHttpsImageUrl(heroImage, "/hero.png");
+  const resolvedHeroImage = resolveHttpsImageUrl(heroImage, HERO_FALLBACK_IMAGE);
+  const usesCustomHeroImage = resolvedHeroImage !== HERO_FALLBACK_IMAGE;
+  const [heroImageReady, setHeroImageReady] = useState(
+    () => !usesCustomHeroImage || loadedHeroImages.has(resolvedHeroImage),
+  );
   const branchSearchRef = useRef<HTMLDivElement | null>(null);
   const deliveryAddressPromptedRef = useRef(false);
   const [mode, setMode] = useState<BranchSearchMode>("pickup");
@@ -85,6 +92,24 @@ export const HeroSection = ({
       : null,
     { enabled: showResults }
   );
+
+  useEffect(() => {
+    setHeroImageReady(
+      !usesCustomHeroImage || loadedHeroImages.has(resolvedHeroImage),
+    );
+  }, [resolvedHeroImage, usesCustomHeroImage]);
+
+  const revealHeroImage = (event: SyntheticEvent<HTMLImageElement>) => {
+    const image = event.currentTarget;
+
+    void image
+      .decode()
+      .catch(() => undefined)
+      .then(() => {
+        loadedHeroImages.add(resolvedHeroImage);
+        setHeroImageReady(true);
+      });
+  };
 
   const selectedBranch = useMemo(() => normalizeBranch(branch ?? user?.branch), [branch, user?.branch]);
   const isSingleBranchRestaurant = Boolean(selectedBranch?.isOnlyBranch);
@@ -294,13 +319,30 @@ export const HeroSection = ({
     <main className="relative flex min-h-[680px] w-full items-center overflow-hidden pb-12 pt-8 md:pb-16 md:pt-10 lg:min-h-[720px]">
       <div className="absolute inset-0 z-0">
         <Image
-          src={resolvedHeroImage}
+          src={HERO_FALLBACK_IMAGE}
           alt={t("heroImageAlt")}
           fill
           className="object-cover"
           priority
-          unoptimized={isRemoteHttpsImageUrl(resolvedHeroImage)}
+          fetchPriority="high"
+          sizes="100vw"
         />
+        {usesCustomHeroImage ? (
+          <Image
+            src={resolvedHeroImage}
+            alt=""
+            fill
+            className={`object-cover transition-opacity duration-300 ${
+              heroImageReady ? "opacity-100" : "opacity-0"
+            }`}
+            priority
+            fetchPriority="high"
+            sizes="100vw"
+            unoptimized={isRemoteHttpsImageUrl(resolvedHeroImage)}
+            onLoad={revealHeroImage}
+            onError={() => setHeroImageReady(false)}
+          />
+        ) : null}
       </div>
       <div className="absolute inset-0 z-0 bg-gradient-to-r from-black/70 via-black/38 to-black/12" />
 

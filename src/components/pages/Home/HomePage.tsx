@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { HeroSection } from "@/components/pages/Home/components/heroSection";
@@ -26,6 +26,10 @@ import { useDomainContext } from "@/hooks/useDomainContext";
 import { useHome } from "@/hooks/useHome";
 import { useHomeCategories, useHomePromotionalItems } from "@/hooks/useHomeCategories";
 import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
+import {
+  readCachedHomeHeroImage,
+  writeCachedHomeHeroImage,
+} from "@/lib/home-hero-cache";
 import { resolveCustomerCurrency } from "@/lib/money";
 import type { CustomerDeal } from "@/types/customer-deals";
 import type { AuthBranch } from "@/types/auth";
@@ -145,6 +149,7 @@ const HomePage = () => {
   const { context: domainContext } = useDomainContext();
   const { locale } = useAppLocale();
   const { branding: fallbackBranding } = useBranding();
+  const [cachedHeroImage, setCachedHeroImage] = useState<string | null>(null);
 
   const restaurantId = useMemo(
     () => resolveHomeRestaurantId(user, authRestaurantId) || domainContext?.restaurantId || "",
@@ -172,6 +177,20 @@ const HomePage = () => {
   const homeResponse = homeQuery.data;
   const homeData = homeResponse ? homeResponse.data : undefined;
   const branding = homeData?.branding ?? fallbackBranding ?? DEFAULT_BRANDING;
+  const liveHeroImage =
+    getRestaurantHeroImage(homeData?.restaurant) ??
+    (homeData ? branding.assets.heroImage ?? branding.assets.coverImage : null);
+
+  useEffect(() => {
+    setCachedHeroImage(readCachedHomeHeroImage(restaurantId));
+  }, [restaurantId]);
+
+  useEffect(() => {
+    if (!liveHeroImage) return;
+
+    writeCachedHomeHeroImage(restaurantId, liveHeroImage);
+    setCachedHeroImage(liveHeroImage);
+  }, [liveHeroImage, restaurantId]);
   const resolvedBranch = useMemo(
     () => mergeHomeBranch(homeData?.branch, user?.branch),
     [homeData?.branch, user?.branch]
@@ -182,7 +201,8 @@ const HomePage = () => {
   const heroBannerTitle = getTrimmedText(homeData?.restaurant?.tagline) ?? t("deliveryTitle");
   const heroBannerDescription = getTrimmedText(homeData?.restaurant?.bio) ?? t("description");
   const heroImage =
-    getRestaurantHeroImage(homeData?.restaurant) ??
+    liveHeroImage ??
+    cachedHeroImage ??
     branding.assets.heroImage ??
     branding.assets.coverImage ??
     DEFAULT_BRANDING.assets.heroImage;
