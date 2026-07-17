@@ -5,7 +5,7 @@ import { toNumber } from "@/components/pages/Items/utils/restaurant-card-utils";
 
 export const getCuisineImage = (cuisine?: CustomerCuisine | null) => {
   const image = cuisine?.imageUrl || cuisine?.coverImage || cuisine?.bannerUrl || "";
-  return image.startsWith("http") ? image : "/categories/background_banner.png";
+  return image.startsWith("http") ? image : "/categories/new_banner.png";
 };
 
 export const getCuisinePromotion = (cuisine: CustomerCuisine): PromotionInfo | null =>
