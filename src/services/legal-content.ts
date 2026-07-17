@@ -30,7 +30,7 @@ const ALLOWED_LEGAL_TAGS = new Set([
   "a", "b", "br", "em", "font", "h1", "h2", "h3", "h4", "i", "li", "ol", "p", "strong", "u", "ul",
 ]);
 
-const ALLOWED_LEGAL_ATTRIBUTES = new Set(["color", "href", "rel", "target"]);
+const ALLOWED_LEGAL_ATTRIBUTES = new Set(["color", "href", "rel", "size", "target"]);
 
 export const sanitizeLegalHtml = (value: string) => {
   let sanitized = value
@@ -54,6 +54,7 @@ export const sanitizeLegalHtml = (value: string) => {
         if (!ALLOWED_LEGAL_ATTRIBUTES.has(attributeName)) return null;
         if (attributeName === "href" && /^(javascript:|data:)/i.test(attributeValue.trim())) return null;
         if (attributeName === "color" && !/^#[0-9a-f]{3,8}$/i.test(attributeValue.trim())) return null;
+        if (attributeName === "size" && !/^[1-7]$/.test(attributeValue.trim())) return null;
 
         return `${attributeName}="${attributeValue.replace(/"/g, "&quot;")}"`;
       })
