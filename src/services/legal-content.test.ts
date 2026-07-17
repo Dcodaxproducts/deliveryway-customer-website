@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { normalizePrivacyPolicyContent } from "./legal-content";
+import { normalizePrivacyPolicyContent, sanitizeLegalHtml } from "./legal-content";
 
 describe("legal content service", () => {
   it("normalizes privacy policy legal profile fields", () => {
@@ -81,5 +81,17 @@ describe("legal content service", () => {
       state: undefined,
       country: "Deutschland",
     });
+  });
+
+  it("preserves supported legal markup and secures links", () => {
+    expect(sanitizeLegalHtml('<h2>Agreement</h2><a href="https://example.com">Read more</a>')).toBe(
+      '<h2>Agreement</h2><a href="https://example.com" target="_blank" rel="noopener noreferrer">Read more</a>',
+    );
+  });
+
+  it("removes executable legal markup and event handlers", () => {
+    expect(
+      sanitizeLegalHtml('<p onclick="alert(1)">Safe</p><script>alert(1)</script>'),
+    ).toBe("<p>Safe</p>");
   });
 });
