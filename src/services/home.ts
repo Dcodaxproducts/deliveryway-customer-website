@@ -1,7 +1,6 @@
 import { getRequest } from "@/services/http";
 import { normalizeApiArray } from "@/components/pages/Items/utils/restaurant-card-utils";
 import type { MenuItem } from "@/components/pages/Items/types";
-import type { AppLocale } from "@/config/i18n";
 import { normalizeBrandingApiResponse } from "../lib/branding";
 import { isHomeBranch, isLandingPopup, normalizeHomeCategories, normalizePromotions } from "../lib/home";
 import { getMeta } from "../lib/response";
@@ -102,10 +101,7 @@ const normalizeHomeData = (value: unknown): CustomerHomeData => {
   };
 };
 
-export const getHomeCategories = async (
-  restaurantId: string,
-  currentLocale: AppLocale,
-) => {
+export const getHomeCategories = async (restaurantId: string) => {
   const categories: HomeCategory[] = [];
   const seenCategoryIds = new Set<string>();
   let page = 1;
@@ -119,13 +115,7 @@ export const getHomeCategories = async (
       sortOrder: "DESC",
     });
 
-    const response = await getRequest(
-      `/v1/menu/categories?${params.toString()}`,
-      null,
-      {
-        "Accept-Language": currentLocale,
-      },
-    );
+    const response = await getRequest(`/v1/menu/categories?${params.toString()}`);
     const pageCategories = normalizeHomeCategories(response);
 
     for (const category of pageCategories) {

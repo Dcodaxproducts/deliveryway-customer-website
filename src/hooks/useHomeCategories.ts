@@ -13,7 +13,7 @@ export const useHomeCategories = (
 ) =>
   useQuery({
     queryKey: queryKeys.home.categories(restaurantId, currentLocale),
-    queryFn: () => getHomeCategories(restaurantId ?? "", currentLocale),
+    queryFn: () => getHomeCategories(restaurantId ?? ""),
     enabled: enabled && Boolean(restaurantId),
   });
 

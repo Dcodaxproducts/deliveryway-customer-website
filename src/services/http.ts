@@ -65,18 +65,14 @@ export const request = async (
   method: ApiMethod,
   endpoint: string,
   body?: unknown,
-  token?: string | null,
-  headers?: Record<string, string>,
+  token?: string | null
 ): Promise<ApiResult> => {
   try {
     const response = await httpClient.request<unknown>({
       url: normalizeApiEndpoint(endpoint),
       method,
       data: body,
-      headers: {
-        ...headers,
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
 
     return normalizeResult(response.data);
@@ -85,11 +81,8 @@ export const request = async (
   }
 };
 
-export const getRequest = (
-  endpoint: string,
-  token?: string | null,
-  headers?: Record<string, string>,
-) => request("GET", endpoint, undefined, token, headers);
+export const getRequest = (endpoint: string, token?: string | null) =>
+  request("GET", endpoint, undefined, token);
 
 export const postRequest = (endpoint: string, body: unknown, token?: string | null) =>
   request("POST", endpoint, body, token);

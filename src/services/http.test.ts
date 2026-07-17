@@ -55,25 +55,4 @@ describe("http service", () => {
     });
   });
 
-  it("combines custom request headers with authorization", async () => {
-    requestMock.mockResolvedValue({ data: { success: true } });
-
-    await request(
-      "GET",
-      "/v1/menu/categories",
-      undefined,
-      "customer-token",
-      { "Accept-Language": "de" },
-    );
-
-    expect(requestMock).toHaveBeenCalledWith({
-      url: "/v1/menu/categories",
-      method: "GET",
-      data: undefined,
-      headers: {
-        "Accept-Language": "de",
-        Authorization: "Bearer customer-token",
-      },
-    });
-  });
 });

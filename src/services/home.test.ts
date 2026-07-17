@@ -92,20 +92,16 @@ describe("getHomeCategories", () => {
         },
       });
 
-    const categories = await getHomeCategories("restaurant-1", "de");
+    const categories = await getHomeCategories("restaurant-1");
 
     expect(categories.map((category) => category.id)).toEqual(["c1", "c2", "c3"]);
     expect(getRequestMock).toHaveBeenNthCalledWith(
       1,
-      "/v1/menu/categories?restaurantId=restaurant-1&page=1&limit=50&sortBy=sortOrder&sortOrder=DESC",
-      null,
-      { "Accept-Language": "de" },
+      "/v1/menu/categories?restaurantId=restaurant-1&page=1&limit=50&sortBy=sortOrder&sortOrder=DESC"
     );
     expect(getRequestMock).toHaveBeenNthCalledWith(
       2,
-      "/v1/menu/categories?restaurantId=restaurant-1&page=2&limit=50&sortBy=sortOrder&sortOrder=DESC",
-      null,
-      { "Accept-Language": "de" },
+      "/v1/menu/categories?restaurantId=restaurant-1&page=2&limit=50&sortBy=sortOrder&sortOrder=DESC"
     );
   });
 
@@ -120,7 +116,7 @@ describe("getHomeCategories", () => {
       },
     });
 
-    const categories = await getHomeCategories("restaurant-1", "en");
+    const categories = await getHomeCategories("restaurant-1");
 
     expect(categories).toHaveLength(1);
     expect(categories[0].id).toBe("c1");
