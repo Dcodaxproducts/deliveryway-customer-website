@@ -15,9 +15,9 @@ export const DEFAULT_BRANDING: Branding = {
     default: "/logo.png",
   },
   assets: {
-    coverImage: "/hero.png",
-    heroImage: "/hero.png",
-    bannerImage: "/hero.png",
+    coverImage: "/hero-fallback-v1.webp",
+    heroImage: "/hero-fallback-v1.webp",
+    bannerImage: "/hero-fallback-v1.webp",
   },
   checkout: {
     accentColor: "#CE181B",
