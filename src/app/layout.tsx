@@ -73,13 +73,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>
-        <link
-          rel="preconnect"
-          href="https://deliveryway.s3.eu-west-2.amazonaws.com"
-          crossOrigin="anonymous"
-        />
-      </head>
       <body className={`${onest.className} ${onest.variable}`}>
         <Providers>
           <Toaster position="top-right" richColors />

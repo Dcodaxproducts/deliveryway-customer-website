@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Grid2X2, List, Loader2, Menu, Search, Utensils } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -29,7 +28,7 @@ type CategorySidebarProps = {
   onCategorySelect?: (id: string) => void;
 };
 
-export default function CategorySidebar({
+export function CategorySidebar({
   activeCategoryId,
   categories = [],
   loading,
@@ -48,11 +47,6 @@ export default function CategorySidebar({
   const tSidebar = useTranslations("items.sidebar");
   const router = useRouter();
 
-  const listRef = useRef<HTMLDivElement | null>(null);
-  const categoryButtonRefs = useRef<Record<string, HTMLButtonElement | null>>(
-    {}
-  );
-
   const handleCategoryClick = (id: string) => {
     if (viewMode === "onePage") {
       onCategorySelect?.(String(id));
@@ -66,37 +60,6 @@ export default function CategorySidebar({
 
     onCategorySelect?.(String(id));
   };
-
-  useEffect(() => {
-    if (!activeCategoryId) return;
-
-    const container = listRef.current;
-    const activeButton = categoryButtonRefs.current[String(activeCategoryId)];
-
-    if (!container || !activeButton) return;
-
-    const containerRect = container.getBoundingClientRect();
-    const activeRect = activeButton.getBoundingClientRect();
-
-    const topGap = activeRect.top - containerRect.top;
-    const bottomGap = activeRect.bottom - containerRect.bottom;
-
-    if (topGap < 12) {
-      container.scrollTo({
-        top: Math.max(0, container.scrollTop + topGap - 16),
-        behavior: "smooth",
-      });
-
-      return;
-    }
-
-    if (bottomGap > -12) {
-      container.scrollTo({
-        top: container.scrollTop + bottomGap + 16,
-        behavior: "smooth",
-      });
-    }
-  }, [activeCategoryId, categories, viewMode]);
 
   return (
     <div className="min-w-0 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-100">
@@ -185,10 +148,7 @@ export default function CategorySidebar({
       </div>
 
       {/* LIST */}
-      <div
-        ref={listRef}
-        className="max-h-[calc(100vh-320px)] min-h-[180px] space-y-2 overflow-y-auto overflow-x-hidden pr-1 [scrollbar-width:thin]"
-      >
+      <div className="space-y-2">
         {loading ? (
           <div className="flex items-center justify-center gap-2 py-6 text-sm text-gray-400">
             <Loader2 size={16} className="animate-spin" />
@@ -209,9 +169,6 @@ export default function CategorySidebar({
               return (
                 <button
                   key={id}
-                  ref={(element) => {
-                    categoryButtonRefs.current[id] = element;
-                  }}
                   type="button"
                   onClick={() => handleCategoryClick(id)}
                   className={`flex w-full min-w-0 items-center justify-between gap-3 rounded-full px-5 py-3 text-left text-sm font-medium transition ${
