@@ -130,7 +130,7 @@ const PrivacyPage = () => {
 
           {hasPolicyContent ? (
             <article
-              className="mt-10 space-y-5 text-[15px] leading-7 text-gray-700 [&_a]:font-semibold [&_a]:text-primary [&_a]:underline [&_font[color]]:font-semibold [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:leading-tight [&_h1]:text-gray-950 [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:leading-tight [&_h2]:text-gray-950 [&_h3]:pt-3 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-gray-950 [&_h4]:pt-2 [&_h4]:font-semibold [&_h4]:text-gray-950 [&_li]:ml-5 [&_li]:list-disc [&_ol_li]:list-decimal [&_p]:text-gray-700"
+              className="mt-10 space-y-5 text-[15px] leading-7 text-gray-700 [&_a]:font-semibold [&_a]:text-primary [&_a]:underline [&_div]:!my-0 [&_div]:min-h-[1.75rem] [&_font[color]]:font-semibold [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:leading-tight [&_h1]:text-gray-950 [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:leading-tight [&_h2]:text-gray-950 [&_h3]:pt-3 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-gray-950 [&_h4]:pt-2 [&_h4]:font-semibold [&_h4]:text-gray-950 [&_li]:ml-5 [&_li]:list-disc [&_ol_li]:list-decimal [&_p]:text-gray-700"
               dangerouslySetInnerHTML={{ __html: safePolicyContent }}
             />
           ) : !loadingPolicy ? (

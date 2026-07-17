@@ -27,7 +27,7 @@ export type PrivacyPolicyContent = {
 };
 
 const ALLOWED_LEGAL_TAGS = new Set([
-  "a", "b", "br", "em", "font", "h1", "h2", "h3", "h4", "i", "li", "ol", "p", "strong", "u", "ul",
+  "a", "b", "br", "div", "em", "font", "h1", "h2", "h3", "h4", "i", "li", "ol", "p", "strong", "u", "ul",
 ]);
 
 const ALLOWED_LEGAL_ATTRIBUTES = new Set(["color", "href", "rel", "size", "target"]);

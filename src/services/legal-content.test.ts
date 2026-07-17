@@ -98,6 +98,16 @@ describe("legal content service", () => {
     );
   });
 
+  it("preserves rich-editor block lines instead of collapsing their content", () => {
+    expect(
+      sanitizeLegalHtml(
+        "<div>- <strong>Account information:</strong> Account details</div><div>- <strong>Order information:</strong> Order details</div>",
+      ),
+    ).toBe(
+      "<div>- <strong>Account information:</strong> Account details</div><div>- <strong>Order information:</strong> Order details</div>",
+    );
+  });
+
   it("removes executable legal markup and event handlers", () => {
     expect(
       sanitizeLegalHtml('<p onclick="alert(1)">Safe</p><script>alert(1)</script>'),
