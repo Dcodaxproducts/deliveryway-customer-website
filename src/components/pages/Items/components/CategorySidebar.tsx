@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Grid2X2, List, Loader2, Menu, Search, Utensils } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -46,6 +47,8 @@ export function CategorySidebar({
   const tCommon = useTranslations("items.common");
   const tSidebar = useTranslations("items.sidebar");
   const router = useRouter();
+  const sidebarRef = useRef<HTMLDivElement | null>(null);
+  const categoryButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   const handleCategoryClick = (id: string) => {
     if (viewMode === "onePage") {
@@ -61,8 +64,39 @@ export function CategorySidebar({
     onCategorySelect?.(String(id));
   };
 
+  useEffect(() => {
+    if (!activeCategoryId) return;
+
+    const sidebar = sidebarRef.current;
+    const activeButton = categoryButtonRefs.current[String(activeCategoryId)];
+
+    if (!sidebar || !activeButton || sidebar.scrollHeight <= sidebar.clientHeight) return;
+
+    const sidebarRect = sidebar.getBoundingClientRect();
+    const activeRect = activeButton.getBoundingClientRect();
+    const safeInset = 16;
+
+    if (activeRect.top < sidebarRect.top + safeInset) {
+      sidebar.scrollTo({
+        top: Math.max(0, sidebar.scrollTop + activeRect.top - sidebarRect.top - safeInset),
+        behavior: "smooth",
+      });
+      return;
+    }
+
+    if (activeRect.bottom > sidebarRect.bottom - safeInset) {
+      sidebar.scrollTo({
+        top: sidebar.scrollTop + activeRect.bottom - sidebarRect.bottom + safeInset,
+        behavior: "smooth",
+      });
+    }
+  }, [activeCategoryId, categories]);
+
   return (
-    <div className="min-w-0 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-100">
+    <div
+      ref={sidebarRef}
+      className="min-w-0 max-h-[calc(100dvh-7.5rem)] overflow-y-auto overscroll-contain rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-100 [scrollbar-width:thin]"
+    >
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="text-xl font-semibold text-gray-900">{tCommon("fullMenuLower")}</h2>
@@ -169,6 +203,9 @@ export function CategorySidebar({
               return (
                 <button
                   key={id}
+                  ref={(element) => {
+                    categoryButtonRefs.current[id] = element;
+                  }}
                   type="button"
                   onClick={() => handleCategoryClick(id)}
                   className={`flex w-full min-w-0 items-center justify-between gap-3 rounded-full px-5 py-3 text-left text-sm font-medium transition ${
