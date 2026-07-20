@@ -48,6 +48,9 @@ describe("restaurant card utils", () => {
   });
 
   it("summarizes selected branch opening and delivery hours", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 6, 20, 12, 0, 0));
+
     const branch = {
       settings: {
         openingHours: [
