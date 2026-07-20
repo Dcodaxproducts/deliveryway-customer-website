@@ -10,9 +10,9 @@ export const DEFAULT_BRANDING: Branding = {
   fontFamily: "inherit",
   headingFontFamily: "inherit",
   logo: {
-    light: "/logo.png",
-    dark: "/logo.png",
-    default: "/logo.png",
+    light: "/deliveryway-logo.jpg",
+    dark: "/deliveryway-logo.jpg",
+    default: "/deliveryway-logo.jpg",
   },
   assets: {
     coverImage: "/hero.png",
@@ -22,7 +22,7 @@ export const DEFAULT_BRANDING: Branding = {
   checkout: {
     accentColor: "#CE181B",
   },
-  restaurantName: "FoodLover.club",
+  restaurantName: "DeliveryWay",
   tagline: "Within a few clicks, find meals that are accessible near you",
   showCategories: true,
   showPopularItems: true,

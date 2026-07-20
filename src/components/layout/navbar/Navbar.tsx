@@ -159,6 +159,10 @@ export const Navbar = () => {
     user?.branch,
   );
   const restaurantLogoUrl = homeQuery.data?.data.restaurant?.logoUrl ?? null;
+  const restaurantName =
+    homeQuery.data?.data.restaurant?.name?.trim() ||
+    homeQuery.data?.data.branding.restaurantName?.trim() ||
+    "DeliveryWay";
   const currency = resolveCustomerCurrency({
     configCurrency: homeQuery.data?.data.config?.currency,
     restaurant: homeQuery.data?.data.restaurant,
@@ -423,13 +427,22 @@ export const Navbar = () => {
         {/* NAVBAR */}
         <nav className="mx-auto flex max-w-[1440px] items-center justify-between gap-5 px-5 py-5 lg:px-8 2xl:px-10">
           {/* LEFT - LOGO */}
-          <Link href="/" className="relative h-[34px] w-[150px] shrink-0">
-            <BrandLogo
-              alt="Logo"
-              fill
-              restaurantLogoUrl={restaurantLogoUrl}
-              className="object-contain"
-            />
+          <Link
+            href="/"
+            aria-label={`${restaurantName} home`}
+            className="flex min-w-0 max-w-[250px] shrink-0 items-center gap-3"
+          >
+            <span className="relative h-[42px] w-[58px] shrink-0 overflow-hidden rounded-lg bg-white">
+              <BrandLogo
+                alt={`${restaurantName} logo`}
+                fill
+                restaurantLogoUrl={restaurantLogoUrl}
+                className="object-contain"
+              />
+            </span>
+            <span className="truncate text-base font-bold text-[#20242A]">
+              {restaurantName}
+            </span>
           </Link>
 
           {/* DESKTOP NAV */}

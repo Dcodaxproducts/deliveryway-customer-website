@@ -31,7 +31,7 @@ export const BrandLogo = ({
   const [hasImageError, setHasImageError] = useState(false);
   const variantLogo = variant === "dark" ? branding.logo.dark : branding.logo.light;
   const fallbackLogo = useMemo(
-    () => resolveHttpsImageUrl(variantLogo ?? branding.logo.default, "/logo.png"),
+    () => resolveHttpsImageUrl(variantLogo ?? branding.logo.default, "/deliveryway-logo.jpg"),
     [branding.logo.default, variantLogo]
   );
   const src = useMemo(
@@ -43,7 +43,7 @@ export const BrandLogo = ({
   }, [src]);
 
   const fallbackText = branding.restaurantName?.trim() || alt;
-  const shouldShowTextFallback = hasImageError && src !== "/logo.png";
+  const shouldShowTextFallback = hasImageError && src !== "/deliveryway-logo.jpg";
 
   if (shouldShowTextFallback) {
     return (
@@ -54,7 +54,7 @@ export const BrandLogo = ({
   }
 
   const handleImageError = () => {
-    if (src === "/logo.png") return;
+    if (src === "/deliveryway-logo.jpg") return;
     setHasImageError(true);
   };
 

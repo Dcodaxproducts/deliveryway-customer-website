@@ -118,7 +118,7 @@ export const Footer = () => {
   const restaurant = homeData?.restaurant;
   const branch = useMemo(() => normalizeBranch(homeData?.branch), [homeData?.branch]);
   const restaurantName =
-    restaurant?.name?.trim() || homeData?.branding.restaurantName || "FoodLover.club";
+    restaurant?.name?.trim() || homeData?.branding.restaurantName || "DeliveryWay";
   const description =
     restaurant?.tagline?.trim() ||
     restaurant?.bio?.trim() ||

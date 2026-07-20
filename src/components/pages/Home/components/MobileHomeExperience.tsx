@@ -66,6 +66,10 @@ export function MobileHomeExperience({
   );
   const branchLabel = branch?.name || restaurantName;
   const visibleCategories = categories.slice(0, 10);
+  const logoUrl = resolveHttpsImageUrl(
+    branding.logo.light || branding.logo.default,
+    "/deliveryway-logo.jpg"
+  );
 
   return (
     <div className="min-h-screen bg-[#f7f3ef] pb-8 md:hidden">
@@ -93,13 +97,25 @@ export function MobileHomeExperience({
           </Link>
         </div>
 
-        <div className="relative z-10 mt-6">
-          <p className="text-[15px] font-medium text-white/80">
-            What would you like today?
-          </p>
-          <h1 className="mt-1 line-clamp-2 max-w-[300px] text-[30px] font-black leading-[1.08]">
-            {restaurantName}
-          </h1>
+        <div className="relative z-10 mt-6 flex items-center gap-3">
+          <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl bg-white shadow-sm">
+            <Image
+              src={logoUrl}
+              alt={`${restaurantName} logo`}
+              fill
+              sizes="56px"
+              className="object-contain"
+              unoptimized
+            />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[15px] font-medium text-white/80">
+              What would you like today?
+            </p>
+            <h1 className="mt-1 line-clamp-2 max-w-[300px] text-[30px] font-black leading-[1.08]">
+              {restaurantName}
+            </h1>
+          </div>
         </div>
 
         <button

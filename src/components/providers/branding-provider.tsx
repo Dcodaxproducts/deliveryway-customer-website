@@ -37,8 +37,8 @@ export const BrandingProvider = ({ children }: BrandingProviderProps) => {
 
   useEffect(() => {
     const faviconHref = user
-      ? resolveHttpsImageUrl(branding.logo.default, "/logo.png")
-      : "/logo.png";
+      ? resolveHttpsImageUrl(branding.logo.default, "/deliveryway-logo.jpg")
+      : "/deliveryway-logo.jpg";
     const iconLinks = document.querySelectorAll<HTMLLinkElement>(
       "link[rel='icon'], link[rel='shortcut icon'], link[rel='apple-touch-icon']"
     );
