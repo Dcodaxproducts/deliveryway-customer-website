@@ -3,7 +3,6 @@
 import Image from "next/image";
 import {
   BadgePercent,
-  Bell,
   CalendarDays,
   ChevronLeft,
   ChevronRight,
@@ -139,14 +138,13 @@ const PromotionBannerSkeleton = () => {
 
 function NoPromotionsState({ onExploreMenu }: { onExploreMenu: () => void }) {
   const t = useTranslations("home.promotions");
-  const router = useRouter();
 
   return (
-    <div className="relative overflow-hidden rounded-[28px] border border-dashed border-primary/20 bg-[linear-gradient(115deg,#fffafa_0%,#fff_48%,#fffafa_100%)] px-6 py-10 sm:px-10 lg:min-h-[390px] lg:px-14 lg:py-12">
+    <div className="relative overflow-hidden rounded-[28px] border border-dashed border-primary/20 bg-[linear-gradient(115deg,#fffafa_0%,#fff_48%,#fffafa_100%)] px-6 py-8 sm:px-10 lg:min-h-[320px] lg:px-14 lg:py-10">
       <div className="pointer-events-none absolute -bottom-28 -right-24 h-72 w-72 rounded-full bg-primary/[0.025] blur-2xl" />
 
-      <div className="relative mx-auto grid max-w-[1020px] items-center gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:gap-16">
-        <div className="relative mx-auto flex h-[250px] w-[250px] items-center justify-center sm:h-[300px] sm:w-[300px] lg:h-[320px] lg:w-[320px]">
+      <div className="relative mx-auto grid max-w-[900px] items-center gap-8 lg:grid-cols-[0.92fr_1.08fr] lg:gap-12">
+        <div className="relative mx-auto flex h-[190px] w-[190px] items-center justify-center sm:h-[220px] sm:w-[220px] lg:h-[240px] lg:w-[240px]">
           <div className="absolute inset-3 rounded-full bg-primary/[0.045]" />
           <Send
             aria-hidden="true"
@@ -159,7 +157,7 @@ function NoPromotionsState({ onExploreMenu }: { onExploreMenu: () => void }) {
             alt=""
             width={900}
             height={794}
-            sizes="(min-width: 1024px) 320px, 250px"
+            sizes="(min-width: 1024px) 240px, (min-width: 640px) 220px, 190px"
             className="relative z-[1] h-auto w-[92%] mix-blend-multiply"
           />
         </div>
@@ -170,34 +168,24 @@ function NoPromotionsState({ onExploreMenu }: { onExploreMenu: () => void }) {
             {t("noPromotionsBadge")}
           </div>
 
-          <h3 className="mt-5 text-[30px] font-extrabold leading-[1.12] tracking-[-0.02em] text-gray-950 sm:text-[36px] lg:max-w-[520px] lg:text-[40px]">
+          <h3 className="mt-4 text-2xl font-extrabold leading-tight tracking-[-0.02em] text-gray-950 lg:max-w-[520px]">
             {t("noActivePromotions")}
           </h3>
 
-          <p className="mx-auto mt-4 max-w-[560px] text-base leading-7 text-gray-500 sm:text-[17px] lg:mx-0">
+          <p className="mx-auto mt-3 max-w-[560px] text-sm leading-6 text-gray-500 lg:mx-0">
             {t("noActivePromotionsDescription")}
           </p>
 
-          <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row lg:justify-start">
+          <div className="mt-6 flex justify-center lg:justify-start">
             <Button
               type="button"
               variant="primary"
-              className="h-13 rounded-full px-7 text-base font-semibold shadow-[0_10px_24px_rgba(220,0,30,0.16)]"
+              className="h-10 rounded-full px-5 text-sm font-semibold shadow-[0_10px_24px_rgba(220,0,30,0.16)]"
               onClick={onExploreMenu}
             >
-              <Utensils aria-hidden="true" size={19} />
+              <Utensils aria-hidden="true" size={17} />
               {t("exploreMenu")}
-              <ChevronRight aria-hidden="true" size={18} strokeWidth={2.5} />
-            </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              className="h-13 rounded-full border-primary/35 px-7 text-base font-semibold text-primary hover:bg-primary/[0.04] hover:text-primary"
-              onClick={() => router.push("/notifications")}
-            >
-              <Bell aria-hidden="true" size={19} />
-              {t("notifyMe")}
+              <ChevronRight aria-hidden="true" size={16} strokeWidth={2.5} />
             </Button>
           </div>
         </div>
