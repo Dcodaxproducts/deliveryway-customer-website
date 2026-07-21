@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { HeroSection } from "@/components/pages/Home/components/heroSection";
 import { FoodCategorySection } from "@/components/pages/Home/components/foodCategorySection";
 import WhyChooseUs from "@/components/pages/Home/components/whyChooseUsSection";
-import AppPromo from "@/components/pages/Home/components/appPromoSection";
+import { AppPromo } from "@/components/pages/Home/components/appPromoSection";
 import Stats from "@/components/pages/Home/components/statsSection";
 import { RequiredBranchSelectionModal } from "@/components/common/branch-selector/RequiredBranchSelectionModal";
 import BranchOpeningHoursPopup from "@/components/pages/Home/components/BranchOpeningHours";

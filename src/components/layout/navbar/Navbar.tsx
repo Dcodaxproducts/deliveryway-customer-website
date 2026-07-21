@@ -430,7 +430,7 @@ export const Navbar = () => {
           <Link
             href="/"
             aria-label={`${restaurantName} home`}
-            className="flex min-w-0 max-w-[250px] shrink-0 items-center gap-3"
+            className="flex shrink-0 items-center"
           >
             <span className="relative h-[42px] w-[58px] shrink-0 overflow-hidden rounded-lg bg-white">
               <BrandLogo
@@ -439,9 +439,6 @@ export const Navbar = () => {
                 restaurantLogoUrl={restaurantLogoUrl}
                 className="object-contain"
               />
-            </span>
-            <span className="truncate text-base font-bold text-[#20242A]">
-              {restaurantName}
             </span>
           </Link>
 

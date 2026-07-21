@@ -8,7 +8,7 @@ const MOBILE_PHONE_IMAGE = `${ASSET_BASE}/promo-phones.png`;
 const APP_STORE_BADGE_IMAGE = "/app-store-badge.png";
 const GOOGLE_PLAY_BADGE_IMAGE = "/google-play-badge.png";
 
-export default function AppPromo() {
+export function AppPromo() {
   const t = useTranslations("home.appPromo");
 
   const tSafe = (key: string, fallback: string) => {
@@ -28,7 +28,7 @@ export default function AppPromo() {
   ];
 
   return (
-    <section className="mx-auto max-w-[1400px] px-4 pt-5 pb-[80px] sm:px-6">
+    <section className="mx-auto max-w-[1400px] px-4 pb-[80px] pt-5 sm:px-6 lg:px-8 2xl:px-10">
       <div>
         <div className="relative isolate min-h-[665px] overflow-hidden rounded-[20px] bg-[#fff7f7] px-5 py-8 shadow-[0_18px_50px_rgba(224,62,62,0.08)] sm:min-h-[705px] sm:px-7 lg:h-[320px] lg:min-h-0 lg:p-0 xl:h-[360px] 2xl:h-[380px]">
           <div className="absolute inset-0 -z-10 bg-[#fff7f7]" />
@@ -59,15 +59,15 @@ export default function AppPromo() {
           />
 
           {/* Desktop content layout */}
-          <div className="absolute inset-0 z-30 hidden h-full grid-cols-[39%_minmax(0,1fr)_170px] items-center gap-x-7 px-[4%] lg:grid xl:grid-cols-[39.5%_minmax(0,1fr)_215px] xl:gap-x-9 xl:px-[4.2%] 2xl:grid-cols-[38.5%_minmax(0,1fr)_235px] 2xl:gap-x-10 2xl:px-[4.4%]">
+          <div className="absolute inset-0 z-30 hidden h-full grid-cols-[39%_minmax(0,1fr)_170px] items-center gap-x-7 px-[5%] lg:grid xl:grid-cols-[39.5%_minmax(0,1fr)_215px] xl:gap-x-9 xl:px-[5.2%] 2xl:grid-cols-[38.5%_minmax(0,1fr)_235px] 2xl:gap-x-10 2xl:px-[5.4%]">
             <div aria-hidden="true" />
 
             <div className="min-w-0 max-w-[760px]">
-              <p className="text-[14px] font-extrabold uppercase leading-none tracking-[0.12em] text-[#d71920] xl:text-[17px]">
+              <p className="text-[13px] font-extrabold uppercase leading-none tracking-[0.12em] text-[#d71920] xl:text-[14px] 2xl:text-[15px]">
                 {tSafe("eyebrow", "DELIVERYWAY MOBILE APP")}
               </p>
 
-              <h2 className="mt-4 max-w-[720px] text-[30px] font-black leading-[1.08] tracking-[-0.045em] text-[#101014] xl:text-[38px] 2xl:text-[42px]">
+              <h2 className="mt-4 max-w-[720px] text-[28px] font-black leading-[1.1] tracking-[-0.04em] text-[#101014] xl:text-[32px] 2xl:text-[34px]">
                 {tSafe("headlineLineOne", "Great food,greater deals ")}&nbsp;
                 {tSafe("headlineLineTwo", "on the app")}
               </h2>
@@ -76,7 +76,7 @@ export default function AppPromo() {
                 {features.map((feature) => (
                   <div
                     key={feature}
-                    className="flex min-w-0 items-center gap-3 text-[15px] font-semibold leading-tight text-[#6c6c73] xl:text-[18px]"
+                    className="flex min-w-0 items-center gap-3 text-[14px] font-semibold leading-tight text-[#6c6c73] xl:text-[15px] 2xl:text-base"
                   >
                     <span className="flex h-[21px] w-[21px] shrink-0 items-center justify-center rounded-full border-[3px] border-[#ef5b61] text-[#ef5b61]">
                       <svg
@@ -149,11 +149,11 @@ export default function AppPromo() {
               />
             </div>
 
-            <p className="text-[13px] font-extrabold uppercase leading-none tracking-[0.14em] text-[#d71920]">
+            <p className="text-xs font-extrabold uppercase leading-none tracking-[0.14em] text-[#d71920]">
               {tSafe("eyebrow", "DELIVERYWAY MOBILE APP")}
             </p>
 
-            <h2 className="mt-4 max-w-[460px] text-[31px] font-black leading-[1.08] tracking-[-0.045em] text-[#101014] sm:text-[38px]">
+            <h2 className="mt-4 max-w-[460px] text-[28px] font-black leading-[1.1] tracking-[-0.04em] text-[#101014] sm:text-[32px]">
               {tSafe("headlineLineOne", "Great food, greater deals")}&nbsp;
               {tSafe("headlineLineTwo", "on the app")}
             </h2>
@@ -162,7 +162,7 @@ export default function AppPromo() {
               {features.map((feature) => (
                 <div
                   key={feature}
-                  className="flex items-center justify-center gap-3 text-[14px] font-semibold text-[#6c6c73] sm:justify-start"
+                  className="flex items-center justify-center gap-3 text-[13px] font-semibold text-[#6c6c73] sm:justify-start"
                 >
                   <span className="flex h-[21px] w-[21px] shrink-0 items-center justify-center rounded-full border-[3px] border-[#ef5b61] text-[#ef5b61]">
                     <svg
