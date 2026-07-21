@@ -45,7 +45,7 @@ export function AppPromo() {
             aria-hidden="true"
             loading="lazy"
             decoding="async"
-            className="pointer-events-none absolute left-[1.4%] top-[10%] z-10 hidden h-auto w-[45%] max-w-[760px] select-none [clip-path:inset(0_20%_0_0)] lg:block xl:left-[1.8%] 2xl:left-[2.2%]"
+            className="pointer-events-none absolute left-[1.4%] top-[10%] z-10 hidden h-auto w-[45%] max-w-[760px] select-none lg:block xl:left-[1.8%] 2xl:left-[2.2%]"
           />
 
           <img
