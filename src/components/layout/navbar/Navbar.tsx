@@ -425,7 +425,7 @@ export const Navbar = () => {
         <CouponPerkBanner coupons={couponsQuery.coupons} currency={currency} />
 
         {/* NAVBAR */}
-        <nav className="mx-auto flex max-w-[1440px] items-center justify-between gap-5 px-5 py-5 lg:px-8 2xl:px-10">
+        <nav className="mx-auto flex max-w-[1440px] items-center justify-between gap-5 px-5 py-5 lg:px-8 xl:gap-8 2xl:gap-10 2xl:px-10">
           {/* LEFT - LOGO */}
           <Link
             href="/"
