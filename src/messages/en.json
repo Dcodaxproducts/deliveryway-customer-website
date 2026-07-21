@@ -163,6 +163,7 @@
     "resetPassword": "Reset Password",
     "resetPasswordTitle": "Reset password",
     "resetPasswordDescription": "Enter the OTP sent to your email and set a new password",
+    "restaurantContextUnavailable": "This restaurant storefront could not be resolved. Please check the website address.",
     "resendOtpIn": "Resend OTP in {count}s",
     "resendOtp": "Resend OTP",
     "sending": "Sending...",

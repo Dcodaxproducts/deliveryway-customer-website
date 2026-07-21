@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "../ui/checkbox"
 import { useAuthContext } from "@/hooks/useAuth"
+import { useDomainContext } from "@/hooks/useDomainContext"
 import { getAuthErrorMessage } from "@/lib/auth"
 import { getStoredGroupOrderCode } from "@/lib/group-order"
 import { roboto } from "@/lib/fonts"
@@ -81,7 +82,6 @@ const useAuthValidationMessages = (): AuthValidationMessages => {
       emailRequired: t("emailRequired"),
       emailInvalid: t("emailInvalid"),
       passwordRequired: t("passwordRequired"),
-      restaurantIdRequired: t("restaurantIdRequired"),
       firstNameRequired: t("firstNameRequired"),
       lastNameRequired: t("lastNameRequired"),
       phoneRequired: t("phoneRequired"),
@@ -90,7 +90,6 @@ const useAuthValidationMessages = (): AuthValidationMessages => {
       passwordsDoNotMatch: t("passwordsDoNotMatch"),
       otpRequired: t("otpRequired"),
       newPasswordRequired: t("newPasswordRequired"),
-      restaurantIdMissing: t("restaurantIdMissing"),
     }),
     [t]
   )
@@ -100,6 +99,7 @@ export function LoginForm() {
   const t = useTranslations("auth")
   const router = useRouter()
   const { login } = useAuthContext()
+  const { context: domainContext, loading: domainLoading, error: domainError } = useDomainContext()
 
   const [isLoading, setIsLoading] = useState(false)
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false)
@@ -120,7 +120,6 @@ export function LoginForm() {
     defaultValues: {
       email: "",
       password: "",
-      restaurantId: "",
     },
   })
 
@@ -130,7 +129,6 @@ export function LoginForm() {
       firstName: "",
       lastName: "",
       phone: "",
-      restaurantId: "",
     },
   })
 
@@ -148,10 +146,16 @@ export function LoginForm() {
 
   // ================= NORMAL LOGIN =================
   const onSubmit = async (values: LoginFormValues) => {
+    const restaurantId = domainContext?.restaurantId
+    if (!restaurantId) {
+      toast.error(domainError?.message || t("restaurantContextUnavailable"))
+      return
+    }
+
     try {
       setIsLoading(true)
 
-      const data = await loginCustomer(values)
+      const data = await loginCustomer({ ...values, restaurantId })
 
       login(data)
 
@@ -166,10 +170,16 @@ export function LoginForm() {
 
   // ================= GUEST LOGIN =================
   const onGuestSubmit = async (values: GuestLoginFormValues) => {
+    const restaurantId = domainContext?.restaurantId
+    if (!restaurantId) {
+      toast.error(domainError?.message || t("restaurantContextUnavailable"))
+      return
+    }
+
     try {
       setIsLoading(true)
 
-      const data = await guestLoginCustomer(values)
+      const data = await guestLoginCustomer({ ...values, restaurantId })
 
       login(data)
 
@@ -183,11 +193,10 @@ export function LoginForm() {
   }
 
   const handleGoogleLogin = async () => {
-    const restaurantId = loginForm.getValues("restaurantId").trim()
+    const restaurantId = domainContext?.restaurantId
 
     if (!restaurantId) {
-      toast.error(validationMessages.restaurantIdRequired)
-      loginForm.setFocus("restaurantId")
+      toast.error(domainError?.message || t("restaurantContextUnavailable"))
       return
     }
 
@@ -273,15 +282,9 @@ export function LoginForm() {
               placeholder={t("phone")}
               {...guestForm.register("phone")}
             />
-            <Input
-              id="guestRestaurantId"
-              placeholder={t("restaurantId")}
-              {...guestForm.register("restaurantId")}
-            />
-
             <Button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || domainLoading}
               className="w-full h-[50px] text-lg font-semibold bg-primary text-white"
             >
               {isLoading ? t("starting") : t("signInAsGuest")}
@@ -317,12 +320,6 @@ export function LoginForm() {
                 )}
               </button>
             </div>
-            <Input
-              id="restaurantId"
-              placeholder={t("restaurantId")}
-              {...loginForm.register("restaurantId")}
-            />
-
             <div className="flex items-center justify-between text-sm my-7">
               <label className="flex items-center gap-2 cursor-pointer text-gray-500">
                 <Checkbox checked />
@@ -339,7 +336,7 @@ export function LoginForm() {
 
             <Button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || domainLoading}
               className="w-full h-[50px] text-lg font-semibold bg-primary text-white"
             >
               {isLoading ? t("loggingIn") : t("login")}
@@ -352,7 +349,7 @@ export function LoginForm() {
       <div className="space-y-5 flex flex-col items-center">
         <button
           type="button"
-          disabled={isLoading || isGoogleSubmitting}
+          disabled={isLoading || isGoogleSubmitting || domainLoading}
           onClick={handleGoogleLogin}
           className="w-[345px] flex items-center justify-center h-[54px] font-medium bg-transparent rounded-[10px] hover:bg-gray-100 shadow-sm border border-gray-200"
         >

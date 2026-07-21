@@ -13,14 +13,12 @@ import {
 const validLogin = {
   email: "customer@example.com",
   password: "secret123",
-  restaurantId: "restaurant-1",
 };
 
 const validGuestLogin = {
   firstName: "Ada",
   lastName: "Lovelace",
   phone: "+923001234567",
-  restaurantId: "restaurant-1",
 };
 
 const validSignup = {
@@ -30,18 +28,17 @@ const validSignup = {
   phone: "+923001234567",
   password: "secret123",
   confirmPassword: "secret123",
-  restaurantId: "restaurant-1",
   tenantId: "tenant-1",
   acceptTerms: true,
 };
 
 describe("auth validation schemas", () => {
-  it("requires login email, password, and restaurantId", () => {
-    const result = loginSchema.safeParse({ email: "", password: "", restaurantId: "" });
+  it("requires login email and password", () => {
+    const result = loginSchema.safeParse({ email: "", password: "" });
 
     expect(result.success).toBe(false);
     expect(result.error?.issues.map((issue) => issue.path.join("."))).toEqual(
-      expect.arrayContaining(["email", "password", "restaurantId"])
+      expect.arrayContaining(["email", "password"])
     );
   });
 
@@ -62,12 +59,12 @@ describe("auth validation schemas", () => {
     expect(translatedResult.error?.issues[0]?.message).toBe("E-Mail ist erforderlich");
   });
 
-  it("requires guest login names, phone, and restaurantId", () => {
-    const result = guestLoginSchema.safeParse({ firstName: "", lastName: "", phone: "", restaurantId: "" });
+  it("requires guest login names and phone", () => {
+    const result = guestLoginSchema.safeParse({ firstName: "", lastName: "", phone: "" });
 
     expect(result.success).toBe(false);
     expect(result.error?.issues.map((issue) => issue.path.join("."))).toEqual(
-      expect.arrayContaining(["firstName", "lastName", "phone", "restaurantId"])
+      expect.arrayContaining(["firstName", "lastName", "phone"])
     );
   });
 
@@ -76,15 +73,14 @@ describe("auth validation schemas", () => {
   });
 
   it("validates forgot and reset password required fields", () => {
-    expect(forgotPasswordSchema.safeParse({ email: "", restaurantId: "" }).success).toBe(false);
-    expect(resetPasswordSchema.safeParse({ email: "", otp: "", newPassword: "", restaurantId: "" }).success).toBe(false);
-    expect(forgotPasswordSchema.safeParse({ email: "ada@example.com", restaurantId: "restaurant-1" }).success).toBe(true);
+    expect(forgotPasswordSchema.safeParse({ email: "" }).success).toBe(false);
+    expect(resetPasswordSchema.safeParse({ email: "", otp: "", newPassword: "" }).success).toBe(false);
+    expect(forgotPasswordSchema.safeParse({ email: "ada@example.com" }).success).toBe(true);
     expect(
       resetPasswordSchema.safeParse({
         email: "ada@example.com",
         otp: "123456",
         newPassword: "secret123",
-        restaurantId: "restaurant-1",
       }).success
     ).toBe(true);
   });

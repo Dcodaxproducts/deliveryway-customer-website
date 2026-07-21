@@ -4,7 +4,6 @@ export type AuthValidationMessages = {
   emailRequired: string;
   emailInvalid: string;
   passwordRequired: string;
-  restaurantIdRequired: string;
   firstNameRequired: string;
   lastNameRequired: string;
   phoneRequired: string;
@@ -13,14 +12,12 @@ export type AuthValidationMessages = {
   passwordsDoNotMatch: string;
   otpRequired: string;
   newPasswordRequired: string;
-  restaurantIdMissing: string;
 };
 
 export const defaultEnglishValidationMessages: AuthValidationMessages = {
   emailRequired: "Please enter your email",
   emailInvalid: "Please enter a valid email",
   passwordRequired: "Please enter your password",
-  restaurantIdRequired: "Please enter restaurant id",
   firstNameRequired: "Please enter first name",
   lastNameRequired: "Please enter last name",
   phoneRequired: "Please enter phone",
@@ -29,7 +26,6 @@ export const defaultEnglishValidationMessages: AuthValidationMessages = {
   passwordsDoNotMatch: "Passwords do not match",
   otpRequired: "Please enter the OTP",
   newPasswordRequired: "Please enter a new password",
-  restaurantIdMissing: "Invalid or missing restaurantId",
 };
 
 const requiredString = (message: string) => z.string().trim().min(1, message);
@@ -38,7 +34,6 @@ export const createLoginSchema = (messages: AuthValidationMessages) =>
   z.object({
     email: requiredString(messages.emailRequired).email(messages.emailInvalid),
     password: requiredString(messages.passwordRequired),
-    restaurantId: requiredString(messages.restaurantIdRequired),
   });
 
 export const createGuestLoginSchema = (messages: AuthValidationMessages) =>
@@ -46,7 +41,6 @@ export const createGuestLoginSchema = (messages: AuthValidationMessages) =>
     firstName: requiredString(messages.firstNameRequired),
     lastName: requiredString(messages.lastNameRequired),
     phone: requiredString(messages.phoneRequired),
-    restaurantId: requiredString(messages.restaurantIdRequired),
   });
 
 export const createSignupSchema = (messages: AuthValidationMessages) =>
@@ -58,7 +52,6 @@ export const createSignupSchema = (messages: AuthValidationMessages) =>
       phone: z.string().trim(),
       password: requiredString(messages.passwordRequired),
       confirmPassword: requiredString(messages.confirmPasswordRequired),
-      restaurantId: requiredString(messages.restaurantIdRequired),
       tenantId: z.string().trim(),
       acceptTerms: z.boolean().refine((value) => value, {
         message: messages.acceptTermsRequired,
@@ -72,7 +65,6 @@ export const createSignupSchema = (messages: AuthValidationMessages) =>
 export const createForgotPasswordSchema = (messages: AuthValidationMessages) =>
   z.object({
     email: requiredString(messages.emailRequired).email(messages.emailInvalid),
-    restaurantId: requiredString(messages.restaurantIdRequired),
   });
 
 export const createResetPasswordSchema = (messages: AuthValidationMessages) =>
@@ -80,7 +72,6 @@ export const createResetPasswordSchema = (messages: AuthValidationMessages) =>
     email: requiredString(messages.emailRequired).email(messages.emailInvalid),
     otp: requiredString(messages.otpRequired),
     newPassword: requiredString(messages.newPasswordRequired),
-    restaurantId: requiredString(messages.restaurantIdMissing),
   })
 ;
 

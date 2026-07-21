@@ -163,6 +163,7 @@
     "resetPassword": "Passwort zurücksetzen",
     "resetPasswordTitle": "Passwort zurücksetzen",
     "resetPasswordDescription": "Geben Sie den OTP-Code aus Ihrer E-Mail ein und legen Sie ein neues Passwort fest",
+    "restaurantContextUnavailable": "Dieser Restaurant-Shop konnte nicht ermittelt werden. Bitte prüfen Sie die Webadresse.",
     "resendOtpIn": "OTP erneut senden in {count}s",
     "resendOtp": "OTP erneut senden",
     "sending": "Wird gesendet...",

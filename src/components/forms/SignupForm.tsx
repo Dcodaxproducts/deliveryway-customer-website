@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { getAuthErrorMessage } from "@/lib/auth"
+import { useDomainContext } from "@/hooks/useDomainContext"
 import { clearSignupAccessToken, getSignupAccessToken, setSignupAccessToken } from "@/lib/cart"
 import { roboto } from "@/lib/fonts"
 import { signupCustomer, verifySignupOtp } from "@/services/auth"
@@ -32,7 +33,6 @@ const useAuthValidationMessages = (): AuthValidationMessages => {
       emailRequired: t("emailRequired"),
       emailInvalid: t("emailInvalid"),
       passwordRequired: t("passwordRequired"),
-      restaurantIdRequired: t("restaurantIdRequired"),
       firstNameRequired: t("firstNameRequired"),
       lastNameRequired: t("lastNameRequired"),
       phoneRequired: t("phoneRequired"),
@@ -41,7 +41,6 @@ const useAuthValidationMessages = (): AuthValidationMessages => {
       passwordsDoNotMatch: t("passwordsDoNotMatch"),
       otpRequired: t("otpRequired"),
       newPasswordRequired: t("newPasswordRequired"),
-      restaurantIdMissing: t("restaurantIdMissing"),
     }),
     [t]
   )
@@ -50,6 +49,7 @@ const useAuthValidationMessages = (): AuthValidationMessages => {
 export function SignUpForm() {
   const t = useTranslations("auth")
   const router = useRouter()
+  const { context: domainContext, loading: domainLoading, error: domainError } = useDomainContext()
 
   const [isLoading, setIsLoading] = useState(false)
   const [isVerifying, setIsVerifying] = useState(false)
@@ -71,7 +71,6 @@ export function SignUpForm() {
       phone: "",
       password: "",
       confirmPassword: "",
-      restaurantId: "",
       tenantId: "",
       acceptTerms: false,
     },
@@ -80,6 +79,12 @@ export function SignUpForm() {
   /* ================= REGISTER ================= */
 
   const handleSubmit = async (values: SignupFormValues) => {
+    const restaurantId = domainContext?.restaurantId
+    if (!restaurantId) {
+      toast.error(domainError?.message || t("restaurantContextUnavailable"))
+      return
+    }
+
     try {
       setIsLoading(true)
 
@@ -89,7 +94,7 @@ export function SignUpForm() {
         firstName: values.firstName,
         lastName: values.lastName,
         phone: values.phone,
-        restaurantId: values.restaurantId,
+        restaurantId,
       })
 
       const token = data.accessToken
@@ -232,14 +237,6 @@ export function SignUpForm() {
           {...form.register("phone")}
         />
 
-        {/* Restaurant */}
-        <Input
-          id="restaurantId"
-          placeholder={t("restaurantIdUpper")}
-          required
-          {...form.register("restaurantId")}
-        />
-
         {/* Password */}
         <Input
           id="password"
@@ -278,7 +275,7 @@ export function SignUpForm() {
         {/* Signup */}
         <Button
           type="submit"
-          disabled={isLoading}
+          disabled={isLoading || domainLoading}
           className="w-full h-[50px] text-lg font-semibold bg-primary hover:bg-primary/90 text-white rounded-base"
         >
           {isLoading ? t("signingUp") : t("signUp")}

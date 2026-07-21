@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { getAuthErrorMessage } from "@/lib/auth";
+import { useDomainContext } from "@/hooks/useDomainContext";
 import { resendResetOtp, resetPassword } from "@/services/auth";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
@@ -31,7 +32,6 @@ const useAuthValidationMessages = (): AuthValidationMessages => {
       emailRequired: t("emailRequired"),
       emailInvalid: t("emailInvalid"),
       passwordRequired: t("passwordRequired"),
-      restaurantIdRequired: t("restaurantIdRequired"),
       firstNameRequired: t("firstNameRequired"),
       lastNameRequired: t("lastNameRequired"),
       phoneRequired: t("phoneRequired"),
@@ -40,7 +40,6 @@ const useAuthValidationMessages = (): AuthValidationMessages => {
       passwordsDoNotMatch: t("passwordsDoNotMatch"),
       otpRequired: t("otpRequired"),
       newPasswordRequired: t("newPasswordRequired"),
-      restaurantIdMissing: t("restaurantIdMissing"),
     }),
     [t]
   );
@@ -51,6 +50,7 @@ function ResetPasswordFormInner() {
   const tCommon = useTranslations("common");
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { context: domainContext, loading: domainLoading, error: domainError } = useDomainContext();
   const validationMessages = useAuthValidationMessages();
   const translatedResetPasswordSchema = useMemo(
     () => createResetPasswordSchema(validationMessages),
@@ -63,7 +63,6 @@ function ResetPasswordFormInner() {
       email: "",
       otp: "",
       newPassword: "",
-      restaurantId: "",
     },
   });
 
@@ -75,10 +74,8 @@ function ResetPasswordFormInner() {
 
   useEffect(() => {
     const emailFromUrl = searchParams.get("email");
-    const restaurantIdFromUrl = searchParams.get("restaurantId");
 
     if (emailFromUrl) form.setValue("email", emailFromUrl);
-    if (restaurantIdFromUrl) form.setValue("restaurantId", restaurantIdFromUrl);
   }, [form, searchParams]);
 
   /* ================= COUNTDOWN TIMER ================= */
@@ -97,10 +94,10 @@ function ResetPasswordFormInner() {
 
   const handleResendOtp = async () => {
     const email = form.getValues("email");
-    const restaurantId = form.getValues("restaurantId");
+    const restaurantId = domainContext?.restaurantId;
 
     if (!email || !restaurantId) {
-      toast.error(t("missingEmailOrRestaurantId"));
+      toast.error(domainError?.message || t("restaurantContextUnavailable"));
       return;
     }
 
@@ -125,6 +122,12 @@ function ResetPasswordFormInner() {
   /* ================= RESET PASSWORD ================= */
 
   const handleResetPassword = async (values: ResetPasswordFormValues) => {
+    const restaurantId = domainContext?.restaurantId;
+    if (!restaurantId) {
+      toast.error(domainError?.message || t("restaurantContextUnavailable"));
+      return;
+    }
+
     try {
       setIsLoading(true);
 
@@ -132,7 +135,7 @@ function ResetPasswordFormInner() {
         email: values.email,
         otp: values.otp,
         newPassword: values.newPassword,
-        restaurantId: values.restaurantId,
+        restaurantId,
       });
 
       toast.success(t("passwordResetSuccess"));
@@ -214,19 +217,9 @@ function ResetPasswordFormInner() {
           {...form.register("newPassword")}
         />
 
-        {/* Restaurant ID */}
-        <Input
-          id="restaurantId"
-          type="text"
-          placeholder={t("restaurantIdUpper")}
-          required
-          {...form.register("restaurantId")}
-        />
-
-
         <Button
           type="submit"
-          disabled={isLoading}
+          disabled={isLoading || domainLoading}
           className="w-full h-[50px] text-lg font-semibold bg-primary hover:bg-primary/90 text-white rounded-base transition-colors mb-[15px]"
         >
           {isLoading ? tCommon("submitting") : t("resetPassword")}

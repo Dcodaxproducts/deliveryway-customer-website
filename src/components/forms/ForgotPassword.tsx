@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getSafeRedirectPath } from "@/lib/auth-routes";
 import { getAuthErrorMessage } from "@/lib/auth";
+import { useDomainContext } from "@/hooks/useDomainContext";
 import { forgotPassword } from "@/services/auth";
 import { MUTED_TEXT_CLASS } from "@/components/common/common-classes";
 import {
@@ -27,7 +28,6 @@ const useAuthValidationMessages = (): AuthValidationMessages => {
       emailRequired: t("emailRequired"),
       emailInvalid: t("emailInvalid"),
       passwordRequired: t("passwordRequired"),
-      restaurantIdRequired: t("restaurantIdRequired"),
       firstNameRequired: t("firstNameRequired"),
       lastNameRequired: t("lastNameRequired"),
       phoneRequired: t("phoneRequired"),
@@ -36,7 +36,6 @@ const useAuthValidationMessages = (): AuthValidationMessages => {
       passwordsDoNotMatch: t("passwordsDoNotMatch"),
       otpRequired: t("otpRequired"),
       newPasswordRequired: t("newPasswordRequired"),
-      restaurantIdMissing: t("restaurantIdMissing"),
     }),
     [t]
   );
@@ -46,6 +45,7 @@ export function ForgotPassword() {
   const t = useTranslations("auth");
   const tCommon = useTranslations("common");
   const router = useRouter();
+  const { context: domainContext, loading: domainLoading, error: domainError } = useDomainContext();
   const validationMessages = useAuthValidationMessages();
   const translatedForgotPasswordSchema = useMemo(
     () => createForgotPasswordSchema(validationMessages),
@@ -55,17 +55,22 @@ export function ForgotPassword() {
     resolver: zodResolver(translatedForgotPasswordSchema),
     defaultValues: {
       email: "",
-      restaurantId: "",
     },
   });
 const [isLoading, setIsLoading] = useState(false);
 const [resetUrl, setResetUrl] = useState("");
 //  Forgot Password Function
 const handleForgotPassword = async (values: ForgotPasswordFormValues) => {
+  const restaurantId = domainContext?.restaurantId;
+  if (!restaurantId) {
+    toast.error(domainError?.message || t("restaurantContextUnavailable"));
+    return;
+  }
+
   try {
     setIsLoading(true);
 
-    await forgotPassword({ email: values.email , restaurantId: values.restaurantId});
+    await forgotPassword({ email: values.email, restaurantId });
 
 // const resetToken = data?.data?.resetToken;
 
@@ -82,7 +87,7 @@ toast.success(t("resetPasswordReady"));
 
 router.push(getSafeRedirectPath(`/auth/reset-password?email=${encodeURIComponent(
   values.email
-)}&restaurantId=${values.restaurantId}`));
+)}`));
 
   } catch (error) {
     toast.error(getAuthErrorMessage(error));
@@ -111,22 +116,10 @@ router.push(getSafeRedirectPath(`/auth/reset-password?email=${encodeURIComponent
                     />
                 </div>
 
-                {/* Password */}
-                <div className="relative">
-                    <Input
-                        id="restaurantId"
-                        type="text"
-                        placeholder={t("restaurantId")}
-                        required
-                        {...form.register("restaurantId")}
-                    />
-                </div>
-
-
                 {/* Login Button */}
                 <Button
                     type="submit"
-                    disabled={isLoading}
+                    disabled={isLoading || domainLoading}
                     className="w-full h-[50px] text-lg font-semibold bg-primary hover:bg-primary/90 text-white rounded-base transition-colors mb-[15px]"
                 >
                     {isLoading ? tCommon("submitting") : t("submit")}
