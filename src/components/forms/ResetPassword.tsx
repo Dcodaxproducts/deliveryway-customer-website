@@ -11,6 +11,7 @@ import { useDomainContext } from "@/hooks/useDomainContext";
 import { resendResetOtp, resetPassword } from "@/services/auth";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { MUTED_TEXT_CLASS } from "@/components/common/common-classes";
 import {
   createResetPasswordSchema,
@@ -41,7 +42,7 @@ const useAuthValidationMessages = (): AuthValidationMessages => {
       otpRequired: t("otpRequired"),
       newPasswordRequired: t("newPasswordRequired"),
     }),
-    [t]
+    [t],
   );
 };
 
@@ -50,11 +51,15 @@ function ResetPasswordFormInner() {
   const tCommon = useTranslations("common");
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { context: domainContext, loading: domainLoading, error: domainError } = useDomainContext();
+  const {
+    context: domainContext,
+    loading: domainLoading,
+    error: domainError,
+  } = useDomainContext();
   const validationMessages = useAuthValidationMessages();
   const translatedResetPasswordSchema = useMemo(
     () => createResetPasswordSchema(validationMessages),
-    [validationMessages]
+    [validationMessages],
   );
 
   const form = useForm<ResetPasswordFormValues>({
@@ -152,24 +157,18 @@ function ResetPasswordFormInner() {
 
   return (
     <div className="w-full lg:mr-[79px]">
-
-
       <div className="space-y-1">
         <h1 className="text-headline-sm font-bold font-roboto text-primary">
           {t("resetPasswordTitle")}
         </h1>
-        <p className={MUTED_TEXT_CLASS}>
-          {t("resetPasswordDescription")}
-        </p>
+        <p className={MUTED_TEXT_CLASS}>{t("resetPasswordDescription")}</p>
       </div>
-
 
       <form
         onSubmit={form.handleSubmit(handleResetPassword)}
         className="space-y-[16px] mt-[35px] mb-[19px]"
         noValidate
       >
-
         {/* Email */}
         <Input
           id="email"
@@ -190,7 +189,6 @@ function ResetPasswordFormInner() {
 
         {/* RESEND OTP */}
         <div className="flex justify-between items-center text-sm">
-
           {countdown > 0 ? (
             <span className="text-muted-foreground">
               {t("resendOtpIn", { count: countdown })}
@@ -205,13 +203,11 @@ function ResetPasswordFormInner() {
               {isResending ? t("sending") : t("resendOtp")}
             </button>
           )}
-
         </div>
 
         {/* New Password */}
-        <Input
+        <PasswordInput
           id="newPassword"
-          type="password"
           placeholder={t("enterNewPassword")}
           required
           {...form.register("newPassword")}
@@ -224,9 +220,7 @@ function ResetPasswordFormInner() {
         >
           {isLoading ? tCommon("submitting") : t("resetPassword")}
         </Button>
-
       </form>
-
     </div>
   );
 }
