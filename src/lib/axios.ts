@@ -4,15 +4,18 @@ import { getRequestLocale } from "@/config/i18n";
 import { normalizeApiEndpoint as normalizeEndpointForBase } from "@/lib/api-endpoint";
 import { getAuthToken } from "@/lib/auth";
 
-const apiVersionPath = ["api", "v1"].join("/");
-const defaultApiBaseUrl = `https://deliveryway.dcodax.co/${apiVersionPath}`;
-
 const normalizeBaseUrl = (value?: string) => {
   const trimmedValue = value?.trim();
-  return trimmedValue ? trimmedValue.replace(/\/+$/, "") : defaultApiBaseUrl;
+
+  if (!trimmedValue) {
+    throw new Error("NEXT_PUBLIC_API_BASE_URL is required");
+  }
+
+  return trimmedValue.replace(/\/+$/, "");
 };
 
 export const API_BASE_URL = normalizeBaseUrl(process.env.NEXT_PUBLIC_API_BASE_URL);
+export const CHAT_BASE_URL = new URL("/chat", API_BASE_URL).toString().replace(/\/$/, "");
 
 export const normalizeApiEndpoint = (endpoint: string, baseUrl = API_BASE_URL) =>
   normalizeEndpointForBase(endpoint, baseUrl);

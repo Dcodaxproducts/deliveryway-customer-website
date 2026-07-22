@@ -8,6 +8,7 @@ import type { ChatMessage, ChatMessageCreatedEvent, ChatThread } from "@/service
 import { io, Socket } from "socket.io-client";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { CHAT_BASE_URL } from "@/lib/axios";
 
 export default function ChatUI() {
   const t = useTranslations("contact.chat");
@@ -172,7 +173,7 @@ const fetchMessages = async (id: string) => {
   useEffect(() => {
     if (!token) return;
 
-    const socket = io("https://deliveryway.dcodax.co/chat", {
+    const socket = io(CHAT_BASE_URL, {
       transports: ["websocket"],
       auth: { token },
     });

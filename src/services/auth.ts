@@ -1,6 +1,6 @@
 import { buildApiUrl } from "@/lib/api-endpoint";
 import { getRequestLocale } from "@/config/i18n";
-import { API_BASE_URL } from "@/lib/constants";
+import { API_BASE_URL } from "@/lib/axios";
 import { isAuthSession, isAuthUser } from "@/lib/auth";
 import type {
   AuthSession,

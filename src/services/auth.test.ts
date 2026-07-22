@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { API_BASE_URL } from "@/lib/axios";
+
 import { googleLoginCustomer } from "./auth";
 
 const authResponse = {
@@ -33,7 +35,7 @@ describe("auth service", () => {
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "https://deliveryway.dcodax.co/api/v1/auth/google-login",
+      `${API_BASE_URL}/auth/google-login`,
       expect.objectContaining({
         method: "POST",
         headers: {
