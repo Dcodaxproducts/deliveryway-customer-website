@@ -14,7 +14,7 @@ import { useHome } from "@/hooks/useHome";
 import { getStoredRestaurantId } from "@/lib/auth";
 import { resolveHomeBranchId } from "@/lib/home";
 import { resolveCustomerCurrency } from "@/lib/money";
-import { getItemsMenuViewMode, setItemsMenuViewMode } from "@/lib/view-preferences";
+import { setItemsMenuViewMode } from "@/lib/view-preferences";
 import type { ApiMeta, ItemsCategory, MenuItem } from "@/components/pages/Items/types";
 import { resolveHasNext } from "@/components/pages/Items/utils/restaurant-card-utils";
 import type { CustomerDeal } from "@/types/customer-deals";
@@ -73,7 +73,7 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
   } | null>(null);
 
   const [viewMode, setViewMode] = useState<MenuViewMode>(() => {
-    return categoryId ? "multiple" : getItemsMenuViewMode();
+    return categoryId ? "multiple" : "onePage";
   });
 
   const requestInFlightRef = useRef(false);
@@ -116,7 +116,10 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
   }, [viewMode]);
 
   useEffect(() => {
-    if (!categoryId) return;
+    if (!categoryId) {
+      setViewMode("onePage");
+      return;
+    }
 
     setContentSource("category");
     setViewMode("multiple");
