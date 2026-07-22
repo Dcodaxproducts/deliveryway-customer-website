@@ -48,7 +48,7 @@ export const fetchMenuItemsPage = async ({
     page: String(page),
     limit: String(limit),
     sortBy: "sortOrder",
-    sortOrder: "DESC",
+    sortOrder: "ASC",
   });
 
   if (categoryId) {
@@ -199,7 +199,7 @@ export const fetchMenuCategoriesPage = async ({
     page: String(page),
     limit: String(limit),
     sortBy: "sortOrder",
-    sortOrder: "DESC",
+    sortOrder: "ASC",
   });
 
   if (search) {

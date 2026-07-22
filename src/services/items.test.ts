@@ -118,7 +118,7 @@ describe("fetchMenuItemDetailsByIds", () => {
     });
 
     expect(getItemsMock).toHaveBeenCalledWith(
-      "/v1/menu/items?restaurantId=restaurant-1&page=2&limit=12&sortBy=sortOrder&sortOrder=DESC&categoryId=category-1&branchId=branch-1",
+      "/v1/menu/items?restaurantId=restaurant-1&page=2&limit=12&sortBy=sortOrder&sortOrder=ASC&categoryId=category-1&branchId=branch-1",
       "token-1",
     );
   });
@@ -139,7 +139,7 @@ describe("fetchMenuItemDetailsByIds", () => {
       "token-1",
     );
   });
-  it("fetches menu categories on items page with descending sort order", async () => {
+  it("fetches menu categories on items page with ascending sort order", async () => {
     getItemsMock.mockResolvedValueOnce({ data: [], meta: { page: 1 } });
 
     await fetchMenuCategoriesPage({
@@ -150,7 +150,7 @@ describe("fetchMenuItemDetailsByIds", () => {
     });
 
     expect(getItemsMock).toHaveBeenCalledWith(
-      "/v1/menu/categories?restaurantId=restaurant-1&page=1&limit=50&sortBy=sortOrder&sortOrder=DESC",
+      "/v1/menu/categories?restaurantId=restaurant-1&page=1&limit=50&sortBy=sortOrder&sortOrder=ASC",
       "token-1",
     );
   });
