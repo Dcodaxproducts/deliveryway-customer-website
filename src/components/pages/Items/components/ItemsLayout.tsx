@@ -73,7 +73,7 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
   } | null>(null);
 
   const [viewMode, setViewMode] = useState<MenuViewMode>(() => {
-    return getItemsMenuViewMode();
+    return categoryId ? "multiple" : getItemsMenuViewMode();
   });
 
   const requestInFlightRef = useRef(false);
@@ -114,6 +114,14 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
   useEffect(() => {
     setItemsMenuViewMode(viewMode);
   }, [viewMode]);
+
+  useEffect(() => {
+    if (!categoryId) return;
+
+    setContentSource("category");
+    setViewMode("multiple");
+    setScrollTarget(null);
+  }, [categoryId]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
