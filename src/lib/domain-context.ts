@@ -13,6 +13,8 @@ export type DomainContext = {
 };
 
 const STORAGE_KEY = "deliveryway-domain-context";
+const DEFAULT_LOCAL_RESTAURANT_ID = "cmp0t09gu0024t7ilmt3x4diu";
+const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1"]);
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -30,6 +32,18 @@ export const normalizeDomainHost = (value: string) => {
   } catch {
     return trimmedValue.split("/")[0].split(":")[0].replace(/^www\./, "");
   }
+};
+
+export const getLocalDomainContext = (host: string): DomainContext | null => {
+  const normalizedHost = normalizeDomainHost(host);
+
+  if (!LOCAL_HOSTS.has(normalizedHost)) return null;
+
+  return {
+    restaurantId:
+      process.env.NEXT_PUBLIC_LOCAL_RESTAURANT_ID?.trim() || DEFAULT_LOCAL_RESTAURANT_ID,
+    host: normalizedHost,
+  };
 };
 
 export const normalizeDomainContext = (value: unknown): DomainContext | null => {

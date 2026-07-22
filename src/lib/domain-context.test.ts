@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { normalizeDomainContext, normalizeDomainHost } from "./domain-context";
+import { getLocalDomainContext, normalizeDomainContext, normalizeDomainHost } from "./domain-context";
 
 describe("domain context helpers", () => {
   it("normalizes hostnames from full URLs and host headers", () => {
@@ -27,5 +27,16 @@ describe("domain context helpers", () => {
 
   it("rejects responses without a restaurant id", () => {
     expect(normalizeDomainContext({ data: { branchId: "branch-1" } })).toBeNull();
+  });
+
+  it("uses the development restaurant when running on localhost", () => {
+    expect(getLocalDomainContext("localhost:3000")).toEqual({
+      restaurantId: "cmp0t09gu0024t7ilmt3x4diu",
+      host: "localhost",
+    });
+  });
+
+  it("does not provide a fallback for deployed domains", () => {
+    expect(getLocalDomainContext("restaurant.delivery-way.de")).toBeNull();
   });
 });

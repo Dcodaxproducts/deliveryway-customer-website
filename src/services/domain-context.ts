@@ -1,7 +1,12 @@
 import { API_BASE_URL } from "@/lib/axios";
 import { buildApiUrl } from "@/lib/api-endpoint";
 import { getRequestLocale } from "@/config/i18n";
-import { normalizeDomainContext, normalizeDomainHost, type DomainContext } from "@/lib/domain-context";
+import {
+  getLocalDomainContext,
+  normalizeDomainContext,
+  normalizeDomainHost,
+  type DomainContext,
+} from "@/lib/domain-context";
 
 const getMessage = (value: unknown, fallback: string) => {
   if (typeof value === "object" && value !== null && !Array.isArray(value)) {
@@ -18,6 +23,10 @@ export const resolveDomainContext = async (host: string): Promise<DomainContext>
   if (!normalizedHost) {
     throw new Error("Host is required");
   }
+
+  const localContext = getLocalDomainContext(normalizedHost);
+
+  if (localContext) return localContext;
 
   const endpoint = `/customer-app/domain-context?host=${encodeURIComponent(normalizedHost)}`;
   const response = await fetch(buildApiUrl(API_BASE_URL, endpoint), {
