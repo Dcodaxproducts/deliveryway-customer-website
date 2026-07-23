@@ -59,6 +59,25 @@ export type HomeBranch = {
   } | null;
 };
 
+export type HomeContactInfo = {
+  phone?: string | null;
+  whatsapp?: string | null;
+  email?: string | null;
+};
+
+export type HomeFooter = {
+  logoUrl?: string | null;
+  restaurantLogoUrl?: string | null;
+  branchLogoUrl?: string | null;
+  contactInfo?: HomeContactInfo | null;
+  contacts?: HomeContactInfo | null;
+  phone?: string | null;
+  whatsapp?: string | null;
+  email?: string | null;
+  address?: Record<string, unknown> | null;
+  socialMediaLinks?: Record<string, string | null | undefined> | null;
+};
+
 export type HomeConfig = {
   currency?: string | null;
   branding?: Record<string, unknown>;
@@ -122,6 +141,9 @@ export type CustomerHomeData = {
   restaurant?: HomeRestaurant | null;
   config?: HomeConfig | null;
   branch?: HomeBranch | null;
+  contactInfo?: HomeContactInfo | null;
+  contacts?: HomeContactInfo | null;
+  footer?: HomeFooter | null;
   landingPopup?: LandingPopup | null;
   cuisines: HomeCategory[];
   promotionalItems: PromotionCampaign[];

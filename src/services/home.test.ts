@@ -17,7 +17,10 @@ describe("getHome", () => {
     getRequestMock.mockResolvedValue({
       data: {
         restaurant: { name: "Demo" },
-        config: { currency: "USD", branding: { theme: { primaryColor: "#111111" } } },
+        config: {
+          currency: "USD",
+          branding: { theme: { primaryColor: "#111111" } },
+        },
         giftCards: {
           isEnabled: true,
           items: [
@@ -36,7 +39,9 @@ describe("getHome", () => {
 
     const response = await getHome("restaurant-1", null);
 
-    expect(getRequestMock).toHaveBeenCalledWith("/customer-app/home?restaurantId=restaurant-1");
+    expect(getRequestMock).toHaveBeenCalledWith(
+      "/customer-app/home?restaurantId=restaurant-1",
+    );
     expect(response.data.restaurant?.name).toBe("Demo");
     expect(response.data.config?.currency).toBe("USD");
     expect(response.data.branding.primaryColor).toBe("#111111");
@@ -51,10 +56,14 @@ describe("getHome", () => {
     await getHome("restaurant-1", "branch-1");
     await getHome(null, "branch-1");
 
-    expect(getRequestMock).toHaveBeenNthCalledWith(1,
-      "/customer-app/home?restaurantId=restaurant-1&branchId=branch-1"
+    expect(getRequestMock).toHaveBeenNthCalledWith(
+      1,
+      "/customer-app/home?restaurantId=restaurant-1&branchId=branch-1",
     );
-    expect(getRequestMock).toHaveBeenNthCalledWith(2, "/customer-app/home?branchId=branch-1");
+    expect(getRequestMock).toHaveBeenNthCalledWith(
+      2,
+      "/customer-app/home?branchId=branch-1",
+    );
   });
 
   it("does not duplicate api or v1 segments", async () => {
@@ -85,23 +94,25 @@ describe("getHomeCategories", () => {
       })
       .mockResolvedValueOnce({
         data: {
-          data: [
-            { id: "c3", name: "Dessert", imageUrl: "dessert.png" },
-          ],
+          data: [{ id: "c3", name: "Dessert", imageUrl: "dessert.png" }],
           pagination: { page: 2, totalPages: 2 },
         },
       });
 
     const categories = await getHomeCategories("restaurant-1");
 
-    expect(categories.map((category) => category.id)).toEqual(["c1", "c2", "c3"]);
+    expect(categories.map((category) => category.id)).toEqual([
+      "c1",
+      "c2",
+      "c3",
+    ]);
     expect(getRequestMock).toHaveBeenNthCalledWith(
       1,
-      "/customer-app/cuisines?restaurantId=restaurant-1&page=1&limit=50&sortBy=sortOrder&sortOrder=ASC"
+      "/customer-app/categories?restaurantId=restaurant-1&page=1&limit=50&sortBy=sortOrder&sortOrder=ASC",
     );
     expect(getRequestMock).toHaveBeenNthCalledWith(
       2,
-      "/customer-app/cuisines?restaurantId=restaurant-1&page=2&limit=50&sortBy=sortOrder&sortOrder=ASC"
+      "/customer-app/categories?restaurantId=restaurant-1&page=2&limit=50&sortBy=sortOrder&sortOrder=ASC",
     );
   });
 
@@ -148,7 +159,7 @@ describe("getPromotionalItems", () => {
     });
 
     expect(getRequestMock).toHaveBeenCalledWith(
-      "/customer-app/promotional-items?restaurantId=restaurant-1&branchId=branch-1&locale=en&limit=8"
+      "/customer-app/promotional-items?restaurantId=restaurant-1&branchId=branch-1&locale=en&limit=8",
     );
     expect(items[0]?.id).toBe("item-1");
   });

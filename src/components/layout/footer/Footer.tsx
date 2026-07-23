@@ -77,18 +77,98 @@ const getNestedTextField = (record: unknown, keys: string[]) => {
   if (directValue) return directValue;
   if (!isRecord(record)) return null;
 
-  return getTextField(record.contactInfo, keys);
+  return (
+    getTextField(record.contactInfo, keys) ||
+    getTextField(record.contacts, keys)
+  );
 };
 
-const buildSocialLinks = (
-  links?: Record<string, string | null | undefined> | null
-): SocialLink[] => {
-  if (!links) return [];
+const getRecordField = (record: unknown, key: string) =>
+  isRecord(record) && isRecord(record[key]) ? record[key] : null;
+
+const getFooterContactInfo = (homeData: unknown) => {
+  if (!isRecord(homeData)) return null;
+  const footer = getRecordField(homeData, "footer");
+
+  return {
+    phone:
+      getNestedTextField(footer, [
+        "phone",
+        "phoneNumber",
+        "contactPhone",
+        "contactNumber",
+        "mobile",
+      ]) ||
+      getNestedTextField(homeData.contactInfo, [
+        "phone",
+        "phoneNumber",
+        "contactPhone",
+        "contactNumber",
+        "mobile",
+      ]) ||
+      getNestedTextField(homeData.contacts, [
+        "phone",
+        "phoneNumber",
+        "contactPhone",
+        "contactNumber",
+        "mobile",
+      ]),
+    whatsapp:
+      getNestedTextField(footer, [
+        "whatsapp",
+        "whatsApp",
+        "whatsappNumber",
+        "whatsAppNumber",
+      ]) ||
+      getNestedTextField(homeData.contactInfo, [
+        "whatsapp",
+        "whatsApp",
+        "whatsappNumber",
+        "whatsAppNumber",
+      ]) ||
+      getNestedTextField(homeData.contacts, [
+        "whatsapp",
+        "whatsApp",
+        "whatsappNumber",
+        "whatsAppNumber",
+      ]),
+    email:
+      getNestedTextField(footer, ["email", "contactEmail", "supportEmail"]) ||
+      getNestedTextField(homeData.contactInfo, [
+        "email",
+        "contactEmail",
+        "supportEmail",
+      ]) ||
+      getNestedTextField(homeData.contacts, [
+        "email",
+        "contactEmail",
+        "supportEmail",
+      ]),
+    address:
+      getRecordField(footer, "address") ||
+      getRecordField(homeData, "address") ||
+      getRecordField(homeData.branch, "address"),
+    socialMediaLinks:
+      getRecordField(footer, "socialMediaLinks") ||
+      getRecordField(homeData, "socialMediaLinks"),
+    logoUrl: getTextField(footer, [
+      "logoUrl",
+      "storefrontLogoUrl",
+      "branchLogoUrl",
+      "restaurantLogoUrl",
+    ]),
+  };
+};
+
+const buildSocialLinks = (links?: unknown): SocialLink[] => {
+  if (!isRecord(links)) return [];
 
   return Object.entries(links).reduce<SocialLink[]>((items, [key, value]) => {
     const normalizedKey = key.trim().toLowerCase();
     const meta = SOCIAL_LINKS[normalizedKey];
-    const href = normalizeExternalHref(value);
+    const href = normalizeExternalHref(
+      typeof value === "string" ? value : null,
+    );
 
     if (!meta || !href) return items;
 
@@ -112,31 +192,63 @@ export const Footer = () => {
   const homeQuery = useHome(
     restaurantId,
     branchId || null,
-    Boolean(!loading && restaurantId)
+    Boolean(!loading && restaurantId),
   );
   const homeData = homeQuery.data?.data;
   const restaurant = homeData?.restaurant;
-  const branch = useMemo(() => normalizeBranch(homeData?.branch), [homeData?.branch]);
+  const branch = useMemo(
+    () => normalizeBranch(homeData?.branch),
+    [homeData?.branch],
+  );
   const restaurantName =
-    restaurant?.name?.trim() || homeData?.branding.restaurantName || "DeliveryWay";
+    restaurant?.name?.trim() ||
+    homeData?.branding.restaurantName ||
+    "DeliveryWay";
   const description =
     restaurant?.tagline?.trim() ||
     restaurant?.bio?.trim() ||
     restaurant?.description?.trim() ||
     homeData?.branding.tagline ||
     t("brandDescription");
+  const footerContactInfo = getFooterContactInfo(homeData);
   const logoUrl =
+    footerContactInfo?.logoUrl ||
     restaurant?.logoUrl?.trim() ||
     homeData?.branding.logo.light ||
     homeData?.branding.logo.default ||
     null;
   const branchAddress =
+    formatDisplayAddress(footerContactInfo?.address) ||
     formatDisplayAddress(homeData?.branch) ||
     (branch?.address ? formatDisplayAddress(branch.address) : "");
   const branchPhone =
-    getNestedTextField(homeData?.branch, ["phone", "phoneNumber", "contactPhone", "contactNumber", "mobile"]) ||
-    getNestedTextField(restaurant, ["phone", "phoneNumber", "contactPhone", "contactNumber", "mobile"]);
-  const socialLinks = buildSocialLinks(restaurant?.socialMediaLinks);
+    footerContactInfo?.phone ||
+    getNestedTextField(homeData?.branch, [
+      "phone",
+      "phoneNumber",
+      "contactPhone",
+      "contactNumber",
+      "mobile",
+    ]) ||
+    getNestedTextField(restaurant, [
+      "phone",
+      "phoneNumber",
+      "contactPhone",
+      "contactNumber",
+      "mobile",
+    ]);
+  const branchWhatsapp = footerContactInfo?.whatsapp;
+  const branchEmail =
+    footerContactInfo?.email ||
+    getNestedTextField(homeData?.branch, [
+      "email",
+      "contactEmail",
+      "supportEmail",
+    ]) ||
+    getNestedTextField(restaurant, ["email", "contactEmail", "supportEmail"]);
+  const socialLinks = buildSocialLinks(
+    footerContactInfo?.socialMediaLinks ?? restaurant?.socialMediaLinks,
+  );
   const privacyHref = restaurantId
     ? `/privacy?restaurantId=${encodeURIComponent(restaurantId)}`
     : "/privacy";
@@ -151,7 +263,9 @@ export const Footer = () => {
   }
 
   const impressumQuery = impressumParams.toString();
-  const impressumHref = impressumQuery ? `/impressum?${impressumQuery}` : "/impressum";
+  const impressumHref = impressumQuery
+    ? `/impressum?${impressumQuery}`
+    : "/impressum";
 
   const quickLinks = [
     // { label: "Menu", href: "/menu" },
@@ -178,7 +292,6 @@ export const Footer = () => {
     >
       <div className="max-w-[1400px] mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
-
           {/* BRAND */}
           <div className="flex flex-col">
             <div className="flex items-center gap-3">
@@ -203,9 +316,7 @@ export const Footer = () => {
               </div>
             </div>
 
-            <p
-              className="text-gray-300 text-sm leading-relaxed max-w-[300px] mt-[16px] mb-[24px]"
-            >
+            <p className="text-gray-300 text-sm leading-relaxed max-w-[300px] mt-[16px] mb-[24px]">
               {description}
             </p>
 
@@ -278,14 +389,18 @@ export const Footer = () => {
               {branch?.name ? (
                 <p className="text-white font-medium">
                   {t("branch")} :{" "}
-                  <span className="text-gray-300 font-normal">{branch.name}</span>
+                  <span className="text-gray-300 font-normal">
+                    {branch.name}
+                  </span>
                 </p>
               ) : null}
 
               {branchAddress ? (
                 <p className="text-white font-medium leading-relaxed">
                   {t("address")} :{" "}
-                  <span className="text-gray-300 font-normal">{branchAddress}</span>
+                  <span className="text-gray-300 font-normal">
+                    {branchAddress}
+                  </span>
                 </p>
               ) : null}
 
@@ -301,6 +416,29 @@ export const Footer = () => {
                 </p>
               ) : null}
 
+              {branchWhatsapp ? (
+                <p className="text-white font-medium">
+                  WhatsApp :{" "}
+                  <a
+                    href={`https://wa.me/${branchWhatsapp.replace(/[^\d]/g, "")}`}
+                    className="text-gray-300 font-normal transition-colors hover:text-primary"
+                  >
+                    {branchWhatsapp}
+                  </a>
+                </p>
+              ) : null}
+
+              {branchEmail ? (
+                <p className="text-white font-medium">
+                  Email :{" "}
+                  <a
+                    href={`mailto:${branchEmail}`}
+                    className="text-gray-300 font-normal transition-colors hover:text-primary"
+                  >
+                    {branchEmail}
+                  </a>
+                </p>
+              ) : null}
             </div>
           </div>
         </div>
@@ -308,7 +446,10 @@ export const Footer = () => {
         {/* BOTTOM */}
         <div className="border-t border-gray-800 pt-8 mt-8">
           <p className="text-center text-gray-300 text-sm md:text-base">
-            {t("copyright", { year: new Date().getFullYear(), name: restaurantName })}
+            {t("copyright", {
+              year: new Date().getFullYear(),
+              name: restaurantName,
+            })}
           </p>
         </div>
       </div>

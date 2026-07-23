@@ -7,7 +7,10 @@ import useItems from "@/hooks/useItems";
 import { useGroupOrderApi } from "@/hooks/useGroupOrder";
 import { useAuth } from "@/hooks/useAuth";
 import { getStoredRestaurantId } from "@/lib/auth";
-import { getStoredGroupOrderCode, setStoredGroupOrderCode } from "@/lib/group-order";
+import {
+  getStoredGroupOrderCode,
+  setStoredGroupOrderCode,
+} from "@/lib/group-order";
 import type { GroupOrderParticipant } from "@/types/group-order";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -25,7 +28,8 @@ export default function ExploreCategories() {
 
   const { token, user } = useAuth();
   const { get } = useItems(token);
-  const { joinGroupOrder, searchGroupOrdersByInviteCode } = useGroupOrderApi(token);
+  const { joinGroupOrder, searchGroupOrdersByInviteCode } =
+    useGroupOrderApi(token);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -41,15 +45,13 @@ export default function ExploreCategories() {
       if (pageNumber === 1) setLoading(true);
 
       const res = await get(
-        `/customer-app/cuisines?restaurantId=${restaurantId}&page=${pageNumber}&limit=10`
+        `/customer-app/categories?restaurantId=${restaurantId}&page=${pageNumber}&limit=10`,
       );
-      const data = Array.isArray(res.data) ? res.data as Category[] : [];
+      const data = Array.isArray(res.data) ? (res.data as Category[]) : [];
       const meta = res.meta as { hasNext?: boolean; page?: number } | undefined;
 
       if (data.length > 0) {
-        setCategories((prev) =>
-          pageNumber === 1 ? data : [...prev, ...data]
-        );
+        setCategories((prev) => (pageNumber === 1 ? data : [...prev, ...data]));
 
         setHasNext(meta?.hasNext || false);
         setPage(meta?.page || 1);
@@ -60,50 +62,50 @@ export default function ExploreCategories() {
     }
   };
 
+  const isUserAlreadyInOrder = async (code: string) => {
+    try {
+      const { groupOrder: order } = await searchGroupOrdersByInviteCode({
+        inviteCode: code,
+      });
 
-const isUserAlreadyInOrder = async (code: string) => {
-  try {
-    const { groupOrder: order } = await searchGroupOrdersByInviteCode({ inviteCode: code });
+      if (!order) return false;
 
-    if (!order) return false;
+      //  if user is host
+      if (order.hostUserId === user?.id) return true;
 
-    //  if user is host
-    if (order.hostUserId === user?.id) return true;
+      //  if user already participant
+      const exists = order.participants?.some(
+        (p: GroupOrderParticipant) => p.userId === user?.id,
+      );
 
-    //  if user already participant
-    const exists = order.participants?.some(
-      (p: GroupOrderParticipant) => p.userId === user?.id
-    );
+      return exists;
+    } catch {
+      return false;
+    }
+  };
 
-    return exists;
-  } catch {
-    return false;
-  }
-};
+  const handleJoinGroupOrder = async (inviteCode: string) => {
+    const res = await joinGroupOrder({ inviteCode });
 
-const handleJoinGroupOrder = async (inviteCode: string) => {
-  const res = await joinGroupOrder({ inviteCode });
+    if (!res || res.error) {
+      toast.error(res?.message || t("failedJoinGroupOrder"));
 
-  if (!res || res.error) {
-    toast.error(res?.message || t("failedJoinGroupOrder"));
+      return false;
+    }
 
-    return false;
-  }
+    return true;
+  };
 
-  return true;
-};
+  useEffect(() => {
+    if (typeof window === "undefined") return;
 
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
 
-useEffect(() => {
-  if (typeof window === "undefined") return;
-
-  const params = new URLSearchParams(window.location.search);
-  const code = params.get("code");
-
-  if (code) {
-    setStoredGroupOrderCode(code);
-  }
-}, []);
+    if (code) {
+      setStoredGroupOrderCode(code);
+    }
+  }, []);
 
   useEffect(() => {
     fetchCategories(1);
@@ -117,15 +119,12 @@ useEffect(() => {
   return (
     <section className="w-full bg-[#FFF4F3] py-[60px] px-6">
       <div className="max-w-[1200px] mx-auto">
-
         {/* HEADER */}
         <div className="mb-10">
           <h2 className="text-[32px] md:text-[36px] font-semibold text-[#4A1F1A]">
             {t("title")}
           </h2>
-          <p className="text-[#8B5E57] mt-2 text-sm">
-            {t("description")}
-          </p>
+          <p className="text-[#8B5E57] mt-2 text-sm">{t("description")}</p>
         </div>
 
         {/* ================= GRID ================= */}
@@ -141,8 +140,8 @@ useEffect(() => {
         ) : categories.length === 0 ? (
           <p className="text-gray-400">{t("empty")}</p>
         ) : (
-           <div className="flex flex-wrap justify-between gap-y-10 w-full">
-           {categories.map((item) => {
+          <div className="flex flex-wrap justify-between gap-y-10 w-full">
+            {categories.map((item) => {
               const image =
                 item.imageUrl && item.imageUrl.startsWith("http")
                   ? item.imageUrl
@@ -151,25 +150,25 @@ useEffect(() => {
               return (
                 <div
                   key={item.id}
-              onClick={async () => {
-  const code = getStoredGroupOrderCode();
+                  onClick={async () => {
+                    const code = getStoredGroupOrderCode();
 
-  if (code) {
-    //  check first
-    const alreadyIn = await isUserAlreadyInOrder(code);
+                    if (code) {
+                      //  check first
+                      const alreadyIn = await isUserAlreadyInOrder(code);
 
-    if (!alreadyIn) {
-      const joined = await handleJoinGroupOrder(code);
+                      if (!alreadyIn) {
+                        const joined = await handleJoinGroupOrder(code);
 
-      if (!joined) return;
-    }
+                        if (!joined) return;
+                      }
 
-    router.push(`/items?categoryId=${item.id}&code=${code}`);
-  } else {
-    router.push(`/items?categoryId=${item.id}`);
-  }
-}}
-               className="flex flex-col items-center cursor-pointer group w-[120px]"
+                      router.push(`/items?categoryId=${item.id}&code=${code}`);
+                    } else {
+                      router.push(`/items?categoryId=${item.id}`);
+                    }
+                  }}
+                  className="flex flex-col items-center cursor-pointer group w-[120px]"
                 >
                   {/* Circle Image */}
                   <div className="relative w-[120px] h-[120px] rounded-full overflow-hidden shadow-md group-hover:scale-105 transition">
@@ -194,9 +193,7 @@ useEffect(() => {
         {/* ================= LOAD MORE ================= */}
         {hasNext && (
           <div className="flex justify-center mt-10">
-            <Button onClick={handleLoadMore}>
-              {t("loadMore")}
-            </Button>
+            <Button onClick={handleLoadMore}>{t("loadMore")}</Button>
           </div>
         )}
       </div>

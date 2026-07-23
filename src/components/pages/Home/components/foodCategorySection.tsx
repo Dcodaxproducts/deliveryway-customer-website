@@ -25,7 +25,10 @@ import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppLocale } from "@/hooks/useAppLocale";
 import { useHome } from "@/hooks/useHome";
-import { useHomeCategories, useHomePromotions } from "@/hooks/useHomeCategories";
+import {
+  useHomeCategories,
+  useHomePromotions,
+} from "@/hooks/useHomeCategories";
 import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
 import { formatMoney, resolveCustomerCurrency } from "@/lib/money";
 import type { HomeCategory, PromotionCampaign } from "@/types/home";
@@ -40,7 +43,7 @@ const toNumber = (value: unknown, fallback = 0) => {
 const formatDiscount = (
   promotion: PromotionCampaign,
   fallbackLabel: string,
-  currency?: string | null
+  currency?: string | null,
 ) => {
   const value = toNumber(promotion.discountValue, 0);
 
@@ -74,7 +77,7 @@ const formatDate = (value?: string) => {
 
 const getScopeText = (
   promotion: PromotionCampaign,
-  formatMessage: (key: string, values?: Record<string, number>) => string
+  formatMessage: (key: string, values?: Record<string, number>) => string,
 ) => {
   const itemCount = Array.isArray(promotion.scopeMenuItems)
     ? promotion.scopeMenuItems.length
@@ -105,13 +108,13 @@ const getScopeText = (
 
 const getPromotionImage = (promotion: PromotionCampaign) => {
   const categoryImage = promotion.scopeCategories?.find((entry) =>
-    String(entry?.imageUrl || "").startsWith("http")
+    String(entry?.imageUrl || "").startsWith("http"),
   )?.imageUrl;
 
   if (categoryImage) return categoryImage;
 
   const itemImage = promotion.scopeMenuItems?.find((entry) =>
-    String(entry?.imageUrl || "").startsWith("http")
+    String(entry?.imageUrl || "").startsWith("http"),
   )?.imageUrl;
 
   if (itemImage) return itemImage;
@@ -224,7 +227,9 @@ function PromotionBannerCard({
     const firstCategoryId = promotion.scopeCategories?.[0]?.id;
 
     if (promotion.id) {
-      router.push(`/promotions?promotionId=${encodeURIComponent(promotion.id)}`);
+      router.push(
+        `/promotions?promotionId=${encodeURIComponent(promotion.id)}`,
+      );
       return;
     }
 
@@ -306,8 +311,12 @@ function PromotionBannerCard({
           )}
 
           <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-white/75">
-            {minOrder ? <span>{t("minOrder", { amount: minOrder })}</span> : null}
-            {maxDiscount ? <span>{t("maxDiscount", { amount: maxDiscount })}</span> : null}
+            {minOrder ? (
+              <span>{t("minOrder", { amount: minOrder })}</span>
+            ) : null}
+            {maxDiscount ? (
+              <span>{t("maxDiscount", { amount: maxDiscount })}</span>
+            ) : null}
           </div>
         </div>
       </div>
@@ -319,13 +328,26 @@ export function FoodCategorySection() {
   const tCategories = useTranslations("home.categories");
   const tPromotions = useTranslations("home.promotions");
   const router = useRouter();
-  const { token, user, restaurantId: authRestaurantId } = useAuth();
+  const { user, restaurantId: authRestaurantId } = useAuth();
   const { locale } = useAppLocale();
   const restaurantId = resolveHomeRestaurantId(user, authRestaurantId);
   const branchId = resolveHomeBranchId(user);
-  const categoriesQuery = useHomeCategories(restaurantId, locale, Boolean(token));
-  const promotionsQuery = useHomePromotions(restaurantId, branchId, Boolean(token));
-  const homeQuery = useHome(restaurantId, branchId, Boolean(token && restaurantId && branchId));
+  const hasRestaurantContext = Boolean(restaurantId);
+  const categoriesQuery = useHomeCategories(
+    restaurantId,
+    locale,
+    hasRestaurantContext,
+  );
+  const promotionsQuery = useHomePromotions(
+    restaurantId,
+    branchId,
+    hasRestaurantContext,
+  );
+  const homeQuery = useHome(
+    restaurantId,
+    branchId,
+    hasRestaurantContext && Boolean(branchId),
+  );
   const currency = resolveCustomerCurrency({
     configCurrency: homeQuery.data?.data.config?.currency,
     restaurant: homeQuery.data?.data.restaurant,
@@ -367,14 +389,19 @@ export function FoodCategorySection() {
         {loading ? (
           <div className="grid grid-cols-2 gap-3 overflow-hidden sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-              <div key={i} className="flex min-h-[128px] flex-col items-center justify-center gap-3 rounded-[24px]">
+              <div
+                key={i}
+                className="flex min-h-[128px] flex-col items-center justify-center gap-3 rounded-[24px]"
+              >
                 <div className="h-16 w-16 animate-pulse rounded-full bg-gray-200" />
                 <div className="h-4 w-20 animate-pulse rounded bg-gray-200" />
               </div>
             ))}
           </div>
         ) : categories.length === 0 ? (
-          <p className="rounded-2xl bg-[#FAFAFA] px-4 py-6 text-sm text-gray-400">{tCategories("empty")}</p>
+          <p className="rounded-2xl bg-[#FAFAFA] px-4 py-6 text-sm text-gray-400">
+            {tCategories("empty")}
+          </p>
         ) : (
           <div className="relative px-10 md:px-12">
             <button
@@ -403,7 +430,9 @@ export function FoodCategorySection() {
                     <CarouselItem
                       key={item.id}
                       className="basis-1/2 pl-4 sm:basis-1/4 lg:basis-1/6 xl:basis-[12.5%]"
-                      onClick={() => router.push(`/items?categoryId=${item.id}`)}
+                      onClick={() =>
+                        router.push(`/items?categoryId=${item.id}`)
+                      }
                     >
                       <div className="group flex min-h-[132px] cursor-pointer flex-col items-center justify-center gap-3 rounded-[22px] px-2 py-3 text-center transition hover:-translate-y-1">
                         <div className="relative h-[81px] w-[81px] overflow-hidden rounded-full transition group-hover:scale-105">

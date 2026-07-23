@@ -2,9 +2,22 @@ import { getRequest } from "@/services/http";
 import { normalizeApiArray } from "@/components/pages/Items/utils/restaurant-card-utils";
 import type { MenuItem } from "@/components/pages/Items/types";
 import { normalizeBrandingApiResponse } from "../lib/branding";
-import { isHomeBranch, isLandingPopup, normalizeHomeCategories, normalizePromotions } from "../lib/home";
+import {
+  isHomeBranch,
+  isLandingPopup,
+  normalizeHomeCategories,
+  normalizePromotions,
+} from "../lib/home";
 import { getMeta } from "../lib/response";
-import type { CustomerHomeData, CustomerHomeResponse, HomeCategory, HomeConfig, HomeRestaurant } from "../types/home";
+import type {
+  CustomerHomeData,
+  CustomerHomeResponse,
+  HomeCategory,
+  HomeConfig,
+  HomeContactInfo,
+  HomeFooter,
+  HomeRestaurant,
+} from "../types/home";
 import { normalizeHomeGiftCards } from "../types/gift-cards";
 
 const HOME_CATEGORIES_PAGE_LIMIT = 50;
@@ -46,6 +59,60 @@ const normalizeHomeRestaurant = (value: unknown): HomeRestaurant | null => {
   return value;
 };
 
+const getString = (value: unknown) => {
+  if (typeof value === "string" && value.trim()) {
+    return value.trim();
+  }
+
+  if (typeof value === "number") {
+    return String(value);
+  }
+
+  return null;
+};
+
+const normalizeHomeContactInfo = (value: unknown): HomeContactInfo | null => {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const contactInfo = {
+    phone: getString(value.phone),
+    whatsapp: getString(value.whatsapp),
+    email: getString(value.email),
+  };
+
+  return contactInfo.phone || contactInfo.whatsapp || contactInfo.email
+    ? contactInfo
+    : null;
+};
+
+const normalizeHomeFooter = (value: unknown): HomeFooter | null => {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const contactInfo =
+    normalizeHomeContactInfo(value.contactInfo) ??
+    normalizeHomeContactInfo(value.contacts) ??
+    normalizeHomeContactInfo(value);
+
+  return {
+    logoUrl: getString(value.logoUrl),
+    restaurantLogoUrl: getString(value.restaurantLogoUrl),
+    branchLogoUrl: getString(value.branchLogoUrl),
+    contactInfo,
+    contacts: contactInfo,
+    phone: getString(value.phone) ?? contactInfo?.phone ?? null,
+    whatsapp: getString(value.whatsapp) ?? contactInfo?.whatsapp ?? null,
+    email: getString(value.email) ?? contactInfo?.email ?? null,
+    address: isRecord(value.address) ? value.address : null,
+    socialMediaLinks: isRecord(value.socialMediaLinks)
+      ? (value.socialMediaLinks as Record<string, string | null | undefined>)
+      : null,
+  };
+};
+
 const getMetaNumber = (meta: Record<string, unknown>, keys: string[]) => {
   for (const key of keys) {
     const parsed = Number(meta[key]);
@@ -61,7 +128,7 @@ const getMetaNumber = (meta: Record<string, unknown>, keys: string[]) => {
 const hasNextCategoriesPage = (
   response: unknown,
   page: number,
-  receivedCount: number
+  receivedCount: number,
 ) => {
   const meta = getMeta(response);
   const currentPage = getMetaNumber(meta, ["page", "currentPage"]) ?? page;
@@ -92,7 +159,14 @@ const normalizeHomeData = (value: unknown): CustomerHomeData => {
     restaurant: normalizeHomeRestaurant(record.restaurant),
     config: normalizeHomeConfig(record.config),
     branch: isHomeBranch(record.branch) ? record.branch : null,
-    landingPopup: isLandingPopup(record.landingPopup) ? record.landingPopup : null,
+    contactInfo: normalizeHomeContactInfo(record.contactInfo),
+    contacts:
+      normalizeHomeContactInfo(record.contacts) ??
+      normalizeHomeContactInfo(record.contactInfo),
+    footer: normalizeHomeFooter(record.footer),
+    landingPopup: isLandingPopup(record.landingPopup)
+      ? record.landingPopup
+      : null,
     cuisines: normalizeHomeCategories(record.cuisines),
     promotionalItems: normalizePromotions(record.promotionalItems),
     giftCards: normalizeHomeGiftCards(record.giftCards),
@@ -115,7 +189,9 @@ export const getHomeCategories = async (restaurantId: string) => {
       sortOrder: "ASC",
     });
 
-    const response = await getRequest(`/customer-app/cuisines?${params.toString()}`);
+    const response = await getRequest(
+      `/customer-app/categories?${params.toString()}`,
+    );
     const pageCategories = normalizeHomeCategories(response);
 
     for (const category of pageCategories) {
@@ -137,7 +213,10 @@ export const getHomeCategories = async (restaurantId: string) => {
   return categories;
 };
 
-export const getHomePromotions = async (restaurantId: string, branchId?: string | null) => {
+export const getHomePromotions = async (
+  restaurantId: string,
+  branchId?: string | null,
+) => {
   const params = new URLSearchParams();
   params.set("restaurantId", restaurantId);
 
@@ -145,7 +224,9 @@ export const getHomePromotions = async (restaurantId: string, branchId?: string 
     params.set("branchId", branchId);
   }
 
-  return normalizePromotions(await getRequest(`/customer-app/promotions?${params.toString()}`));
+  return normalizePromotions(
+    await getRequest(`/customer-app/promotions?${params.toString()}`),
+  );
 };
 
 export const getPromotionalItems = async ({
@@ -184,7 +265,7 @@ export const getPromotionalItems = async ({
 
 export const getHome = async (
   restaurantId?: string | null,
-  branchId?: string | null
+  branchId?: string | null,
 ): Promise<CustomerHomeResponse> => {
   const params = new URLSearchParams();
 
@@ -197,7 +278,9 @@ export const getHome = async (
   }
 
   const query = params.toString();
-  const response = await getRequest(`/customer-app/home${query ? `?${query}` : ""}`);
+  const response = await getRequest(
+    `/customer-app/home${query ? `?${query}` : ""}`,
+  );
 
   if (response.error) {
     throw new Error(response.error);

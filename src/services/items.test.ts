@@ -150,7 +150,7 @@ describe("fetchMenuItemDetailsByIds", () => {
     });
 
     expect(getItemsMock).toHaveBeenCalledWith(
-      "/customer-app/cuisines?restaurantId=restaurant-1&page=1&limit=50&sortBy=sortOrder&sortOrder=ASC",
+      "/customer-app/categories?restaurantId=restaurant-1&page=1&limit=50&sortBy=sortOrder&sortOrder=ASC",
       "token-1",
     );
   });

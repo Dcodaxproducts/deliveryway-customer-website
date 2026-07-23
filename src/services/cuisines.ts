@@ -1,7 +1,13 @@
-import { normalizeApiArray, normalizeApiMeta } from "@/components/pages/Items/utils/restaurant-card-utils";
+import {
+  normalizeApiArray,
+  normalizeApiMeta,
+} from "@/components/pages/Items/utils/restaurant-card-utils";
 import type { ApiMeta, MenuItem } from "@/components/pages/Items/types";
 import { getRequest } from "@/services/http";
-import type { HappyHourInfo, PromotionInfo } from "@/components/pages/Items/types";
+import type {
+  HappyHourInfo,
+  PromotionInfo,
+} from "@/components/pages/Items/types";
 
 export type CustomerCuisine = {
   id: string;
@@ -42,8 +48,12 @@ const getNumber = (value: unknown) => {
   return Number.isFinite(parsed) ? parsed : null;
 };
 
-const appendCuisineParams = (params: URLSearchParams, values: FetchCuisinesParams) => {
-  if (values.restaurantId) params.set("restaurantId", String(values.restaurantId));
+const appendCuisineParams = (
+  params: URLSearchParams,
+  values: FetchCuisinesParams,
+) => {
+  if (values.restaurantId)
+    params.set("restaurantId", String(values.restaurantId));
   if (values.branchId) params.set("branchId", String(values.branchId));
   if (values.page) params.set("page", String(values.page));
   if (values.limit) params.set("limit", String(values.limit));
@@ -67,9 +77,15 @@ export const normalizeCuisine = (value: unknown): CustomerCuisine | null => {
     coverImage: getString(value.coverImage),
     bannerUrl: getString(value.bannerUrl),
     slug: getString(value.slug),
-    happyHour: isRecord(value.happyHour) ? value.happyHour as HappyHourInfo : null,
-    promotion: isRecord(value.promotion) ? value.promotion as PromotionInfo : null,
-    itemCount: getNumber(value.itemCount ?? value.itemsCount ?? value.menuItemsCount),
+    happyHour: isRecord(value.happyHour)
+      ? (value.happyHour as HappyHourInfo)
+      : null,
+    promotion: isRecord(value.promotion)
+      ? (value.promotion as PromotionInfo)
+      : null,
+    itemCount: getNumber(
+      value.itemCount ?? value.itemsCount ?? value.menuItemsCount,
+    ),
   };
 };
 
@@ -88,7 +104,9 @@ export const fetchCustomerCuisines = async (params: FetchCuisinesParams) => {
     ...params,
   });
 
-  const response = await getRequest(`/customer-app/cuisines?${queryParams.toString()}`);
+  const response = await getRequest(
+    `/customer-app/categories?${queryParams.toString()}`,
+  );
 
   return {
     response,
@@ -97,7 +115,10 @@ export const fetchCustomerCuisines = async (params: FetchCuisinesParams) => {
   };
 };
 
-export const fetchCustomerCuisineItems = async ({ cuisineId, ...params }: FetchCuisineItemsParams) => {
+export const fetchCustomerCuisineItems = async ({
+  cuisineId,
+  ...params
+}: FetchCuisineItemsParams) => {
   const queryParams = new URLSearchParams();
   appendCuisineParams(queryParams, {
     page: 1,
@@ -108,7 +129,7 @@ export const fetchCustomerCuisineItems = async ({ cuisineId, ...params }: FetchC
   });
 
   const response = await getRequest(
-    `/customer-app/cuisines/${encodeURIComponent(cuisineId)}/items?${queryParams.toString()}`,
+    `/customer-app/categories/${encodeURIComponent(cuisineId)}/items?${queryParams.toString()}`,
   );
 
   return {
@@ -128,7 +149,9 @@ export const fetchPromotionalCuisines = async (params: FetchCuisinesParams) => {
     ...params,
   });
 
-  const response = await getRequest(`/customer-app/promotional-cuisines?${queryParams.toString()}`);
+  const response = await getRequest(
+    `/customer-app/promotional-cuisines?${queryParams.toString()}`,
+  );
 
   return {
     response,

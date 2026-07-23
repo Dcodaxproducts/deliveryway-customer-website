@@ -59,7 +59,10 @@ export const fetchMenuItemsPage = async ({
     params.set("branchId", String(branchId));
   }
 
-  const response = await getItems(`/customer-app/items?${params.toString()}`, token);
+  const response = await getItems(
+    `/customer-app/items?${params.toString()}`,
+    token,
+  );
 
   return {
     response,
@@ -207,7 +210,7 @@ export const fetchMenuCategoriesPage = async ({
   }
 
   const response = await getItems(
-    `/customer-app/cuisines?${params.toString()}`,
+    `/customer-app/categories?${params.toString()}`,
     token,
   );
 
