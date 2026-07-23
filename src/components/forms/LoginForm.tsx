@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form"
 import { FcGoogle } from "react-icons/fc"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
-import { Eye, EyeOff, Heart, LogIn, Sparkles, UserRound } from "lucide-react"
+import { Eye, EyeOff, Heart, LogIn, Sparkles, User } from "lucide-react"
 
 import { MUTED_TEXT_CLASS } from "@/components/common/common-classes"
 import { Button } from "@/components/ui/button"
@@ -363,43 +363,43 @@ export function LoginForm() {
       <Dialog open={isGuestDialogOpen} onOpenChange={setIsGuestDialogOpen}>
         <DialogContent
           showCloseButton={false}
-          className="max-h-[calc(100dvh-24px)] overflow-y-auto border-0 bg-[#fffdfb] px-6 py-8 text-center shadow-[0_24px_80px_rgba(70,20,20,0.18)] sm:max-w-[620px] sm:rounded-[28px] sm:px-14 sm:py-8"
+          className="max-h-[calc(100dvh-24px)] overflow-y-auto border-0 bg-[#fffdfb] px-5 py-7 text-center shadow-[0_20px_64px_rgba(70,20,20,0.16)] sm:max-w-[540px] sm:rounded-[24px] sm:px-11"
         >
-          <DialogClose className="absolute right-5 top-5 flex h-10 w-10 items-center justify-center rounded-full border border-[#e5e5e5] bg-white text-[#333] transition hover:bg-[#fff7f7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b3121b]/30 sm:right-6 sm:top-6 sm:h-11 sm:w-11">
-            <span className="text-2xl font-light leading-none" aria-hidden="true">×</span>
+          <DialogClose className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full border border-[#e5e5e5] bg-white text-[#333] transition hover:bg-[#fff7f7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b3121b]/30 sm:right-5 sm:top-5">
+            <span className="text-xl font-light leading-none" aria-hidden="true">×</span>
             <span className="sr-only">{t("backToLogin")}</span>
           </DialogClose>
 
-          <DialogHeader className="items-center space-y-4 text-center">
-            <div className="relative flex h-20 w-20 items-center justify-center rounded-full border border-[#f7d8c8] bg-[#fff1e7] shadow-[0_12px_28px_rgba(190,20,30,0.14)]">
-              <Sparkles className="absolute -left-8 top-5 h-5 w-5 text-[#f1b9a4]" aria-hidden="true" />
-              <UserRound className="h-10 w-10 text-[#b3121b]" strokeWidth={1.8} aria-hidden="true" />
-              <Sparkles className="absolute -right-7 bottom-5 h-4 w-4 text-[#f1b9a4]" aria-hidden="true" />
+          <DialogHeader className="items-center space-y-3 text-center">
+            <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-[#f7d8c8] bg-[#fff1e7] shadow-[0_10px_24px_rgba(190,20,30,0.12)]">
+              <Sparkles className="absolute -left-6 top-4 h-4 w-4 text-[#f1b9a4]" aria-hidden="true" />
+              <User className="h-8 w-8 text-[#b3121b]" strokeWidth={1.7} aria-hidden="true" />
+              <Sparkles className="absolute -right-5 bottom-4 h-3.5 w-3.5 text-[#f1b9a4]" aria-hidden="true" />
             </div>
 
-            <div className="space-y-3">
-              <DialogTitle className="font-serif text-4xl font-semibold leading-tight text-[#050505] sm:text-[40px]">
+            <div className="w-full space-y-2">
+              <DialogTitle className="w-full text-center font-serif text-[30px] leading-[0.95] text-gray-950 sm:text-[32px]">
                 Welcome, <span className="text-[#b3121b]">Guest</span>
               </DialogTitle>
-              <div className="flex items-center justify-center gap-3" aria-hidden="true">
-                <span className="h-px w-12 bg-[#ef9c9c]" />
-                <span className="text-base text-[#b3121b]">◆</span>
-                <span className="h-px w-12 bg-[#ef9c9c]" />
+              <div className="flex items-center justify-center gap-2.5" aria-hidden="true">
+                <span className="h-px w-10 bg-[#ef9c9c]" />
+                <span className="text-sm text-[#b3121b]">◆</span>
+                <span className="h-px w-10 bg-[#ef9c9c]" />
               </div>
-              <DialogDescription className="mx-auto max-w-[430px] text-base leading-relaxed text-[#6f7480] sm:text-lg">
+              <DialogDescription className="mx-auto max-w-[360px] text-sm leading-6 text-[#6f7480] sm:text-[15px]">
                 Share your name (optional) and we’ll personalize your experience.
               </DialogDescription>
             </div>
           </DialogHeader>
 
-          <form onSubmit={guestForm.handleSubmit(onGuestSubmit)} className="mt-2 space-y-4" noValidate>
+          <form onSubmit={guestForm.handleSubmit(onGuestSubmit)} className="mt-1 space-y-3" noValidate>
             <div className="relative">
-              <UserRound className="pointer-events-none absolute left-5 top-1/2 h-6 w-6 -translate-y-1/2 text-[#9ca3af]" strokeWidth={1.8} aria-hidden="true" />
+              <User className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#9ca3af]" strokeWidth={1.7} aria-hidden="true" />
               <Input
                 id="guestName"
                 autoFocus
                 placeholder="Enter your name (optional)"
-                className="h-14 rounded-xl border-2 border-[#fac7c7] bg-white pl-14 pr-6 text-base text-[#222] shadow-[0_8px_22px_rgba(190,20,30,0.08)] placeholder:text-[#8b9099] focus-visible:ring-[#b3121b]/25 sm:h-16 sm:text-lg"
+                className="h-12 rounded-[10px] border border-[#fac7c7] bg-white pl-11 pr-5 text-sm text-[#222] shadow-[0_6px_18px_rgba(190,20,30,0.06)] placeholder:text-[#8b9099] focus-visible:ring-[#b3121b]/25 sm:h-[52px] sm:text-[15px]"
                 {...guestForm.register("name")}
               />
             </div>
@@ -407,31 +407,31 @@ export function LoginForm() {
             <Button
               type="submit"
               disabled={isLoading || domainLoading}
-              className="h-14 w-full rounded-xl bg-gradient-to-b from-[#d01827] to-[#a90f19] text-lg font-bold text-white shadow-[0_14px_26px_rgba(190,20,30,0.25)] hover:from-[#df1a2a] hover:to-[#a90f19] sm:h-[60px] sm:text-xl"
+              className="h-12 w-full rounded-[10px] bg-gradient-to-b from-[#d01827] to-[#a90f19] text-base font-semibold text-white shadow-[0_12px_22px_rgba(190,20,30,0.22)] hover:from-[#df1a2a] hover:to-[#a90f19] sm:h-[52px]"
             >
-              <Sparkles className="mr-3 h-5 w-5 text-[#fff0bd]" aria-hidden="true" />
+              <Sparkles className="mr-2.5 h-4 w-4 text-[#fff0bd]" aria-hidden="true" />
               {isLoading ? t("starting") : "Continue as guest"}
             </Button>
 
-            <div className="flex items-center justify-center gap-4 text-base text-[#777]">
-              <span className="h-px w-16 bg-[#f4b8b8]" />
+            <div className="flex items-center justify-center gap-3 text-sm text-[#777]">
+              <span className="h-px w-12 bg-[#f4b8b8]" />
               <span>or</span>
-              <span className="h-px w-16 bg-[#f4b8b8]" />
+              <span className="h-px w-12 bg-[#f4b8b8]" />
             </div>
 
             <button
               type="button"
               disabled={isLoading || domainLoading}
               onClick={() => void onGuestSubmit({ name: "" })}
-              className="flex h-20 w-full flex-col items-center justify-center rounded-xl border border-[#ef9c9c] bg-transparent text-[#b3121b] transition hover:bg-[#fff7f7] disabled:cursor-not-allowed disabled:opacity-60 sm:h-[88px]"
+              className="flex h-16 w-full flex-col items-center justify-center rounded-[10px] border border-[#ef9c9c] bg-transparent text-[#b3121b] transition hover:bg-[#fff7f7] disabled:cursor-not-allowed disabled:opacity-60 sm:h-[68px]"
             >
-              <span className="flex items-center text-lg font-bold sm:text-xl">
-                <LogIn className="mr-2 h-5 w-5" aria-hidden="true" />
+              <span className="flex items-center text-base font-semibold">
+                <LogIn className="mr-2 h-4 w-4" aria-hidden="true" />
                 Skip for now
               </span>
-              <span className="mt-1 flex items-center text-sm text-[#777d89]">
+              <span className="mt-0.5 flex items-center text-xs text-[#777d89]">
                 You can always add your name later
-                <Heart className="ml-1 h-4 w-4 text-[#ef9c9c]" aria-hidden="true" />
+                <Heart className="ml-1 h-3.5 w-3.5 text-[#ef9c9c]" aria-hidden="true" />
               </span>
             </button>
           </form>
