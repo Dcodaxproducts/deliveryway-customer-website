@@ -12,6 +12,14 @@ import { Eye, EyeOff } from "lucide-react"
 
 import { MUTED_TEXT_CLASS } from "@/components/common/common-classes"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "../ui/checkbox"
 import { useAuthContext } from "@/hooks/useAuth"
@@ -74,6 +82,16 @@ const loadGoogleIdentityScript = () =>
 
 const getGroupOrderCode = () => getStoredGroupOrderCode()
 
+const splitGuestName = (value: string) => {
+  const parts = value.trim().split(/\s+/).filter(Boolean)
+  const [firstName = "Guest", ...lastNameParts] = parts
+
+  return {
+    firstName,
+    lastName: lastNameParts.join(" "),
+  }
+}
+
 const useAuthValidationMessages = (): AuthValidationMessages => {
   const t = useTranslations("validation")
 
@@ -85,6 +103,7 @@ const useAuthValidationMessages = (): AuthValidationMessages => {
       firstNameRequired: t("firstNameRequired"),
       lastNameRequired: t("lastNameRequired"),
       phoneRequired: t("phoneRequired"),
+      guestNameRequired: t("guestNameRequired"),
       confirmPasswordRequired: t("confirmPasswordRequired"),
       acceptTermsRequired: t("acceptTermsRequired"),
       passwordsDoNotMatch: t("passwordsDoNotMatch"),
@@ -103,7 +122,7 @@ export function LoginForm() {
 
   const [isLoading, setIsLoading] = useState(false)
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false)
-  const [isGuestMode, setIsGuestMode] = useState(false)
+  const [isGuestDialogOpen, setIsGuestDialogOpen] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const validationMessages = useAuthValidationMessages()
   const translatedLoginSchema = useMemo(
@@ -126,9 +145,7 @@ export function LoginForm() {
   const guestForm = useForm<GuestLoginFormValues>({
     resolver: zodResolver(translatedGuestLoginSchema),
     defaultValues: {
-      firstName: "",
-      lastName: "",
-      phone: "",
+      name: "",
     },
   })
 
@@ -179,9 +196,14 @@ export function LoginForm() {
     try {
       setIsLoading(true)
 
-      const data = await guestLoginCustomer({ ...values, restaurantId })
+      const data = await guestLoginCustomer({
+        ...splitGuestName(values.name),
+        restaurantId,
+      })
 
       login(data)
+      setIsGuestDialogOpen(false)
+      guestForm.reset()
 
       toast.success(t("guestSessionStarted"))
       redirectAfterLogin()
@@ -250,99 +272,68 @@ export function LoginForm() {
 
       <div className="space-y-1">
         <h1 className="text-headline-sm font-bold font-roboto text-primary">
-          {isGuestMode ? t("guestLogin") : t("login")}
+          {t("login")}
         </h1>
         <p className={MUTED_TEXT_CLASS}>
-          {isGuestMode
-            ? t("continueAsGuest")
-            : t("loginDescription")}
+          {t("loginDescription")}
         </p>
       </div>
 
       {/* FORM */}
       <form
-        onSubmit={isGuestMode ? guestForm.handleSubmit(onGuestSubmit) : loginForm.handleSubmit(onSubmit)}
+        onSubmit={loginForm.handleSubmit(onSubmit)}
         className="space-y-[16px] mt-[35px] mb-[19px]"
         noValidate
       >
-        {isGuestMode ? (
-          <>
-            <Input
-              id="guestFirstName"
-              placeholder={t("firstName")}
-              {...guestForm.register("firstName")}
-            />
-            <Input
-              id="guestLastName"
-              placeholder={t("lastName")}
-              {...guestForm.register("lastName")}
-            />
-            <Input
-              id="guestPhone"
-              placeholder={t("phone")}
-              {...guestForm.register("phone")}
-            />
-            <Button
-              type="submit"
-              disabled={isLoading || domainLoading}
-              className="w-full h-[50px] text-lg font-semibold bg-primary text-white"
-            >
-              {isLoading ? t("starting") : t("signInAsGuest")}
-            </Button>
-          </>
-        ) : (
-          <>
-            <Input
-              id="email"
-              type="email"
-              placeholder={t("email")}
-              {...loginForm.register("email")}
-            />
-            <div className="relative">
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                placeholder={t("password")}
-                className="pr-12"
-                {...loginForm.register("password")}
-              />
-              <button
-                type="button"
-                aria-label={showPassword ? t("hidePassword") : t("showPassword")}
-                aria-pressed={showPassword}
-                onClick={() => setShowPassword((current) => !current)}
-                className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-gray-500 transition hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-              >
-                {showPassword ? (
-                  <EyeOff className="h-5 w-5" aria-hidden="true" />
-                ) : (
-                  <Eye className="h-5 w-5" aria-hidden="true" />
-                )}
-              </button>
-            </div>
-            <div className="flex items-center justify-between text-sm my-7">
-              <label className="flex items-center gap-2 cursor-pointer text-gray-500">
-                <Checkbox checked />
-                {t("rememberMe")}
-              </label>
+        <Input
+          id="email"
+          type="email"
+          placeholder={t("email")}
+          {...loginForm.register("email")}
+        />
+        <div className="relative">
+          <Input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            placeholder={t("password")}
+            className="pr-12"
+            {...loginForm.register("password")}
+          />
+          <button
+            type="button"
+            aria-label={showPassword ? t("hidePassword") : t("showPassword")}
+            aria-pressed={showPassword}
+            onClick={() => setShowPassword((current) => !current)}
+            className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-gray-500 transition hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+          >
+            {showPassword ? (
+              <EyeOff className="h-5 w-5" aria-hidden="true" />
+            ) : (
+              <Eye className="h-5 w-5" aria-hidden="true" />
+            )}
+          </button>
+        </div>
+        <div className="flex items-center justify-between text-sm my-7">
+          <label className="flex items-center gap-2 cursor-pointer text-gray-500">
+            <Checkbox checked />
+            {t("rememberMe")}
+          </label>
 
-              <Link
-                href="/auth/forgot-password"
-                className="text-primary hover:underline"
-              >
-                {t("forgotPassword")}
-              </Link>
-            </div>
+          <Link
+            href="/auth/forgot-password"
+            className="text-primary hover:underline"
+          >
+            {t("forgotPassword")}
+          </Link>
+        </div>
 
-            <Button
-              type="submit"
-              disabled={isLoading || domainLoading}
-              className="w-full h-[50px] text-lg font-semibold bg-primary text-white"
-            >
-              {isLoading ? t("loggingIn") : t("login")}
-            </Button>
-          </>
-        )}
+        <Button
+          type="submit"
+          disabled={isLoading || domainLoading}
+          className="w-full h-[50px] text-lg font-semibold bg-primary text-white"
+        >
+          {isLoading ? t("loggingIn") : t("login")}
+        </Button>
       </form>
 
       {/* SOCIAL + GUEST TOGGLE */}
@@ -362,23 +353,52 @@ export function LoginForm() {
         {/*  GUEST BUTTON */}
         <button
           type="button"
-          onClick={() => setIsGuestMode(true)}
+          onClick={() => setIsGuestDialogOpen(true)}
           className="text-primary underline text-sm"
         >
           {t("signInAsGuest")}
         </button>
-
-        {/* BACK TO LOGIN */}
-        {isGuestMode && (
-          <button
-            type="button"
-            onClick={() => setIsGuestMode(false)}
-            className="text-gray-500 text-sm underline"
-          >
-            {t("backToLogin")}
-          </button>
-        )}
       </div>
+
+      <Dialog open={isGuestDialogOpen} onOpenChange={setIsGuestDialogOpen}>
+        <DialogContent className="sm:max-w-[430px] rounded-2xl border-0 p-7 shadow-2xl">
+          <DialogHeader className="space-y-3 text-center sm:text-center">
+            <DialogTitle className="text-2xl font-bold text-primary">
+              {t("guestNamePromptTitle")}
+            </DialogTitle>
+            <DialogDescription className="text-base leading-6 text-gray-500">
+              {t("guestNamePromptDescription")}
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={guestForm.handleSubmit(onGuestSubmit)} className="space-y-5" noValidate>
+            <Input
+              id="guestName"
+              autoFocus
+              placeholder={t("guestNamePlaceholder")}
+              {...guestForm.register("name")}
+            />
+            <DialogFooter className="gap-3 sm:flex-col">
+              <Button
+                type="submit"
+                disabled={isLoading || domainLoading}
+                className="h-[50px] w-full text-lg font-semibold bg-primary text-white"
+              >
+                {isLoading ? t("starting") : t("continueAsGuest")}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isLoading}
+                onClick={() => setIsGuestDialogOpen(false)}
+                className="h-[46px] w-full"
+              >
+                {t("backToLogin")}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* SIGNUP */}
       <p className="text-center text-sm text-muted-foreground mt-[40px]">

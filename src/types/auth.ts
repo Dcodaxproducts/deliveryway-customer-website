@@ -51,9 +51,9 @@ export type GoogleLoginCustomerPayload = {
 };
 
 export type GuestLoginCustomerPayload = {
-  firstName: string;
-  lastName: string;
-  phone: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
   restaurantId: string;
 };
 

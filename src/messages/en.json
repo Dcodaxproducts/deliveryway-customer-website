@@ -170,7 +170,10 @@
     "enterNewPassword": "Enter new password",
     "missingEmailOrRestaurantId": "Missing email or restaurant id",
     "otpResent": "OTP resent successfully",
-    "passwordResetSuccess": "Password reset successfully!"
+    "passwordResetSuccess": "Password reset successfully!",
+    "guestNamePromptTitle": "How should we call you?",
+    "guestNamePromptDescription": "Tell us your name so we can personalize your guest experience.",
+    "guestNamePlaceholder": "Enter your name"
   },
   "home": {
     "hero": {
@@ -1984,7 +1987,8 @@
     "contactEmailRequired": "Valid email is required",
     "contactSubjectRequired": "Subject is required",
     "contactMessageRequired": "Message is required",
-    "reviewMax": "Review must be 1000 characters or fewer"
+    "reviewMax": "Review must be 1000 characters or fewer",
+    "guestNameRequired": "Please enter your name"
   },
   "errors": {
     "somethingWentWrong": "Something went wrong"

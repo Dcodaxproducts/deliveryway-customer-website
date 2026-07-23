@@ -170,7 +170,10 @@
     "enterNewPassword": "Neues Passwort eingeben",
     "missingEmailOrRestaurantId": "E-Mail oder Restaurant-ID fehlt",
     "otpResent": "OTP erfolgreich erneut gesendet",
-    "passwordResetSuccess": "Passwort erfolgreich zurückgesetzt!"
+    "passwordResetSuccess": "Passwort erfolgreich zurückgesetzt!",
+    "guestNamePromptTitle": "Wie dürfen wir Sie nennen?",
+    "guestNamePromptDescription": "Nennen Sie uns Ihren Namen, damit wir Ihr Gästeerlebnis persönlicher gestalten können.",
+    "guestNamePlaceholder": "Namen eingeben"
   },
   "home": {
     "hero": {
@@ -1984,7 +1987,8 @@
     "contactEmailRequired": "Eine gültige E-Mail-Adresse ist erforderlich",
     "contactSubjectRequired": "Betreff ist erforderlich",
     "contactMessageRequired": "Nachricht ist erforderlich",
-    "reviewMax": "Bewertung darf höchstens 1000 Zeichen lang sein"
+    "reviewMax": "Bewertung darf höchstens 1000 Zeichen lang sein",
+    "guestNameRequired": "Bitte geben Sie Ihren Namen ein"
   },
   "errors": {
     "somethingWentWrong": "Etwas ist schiefgelaufen"

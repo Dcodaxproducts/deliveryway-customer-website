@@ -7,6 +7,7 @@ export type AuthValidationMessages = {
   firstNameRequired: string;
   lastNameRequired: string;
   phoneRequired: string;
+  guestNameRequired?: string;
   confirmPasswordRequired: string;
   acceptTermsRequired: string;
   passwordsDoNotMatch: string;
@@ -21,6 +22,7 @@ export const defaultEnglishValidationMessages: AuthValidationMessages = {
   firstNameRequired: "Please enter first name",
   lastNameRequired: "Please enter last name",
   phoneRequired: "Please enter phone",
+  guestNameRequired: "Please enter your name",
   confirmPasswordRequired: "Please confirm your password",
   acceptTermsRequired: "Please accept the terms and privacy policy",
   passwordsDoNotMatch: "Passwords do not match",
@@ -38,9 +40,7 @@ export const createLoginSchema = (messages: AuthValidationMessages) =>
 
 export const createGuestLoginSchema = (messages: AuthValidationMessages) =>
   z.object({
-    firstName: requiredString(messages.firstNameRequired),
-    lastName: requiredString(messages.lastNameRequired),
-    phone: requiredString(messages.phoneRequired),
+    name: requiredString(messages.guestNameRequired ?? messages.firstNameRequired),
   });
 
 export const createSignupSchema = (messages: AuthValidationMessages) =>
