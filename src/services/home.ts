@@ -115,7 +115,7 @@ export const getHomeCategories = async (restaurantId: string) => {
       sortOrder: "ASC",
     });
 
-    const response = await getRequest(`/v1/menu/categories?${params.toString()}`);
+    const response = await getRequest(`/customer-app/cuisines?${params.toString()}`);
     const pageCategories = normalizeHomeCategories(response);
 
     for (const category of pageCategories) {

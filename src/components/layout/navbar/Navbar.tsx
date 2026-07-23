@@ -292,7 +292,7 @@ export const Navbar = () => {
       setSearchLoading(true);
 
       const response = await get(
-        `/v1/menu/items?search=${encodeURIComponent(trimmedKeyword)}&restaurantId=${encodeURIComponent(
+        `/customer-app/items?search=${encodeURIComponent(trimmedKeyword)}&restaurantId=${encodeURIComponent(
           restaurantId,
         )}${branchId ? `&branchId=${encodeURIComponent(branchId)}` : ""}`,
       );

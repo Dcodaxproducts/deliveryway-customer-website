@@ -59,7 +59,7 @@ export const fetchMenuItemsPage = async ({
     params.set("branchId", String(branchId));
   }
 
-  const response = await getItems(`/v1/menu/items?${params.toString()}`, token);
+  const response = await getItems(`/customer-app/items?${params.toString()}`, token);
 
   return {
     response,
@@ -102,7 +102,7 @@ export const fetchMenuItemDetailsByIds = async ({
         }
 
         const response = await getItems(
-          `/v1/menu/items?${params.toString()}`,
+          `/customer-app/items?${params.toString()}`,
           token,
         );
         const items = normalizeApiArray<MenuItem>(response);
@@ -169,7 +169,7 @@ export const fetchSplitPizzaMenuItems = async ({
   }
 
   const response = await getItems(
-    `/v1/menu/items?${queryParams.toString()}`,
+    `/customer-app/items?${queryParams.toString()}`,
     token,
   );
 
@@ -207,7 +207,7 @@ export const fetchMenuCategoriesPage = async ({
   }
 
   const response = await getItems(
-    `/v1/menu/categories?${params.toString()}`,
+    `/customer-app/cuisines?${params.toString()}`,
     token,
   );
 

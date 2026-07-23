@@ -45,12 +45,12 @@ describe("fetchMenuItemDetailsByIds", () => {
 
     expect(getItemsMock).toHaveBeenNthCalledWith(
       1,
-      "/v1/menu/items?search=pizza-id",
+      "/customer-app/items?search=pizza-id",
       "token-1",
     );
     expect(getItemsMock).toHaveBeenNthCalledWith(
       2,
-      "/v1/menu/items?search=pizza-tse",
+      "/customer-app/items?search=pizza-tse",
       "token-1",
     );
     expect(details["pizza-id"]?.modifierGroups).toEqual([
@@ -75,7 +75,7 @@ describe("fetchMenuItemDetailsByIds", () => {
 
     expect(getItemsMock).toHaveBeenNthCalledWith(
       3,
-      "/v1/menu/items?search=No+Add-Ons",
+      "/customer-app/items?search=No+Add-Ons",
       undefined,
     );
     expect(details["simple-id"]?.name).toBe("No Add-Ons");
@@ -95,12 +95,12 @@ describe("fetchMenuItemDetailsByIds", () => {
 
     expect(getItemsMock).toHaveBeenNthCalledWith(
       1,
-      "/v1/menu/items?search=pizza-id&branchId=branch-1",
+      "/customer-app/items?search=pizza-id&branchId=branch-1",
       "token-1",
     );
     expect(getItemsMock).toHaveBeenNthCalledWith(
       2,
-      "/v1/menu/items?search=pizza-tse&branchId=branch-1",
+      "/customer-app/items?search=pizza-tse&branchId=branch-1",
       "token-1",
     );
   });
@@ -118,7 +118,7 @@ describe("fetchMenuItemDetailsByIds", () => {
     });
 
     expect(getItemsMock).toHaveBeenCalledWith(
-      "/v1/menu/items?restaurantId=restaurant-1&page=2&limit=12&sortBy=sortOrder&sortOrder=ASC&categoryId=category-1&branchId=branch-1",
+      "/customer-app/items?restaurantId=restaurant-1&page=2&limit=12&sortBy=sortOrder&sortOrder=ASC&categoryId=category-1&branchId=branch-1",
       "token-1",
     );
   });
@@ -135,7 +135,7 @@ describe("fetchMenuItemDetailsByIds", () => {
     });
 
     expect(getItemsMock).toHaveBeenCalledWith(
-      "/v1/menu/items?page=3&supportsSplitPizza=true&restaurantId=restaurant-1&branchId=branch-1&search=pizza",
+      "/customer-app/items?page=3&supportsSplitPizza=true&restaurantId=restaurant-1&branchId=branch-1&search=pizza",
       "token-1",
     );
   });
@@ -150,7 +150,7 @@ describe("fetchMenuItemDetailsByIds", () => {
     });
 
     expect(getItemsMock).toHaveBeenCalledWith(
-      "/v1/menu/categories?restaurantId=restaurant-1&page=1&limit=50&sortBy=sortOrder&sortOrder=ASC",
+      "/customer-app/cuisines?restaurantId=restaurant-1&page=1&limit=50&sortBy=sortOrder&sortOrder=ASC",
       "token-1",
     );
   });

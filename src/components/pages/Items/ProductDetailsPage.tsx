@@ -1704,7 +1704,7 @@ function ProductDetailsPageContent() {
         }
 
         const { response: res, items } = await fetchMenuItems(
-          `/v1/menu/items?${params.toString()}`,
+          `/customer-app/items?${params.toString()}`,
         );
 
         if (!isMounted) return;
@@ -2163,7 +2163,7 @@ function ProductDetailsPageContent() {
     }
 
     const { response, items } = await fetchMenuItems(
-      `/v1/menu/items?${queryParams.toString()}`,
+      `/customer-app/items?${queryParams.toString()}`,
     );
     const resData =
       typeof response?.data === "object" &&

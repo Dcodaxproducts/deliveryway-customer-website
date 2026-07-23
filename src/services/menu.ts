@@ -122,7 +122,7 @@ export const fetchSignatureSplitPizzaItems = async ({
     queryParams.set("search", resolvedSearch);
   }
 
-  const response = await getMenu(`/v1/menu/items?${queryParams.toString()}`, token);
+  const response = await getMenu(`/customer-app/items?${queryParams.toString()}`, token);
 
   return {
     data: normalizeApiList<MenuItem>(response),

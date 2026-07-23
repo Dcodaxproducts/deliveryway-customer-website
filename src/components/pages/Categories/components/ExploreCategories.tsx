@@ -41,7 +41,7 @@ export default function ExploreCategories() {
       if (pageNumber === 1) setLoading(true);
 
       const res = await get(
-        `/v1/menu/categories?restaurantId=${restaurantId}&page=${pageNumber}&limit=10`
+        `/customer-app/cuisines?restaurantId=${restaurantId}&page=${pageNumber}&limit=10`
       );
       const data = Array.isArray(res.data) ? res.data as Category[] : [];
       const meta = res.meta as { hasNext?: boolean; page?: number } | undefined;

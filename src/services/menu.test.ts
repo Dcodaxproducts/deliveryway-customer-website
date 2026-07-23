@@ -30,7 +30,7 @@ describe("fetchSignatureSplitPizzaItems", () => {
     });
 
     expect(getMenuMock).toHaveBeenCalledWith(
-      "/v1/menu/items?page=2&supportsSplitPizza=true&restaurantId=restaurant-1&branchId=branch-1&search=pizza",
+      "/customer-app/items?page=2&supportsSplitPizza=true&restaurantId=restaurant-1&branchId=branch-1&search=pizza",
       "token-1"
     );
   });
