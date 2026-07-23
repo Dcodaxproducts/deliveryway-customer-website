@@ -385,7 +385,9 @@ function ItemsPageContent() {
         </div>
       ) : null}
 
-      <RestaurantHeader />
+      <div className={categoryId ? "hidden lg:block" : undefined}>
+        <RestaurantHeader />
+      </div>
       <ItemsLayout categoryId={categoryId} />
     </div>
   );

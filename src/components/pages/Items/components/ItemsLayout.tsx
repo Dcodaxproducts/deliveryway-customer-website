@@ -1,8 +1,20 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
+import { useRouter } from "next/navigation";
 import { CategorySidebar } from "./CategorySidebar";
 import { ItemsListing } from "./Items";
+import {
+  MobileCategoryBrowser,
+  MobileCategoryHero,
+} from "./MobileCategoryNavigation";
 import { CustomerDealsSection } from "@/components/pages/Home/components/CustomerDealsSection";
 import useItems from "@/hooks/useItems";
 import useMenu from "@/hooks/useMenu";
@@ -40,12 +52,33 @@ type ItemsSectionForListing = Omit<ItemsCategory, "items"> & {
 };
 
 const CATEGORY_PAGE_LIMIT = 20;
+const MOBILE_ITEMS_QUERY = "(max-width: 1023px)";
 
 type ItemsLayoutProps = {
   categoryId?: string;
 };
 
+const subscribeToMobileItemsViewport = (onStoreChange: () => void) => {
+  const mediaQuery = window.matchMedia(MOBILE_ITEMS_QUERY);
+  mediaQuery.addEventListener("change", onStoreChange);
+
+  return () => {
+    mediaQuery.removeEventListener("change", onStoreChange);
+  };
+};
+
+const getMobileItemsViewportSnapshot = () =>
+  window.matchMedia(MOBILE_ITEMS_QUERY).matches;
+
+const getMobileItemsViewportServerSnapshot = () => false;
+
 export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
+  const router = useRouter();
+  const isMobileItemsViewport = useSyncExternalStore(
+    subscribeToMobileItemsViewport,
+    getMobileItemsViewportSnapshot,
+    getMobileItemsViewportServerSnapshot,
+  );
   const { token, restaurantId: authRestaurantId, user } = useAuth();
   const { locale } = useAppLocale();
   const { fetchMenuCategoriesPage } = useItems(token);
@@ -403,8 +436,48 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
     });
   };
 
+  if (isMobileItemsViewport) {
+    const selectedCategory = categories.find(
+      (category) => String(category.id || "") === String(categoryId || ""),
+    );
+
+    if (!categoryId) {
+      return (
+        <MobileCategoryBrowser
+          categories={categories}
+          loading={loadingCategories}
+          loadingMore={loadingMoreCategories}
+          hasMore={hasMoreCategories}
+          onCategorySelect={(id) => {
+            router.push(`/items?categoryId=${encodeURIComponent(id)}`);
+          }}
+          onLoadMore={handleLoadMoreCategories}
+        />
+      );
+    }
+
+    return (
+      <div className="pb-[max(2.5rem,env(safe-area-inset-bottom))]">
+        <MobileCategoryHero
+          category={selectedCategory}
+          onBack={() => router.push("/items")}
+        />
+        <main className="px-4">
+          <ItemsListing
+            activeSectionId={String(categoryId)}
+            sections={listingSections}
+            contentSource="category"
+            viewMode="multiple"
+            hideSectionHeading
+            currency={currency}
+          />
+        </main>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex min-w-0 flex-col gap-6 px-4 py-6 md:px-10 lg:flex-row lg:items-start">
+    <div className="hidden min-w-0 flex-col gap-6 px-4 py-6 md:px-10 lg:flex lg:flex-row lg:items-start">
       {/* SIDEBAR */}
       <aside className="w-full min-w-0 shrink-0 lg:sticky lg:top-24 lg:w-[280px] lg:self-start">
         <CategorySidebar

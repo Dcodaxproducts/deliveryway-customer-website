@@ -2336,10 +2336,10 @@ export function RestaurantCard({
         tabIndex={0}
         onClick={handlePlusClick}
         onKeyDown={handleCardKeyDown}
-        className="group relative cursor-pointer rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition hover:border-primary/40 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary/30"
+        className="group relative cursor-pointer rounded-2xl border border-gray-200 bg-white p-3 shadow-sm transition hover:border-primary/40 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary/30 md:p-4"
       >
-        <div className="flex justify-between gap-4">
-          <div className="flex-1">
+        <div className="flex justify-between gap-3 md:gap-4">
+          <div className="order-2 min-w-0 flex-1 md:order-1">
             <div className="flex items-start justify-between gap-2">
               <h3 className="text-sm font-semibold text-gray-900">
                 {item?.name}
@@ -2400,7 +2400,7 @@ export function RestaurantCard({
             </button>
           </div>
 
-          <div className="relative h-[110px] w-[120px] overflow-hidden rounded-xl">
+          <div className="relative order-1 h-[118px] w-[112px] shrink-0 overflow-hidden rounded-xl md:order-2 md:h-[110px] md:w-[120px]">
             {cardPromotionPricing.hasPromotion ? (
               <div className="absolute left-2 top-2 z-10">
                 <PromotionBadge

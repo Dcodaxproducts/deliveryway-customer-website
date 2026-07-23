@@ -34,6 +34,7 @@ type ItemsListingProps = {
   scrollTarget?: ScrollTarget;
   onActiveCategoryChange?: (categoryId: string) => void;
   currency?: string | null;
+  hideSectionHeading?: boolean;
 };
 
 type CategoryItemsState = {
@@ -79,6 +80,7 @@ export function ItemsListing({
   scrollTarget,
   onActiveCategoryChange,
   currency,
+  hideSectionHeading = false,
 }: ItemsListingProps) {
   const t = useTranslations("items.common");
   const { token, restaurantId: authRestaurantId, user } = useAuth();
@@ -518,7 +520,7 @@ export function ItemsListing({
 
     return (
       <>
-        <div className="grid min-w-0 grid-cols-1 gap-5 md:grid-cols-2">
+        <div className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2 md:gap-5">
           {state.items.map((item) => (
             <RestaurantCard key={item.id} item={item} currency={currency} />
           ))}
@@ -557,7 +559,7 @@ export function ItemsListing({
     }
 
     return (
-      <div className="grid min-w-0 grid-cols-1 gap-5 md:grid-cols-2">
+      <div className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2 md:gap-5">
         {items.map((item) => (
           <RestaurantCard key={item.id} item={item} currency={currency} />
         ))}
@@ -632,17 +634,19 @@ export function ItemsListing({
 
   return (
     <div>
-      <div className="mb-6 mt-1">
-        <h2 className="text-xl font-semibold text-gray-900">
-          {activeCategory?.name || t("menu")}
-        </h2>
+      {!hideSectionHeading ? (
+        <div className="mb-6 mt-1">
+          <h2 className="text-xl font-semibold text-gray-900">
+            {activeCategory?.name || t("menu")}
+          </h2>
 
-        {activeCategory?.description ? (
-          <p className="mt-1 text-sm text-gray-500">
-            {activeCategory.description}
-          </p>
-        ) : null}
-      </div>
+          {activeCategory?.description ? (
+            <p className="mt-1 text-sm text-gray-500">
+              {activeCategory.description}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
 
       {!activeCategoryId ? (
         <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-400">

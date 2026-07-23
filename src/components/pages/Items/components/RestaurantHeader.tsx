@@ -405,7 +405,7 @@ export default function RestaurantHeader() {
             ) : null}
           </div>
 
-          <h1 className="mt-4 text-[30px] font-semibold leading-tight tracking-normal text-gray-950 md:text-[38px]">
+          <h1 className="mt-4 font-serif text-[38px] leading-[0.95] text-gray-950 lg:font-sans lg:text-[38px] lg:font-semibold lg:leading-tight">
             {title}
           </h1>
 
@@ -508,7 +508,11 @@ export default function RestaurantHeader() {
         </div>
 
         {/* RIGHT IMAGE */}
-        <div className="relative h-[220px] w-full overflow-hidden bg-gray-100 md:h-[300px] lg:h-auto">
+        <div
+          className={`relative h-[220px] w-full overflow-hidden bg-gray-100 md:h-[300px] lg:h-auto ${
+            category?.name ? "" : "hidden lg:block"
+          }`}
+        >
           <Image
             src={bannerImage}
             alt={category?.name || restaurant?.name || t("restaurantMenuImageAlt")}
