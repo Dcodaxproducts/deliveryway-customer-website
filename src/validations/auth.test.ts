@@ -15,12 +15,6 @@ const validLogin = {
   password: "secret123",
 };
 
-const validGuestLogin = {
-  firstName: "Ada",
-  lastName: "Lovelace",
-  phone: "+923001234567",
-};
-
 const validSignup = {
   firstName: "Ada",
   lastName: "Lovelace",
@@ -59,13 +53,9 @@ describe("auth validation schemas", () => {
     expect(translatedResult.error?.issues[0]?.message).toBe("E-Mail ist erforderlich");
   });
 
-  it("requires guest login names and phone", () => {
-    const result = guestLoginSchema.safeParse({ firstName: "", lastName: "", phone: "" });
-
-    expect(result.success).toBe(false);
-    expect(result.error?.issues.map((issue) => issue.path.join("."))).toEqual(
-      expect.arrayContaining(["firstName", "lastName", "phone"])
-    );
+  it("allows the optional guest display name used by the guest prompt", () => {
+    expect(guestLoginSchema.safeParse({ name: "" }).success).toBe(true);
+    expect(guestLoginSchema.safeParse({ name: "Ada Lovelace" }).success).toBe(true);
   });
 
   it("accepts a valid signup payload", () => {

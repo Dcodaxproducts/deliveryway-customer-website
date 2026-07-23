@@ -35,7 +35,7 @@ describe("auth service", () => {
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
-      `${API_BASE_URL}/auth/google-login`,
+      `${API_BASE_URL}/v1/auth/google-login`,
       expect.objectContaining({
         method: "POST",
         headers: {
