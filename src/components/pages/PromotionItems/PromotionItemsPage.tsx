@@ -464,16 +464,8 @@ function PromotionItemsPageContent() {
     });
   }, [items, selectedCategory, sortKey]);
 
-  const isLoading =
-    authLoading ||
-    promotionsQuery.isLoading ||
-    promotionalItemsQuery.isLoading;
+  const isLoading = promotionsQuery.isLoading || promotionalItemsQuery.isLoading;
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.replace("/auth/login");
-    }
-  }, [authLoading, router, user]);
 
   useEffect(() => {
     if (!promotionId) {

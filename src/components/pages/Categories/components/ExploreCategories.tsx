@@ -23,7 +23,7 @@ export default function ExploreCategories() {
   const t = useTranslations("categories.explore");
   const router = useRouter();
 
-const { token, user, loading: authLoading } = useAuth();
+  const { token, user } = useAuth();
   const { get } = useItems(token);
   const { joinGroupOrder, searchGroupOrdersByInviteCode } = useGroupOrderApi(token);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -60,11 +60,6 @@ const { token, user, loading: authLoading } = useAuth();
     }
   };
 
-  useEffect(() => {
-  if (!authLoading && !user) {
-    router.push("/auth/login");
-  }
-}, [authLoading, user]);
 
 const isUserAlreadyInOrder = async (code: string) => {
   try {

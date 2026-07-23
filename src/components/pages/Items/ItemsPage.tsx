@@ -114,11 +114,6 @@ function ItemsPageContent() {
     return true;
   };
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push("/auth/login");
-    }
-  }, [authLoading, user, router]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
