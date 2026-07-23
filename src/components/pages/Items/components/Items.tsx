@@ -33,6 +33,7 @@ type ItemsListingProps = {
   viewMode?: MenuViewMode;
   scrollTarget?: ScrollTarget;
   onActiveCategoryChange?: (categoryId: string) => void;
+  onCategoryItemCountChange?: (categoryId: string, count: number) => void;
   currency?: string | null;
   hideSectionHeading?: boolean;
 };
@@ -44,6 +45,7 @@ type CategoryItemsState = {
   loading: boolean;
   loadingMore: boolean;
   loadedOnce: boolean;
+  totalCount: number | null;
 };
 
 const ITEMS_PAGE_LIMIT = 12;
@@ -55,6 +57,7 @@ const createEmptyCategoryState = (): CategoryItemsState => ({
   loading: false,
   loadingMore: false,
   loadedOnce: false,
+  totalCount: null,
 });
 
 const getSortOrder = (value: unknown) => {
@@ -79,6 +82,7 @@ export function ItemsListing({
   viewMode = "multiple",
   scrollTarget,
   onActiveCategoryChange,
+  onCategoryItemCountChange,
   currency,
   hideSectionHeading = false,
 }: ItemsListingProps) {
@@ -169,6 +173,11 @@ export function ItemsListing({
           const nextItems = append
             ? mergeUniqueById(existing.items, fetchedItems)
             : fetchedItems;
+          const parsedTotal = Number(meta?.total);
+          const totalCount =
+            Number.isFinite(parsedTotal) && parsedTotal >= 0
+              ? parsedTotal
+              : nextItems.length;
 
           return {
             ...prev,
@@ -185,6 +194,7 @@ export function ItemsListing({
               loading: false,
               loadingMore: false,
               loadedOnce: true,
+              totalCount,
             },
           };
         });
@@ -231,6 +241,23 @@ export function ItemsListing({
       });
     });
   }, [contentSource, viewMode, activeCategoryId, token, restaurantId, branchId]);
+
+  const activeCategoryState = categoryItemsMap[activeCategoryId];
+
+  useEffect(() => {
+    if (!activeCategoryId || !activeCategoryState?.loadedOnce) return;
+
+    onCategoryItemCountChange?.(
+      activeCategoryId,
+      activeCategoryState.totalCount ?? activeCategoryState.items.length,
+    );
+  }, [
+    activeCategoryId,
+    activeCategoryState?.items.length,
+    activeCategoryState?.loadedOnce,
+    activeCategoryState?.totalCount,
+    onCategoryItemCountChange,
+  ]);
 
   /* ================= ONE PAGE MODE: LOAD EACH DISPLAYED CATEGORY ================= */
 

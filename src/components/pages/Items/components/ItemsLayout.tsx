@@ -14,6 +14,7 @@ import { ItemsListing } from "./Items";
 import {
   MobileCategoryBrowser,
   MobileCategoryHero,
+  MobileCategoryTabs,
 } from "./MobileCategoryNavigation";
 import { CustomerDealsSection } from "@/components/pages/Home/components/CustomerDealsSection";
 import useItems from "@/hooks/useItems";
@@ -95,6 +96,9 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMoreCategories, setHasMoreCategories] = useState(false);
+  const [categoryItemCounts, setCategoryItemCounts] = useState<
+    Record<string, number>
+  >({});
 
   const [contentSource, setContentSource] = useState<ItemsContentSource>("category");
   const [activeOnePageCategoryId, setActiveOnePageCategoryId] = useState("");
@@ -158,6 +162,22 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
     setViewMode("multiple");
     setScrollTarget(null);
   }, [categoryId]);
+
+  const handleCategoryItemCountChange = useCallback(
+    (loadedCategoryId: string, count: number) => {
+      if (loadedCategoryId !== String(categoryId || "")) return;
+
+      setCategoryItemCounts((currentCounts) => {
+        if (currentCounts[loadedCategoryId] === count) return currentCounts;
+
+        return {
+          ...currentCounts,
+          [loadedCategoryId]: count,
+        };
+      });
+    },
+    [categoryId],
+  );
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -460,7 +480,17 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
       <div className="pb-[max(2.5rem,env(safe-area-inset-bottom))]">
         <MobileCategoryHero
           category={selectedCategory}
+          itemCount={categoryItemCounts[String(categoryId)]}
           onBack={() => router.push("/items")}
+        />
+        <MobileCategoryTabs
+          categories={categories}
+          activeCategoryId={String(categoryId)}
+          onCategorySelect={(id) => {
+            if (id === String(categoryId)) return;
+
+            router.push(`/items?categoryId=${encodeURIComponent(id)}`);
+          }}
         />
         <main className="px-4">
           <ItemsListing
@@ -469,6 +499,7 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
             contentSource="category"
             viewMode="multiple"
             hideSectionHeading
+            onCategoryItemCountChange={handleCategoryItemCountChange}
             currency={currency}
           />
         </main>

@@ -18,18 +18,14 @@ type MobileCategoryBrowserProps = {
 
 type MobileCategoryHeroProps = {
   category?: ItemsCategory | null;
+  itemCount?: number | null;
   onBack: () => void;
 };
 
-const getCategoryItemCount = (category?: ItemsCategory | null) => {
-  const count = Number(
-    category?._count?.items ??
-      category?.itemsCount ??
-      category?.itemCount ??
-      category?.items?.length,
-  );
-
-  return Number.isFinite(count) && count >= 0 ? count : null;
+type MobileCategoryTabsProps = {
+  categories: ItemsCategory[];
+  activeCategoryId: string;
+  onCategorySelect: (categoryId: string) => void;
 };
 
 export function MobileCategoryBrowser({
@@ -120,10 +116,10 @@ export function MobileCategoryBrowser({
 
 export function MobileCategoryHero({
   category,
+  itemCount,
   onBack,
 }: MobileCategoryHeroProps) {
   const t = useTranslations("items.common");
-  const itemCount = getCategoryItemCount(category);
 
   return (
     <section className="px-4 pb-5 pt-5">
@@ -155,12 +151,52 @@ export function MobileCategoryHero({
         />
         <span className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
 
-        {itemCount !== null ? (
+        {typeof itemCount === "number" ? (
           <span className="absolute bottom-3 left-3 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-gray-900 shadow-sm backdrop-blur">
             {t("itemCount", { count: itemCount })}
           </span>
         ) : null}
       </div>
     </section>
+  );
+}
+
+export function MobileCategoryTabs({
+  categories,
+  activeCategoryId,
+  onCategorySelect,
+}: MobileCategoryTabsProps) {
+  const t = useTranslations("items.common");
+
+  return (
+    <nav
+      aria-label={t("browseCategories")}
+      className="overflow-x-auto px-4 pb-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+    >
+      <div className="flex w-max min-w-full gap-2">
+        {categories.map((category) => {
+          const id = String(category.id || "");
+          const isActive = id === activeCategoryId;
+
+          if (!id) return null;
+
+          return (
+            <button
+              key={id}
+              type="button"
+              aria-pressed={isActive}
+              onClick={() => onCategorySelect(id)}
+              className={
+                isActive
+                  ? "h-10 rounded-xl bg-primary px-5 text-sm font-semibold text-white shadow-sm"
+                  : "h-10 rounded-xl border border-gray-200 bg-white px-5 text-sm font-medium text-gray-500 transition hover:border-primary/30 hover:text-primary"
+              }
+            >
+              {category.name || t("category")}
+            </button>
+          );
+        })}
+      </div>
+    </nav>
   );
 }
