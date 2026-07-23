@@ -8,13 +8,14 @@ import { useForm } from "react-hook-form"
 import { FcGoogle } from "react-icons/fc"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
-import { Eye, EyeOff } from "lucide-react"
+import { ArrowRight, Eye, EyeOff, Heart, Sparkles, UserRound } from "lucide-react"
 
 import { MUTED_TEXT_CLASS } from "@/components/common/common-classes"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
+  DialogClose,
   DialogDescription,
   DialogFooter,
   DialogHeader,
@@ -103,7 +104,6 @@ const useAuthValidationMessages = (): AuthValidationMessages => {
       firstNameRequired: t("firstNameRequired"),
       lastNameRequired: t("lastNameRequired"),
       phoneRequired: t("phoneRequired"),
-      guestNameRequired: t("guestNameRequired"),
       confirmPasswordRequired: t("confirmPasswordRequired"),
       acceptTermsRequired: t("acceptTermsRequired"),
       passwordsDoNotMatch: t("passwordsDoNotMatch"),
@@ -127,10 +127,10 @@ export function LoginForm() {
   const validationMessages = useAuthValidationMessages()
   const translatedLoginSchema = useMemo(
     () => createLoginSchema(validationMessages),
-    [validationMessages]
+    []
   )
   const translatedGuestLoginSchema = useMemo(
-    () => createGuestLoginSchema(validationMessages),
+    () => createGuestLoginSchema(),
     [validationMessages]
   )
 
@@ -197,7 +197,7 @@ export function LoginForm() {
       setIsLoading(true)
 
       const data = await guestLoginCustomer({
-        ...splitGuestName(values.name),
+        ...splitGuestName(values.name ?? ""),
         restaurantId,
       })
 
@@ -361,41 +361,79 @@ export function LoginForm() {
       </div>
 
       <Dialog open={isGuestDialogOpen} onOpenChange={setIsGuestDialogOpen}>
-        <DialogContent className="sm:max-w-[430px] rounded-2xl border-0 p-7 shadow-2xl">
-          <DialogHeader className="space-y-3 text-center sm:text-center">
-            <DialogTitle className="text-2xl font-bold text-primary">
-              {t("guestNamePromptTitle")}
-            </DialogTitle>
-            <DialogDescription className="text-base leading-6 text-gray-500">
-              {t("guestNamePromptDescription")}
-            </DialogDescription>
+        <DialogContent
+          showCloseButton={false}
+          className="max-h-[calc(100vh-32px)] overflow-y-auto border-0 bg-[#fffdfb] px-8 py-10 text-center shadow-[0_24px_80px_rgba(70,20,20,0.18)] sm:max-w-[760px] sm:rounded-[32px] sm:px-[84px] sm:py-[72px]"
+        >
+          <DialogClose className="absolute right-6 top-6 flex h-12 w-12 items-center justify-center rounded-full border border-[#e5e5e5] bg-white text-[#333] transition hover:bg-[#fff7f7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b3121b]/30 sm:right-[34px] sm:top-[34px] sm:h-[58px] sm:w-[58px]">
+            <span className="text-3xl font-light leading-none" aria-hidden="true">×</span>
+            <span className="sr-only">{t("backToLogin")}</span>
+          </DialogClose>
+
+          <DialogHeader className="items-center space-y-6 text-center">
+            <div className="relative flex h-24 w-24 items-center justify-center rounded-full border border-[#f7d8c8] bg-[#fff1e7] shadow-[0_14px_35px_rgba(190,20,30,0.14)] sm:h-28 sm:w-28">
+              <Sparkles className="absolute -left-10 top-7 h-6 w-6 text-[#f1b9a4]" aria-hidden="true" />
+              <UserRound className="h-12 w-12 text-[#b3121b]" strokeWidth={1.8} aria-hidden="true" />
+              <Sparkles className="absolute -right-9 bottom-8 h-5 w-5 text-[#f1b9a4]" aria-hidden="true" />
+            </div>
+
+            <div className="space-y-5">
+              <DialogTitle className="font-serif text-[40px] font-semibold leading-tight text-[#050505] sm:text-5xl">
+                Welcome, <span className="text-[#b3121b]">Guest</span>
+              </DialogTitle>
+              <div className="flex items-center justify-center gap-3" aria-hidden="true">
+                <span className="h-px w-14 bg-[#ef9c9c]" />
+                <span className="text-xl text-[#b3121b]">◆</span>
+                <span className="h-px w-14 bg-[#ef9c9c]" />
+              </div>
+              <DialogDescription className="mx-auto max-w-[470px] text-[19px] leading-relaxed text-[#6f7480] sm:text-[21px]">
+                Share your name (optional) and we’ll personalize your experience.
+              </DialogDescription>
+            </div>
           </DialogHeader>
 
-          <form onSubmit={guestForm.handleSubmit(onGuestSubmit)} className="space-y-5" noValidate>
-            <Input
-              id="guestName"
-              autoFocus
-              placeholder={t("guestNamePlaceholder")}
-              {...guestForm.register("name")}
-            />
-            <DialogFooter className="gap-3 sm:flex-col">
-              <Button
-                type="submit"
-                disabled={isLoading || domainLoading}
-                className="h-[50px] w-full text-lg font-semibold bg-primary text-white"
-              >
-                {isLoading ? t("starting") : t("continueAsGuest")}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                disabled={isLoading}
-                onClick={() => setIsGuestDialogOpen(false)}
-                className="h-[46px] w-full"
-              >
-                {t("backToLogin")}
-              </Button>
-            </DialogFooter>
+          <form onSubmit={guestForm.handleSubmit(onGuestSubmit)} className="mt-10 space-y-7" noValidate>
+            <div className="relative">
+              <UserRound className="pointer-events-none absolute left-7 top-1/2 h-8 w-8 -translate-y-1/2 text-[#9ca3af]" strokeWidth={1.8} aria-hidden="true" />
+              <Input
+                id="guestName"
+                autoFocus
+                placeholder="Enter your name (optional)"
+                className="h-[72px] rounded-2xl border-2 border-[#fac7c7] bg-white pl-[74px] pr-8 text-xl text-[#222] shadow-[0_8px_22px_rgba(190,20,30,0.08)] placeholder:text-[#8b9099] focus-visible:ring-[#b3121b]/25 sm:h-[86px] sm:text-[22px]"
+                {...guestForm.register("name")}
+              />
+            </div>
+
+            <Button
+              type="submit"
+              disabled={isLoading || domainLoading}
+              className="h-[70px] w-full rounded-2xl bg-gradient-to-b from-[#d01827] to-[#a90f19] text-[22px] font-bold text-white shadow-[0_16px_30px_rgba(190,20,30,0.28)] hover:from-[#df1a2a] hover:to-[#a90f19] sm:h-[78px] sm:text-2xl"
+            >
+              <Sparkles className="mr-3 h-6 w-6 text-[#fff0bd]" aria-hidden="true" />
+              {isLoading ? t("starting") : "Continue as guest"}
+            </Button>
+
+            <div className="flex items-center justify-center gap-5 text-lg text-[#777]">
+              <span className="h-px w-20 bg-[#f4b8b8]" />
+              <span>or</span>
+              <span className="h-px w-20 bg-[#f4b8b8]" />
+            </div>
+
+            <button
+              type="button"
+              disabled={isLoading || domainLoading}
+              onClick={() => void onGuestSubmit({ name: "" })}
+              className="flex h-28 w-full flex-col items-center justify-center rounded-[14px] border border-[#ef9c9c] bg-transparent text-[#b3121b] transition hover:bg-[#fff7f7] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <span className="flex items-center text-[22px] font-bold">
+                <ArrowRight className="mr-3 h-6 w-6" aria-hidden="true" />
+                Skip for now
+              </span>
+              <span className="mt-2 flex items-center text-base text-[#777d89]">
+                You can always add your name later
+                <Heart className="ml-1 h-4 w-4 text-[#ef9c9c]" aria-hidden="true" />
+              </span>
+            </button>
           </form>
         </DialogContent>
       </Dialog>

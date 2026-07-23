@@ -38,9 +38,9 @@ export const createLoginSchema = (messages: AuthValidationMessages) =>
     password: requiredString(messages.passwordRequired),
   });
 
-export const createGuestLoginSchema = (messages: AuthValidationMessages) =>
+export const createGuestLoginSchema = () =>
   z.object({
-    name: requiredString(messages.guestNameRequired ?? messages.firstNameRequired),
+    name: z.string().trim().optional(),
   });
 
 export const createSignupSchema = (messages: AuthValidationMessages) =>
@@ -76,7 +76,7 @@ export const createResetPasswordSchema = (messages: AuthValidationMessages) =>
 ;
 
 export const loginSchema = createLoginSchema(defaultEnglishValidationMessages);
-export const guestLoginSchema = createGuestLoginSchema(defaultEnglishValidationMessages);
+export const guestLoginSchema = createGuestLoginSchema();
 export const signupSchema = createSignupSchema(defaultEnglishValidationMessages);
 export const forgotPasswordSchema = createForgotPasswordSchema(defaultEnglishValidationMessages);
 export const resetPasswordSchema = createResetPasswordSchema(defaultEnglishValidationMessages);
