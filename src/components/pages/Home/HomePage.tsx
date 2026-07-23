@@ -141,8 +141,13 @@ const mergeHomeBranch = (
 
 const HomePage = () => {
   const t = useTranslations("home.hero");
-  const { user, token, restaurantId: authRestaurantId } = useAuth();
-  const { context: domainContext } = useDomainContext();
+  const {
+    user,
+    token,
+    restaurantId: authRestaurantId,
+    loading: authLoading,
+  } = useAuth();
+  const { context: domainContext, loading: domainLoading } = useDomainContext();
   const { locale } = useAppLocale();
   const { branding: fallbackBranding } = useBranding();
 
@@ -171,6 +176,14 @@ const HomePage = () => {
   );
   const homeResponse = homeQuery.data;
   const homeData = homeResponse ? homeResponse.data : undefined;
+  const isRestaurantContentLoading =
+    authLoading ||
+    domainLoading ||
+    (hasRestaurantContext &&
+      Boolean(branchId) &&
+      homeQuery.isLoading &&
+      !homeData);
+
   const branding = homeData?.branding ?? fallbackBranding ?? DEFAULT_BRANDING;
   const resolvedBranch = useMemo(
     () => mergeHomeBranch(homeData?.branch, user?.branch),
@@ -190,6 +203,23 @@ const HomePage = () => {
     configCurrency: homeData?.config?.currency,
     restaurant: homeData?.restaurant,
   });
+
+  if (isRestaurantContentLoading) {
+    return (
+      <main
+        aria-busy="true"
+        aria-label="Loading restaurant"
+        className="mx-auto min-h-screen max-w-[1440px] animate-pulse px-5 py-8 lg:px-8"
+      >
+        <div className="h-[320px] rounded-[28px] bg-gray-100 md:h-[520px]" />
+        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }, (_, index) => (
+            <div key={index} className="h-36 rounded-2xl bg-gray-100" />
+          ))}
+        </div>
+      </main>
+    );
+  }
 
   return (
     <div>

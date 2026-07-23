@@ -29,6 +29,7 @@ import { BrandLogo } from "@/components/common/BrandLogo";
 import { CouponPerkBanner } from "@/components/layout/navbar/CouponPerkBanner";
 import { LanguageSelector } from "@/components/layout/navbar/LanguageSelector";
 import { useCustomerCoupons } from "@/hooks/useCustomerCoupons";
+import { useDomainContext } from "@/hooks/useDomainContext";
 import { useHome } from "@/hooks/useHome";
 import { CART_CHANGED_EVENT, type CartChangedDetail } from "@/lib/cart-events";
 import {
@@ -130,13 +131,15 @@ const toCartQuantity = (value: unknown) => {
 export const Navbar = () => {
   const { user, logout } = useAuthContext();
   const { token, loading: authLoading, restaurantId } = useAuth();
+  const { context: domainContext, loading: domainLoading } = useDomainContext();
   const { get } = useMenu(token);
-  const homeRestaurantId = resolveHomeRestaurantId(user, restaurantId);
-  const branchId = resolveHomeBranchId(user);
+  const homeRestaurantId =
+    resolveHomeRestaurantId(user, restaurantId) || domainContext?.restaurantId || "";
+  const branchId = resolveHomeBranchId(user) || domainContext?.branchId || "";
   const homeQuery = useHome(
     homeRestaurantId,
     branchId,
-    Boolean(!authLoading && homeRestaurantId && branchId),
+    Boolean(!authLoading && !domainLoading && homeRestaurantId && branchId),
     {
       staleTime: 0,
       refetchInterval: 15_000,
@@ -159,6 +162,12 @@ export const Navbar = () => {
     user?.branch,
   );
   const restaurantLogoUrl = homeQuery.data?.data.restaurant?.logoUrl ?? null;
+  const isRestaurantBrandingLoading =
+    authLoading ||
+    domainLoading ||
+    (Boolean(homeRestaurantId && branchId) &&
+      homeQuery.isLoading &&
+      !homeQuery.data);
   const restaurantName =
     homeQuery.data?.data.restaurant?.name?.trim() ||
     homeQuery.data?.data.branding.restaurantName?.trim() ||
@@ -433,12 +442,19 @@ export const Navbar = () => {
             className="flex shrink-0 items-center"
           >
             <span className="relative h-[42px] w-[58px] shrink-0 overflow-hidden rounded-lg bg-white">
-              <BrandLogo
-                alt={`${restaurantName} logo`}
-                fill
-                restaurantLogoUrl={restaurantLogoUrl}
-                className="object-contain"
-              />
+              {isRestaurantBrandingLoading ? (
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-0 animate-pulse rounded-lg bg-gray-200"
+                />
+              ) : (
+                <BrandLogo
+                  alt={`${restaurantName} logo`}
+                  fill
+                  restaurantLogoUrl={restaurantLogoUrl}
+                  className="object-contain"
+                />
+              )}
             </span>
           </Link>
 

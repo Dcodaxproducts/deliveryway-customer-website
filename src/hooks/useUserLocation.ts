@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { safeGetLocalStorageItem, safeRemoveLocalStorageItem, safeSetLocalStorageItem } from "@/lib/browser-storage";
+import { isReliableGeolocationAccuracy } from "@/lib/geolocation";
 import { reverseGeocode } from "@/services/geocoding";
 
 export type UserCoordinates = {
@@ -17,7 +18,6 @@ type StoredUserLocation = UserCoordinates & {
 export type LocationPermissionState = "idle" | "requesting" | "granted" | "denied" | "unsupported";
 
 const USER_LOCATION_STORAGE_KEY = "deliveryway:last-user-location";
-const MAX_RELIABLE_ACCURACY_METERS = 50000;
 
 const isBrowser = () => typeof window !== "undefined";
 
@@ -110,10 +110,7 @@ export const useUserLocation = () => {
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        if (
-          typeof position.coords.accuracy === "number" &&
-          position.coords.accuracy > MAX_RELIABLE_ACCURACY_METERS
-        ) {
+        if (!isReliableGeolocationAccuracy(position.coords.accuracy)) {
           setPermissionState("idle");
           setErrorMessage(
             "Your browser returned an approximate location. Please search your address or pick it on the map."

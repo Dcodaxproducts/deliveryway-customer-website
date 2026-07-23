@@ -9,7 +9,9 @@ import { useHorizontalDragScroll } from "@/components/pages/Checkout/hooks/use-h
 import { useCheckout } from "@/hooks/useCheckout";
 import { useAuth } from "@/hooks/useAuth";
 import { formatDisplayAddress } from "@/lib/address-display";
+import { isReliableGeolocationAccuracy } from "@/lib/geolocation";
 import { parseReverseGeocodeAddress, reverseGeocode } from "@/services/geocoding";
+import { toast } from "sonner";
 import {
   fetchAddresses as fetchProfileAddresses,
   type AddressRecord,
@@ -106,6 +108,11 @@ export function DeliveryAddressSection({
         });
       });
 
+      if (!isReliableGeolocationAccuracy(position.coords.accuracy)) {
+        toast.error(addressT("unableDetectLocation"));
+        return;
+      }
+
       const lat = position.coords.latitude.toString();
       const lng = position.coords.longitude.toString();
       const geocode = await reverseGeocode(position.coords.latitude, position.coords.longitude);
@@ -117,11 +124,11 @@ export function DeliveryAddressSection({
       setGuestDeliveryAddress({
         ...guestDeliveryAddress,
         street: parsedAddress?.street || guestDeliveryAddress.street,
-        houseNumber: parsedAddress?.houseNumber || guestDeliveryAddress.houseNumber,
+        houseNumber: parsedAddress?.houseNumber || "",
         area:
           parsedAddress?.houseNumber ||
           parsedAddress?.area ||
-          guestDeliveryAddress.area,
+          "",
         city: parsedAddress?.city || guestDeliveryAddress.city,
         state: parsedAddress?.state || guestDeliveryAddress.state,
         postalCode: parsedAddress?.postalCode || guestDeliveryAddress.postalCode,

@@ -5,6 +5,7 @@ import { useEffect, useMemo, type ReactNode } from "react";
 import { DEFAULT_BRANDING } from "@/config/default-branding";
 import { useAuthContext } from "@/hooks/useAuth";
 import { BrandingContext } from "@/hooks/useBranding";
+import { useDomainContext } from "@/hooks/useDomainContext";
 import { useHome } from "@/hooks/useHome";
 import { getBrandingCssVariables } from "@/lib/branding";
 import { resolveHttpsImageUrl } from "@/lib/image-fallback";
@@ -21,9 +22,14 @@ type BrandingProviderProps = {
 
 export const BrandingProvider = ({ children }: BrandingProviderProps) => {
   const { user, loading } = useAuthContext();
-  const restaurantId = getUserRestaurantId(user);
-  const branchId = getUserBranchId(user);
-  const homeQuery = useHome(restaurantId, branchId, !loading);
+  const { context: domainContext, loading: domainLoading } = useDomainContext();
+  const restaurantId = getUserRestaurantId(user) ?? domainContext?.restaurantId;
+  const branchId = getUserBranchId(user) ?? domainContext?.branchId;
+  const homeQuery = useHome(
+    restaurantId,
+    branchId,
+    !loading && !domainLoading && Boolean(restaurantId && branchId)
+  );
   const branding = homeQuery.data?.data.branding ?? DEFAULT_BRANDING;
 
   useEffect(() => {
@@ -59,9 +65,9 @@ export const BrandingProvider = ({ children }: BrandingProviderProps) => {
   const value = useMemo(
     () => ({
       branding,
-      isLoading: homeQuery.isLoading,
+      isLoading: loading || domainLoading || homeQuery.isLoading,
     }),
-    [branding, homeQuery.isLoading]
+    [branding, domainLoading, homeQuery.isLoading, loading]
   );
 
   return <BrandingContext.Provider value={value}>{children}</BrandingContext.Provider>;

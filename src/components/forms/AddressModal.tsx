@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { INPUT_BASE_CLASS, LABEL_TEXT_CLASS } from "@/components/common/common-classes";
 import { Button } from "@/components/ui/button";
+import { isReliableGeolocationAccuracy } from "@/lib/geolocation";
 import { toast } from "sonner";
 import { useCheckout } from "@/hooks/useCheckout";
 import { parseReverseGeocodeAddress, reverseGeocode } from "@/services/geocoding";
@@ -146,7 +147,6 @@ export function AddressModal({
       setAddressValue("lat", String(coordinates.lat));
       setAddressValue("lng", String(coordinates.lng));
 
-      const currentValues = getValues();
       const street = details?.street?.trim() || label?.trim() || "";
       const houseNumber = details?.houseNumber?.trim() || "";
       const postalCode = details?.postalCode?.trim() || "";
@@ -158,12 +158,8 @@ export function AddressModal({
         setAddressValue("street", street);
       }
 
-      if (houseNumber) {
-        setAddressValue("houseNumber", houseNumber);
-        setAddressValue("area", houseNumber);
-      } else if (!currentValues.houseNumber && currentValues.area) {
-        setAddressValue("houseNumber", currentValues.area);
-      }
+      setAddressValue("houseNumber", houseNumber);
+      setAddressValue("area", houseNumber);
 
       if (postalCode) {
         setAddressValue("postalCode", postalCode);
@@ -183,7 +179,7 @@ export function AddressModal({
 
       setLocationPickerOpen(false);
     },
-    [getValues, setAddressValue]
+    [setAddressValue]
   );
 
   const handleGetCurrentLocation = async () => {
@@ -202,6 +198,11 @@ export function AddressModal({
           maximumAge: 0,
         });
       });
+
+      if (!isReliableGeolocationAccuracy(position.coords.accuracy)) {
+        toast.error(t("unableDetectLocation"));
+        return;
+      }
 
       const lat = position.coords.latitude.toString();
       const lng = position.coords.longitude.toString();
@@ -227,12 +228,9 @@ export function AddressModal({
       setAddressValue("street", parsedAddress.street || currentValues.street || "");
       setAddressValue(
         "area",
-        parsedAddress.houseNumber || parsedAddress.area || currentValues.area || ""
+        parsedAddress.houseNumber || parsedAddress.area || ""
       );
-      setAddressValue(
-        "houseNumber",
-        parsedAddress.houseNumber || currentValues.houseNumber || currentValues.area || ""
-      );
+      setAddressValue("houseNumber", parsedAddress.houseNumber || "");
       setAddressValue(
         "city",
         parsedAddress.city || currentValues.city || ""
