@@ -24,6 +24,7 @@ import { useRef } from "react";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppLocale } from "@/hooks/useAppLocale";
+import { useDomainContext } from "@/hooks/useDomainContext";
 import { useHome } from "@/hooks/useHome";
 import {
   useHomeCategories,
@@ -329,9 +330,14 @@ export function FoodCategorySection() {
   const tPromotions = useTranslations("home.promotions");
   const router = useRouter();
   const { user, restaurantId: authRestaurantId } = useAuth();
+  const { context: domainContext } = useDomainContext();
   const { locale } = useAppLocale();
-  const restaurantId = resolveHomeRestaurantId(user, authRestaurantId);
-  const branchId = resolveHomeBranchId(user);
+  const restaurantId =
+    resolveHomeRestaurantId(user, authRestaurantId) ||
+    domainContext?.restaurantId ||
+    "";
+  const branchId =
+    resolveHomeBranchId(user) || domainContext?.branchId || "";
   const hasRestaurantContext = Boolean(restaurantId);
   const categoriesQuery = useHomeCategories(
     restaurantId,
