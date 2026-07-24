@@ -316,7 +316,7 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
   };
 
   useEffect(() => {
-    if (!token || !restaurantId) return;
+    if (!restaurantId) return;
 
     fetchCategories({
       page: 1,
