@@ -142,13 +142,6 @@ export const Navbar = () => {
     homeRestaurantId,
     branchId,
     Boolean(!authLoading && !domainLoading && homeRestaurantId),
-    {
-      staleTime: 0,
-      refetchInterval: 15_000,
-      refetchOnMount: "always",
-      refetchOnReconnect: "always",
-      refetchOnWindowFocus: "always",
-    },
   );
   const couponsQuery = useCustomerCoupons({
     restaurantId: homeRestaurantId,
