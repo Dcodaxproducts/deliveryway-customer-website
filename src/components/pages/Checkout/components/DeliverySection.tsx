@@ -21,6 +21,7 @@ import {
 } from '@/components/pages/Checkout/utils/pickup-schedule';
 import type { BranchRecord } from '@/types/branch-selector';
 import type { CheckoutAddressValues } from '@/validations/checkout';
+import type { CheckoutPaymentMethod } from '@/components/pages/Checkout/utils/payment-methods';
 
 type DeliverySectionProps = {
   selectedAddress: string | null;
@@ -31,6 +32,7 @@ type DeliverySectionProps = {
   setCustomer: (value: { name: string; phone: string; email: string }) => void;
   paymentMethod: string;
   setPaymentMethod: (value: string) => void;
+  allowedPaymentMethods?: CheckoutPaymentMethod[];
   scheduledDeliveryValue: string;
   setScheduledDeliveryValue: (value: string) => void;
   deliveryScheduleMode: "now" | "schedule";

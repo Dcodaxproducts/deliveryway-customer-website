@@ -903,6 +903,7 @@
     "notesTitle": "Any Note for us?",
     "notesPlaceholder": "Type your note here",
     "selectPaymentMethod": "Select Payment Method",
+    "paymentMethodsUnavailable": "No payment method is currently available for this restaurant.",
     "cash": "Cash",
     "cashOnDelivery": "Cash on delivery",
     "cardOnDelivery": "Card on delivery",

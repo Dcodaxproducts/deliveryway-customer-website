@@ -74,6 +74,10 @@ import {
   hasGuestDeliveryAddress,
   trimGuestDeliveryAddress,
 } from "@/components/pages/Checkout/utils/guest-delivery-address";
+import {
+  getAvailableCheckoutPaymentMethods,
+  type CheckoutPaymentMethod,
+} from "@/components/pages/Checkout/utils/payment-methods";
 
 const emptyGuestDeliveryAddress: CheckoutAddressValues = {
   street: "",
@@ -686,12 +690,36 @@ function CheckoutPageContent() {
     "now" | "schedule"
   >("now");
   const checkoutPaymentMethod = paymentMethod;
+  const allowedPaymentMethods = useMemo(
+    () => checkoutBranch?.settings?.allowedPaymentMethods ?? [],
+    [checkoutBranch?.settings?.allowedPaymentMethods],
+  );
+  const availablePaymentMethods = useMemo(
+    () =>
+      getAvailableCheckoutPaymentMethods({
+        allowedPaymentMethods,
+        allowCardOnDelivery: activeTab === "delivery",
+        allowCashOnDelivery: true,
+        isGuest,
+      }),
+    [activeTab, allowedPaymentMethods, isGuest],
+  );
   const deliveryAllowed =
     !checkoutBranch?.settings?.allowedOrderTypes?.length ||
     branchSupportsDelivery(checkoutBranch);
   const pickupAllowed =
     !checkoutBranch?.settings?.allowedOrderTypes?.length ||
     branchSupportsPickup(checkoutBranch);
+
+  useEffect(() => {
+    if (
+      !availablePaymentMethods.includes(
+        paymentMethod as CheckoutPaymentMethod,
+      )
+    ) {
+      setPaymentMethod(availablePaymentMethods[0] ?? "");
+    }
+  }, [availablePaymentMethods, paymentMethod]);
 
   useEffect(() => {
     if (!user) return;
@@ -1241,6 +1269,11 @@ function CheckoutPageContent() {
         return;
       }
 
+      if (!checkoutPaymentMethod) {
+        toast.error(t("paymentMethodsUnavailable"));
+        return;
+      }
+
       if (isGuest && !hasGuestContact(customer)) {
         toast.error(t("toast.enterGuestContact"));
         return;
@@ -1556,6 +1589,7 @@ function CheckoutPageContent() {
               setGuestDeliveryAddress={setGuestDeliveryAddress}
               paymentMethod={checkoutPaymentMethod}
               setPaymentMethod={setPaymentMethod}
+              allowedPaymentMethods={allowedPaymentMethods}
               scheduledDeliveryValue={scheduledDeliveryValue}
               setScheduledDeliveryValue={setScheduledDeliveryValue}
               deliveryScheduleMode={deliveryScheduleMode}
@@ -1578,6 +1612,7 @@ function CheckoutPageContent() {
               privacyPolicyLoading={privacyPolicyLoading}
               paymentMethod={checkoutPaymentMethod}
               setPaymentMethod={setPaymentMethod}
+              allowedPaymentMethods={allowedPaymentMethods}
               pickupDate={pickupDate}
               setPickupDate={setPickupDate}
               pickupTime={pickupTime}

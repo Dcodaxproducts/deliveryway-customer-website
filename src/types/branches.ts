@@ -1,4 +1,10 @@
 export type BranchOrderType = "DELIVERY" | "TAKEAWAY" | string;
+export type BranchPaymentMethod =
+  | "COD"
+  | "CARD_ON_DELIVERY"
+  | "PAYPAL"
+  | "STRIPE"
+  | "WALLET";
 
 export type BranchTemporaryClosure = {
   isClosed?: boolean;
@@ -33,6 +39,7 @@ export type BranchAddress = {
 
 export type BranchSettings = {
   allowedOrderTypes?: BranchOrderType[];
+  allowedPaymentMethods?: BranchPaymentMethod[];
   deliveryConfig?: unknown;
   scheduleTimings?: BranchScheduleTimings | null;
   temporaryClosure?: BranchTemporaryClosure | null;

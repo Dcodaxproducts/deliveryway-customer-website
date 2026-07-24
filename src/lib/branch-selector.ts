@@ -11,6 +11,7 @@ import {
 import type { AuthContextValue, AuthSession, AuthUser } from "@/types/auth";
 import type {
   BranchOrderType,
+  BranchPaymentMethod,
   BranchScheduleTimings,
   BranchTemporaryClosure,
   NearbyBranch,
@@ -150,6 +151,15 @@ const normalizeBranchSettings = (
           .map((orderType) => getString(orderType))
           .filter((orderType): orderType is BranchOrderType =>
             Boolean(orderType),
+          )
+      : undefined,
+    allowedPaymentMethods: Array.isArray(value.allowedPaymentMethods)
+      ? value.allowedPaymentMethods
+          .map((method) => getString(method))
+          .filter((method): method is BranchPaymentMethod =>
+            ["COD", "CARD_ON_DELIVERY", "PAYPAL", "STRIPE", "WALLET"].includes(
+              method ?? "",
+            ),
           )
       : undefined,
     deliveryConfig: value.deliveryConfig,

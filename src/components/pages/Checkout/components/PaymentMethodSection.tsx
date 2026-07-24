@@ -1,4 +1,8 @@
 import { useTranslations } from "next-intl";
+import {
+  getAvailableCheckoutPaymentMethods,
+  type CheckoutPaymentMethod,
+} from "@/components/pages/Checkout/utils/payment-methods";
 
 interface Props {
   paymentMethod: string;
@@ -6,6 +10,8 @@ interface Props {
   allowCashOnDelivery?: boolean;
   allowCardOnDelivery?: boolean;
   cashLabel?: string;
+  allowedPaymentMethods?: CheckoutPaymentMethod[];
+  isGuest?: boolean;
 }
 
 const PaymentMethodSection = ({
@@ -14,15 +20,25 @@ const PaymentMethodSection = ({
   allowCashOnDelivery = true,
   allowCardOnDelivery = false,
   cashLabel,
+  allowedPaymentMethods,
+  isGuest = false,
 }: Props) => {
   const t = useTranslations("checkout");
+  const availableMethods = getAvailableCheckoutPaymentMethods({
+    allowedPaymentMethods,
+    allowCardOnDelivery,
+    allowCashOnDelivery,
+    isGuest,
+  });
   const options = [
     { key: "COD", label: cashLabel || t("cashOnDelivery") },
-    ...(allowCardOnDelivery ? [{ key: "CARD_ON_DELIVERY", label: t("cardOnDelivery") }] : []),
+    { key: "CARD_ON_DELIVERY", label: t("cardOnDelivery") },
     { key: "PAYPAL", label: t("paypal") },
     { key: "STRIPE", label: t("onlineCard") },
     { key: "WALLET", label: t("wallet") },
-  ].filter((option) => allowCashOnDelivery || option.key !== "COD");
+  ].filter((option) =>
+    availableMethods.includes(option.key as CheckoutPaymentMethod),
+  );
 
   return (
     <section className="space-y-[25px]">
@@ -31,11 +47,17 @@ const PaymentMethodSection = ({
       </h2>
 
       <div className="space-y-3">
+        {options.length === 0 ? (
+          <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-700">
+            {t("paymentMethodsUnavailable")}
+          </p>
+        ) : null}
         {options.map((opt) => (
-          <div
+          <button
+            type="button"
             key={opt.key}
             onClick={() => setPaymentMethod(opt.key)}
-            className="flex items-center justify-between p-5 bg-[#F9F9F9] rounded-[12px] border border-gray-100 cursor-pointer"
+            className="flex w-full items-center justify-between rounded-[12px] border border-gray-100 bg-[#F9F9F9] p-5 text-left"
           >
             <div className="flex items-center gap-4">
               <div
@@ -54,7 +76,7 @@ const PaymentMethodSection = ({
                 {opt.label}
               </span>
             </div>
-          </div>
+          </button>
         ))}
       </div>
 

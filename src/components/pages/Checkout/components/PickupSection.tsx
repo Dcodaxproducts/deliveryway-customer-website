@@ -4,6 +4,7 @@ import NotesSection from "@/components/pages/Checkout/components/NotesSection"
 import { PaymentMethodSection } from "@/components/pages/Checkout/components/PaymentMethodSection"
 import type { BranchRecord } from "@/types/branch-selector";
 import { useTranslations } from "next-intl";
+import type { CheckoutPaymentMethod } from "@/components/pages/Checkout/utils/payment-methods";
 
 type PickupSectionProps = {
   selectedAddress: string | null;
@@ -23,6 +24,7 @@ type PickupSectionProps = {
   privacyPolicyLoading?: boolean;
   paymentMethod: string;
   setPaymentMethod: (value: string) => void;
+  allowedPaymentMethods?: CheckoutPaymentMethod[];
   pickupDate: Date | null;
   setPickupDate: (value: Date | null) => void;
   pickupTime: string | null;
