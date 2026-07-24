@@ -1,6 +1,7 @@
 "use client";
 
 import { Loader2, MapPin, MousePointer2, Navigation, Search } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
@@ -124,6 +125,7 @@ export function AddressLocationPicker({
   showCurrentLocationAction = true,
   showMapToggle = true,
 }: AddressLocationPickerProps) {
+  const t = useTranslations("locationPicker");
   const { googleMaps, status, errorMessage, isReady } = useGoogleMaps();
   const [query, setQuery] = useState(locationLabel ?? "");
   const [predictions, setPredictions] = useState<GooglePlacePrediction[]>([]);
@@ -137,7 +139,7 @@ export function AddressLocationPicker({
   const markerRef = useRef<GoogleMarkerInstance | null>(null);
 
   const trimmedQuery = query.trim();
-  const selectedLabel = locationLabel || (coordinates ? "Selected map location" : "");
+  const selectedLabel = locationLabel || (coordinates ? t("selectedMapLocation") : "");
   const center = useMemo(() => coordinates ?? DEFAULT_MAP_CENTER, [coordinates]);
   const isMapOpen = mapOpen ?? internalMapOpen;
   const setMapOpenState = useCallback(
@@ -229,7 +231,7 @@ export function AddressLocationPicker({
   const reverseGeocode = useCallback(
     (nextCoordinates: GoogleLatLngLiteral) => {
       if (!googleMaps) {
-        onSelectLocation(nextCoordinates, "Selected map location");
+        onSelectLocation(nextCoordinates, t("selectedMapLocation"));
         return;
       }
 
@@ -240,7 +242,7 @@ export function AddressLocationPicker({
         const label =
           geocoderStatus === googleMaps.maps.GeocoderStatus.OK && firstResult?.formatted_address
             ? firstResult.formatted_address
-            : "Selected map location";
+            : t("selectedMapLocation");
 
         onSelectLocation(
           nextCoordinates,
@@ -417,7 +419,7 @@ export function AddressLocationPicker({
 
   const unavailableCopy =
     status === "missing-key"
-      ? "Address search is not configured yet. You can still use current location."
+      ? t("searchUnavailable")
       : errorMessage;
 
   return (
@@ -443,7 +445,7 @@ export function AddressLocationPicker({
                 setIsPredictionPanelOpen(true);
               }
             }}
-            placeholder="Search your address"
+            placeholder={t("searchPlaceholder")}
             className="h-[49px] w-full rounded-xl border border-transparent bg-[#F5F5F5] pl-11 pr-12 text-sm text-gray-700 outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10"
             disabled={status === "missing-key" || status === "error"}
           />
@@ -457,7 +459,7 @@ export function AddressLocationPicker({
               status === "missing-key" ||
               status === "error"
             }
-            aria-label="Search address"
+            aria-label={t("searchAriaLabel")}
             className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg bg-primary text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-primary/35"
           >
             {isGeocodingQuery ? (
@@ -472,7 +474,7 @@ export function AddressLocationPicker({
               {isSearching ? (
                 <div className="flex items-center gap-2 px-4 py-4 text-sm text-gray-500">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Searching addresses...
+                  {t("searching")}
                 </div>
               ) : (
                 predictions.map((prediction) => (
@@ -513,7 +515,7 @@ export function AddressLocationPicker({
               className="inline-flex h-[49px] min-w-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-primary/20 bg-white px-2.5 text-xs font-semibold text-primary transition hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-70 sm:px-4 sm:text-sm"
             >
               {isLocating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Navigation className="h-4 w-4" />}
-              Current location
+              {t("currentLocation")}
             </button>
           ) : null}
 
@@ -525,7 +527,7 @@ export function AddressLocationPicker({
               className="inline-flex h-[49px] min-w-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-primary/20 bg-white px-2.5 text-xs font-semibold text-primary transition hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-70 sm:px-4 sm:text-sm"
             >
               <MousePointer2 className="h-4 w-4" />
-              {isMapOpen ? "Hide map" : "Pick on map"}
+              {isMapOpen ? t("hideMap") : t("pickOnMap")}
             </button>
           ) : null}
 

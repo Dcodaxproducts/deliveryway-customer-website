@@ -89,7 +89,12 @@ export const HeroSection = ({
   const selectedBranch = useMemo(() => normalizeBranch(branch ?? user?.branch), [branch, user?.branch]);
   const isSingleBranchRestaurant = Boolean(selectedBranch?.isOnlyBranch);
   const selectedOrderType = getSelectedOrderType(user) ?? selectedBranch?.selectedOrderType ?? null;
-  const selectedOrderLabel = selectedOrderType === "TAKEAWAY" ? "Pickup" : selectedOrderType === "DELIVERY" ? "Delivery" : "";
+  const selectedOrderLabel =
+    selectedOrderType === "TAKEAWAY"
+      ? t("pickupPanelTitle")
+      : selectedOrderType === "DELIVERY"
+        ? t("deliveryPanelTitle")
+        : "";
   const hasAddressBookSession = Boolean(token && user);
   const isSelectedBranchAvailable = selectedBranch ? isBranchCurrentlyAvailable(selectedBranch) : true;
   const orderPanelTitle = mode === "delivery"
@@ -190,15 +195,15 @@ export const HeroSection = ({
 
         if (savedAddresses.length === 0) {
           setAddressModalOpen(true);
-          toast.info("Please add your delivery address first so we can calculate the correct delivery fee.");
+          toast.info(t("addDeliveryAddressFirst"));
         }
       } catch {
-        toast.error("We could not check your saved addresses. Please try again.");
+        toast.error(t("addressCheckFailed"));
       } finally {
         setIsCheckingDeliveryAddresses(false);
       }
     })();
-  }, [get, hasAddressBookSession, mode]);
+  }, [get, hasAddressBookSession, mode, t]);
 
   const handleModeChange = async (nextMode: BranchSearchMode) => {
     if (nextMode !== "delivery") {
@@ -213,17 +218,17 @@ export const HeroSection = ({
 
         if (savedAddresses.length === 0) {
           setAddressModalOpen(true);
-          toast.info("Please add your delivery address first so we can calculate the correct delivery fee.");
+          toast.info(t("addDeliveryAddressFirst"));
           return;
         }
       } catch {
-        toast.error("We could not check your saved addresses. Please try again.");
+        toast.error(t("addressCheckFailed"));
         return;
       } finally {
         setIsCheckingDeliveryAddresses(false);
       }
     } else {
-      toast.info("Please select your delivery location from the map first.");
+      toast.info(t("selectDeliveryMapFirst"));
       setShowResults(true);
     }
 
@@ -251,17 +256,17 @@ export const HeroSection = ({
 
         if (savedAddresses.length === 0) {
           setAddressModalOpen(true);
-          toast.info("Please add your delivery address first so we can calculate the correct delivery fee.");
+          toast.info(t("addDeliveryAddressFirst"));
           return;
         }
       } catch {
-        toast.error("We could not check your saved addresses. Please try again.");
+        toast.error(t("addressCheckFailed"));
         return;
       } finally {
         setIsCheckingDeliveryAddresses(false);
       }
     } else if (!coordinates) {
-      toast.error("Please select your delivery location first.");
+      toast.error(t("selectDeliveryLocationFirst"));
       setShowResults(true);
       return;
     }
@@ -275,7 +280,7 @@ export const HeroSection = ({
   };
 
   const handleSelectSearchLocation = (nextCoordinates: { lat: number; lng: number }, label?: string) => {
-    acceptCoordinates(nextCoordinates, label || "Selected address");
+    acceptCoordinates(nextCoordinates, label || t("selectedAddress"));
     setShowResults(true);
   };
 
@@ -286,7 +291,13 @@ export const HeroSection = ({
       orderType,
     });
 
-    toast.success(`${branch.name} selected for ${mode === "pickup" ? "pickup" : "delivery"}.`);
+    toast.success(
+      t("branchSelected", {
+        branch: branch.name,
+        mode:
+          mode === "pickup" ? t("pickupPanelTitle") : t("deliveryPanelTitle"),
+      }),
+    );
     setShowResults(false);
   };
 
@@ -365,7 +376,9 @@ export const HeroSection = ({
                   }`}
                 >
                   {nextMode === "delivery" ? <Truck size={17} /> : <ShoppingBag size={17} />}
-                  {nextMode === "delivery" ? "Delivery" : "Pickup"}
+                  {nextMode === "delivery"
+                    ? t("deliveryPanelTitle")
+                    : t("pickupPanelTitle")}
                 </button>
               ))}
             </div>
@@ -382,7 +395,9 @@ export const HeroSection = ({
                     {selectedBranch.name}
                   </p>
                   <p className="mt-1 text-xs text-[#6B7280]">
-                    {[formatBranchDistance(selectedBranch.distanceKm), selectedOrderLabel].filter(Boolean).join(" - ") || "Selected branch"}
+                    {[formatBranchDistance(selectedBranch.distanceKm), selectedOrderLabel]
+                      .filter(Boolean)
+                      .join(" - ") || t("selectedBranch")}
                   </p>
                 </div>
               </div>
@@ -391,7 +406,7 @@ export const HeroSection = ({
                 onClick={isSingleBranchRestaurant ? () => void handleFindFood() : handleFindNearbyBranches}
                 className="h-10 rounded-xl border border-primary/20 bg-white px-4 text-sm font-semibold text-primary transition hover:bg-primary/5"
               >
-                {isSingleBranchRestaurant ? t("findFood") : "Change"}
+                {isSingleBranchRestaurant ? t("findFood") : t("changeBranch")}
               </button>
             </div>
           ) : null}
@@ -402,7 +417,7 @@ export const HeroSection = ({
             onSuccess={() => {
               setAddressModalOpen(false);
               applyModeChange("delivery");
-              toast.success("Delivery address saved. You can continue with delivery.");
+              toast.success(t("deliveryAddressSaved"));
             }}
           />
 
@@ -431,16 +446,21 @@ export const HeroSection = ({
               <div className="mt-4 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_18px_45px_rgba(0,0,0,0.14)]">
                 {errorMessage ? (
                   <div className="px-5 py-6 text-sm text-gray-600">
-                    {errorMessage || "Location is unavailable. Please choose a branch from the branch selector."}
+                    {errorMessage || t("locationUnavailable")}
                   </div>
                 ) : nearbyQuery.isFetching ? (
                   <div className="flex items-center justify-center gap-2 px-5 py-8 text-sm text-gray-500">
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
-                    Finding nearby branches...
+                    {t("findingNearbyBranches")}
                   </div>
                 ) : filteredBranches.length === 0 && coordinates ? (
                   <div className="px-5 py-8 text-center text-sm text-gray-500">
-                    No nearby {mode === "pickup" ? "pickup" : "delivery"} branches found.
+                    {t("noNearbyBranches", {
+                      mode:
+                        mode === "pickup"
+                          ? t("pickupPanelTitle")
+                          : t("deliveryPanelTitle"),
+                    })}
                   </div>
                 ) : (
                   <div className="max-h-[min(320px,36vh)] divide-y divide-gray-100 overflow-y-auto">
@@ -462,13 +482,13 @@ export const HeroSection = ({
                               {formatBranchAddress(branch)}
                             </p>
                             <p className="mt-2 text-xs font-semibold text-primary">
-                              {[formatBranchDistance(branch.distanceKm), available ? "Available" : branch.availability?.reason || "Availability limited"]
+                              {[formatBranchDistance(branch.distanceKm), available ? t("available") : branch.availability?.reason || t("availabilityLimited")]
                                 .filter(Boolean)
                                 .join(" - ")}
                             </p>
                           </div>
                           <span className="shrink-0 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                            Select
+                            {t("selectBranch")}
                           </span>
                         </button>
                       );
