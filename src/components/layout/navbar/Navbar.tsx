@@ -134,12 +134,14 @@ export const Navbar = () => {
   const { context: domainContext, loading: domainLoading } = useDomainContext();
   const { get } = useMenu(token);
   const homeRestaurantId =
-    resolveHomeRestaurantId(user, restaurantId) || domainContext?.restaurantId || "";
+    resolveHomeRestaurantId(user, restaurantId) ||
+    domainContext?.restaurantId ||
+    "";
   const branchId = resolveHomeBranchId(user) || domainContext?.branchId || "";
   const homeQuery = useHome(
     homeRestaurantId,
     branchId,
-    Boolean(!authLoading && !domainLoading && homeRestaurantId && branchId),
+    Boolean(!authLoading && !domainLoading && homeRestaurantId),
     {
       staleTime: 0,
       refetchInterval: 15_000,
@@ -165,9 +167,7 @@ export const Navbar = () => {
   const isRestaurantBrandingLoading =
     authLoading ||
     domainLoading ||
-    (Boolean(homeRestaurantId && branchId) &&
-      homeQuery.isLoading &&
-      !homeQuery.data);
+    (Boolean(homeRestaurantId) && !homeQuery.data);
   const restaurantName =
     homeQuery.data?.data.restaurant?.name?.trim() ||
     homeQuery.data?.data.branding.restaurantName?.trim() ||

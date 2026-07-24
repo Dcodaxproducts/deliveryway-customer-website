@@ -28,9 +28,10 @@ export const BrandingProvider = ({ children }: BrandingProviderProps) => {
   const homeQuery = useHome(
     restaurantId,
     branchId,
-    !loading && !domainLoading && Boolean(restaurantId && branchId)
+    !loading && !domainLoading && Boolean(restaurantId),
   );
   const branding = homeQuery.data?.data.branding ?? DEFAULT_BRANDING;
+  const hasResolvedRestaurantBranding = Boolean(homeQuery.data?.data);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -42,11 +43,16 @@ export const BrandingProvider = ({ children }: BrandingProviderProps) => {
   }, [branding]);
 
   useEffect(() => {
-    const faviconHref = user
-      ? resolveHttpsImageUrl(branding.logo.default, "/deliveryway-logo.jpg")
-      : "/deliveryway-logo.jpg";
+    if (!hasResolvedRestaurantBranding) {
+      return;
+    }
+
+    const faviconHref = resolveHttpsImageUrl(
+      branding.logo.default,
+      "/deliveryway-logo.jpg",
+    );
     const iconLinks = document.querySelectorAll<HTMLLinkElement>(
-      "link[rel='icon'], link[rel='shortcut icon'], link[rel='apple-touch-icon']"
+      "link[rel='icon'], link[rel='shortcut icon'], link[rel='apple-touch-icon']",
     );
 
     if (iconLinks.length === 0) {
@@ -60,15 +66,28 @@ export const BrandingProvider = ({ children }: BrandingProviderProps) => {
     iconLinks.forEach((link) => {
       link.href = faviconHref;
     });
-  }, [branding.logo.default, user]);
+  }, [branding.logo.default, hasResolvedRestaurantBranding]);
 
   const value = useMemo(
     () => ({
       branding,
-      isLoading: loading || domainLoading || homeQuery.isLoading,
+      isLoading:
+        loading ||
+        domainLoading ||
+        (Boolean(restaurantId) && !hasResolvedRestaurantBranding),
     }),
-    [branding, domainLoading, homeQuery.isLoading, loading]
+    [
+      branding,
+      domainLoading,
+      hasResolvedRestaurantBranding,
+      loading,
+      restaurantId,
+    ],
   );
 
-  return <BrandingContext.Provider value={value}>{children}</BrandingContext.Provider>;
+  return (
+    <BrandingContext.Provider value={value}>
+      {children}
+    </BrandingContext.Provider>
+  );
 };

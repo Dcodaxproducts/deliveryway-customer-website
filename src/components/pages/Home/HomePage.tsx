@@ -24,7 +24,10 @@ import { useAppLocale } from "@/hooks/useAppLocale";
 import { useCustomerDeals } from "@/hooks/useCustomerDeals";
 import { useDomainContext } from "@/hooks/useDomainContext";
 import { useHome } from "@/hooks/useHome";
-import { useHomeCategories, useHomePromotionalItems } from "@/hooks/useHomeCategories";
+import {
+  useHomeCategories,
+  useHomePromotionalItems,
+} from "@/hooks/useHomeCategories";
 import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
 import { resolveCustomerCurrency } from "@/lib/money";
 import type { CustomerDeal } from "@/types/customer-deals";
@@ -44,9 +47,13 @@ const getTrimmedText = (value?: string | null) => {
   return trimmedValue ? trimmedValue : null;
 };
 
-const hasScheduleEntries = (value: unknown) => Array.isArray(value) && value.length > 0;
+const hasScheduleEntries = (value: unknown) =>
+  Array.isArray(value) && value.length > 0;
 
-const mergeScheduleField = <TValue,>(homeValue: TValue | undefined, sessionValue: TValue | undefined) => {
+const mergeScheduleField = <TValue,>(
+  homeValue: TValue | undefined,
+  sessionValue: TValue | undefined,
+) => {
   if (hasScheduleEntries(homeValue) || homeValue === undefined) {
     return homeValue ?? sessionValue;
   }
@@ -76,7 +83,8 @@ const mergeBranchSettings = (
     sessionSettings?.deliveryHours,
   );
   mergedSettings.holidayOpeningHours = mergeScheduleField(
-    homeSettings?.holidayOpeningHours as BranchSettings["holidayOpeningHours"] | undefined,
+    homeSettings?.holidayOpeningHours as
+      BranchSettings["holidayOpeningHours"] | undefined,
     sessionSettings?.holidayOpeningHours,
   );
 
@@ -113,7 +121,10 @@ const mergeHomeBranch = (
   sessionBranch?: AuthBranch | null,
 ): HomeBranch | AuthBranch | null => {
   if (!homeBranch) return sessionBranch ?? null;
-  if (!sessionBranch || String(homeBranch.id || "") !== String(sessionBranch.id || "")) {
+  if (
+    !sessionBranch ||
+    String(homeBranch.id || "") !== String(sessionBranch.id || "")
+  ) {
     return homeBranch;
   }
 
@@ -152,13 +163,23 @@ const HomePage = () => {
   const { branding: fallbackBranding } = useBranding();
 
   const restaurantId = useMemo(
-    () => resolveHomeRestaurantId(user, authRestaurantId) || domainContext?.restaurantId || "",
+    () =>
+      resolveHomeRestaurantId(user, authRestaurantId) ||
+      domainContext?.restaurantId ||
+      "",
     [authRestaurantId, domainContext?.restaurantId, user],
   );
-  const branchId = useMemo(() => resolveHomeBranchId(user) || domainContext?.branchId || "", [domainContext?.branchId, user]);
+  const branchId = useMemo(
+    () => resolveHomeBranchId(user) || domainContext?.branchId || "",
+    [domainContext?.branchId, user],
+  );
   const hasRestaurantContext = Boolean(restaurantId);
-  const homeQuery = useHome(restaurantId, branchId, hasRestaurantContext && Boolean(branchId));
-  const categoriesQuery = useHomeCategories(restaurantId, locale, hasRestaurantContext);
+  const homeQuery = useHome(restaurantId, branchId, hasRestaurantContext);
+  const categoriesQuery = useHomeCategories(
+    restaurantId,
+    locale,
+    hasRestaurantContext,
+  );
   const promotionalItemsQuery = useHomePromotionalItems({
     restaurantId,
     branchId,
@@ -166,34 +187,37 @@ const HomePage = () => {
     limit: 8,
     enabled: hasRestaurantContext,
   });
-  const dealsQuery = useCustomerDeals({ restaurantId, branchId, locale, limit: 20 });
+  const dealsQuery = useCustomerDeals({
+    restaurantId,
+    branchId,
+    locale,
+    limit: 20,
+  });
   const addDealMutation = useAddDealToCart(branchId);
   const handleAddDeal = useCallback(
     (deal: CustomerDeal, selectedMenuItemIds?: string[]) => {
       addDealMutation.mutate({ deal, selectedMenuItemIds });
     },
-    [addDealMutation]
+    [addDealMutation],
   );
   const homeResponse = homeQuery.data;
   const homeData = homeResponse ? homeResponse.data : undefined;
   const isRestaurantContentLoading =
-    authLoading ||
-    domainLoading ||
-    (hasRestaurantContext &&
-      Boolean(branchId) &&
-      homeQuery.isLoading &&
-      !homeData);
+    authLoading || domainLoading || (hasRestaurantContext && !homeData);
 
   const branding = homeData?.branding ?? fallbackBranding ?? DEFAULT_BRANDING;
   const resolvedBranch = useMemo(
     () => mergeHomeBranch(homeData?.branch, user?.branch),
-    [homeData?.branch, user?.branch]
+    [homeData?.branch, user?.branch],
   );
   const landingPopup = homeData?.landingPopup ?? null;
-  const heroTitle = homeData?.restaurant?.name ?? branding.restaurantName ?? t("defaultTitle");
+  const heroTitle =
+    homeData?.restaurant?.name ?? branding.restaurantName ?? t("defaultTitle");
   const heroTagline = branding.tagline;
-  const heroBannerTitle = getTrimmedText(homeData?.restaurant?.tagline) ?? t("deliveryTitle");
-  const heroBannerDescription = getTrimmedText(homeData?.restaurant?.bio) ?? t("description");
+  const heroBannerTitle =
+    getTrimmedText(homeData?.restaurant?.tagline) ?? t("deliveryTitle");
+  const heroBannerDescription =
+    getTrimmedText(homeData?.restaurant?.bio) ?? t("description");
   const heroImage =
     getRestaurantHeroImage(homeData?.restaurant) ??
     branding.assets.heroImage ??
@@ -283,7 +307,11 @@ const HomePage = () => {
         <CustomerDealsSection
           deals={dealsQuery.deals}
           isLoading={dealsQuery.isLoading}
-          addingDealId={addDealMutation.isPending ? addDealMutation.variables?.deal.id ?? null : null}
+          addingDealId={
+            addDealMutation.isPending
+              ? (addDealMutation.variables?.deal.id ?? null)
+              : null
+          }
           branchId={branchId}
           currency={currency}
           onAddDeal={handleAddDeal}

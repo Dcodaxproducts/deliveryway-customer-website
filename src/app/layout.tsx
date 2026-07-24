@@ -30,11 +30,6 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
-  icons: {
-    icon: "/deliveryway-logo.jpg",
-    shortcut: "/deliveryway-logo.jpg",
-    apple: "/deliveryway-logo.jpg",
-  },
   openGraph: {
     type: "website",
     url: "/",
