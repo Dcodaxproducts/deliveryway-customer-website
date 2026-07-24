@@ -139,7 +139,7 @@ export default function RestaurantHeader() {
   const router = useRouter();
 
   const { token, restaurantId: authRestaurantId, user } = useAuth();
-  const { fetchMenuCategoriesPage } = useItems(token);
+  const { fetchMenuCategoriesPage } = useItems(null);
   const { fetchBranches } = useBranches(token);
 
   const [category, setCategory] = useState<ItemsCategory | null>(null);
@@ -180,7 +180,7 @@ export default function RestaurantHeader() {
     let cancelled = false;
 
     const fetchCategory = async () => {
-      if (!token || !restaurantId) {
+      if (!restaurantId) {
         setLoading(false);
         return;
       }
@@ -246,47 +246,43 @@ export default function RestaurantHeader() {
           reservationEnabled,
         };
 
-        let page = 1;
-        let totalLoaded = 0;
         let selectedCategory: ItemsCategory | null = null;
-        let firstCategory: ItemsCategory | null = null;
-        let shouldContinue = true;
 
-        while (shouldContinue) {
-          const { categories: fetchedCategories, meta } = await fetchMenuCategoriesPage({
-            restaurantId: String(restaurantId),
-            page,
-            limit: CATEGORY_PAGE_LIMIT,
-          });
+        if (categoryId) {
+          let page = 1;
+          let totalLoaded = 0;
+          let shouldContinue = true;
 
-          if (!firstCategory && fetchedCategories.length > 0) {
-            firstCategory = fetchedCategories[0] ?? null;
-          }
+          while (shouldContinue) {
+            const { categories: fetchedCategories, meta } = await fetchMenuCategoriesPage({
+              restaurantId: String(restaurantId),
+              page,
+              limit: CATEGORY_PAGE_LIMIT,
+            });
 
-          if (categoryId) {
             selectedCategory = fetchedCategories.find(
               ({ id }) => String(id) === String(categoryId)
             ) ?? null;
-          }
 
-          totalLoaded += fetchedCategories.length;
+            totalLoaded += fetchedCategories.length;
 
-          if (selectedCategory || !categoryId) {
-            shouldContinue = false;
-          } else {
-            shouldContinue = resolveHasNext({
-              meta,
-              page,
-              limit: CATEGORY_PAGE_LIMIT,
-              receivedCount: fetchedCategories.length,
-              totalLoaded,
-            });
+            if (selectedCategory) {
+              shouldContinue = false;
+            } else {
+              shouldContinue = resolveHasNext({
+                meta,
+                page,
+                limit: CATEGORY_PAGE_LIMIT,
+                receivedCount: fetchedCategories.length,
+                totalLoaded,
+              });
 
-            page += 1;
-          }
+              page += 1;
+            }
 
-          if (page > 30) {
-            shouldContinue = false;
+            if (page > 30) {
+              shouldContinue = false;
+            }
           }
         }
 

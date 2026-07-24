@@ -71,6 +71,37 @@ export const fetchMenuItemsPage = async ({
   };
 };
 
+export const fetchMenuItemDetails = async ({
+  restaurantId,
+  branchId,
+  identifier,
+  token,
+}: {
+  restaurantId: string;
+  branchId?: string | number | null;
+  identifier: string;
+  token?: string | null;
+}) => {
+  const params = new URLSearchParams({ restaurantId });
+
+  if (branchId) {
+    params.set("branchId", String(branchId));
+  }
+
+  const response = await getItems(
+    `/customer-app/items/${encodeURIComponent(identifier)}?${params.toString()}`,
+    token,
+  );
+  const item =
+    typeof response.data === "object" &&
+    response.data !== null &&
+    !Array.isArray(response.data)
+      ? (response.data as MenuItem)
+      : null;
+
+  return { response, item };
+};
+
 export const fetchMenuItemDetailsByIds = async ({
   itemIds,
   itemSearchTermsById = {},

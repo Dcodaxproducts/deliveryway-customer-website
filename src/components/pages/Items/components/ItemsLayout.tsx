@@ -82,7 +82,7 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
   );
   const { token, restaurantId: authRestaurantId, user } = useAuth();
   const { locale } = useAppLocale();
-  const { fetchMenuCategoriesPage } = useItems(token);
+  const { fetchMenuCategoriesPage } = useItems(null);
   const { fetchSignatureMenus } = useMenu(token);
 
   const [categories, setCategories] = useState<ItemsCategory[]>([]);
@@ -127,7 +127,7 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
   const homeQuery = useHome(
     restaurantId,
     branchId,
-    Boolean(token && restaurantId && branchId)
+    Boolean(restaurantId && branchId)
   );
   const currency = resolveCustomerCurrency({
     configCurrency: homeQuery.data?.data.config?.currency,
@@ -238,7 +238,7 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
     searchValue?: string;
     append?: boolean;
   }) => {
-    if (!token || !restaurantId) return;
+    if (!restaurantId) return;
     if (requestInFlightRef.current) return;
 
     try {
@@ -323,7 +323,7 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
       searchValue: debouncedSearch,
       append: false,
     });
-  }, [token, restaurantId, debouncedSearch]);
+  }, [restaurantId, debouncedSearch]);
 
   useEffect(() => {
     if (!token || !restaurantId) return;

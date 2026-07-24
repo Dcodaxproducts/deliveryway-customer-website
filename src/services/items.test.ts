@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   fetchMenuCategoriesPage,
+  fetchMenuItemDetails,
   fetchMenuItemDetailsByIds,
   fetchMenuItemsPage,
   fetchSplitPizzaMenuItems,
@@ -120,6 +121,26 @@ describe("fetchMenuItemDetailsByIds", () => {
     expect(getItemsMock).toHaveBeenCalledWith(
       "/customer-app/items?restaurantId=restaurant-1&page=2&limit=12&sortBy=sortOrder&sortOrder=ASC&categoryId=category-1&branchId=branch-1",
       "token-1",
+    );
+  });
+
+  it("fetches public item details by slug without an auth token", async () => {
+    getItemsMock.mockResolvedValueOnce({
+      data: { id: "pizza-id", slug: "pizza-tse", modifiers: [] },
+    });
+
+    const result = await fetchMenuItemDetails({
+      restaurantId: "restaurant-1",
+      branchId: "branch-1",
+      identifier: "pizza-tse",
+    });
+
+    expect(getItemsMock).toHaveBeenCalledWith(
+      "/customer-app/items/pizza-tse?restaurantId=restaurant-1&branchId=branch-1",
+      undefined,
+    );
+    expect(result.item).toEqual(
+      expect.objectContaining({ id: "pizza-id", slug: "pizza-tse" }),
     );
   });
 

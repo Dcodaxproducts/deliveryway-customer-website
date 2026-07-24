@@ -5,6 +5,7 @@ import { RestaurantCard } from "./RestaurantCard";
 import useItems from "@/hooks/useItems";
 import { useAuth } from "@/hooks/useAuth";
 import { getStoredRestaurantId } from "@/lib/auth";
+import { resolveHomeBranchId } from "@/lib/home";
 import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { ItemsCategory, MenuItem } from "@/components/pages/Items/types";
@@ -87,8 +88,8 @@ export function ItemsListing({
   hideSectionHeading = false,
 }: ItemsListingProps) {
   const t = useTranslations("items.common");
-  const { token, restaurantId: authRestaurantId, user } = useAuth();
-  const { fetchMenuItemsPage } = useItems(token);
+  const { restaurantId: authRestaurantId, user } = useAuth();
+  const { fetchMenuItemsPage } = useItems(null);
 
   const [categoryItemsMap, setCategoryItemsMap] = useState<
     Record<string, CategoryItemsState>
@@ -107,8 +108,8 @@ export function ItemsListing({
   }, [authRestaurantId, user?.restaurantId]);
 
   const branchId = useMemo(() => {
-    return String(user?.branchId || user?.branch?.id || "");
-  }, [user?.branch?.id, user?.branchId]);
+    return String(resolveHomeBranchId(user));
+  }, [user]);
 
   const categoryIdsKey = useMemo(() => {
     return sections.map((category) => String(category?.id || "")).join("|");
@@ -133,7 +134,7 @@ export function ItemsListing({
     page?: number;
     append?: boolean;
   }) => {
-    if (!categoryId || !token || !restaurantId) return;
+    if (!categoryId || !restaurantId) return;
 
     const requestKey = `${branchId}:${categoryId}:${page}`;
 
@@ -227,7 +228,7 @@ export function ItemsListing({
   useEffect(() => {
     if (contentSource !== "category") return;
     if (viewMode !== "multiple") return;
-    if (!activeCategoryId || !token || !restaurantId) return;
+    if (!activeCategoryId || !restaurantId) return;
 
     const state = categoryItemsMap[activeCategoryId];
 
@@ -240,7 +241,7 @@ export function ItemsListing({
         append: false,
       });
     });
-  }, [contentSource, viewMode, activeCategoryId, token, restaurantId, branchId]);
+  }, [contentSource, viewMode, activeCategoryId, restaurantId, branchId]);
 
   const activeCategoryState = categoryItemsMap[activeCategoryId];
 
@@ -264,25 +265,20 @@ export function ItemsListing({
   useEffect(() => {
     if (contentSource !== "category") return;
     if (viewMode !== "onePage") return;
-    if (!sections.length || !token || !restaurantId) return;
+    if (!activeCategoryId || !restaurantId) return;
 
-    sections.forEach((category) => {
-      const id = String(category?.id || "");
-      if (!id) return;
+    const state = categoryItemsMap[activeCategoryId];
 
-      const state = categoryItemsMap[id];
+    if (state?.loadedOnce || state?.loading) return;
 
-      if (state?.loadedOnce || state?.loading) return;
-
-      queueMicrotask(() => {
-        fetchCategoryItems({
-          categoryId: id,
-          page: 1,
-          append: false,
-        });
+    queueMicrotask(() => {
+      fetchCategoryItems({
+        categoryId: activeCategoryId,
+        page: 1,
+        append: false,
       });
     });
-  }, [contentSource, viewMode, categoryIdsKey, token, restaurantId, branchId]);
+  }, [contentSource, viewMode, activeCategoryId, restaurantId, branchId]);
 
   /* ================= PRUNE OLD CATEGORY STATES AFTER SEARCH ================= */
 

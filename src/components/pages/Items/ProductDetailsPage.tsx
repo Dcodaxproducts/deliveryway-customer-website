@@ -27,6 +27,8 @@ import {
 } from "@/lib/money";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { getStoredRestaurantId } from "@/lib/auth";
+import { resolveHomeBranchId } from "@/lib/home";
 import { Download, Eye, Loader2, Minus, Plus, X } from "lucide-react";
 import { AsyncSelect } from "@/components/ui/AsyncSelect";
 import { FavoriteHeartButton } from "@/components/common/favorites/FavoriteHeartButton";
@@ -931,7 +933,7 @@ function ProductDetailsPageContent() {
   const isEditingCartItem = Boolean(cartItemId);
 
   const { token } = useAuthContext();
-  const { fetchMenuItems } = useItems(token);
+  const { fetchMenuItemDetails, fetchMenuItems } = useItems(null);
   const {
     addCustomerCartItem,
     addGroupOrderItem,
@@ -967,11 +969,14 @@ function ProductDetailsPageContent() {
 
   const editPrefilledRef = useRef(false);
 
-  const { user } = useAuth();
+  const { user, restaurantId: authRestaurantId } = useAuth();
   const customerId = user?.id;
-  const branchId = user?.branchId ? String(user.branchId) : "";
+  const branchId = String(resolveHomeBranchId(user));
+  const browsingRestaurantId = String(
+    authRestaurantId || user?.restaurantId || getStoredRestaurantId() || "",
+  );
   const restaurantId = String(
-    item?.restaurantId || item?.restaurant?.id || user?.restaurantId || "",
+    item?.restaurantId || item?.restaurant?.id || browsingRestaurantId,
   );
   const homeQuery = useHome(
     restaurantId,
@@ -1690,22 +1695,18 @@ function ProductDetailsPageContent() {
         return;
       }
 
-      if (!token) {
+      if (!browsingRestaurantId) {
         return;
       }
 
       try {
         setPageLoading(true);
 
-        const params = new URLSearchParams({ search: searchValue });
-
-        if (branchId) {
-          params.set("branchId", branchId);
-        }
-
-        const { response: res, items } = await fetchMenuItems(
-          `/customer-app/items?${params.toString()}`,
-        );
+        const { response: res, item: matchedItem } = await fetchMenuItemDetails({
+          restaurantId: browsingRestaurantId,
+          branchId,
+          identifier: searchValue,
+        });
 
         if (!isMounted) return;
 
@@ -1714,17 +1715,6 @@ function ProductDetailsPageContent() {
           setItem(null);
           return;
         }
-
-        const matchedItem =
-          items.find(
-            (menuItem: MenuItem) =>
-              itemIdParam && String(menuItem?.id || "") === String(itemIdParam),
-          ) ||
-          items.find(
-            (menuItem: MenuItem) =>
-              slug && String(menuItem?.slug || "") === String(slug),
-          ) ||
-          items[0];
 
         if (!matchedItem) {
           setItem(null);
@@ -1754,7 +1744,7 @@ function ProductDetailsPageContent() {
     return () => {
       isMounted = false;
     };
-  }, [slug, itemIdParam, token, branchId, fetchMenuItems]);
+  }, [slug, itemIdParam, browsingRestaurantId, branchId, fetchMenuItemDetails]);
 
   useEffect(() => {
     const fetchCartItemToEdit = async () => {
@@ -2650,7 +2640,7 @@ function ProductDetailsPageContent() {
     }
   };
 
-  if (pageLoading || (!!(slug || itemIdParam) && !token)) {
+  if (pageLoading) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center p-10">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
