@@ -15,6 +15,7 @@ export type CheckoutCartPayload = Record<string, unknown> & {
   tipAmount?: number;
   loyaltyPoints?: number;
   guestContact?: {
+    firstName: string;
     email: string;
     phone: string;
     privacyPolicyAccepted: boolean;

@@ -75,6 +75,10 @@ import {
   trimGuestDeliveryAddress,
 } from "@/components/pages/Checkout/utils/guest-delivery-address";
 import {
+  getGuestContactPayload,
+  hasGuestContact,
+} from "@/components/pages/Checkout/utils/guest-contact";
+import {
   getAvailableCheckoutPaymentMethods,
   type CheckoutPaymentMethod,
 } from "@/components/pages/Checkout/utils/payment-methods";
@@ -295,25 +299,6 @@ const normalizeGuestPrivacyPolicy = (
     content,
     policyLink,
   };
-};
-
-const getGuestContactPayload = (
-  customer: { name: string; phone: string; email: string },
-  privacyPolicyAccepted: boolean,
-) => {
-  return {
-    email: customer.email.trim(),
-    phone: customer.phone.trim(),
-    privacyPolicyAccepted,
-  };
-};
-
-const hasGuestContact = (customer: {
-  name: string;
-  phone: string;
-  email: string;
-}) => {
-  return Boolean(customer.email.trim() && customer.phone.trim());
 };
 
 const getCartPreparationMinutes = (items: CartItem[]) =>

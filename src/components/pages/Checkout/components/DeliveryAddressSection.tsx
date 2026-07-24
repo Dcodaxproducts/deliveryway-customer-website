@@ -259,7 +259,7 @@ export function DeliveryAddressSection({
               <Input
                 value={guestDeliveryAddress.houseNumber}
                 onChange={(event) => updateGuestAddressField("houseNumber", event.target.value)}
-                placeholder={addressT("houseNumberPlaceholder")}
+                placeholder={t("houseNumberPlaceholder")}
                 className="h-12 rounded-xl border-gray-200"
               />
             </div>
