@@ -27,6 +27,7 @@ import {
 } from "@/lib/money";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { useDomainContext } from "@/hooks/useDomainContext";
 import { getStoredRestaurantId } from "@/lib/auth";
 import { resolveHomeBranchId } from "@/lib/home";
 import { Download, Eye, Loader2, Minus, Plus, X } from "lucide-react";
@@ -970,10 +971,17 @@ function ProductDetailsPageContent() {
   const editPrefilledRef = useRef(false);
 
   const { user, restaurantId: authRestaurantId } = useAuth();
+  const { context: domainContext } = useDomainContext();
   const customerId = user?.id;
-  const branchId = String(resolveHomeBranchId(user));
+  const branchId = String(
+    resolveHomeBranchId(user) || domainContext?.branchId || "",
+  );
   const browsingRestaurantId = String(
-    authRestaurantId || user?.restaurantId || getStoredRestaurantId() || "",
+    authRestaurantId ||
+      user?.restaurantId ||
+      getStoredRestaurantId() ||
+      domainContext?.restaurantId ||
+      "",
   );
   const restaurantId = String(
     item?.restaurantId || item?.restaurant?.id || browsingRestaurantId,

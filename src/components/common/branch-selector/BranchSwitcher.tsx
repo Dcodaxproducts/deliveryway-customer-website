@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { FaChevronDown, FaMapMarkerAlt } from "react-icons/fa";
 import { useTranslations } from "next-intl";
 import { useAuthContext } from "@/hooks/useAuth";
+import { useDomainContext } from "@/hooks/useDomainContext";
 import { BranchSelectorModal } from "./BranchSelectorModal";
 
 type BranchSwitcherProps = {
@@ -20,30 +21,40 @@ export function BranchSwitcher({
   presentation = "default",
 }: BranchSwitcherProps) {
   const t = useTranslations("branchSelector");
-  const { user } = useAuthContext();
+  const { user, token } = useAuthContext();
+  const { context: domainContext } = useDomainContext();
   const [open, setOpen] = useState(false);
 
   const resolvedRestaurantId = useMemo(() => {
-    return restaurantId || user?.restaurantId || user?.tenantId || null;
-  }, [restaurantId, user]);
+    return (
+      restaurantId ||
+      user?.restaurantId ||
+      user?.tenantId ||
+      domainContext?.restaurantId ||
+      null
+    );
+  }, [domainContext?.restaurantId, restaurantId, user]);
 
-  const branchName = user?.branch?.name || t("selectBranch");
+  const branchName =
+    user?.branch?.name || domainContext?.branchName || t("selectBranch");
   const branchArea =
     user?.branch?.address?.area ||
     user?.branch?.address?.city ||
     t("changeBranchShort");
   const isNavbar = presentation === "navbar";
+  const canSwitchBranch = Boolean(user && token);
 
   return (
     <>
       <button
         type="button"
         onClick={() => setOpen(true)}
+        disabled={!canSwitchBranch}
         className={`group inline-flex items-center text-left transition-all duration-200 ${
           isNavbar
             ? "h-11 gap-2 rounded-full bg-[#F7F7F8] px-4 text-sm font-semibold text-[#20242A] hover:bg-[#F1F2F4]"
             : "gap-3 rounded-2xl border border-[#E8ECF0] bg-white px-3 py-2 shadow-sm hover:border-[var(--primary)]/35 hover:shadow-[0_10px_24px_rgba(17,24,39,0.08)]"
-        } ${className}`}
+        } ${canSwitchBranch ? "" : "cursor-default"} ${className}`}
       >
         <div
           className={

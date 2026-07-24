@@ -23,6 +23,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAddDealToCart } from "@/hooks/useCart";
 import { useAppLocale } from "@/hooks/useAppLocale";
 import { useCustomerDeals } from "@/hooks/useCustomerDeals";
+import { useDomainContext } from "@/hooks/useDomainContext";
 import { useHome } from "@/hooks/useHome";
 import { getStoredRestaurantId } from "@/lib/auth";
 import { resolveHomeBranchId } from "@/lib/home";
@@ -81,6 +82,7 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
     getMobileItemsViewportServerSnapshot,
   );
   const { token, restaurantId: authRestaurantId, user } = useAuth();
+  const { context: domainContext } = useDomainContext();
   const { locale } = useAppLocale();
   const { fetchMenuCategoriesPage } = useItems(null);
   const { fetchSignatureMenus } = useMenu(token);
@@ -120,10 +122,14 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
       authRestaurantId ||
       user?.restaurantId ||
       getStoredRestaurantId() ||
+      domainContext?.restaurantId ||
       ""
     );
-  }, [authRestaurantId, user?.restaurantId]);
-  const branchId = useMemo(() => resolveHomeBranchId(user), [user]);
+  }, [authRestaurantId, domainContext?.restaurantId, user?.restaurantId]);
+  const branchId = useMemo(
+    () => resolveHomeBranchId(user) || domainContext?.branchId || "",
+    [domainContext?.branchId, user],
+  );
   const homeQuery = useHome(
     restaurantId,
     branchId,
@@ -522,6 +528,7 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
           onLoadMore={handleLoadMoreCategories}
           viewMode={viewMode}
           contentSource={contentSource}
+          showMenuSource={Boolean(token)}
           onContentSourceChange={handleContentSourceChange}
           onViewModeChange={handleViewModeChange}
           onCategorySelect={handleCategorySelect}

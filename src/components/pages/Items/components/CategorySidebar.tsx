@@ -24,6 +24,7 @@ type CategorySidebarProps = {
   onLoadMore?: () => void;
   viewMode?: MenuViewMode;
   contentSource?: ItemsContentSource;
+  showMenuSource?: boolean;
   onContentSourceChange?: (source: ItemsContentSource) => void;
   onViewModeChange?: (mode: MenuViewMode) => void;
   onCategorySelect?: (id: string) => void;
@@ -40,6 +41,7 @@ export function CategorySidebar({
   onLoadMore,
   viewMode = "multiple",
   contentSource = "category",
+  showMenuSource = true,
   onContentSourceChange,
   onViewModeChange,
   onCategorySelect,
@@ -105,7 +107,8 @@ export function CategorySidebar({
       </div>
 
       {/* CONTENT SOURCE CONTROL */}
-      <div className="mb-4 rounded-2xl bg-gray-100 p-1">
+      {showMenuSource ? (
+        <div className="mb-4 rounded-2xl bg-gray-100 p-1">
         <div className="grid grid-cols-2 gap-1">
           <button
             type="button"
@@ -133,7 +136,8 @@ export function CategorySidebar({
             <span className="truncate">{tSidebar("byMenus")}</span>
           </button>
         </div>
-      </div>
+        </div>
+      ) : null}
 
       {/* DISPLAY MODE CONTROL */}
       <label className="mb-4 block">

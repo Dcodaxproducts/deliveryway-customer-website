@@ -117,9 +117,10 @@ export function BranchSelectorModal({
   const resolvedRestaurantId = useMemo(() => {
     return restaurantId || user?.restaurantId || user?.tenantId || null;
   }, [restaurantId, user]);
+  const isRenderable = Boolean(open && user && token && !isBlockedRoute);
 
   const canFetch =
-    !!token && !!user && !!resolvedRestaurantId && open && !isBlockedRoute;
+    Boolean(resolvedRestaurantId) && isRenderable;
 
   const hasActiveSearch = Boolean(search.trim() || searchInput.trim());
   const resolvedTitle = title || "Choose your nearest branch";
@@ -220,7 +221,7 @@ export function BranchSelectorModal({
   }, [searchInput]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!isRenderable) return;
 
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -228,7 +229,7 @@ export function BranchSelectorModal({
     return () => {
       document.body.style.overflow = originalOverflow;
     };
-  }, [open]);
+  }, [isRenderable]);
 
   const handleSelect = async (branch: Branch) => {
     try {
@@ -293,7 +294,7 @@ export function BranchSelectorModal({
     onClose();
   };
 
-  if (!open || !user || !token || isBlockedRoute) return null;
+  if (!isRenderable) return null;
 
   return (
     <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-[#0A0D12]/55 p-4 backdrop-blur-[10px]">

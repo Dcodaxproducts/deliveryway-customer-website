@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { RestaurantCard } from "./RestaurantCard";
 import useItems from "@/hooks/useItems";
 import { useAuth } from "@/hooks/useAuth";
+import { useDomainContext } from "@/hooks/useDomainContext";
 import { getStoredRestaurantId } from "@/lib/auth";
 import { resolveHomeBranchId } from "@/lib/home";
 import { Loader2 } from "lucide-react";
@@ -89,6 +90,7 @@ export function ItemsListing({
 }: ItemsListingProps) {
   const t = useTranslations("items.common");
   const { restaurantId: authRestaurantId, user } = useAuth();
+  const { context: domainContext } = useDomainContext();
   const { fetchMenuItemsPage } = useItems(null);
 
   const [categoryItemsMap, setCategoryItemsMap] = useState<
@@ -103,13 +105,14 @@ export function ItemsListing({
       authRestaurantId ||
       user?.restaurantId ||
       getStoredRestaurantId() ||
+      domainContext?.restaurantId ||
       ""
     );
-  }, [authRestaurantId, user?.restaurantId]);
+  }, [authRestaurantId, domainContext?.restaurantId, user?.restaurantId]);
 
   const branchId = useMemo(() => {
-    return String(resolveHomeBranchId(user));
-  }, [user]);
+    return String(resolveHomeBranchId(user) || domainContext?.branchId || "");
+  }, [domainContext?.branchId, user]);
 
   const categoryIdsKey = useMemo(() => {
     return sections.map((category) => String(category?.id || "")).join("|");

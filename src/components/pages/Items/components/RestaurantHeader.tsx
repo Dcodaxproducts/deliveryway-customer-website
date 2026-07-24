@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import useItems from "@/hooks/useItems";
 import { useAuth } from "@/hooks/useAuth";
+import { useDomainContext } from "@/hooks/useDomainContext";
 import useBranches from "@/hooks/useBranches";
 import { useHome } from "@/hooks/useHome";
 import { getStoredAuthState } from "@/lib/auth";
@@ -139,6 +140,7 @@ export default function RestaurantHeader() {
   const router = useRouter();
 
   const { token, restaurantId: authRestaurantId, user } = useAuth();
+  const { context: domainContext } = useDomainContext();
   const { fetchMenuCategoriesPage } = useItems(null);
   const { fetchBranches } = useBranches(token);
 
@@ -163,13 +165,31 @@ export default function RestaurantHeader() {
       authRestaurantId ||
       user?.restaurantId ||
       storedAuth?.user?.restaurantId ||
+      domainContext?.restaurantId ||
       ""
     );
-  }, [authRestaurantId, user?.restaurantId, storedAuth]);
+  }, [
+    authRestaurantId,
+    domainContext?.restaurantId,
+    storedAuth,
+    user?.restaurantId,
+  ]);
 
   const selectedBranchId = useMemo(() => {
-    return String(user?.branchId || user?.branch?.id || storedAuth?.user?.branchId || storedAuth?.user?.branch?.id || "");
-  }, [user?.branchId, user?.branch?.id, storedAuth]);
+    return String(
+      user?.branchId ||
+        user?.branch?.id ||
+        storedAuth?.user?.branchId ||
+        storedAuth?.user?.branch?.id ||
+        domainContext?.branchId ||
+        "",
+    );
+  }, [
+    domainContext?.branchId,
+    storedAuth,
+    user?.branch?.id,
+    user?.branchId,
+  ]);
   const homeQuery = useHome(
     String(restaurantId || ""),
     selectedBranchId,
