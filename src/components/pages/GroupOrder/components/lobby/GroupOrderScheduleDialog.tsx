@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Clock, Loader2, PauseCircle, X } from "lucide-react";
 import { toast } from "sonner";
+import { useLocale, useTranslations } from "next-intl";
 
 import { ScheduleRail } from "@/components/pages/Checkout/components/ScheduleRail";
 import {
@@ -50,8 +51,14 @@ const getCurrentSchedule = () => {
   const now = new Date();
 
   return {
-    date: [now.getFullYear(), padDatePart(now.getMonth() + 1), padDatePart(now.getDate())].join("-"),
-    time: [padDatePart(now.getHours()), padDatePart(now.getMinutes())].join(":"),
+    date: [
+      now.getFullYear(),
+      padDatePart(now.getMonth() + 1),
+      padDatePart(now.getDate()),
+    ].join("-"),
+    time: [padDatePart(now.getHours()), padDatePart(now.getMinutes())].join(
+      ":",
+    ),
   };
 };
 
@@ -65,8 +72,14 @@ const parseOrderTime = (orderTime?: string | null) => {
   if (Number.isNaN(date.getTime())) return null;
 
   return {
-    date: [date.getFullYear(), padDatePart(date.getMonth() + 1), padDatePart(date.getDate())].join("-"),
-    time: [padDatePart(date.getHours()), padDatePart(date.getMinutes())].join(":"),
+    date: [
+      date.getFullYear(),
+      padDatePart(date.getMonth() + 1),
+      padDatePart(date.getDate()),
+    ].join("-"),
+    time: [padDatePart(date.getHours()), padDatePart(date.getMinutes())].join(
+      ":",
+    ),
   };
 };
 
@@ -74,7 +87,8 @@ const activeTileClass =
   "border-primary bg-white text-gray-950 shadow-[0_12px_34px_rgba(17,24,39,0.10)] ring-2 ring-primary/10";
 const interactiveTileClass =
   "border-gray-100 bg-white text-gray-900 shadow-[0_12px_34px_rgba(17,24,39,0.08)] hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[0_18px_42px_rgba(17,24,39,0.12)] hover:text-primary";
-const disabledTileClass = "cursor-not-allowed border-gray-100 bg-[#F7F3EF]/70 text-gray-400 shadow-none";
+const disabledTileClass =
+  "cursor-not-allowed border-gray-100 bg-[#F7F3EF]/70 text-gray-400 shadow-none";
 
 export function GroupOrderScheduleDialog({
   order,
@@ -82,42 +96,62 @@ export function GroupOrderScheduleDialog({
   onOpenChange,
   onSaved,
 }: GroupOrderScheduleDialogProps) {
+  const t = useTranslations("groupOrder.schedule");
+  const locale = useLocale();
   const { token } = useAuth();
   const { updateGroupOrderSchedule } = useGroupOrderApi(token);
   const initialSchedule = useMemo(() => getCurrentSchedule(), []);
   const scheduleDates = useMemo(() => buildUpcomingDates(), []);
-  const parsedOrderTime = useMemo(() => parseOrderTime(order.orderTime), [order.orderTime]);
-  const [resolvedBranch, setResolvedBranch] = useState<BranchRecord | null>(null);
-  const branchId = String(order.branch?.id || (order as { branchId?: string | number | null }).branchId || "");
-  const activeBranch = resolvedBranch || (order.branch as BranchRecord | null | undefined);
+  const parsedOrderTime = useMemo(
+    () => parseOrderTime(order.orderTime),
+    [order.orderTime],
+  );
+  const [resolvedBranch, setResolvedBranch] = useState<BranchRecord | null>(
+    null,
+  );
+  const branchId = String(
+    order.branch?.id ||
+      (order as { branchId?: string | number | null }).branchId ||
+      "",
+  );
+  const activeBranch =
+    resolvedBranch || (order.branch as BranchRecord | null | undefined);
   const scheduleType = getScheduleType(order.orderType);
-  const [date, setDate] = useState(parsedOrderTime?.date || initialSchedule.date);
+  const [date, setDate] = useState(
+    parsedOrderTime?.date || initialSchedule.date,
+  );
   const [time, setTime] = useState(parsedOrderTime?.time || "");
   const [scheduleMode, setScheduleMode] = useState<ScheduleMode>("schedule");
   const [saving, setSaving] = useState(false);
 
   const scheduleState = useMemo(
-    () => getBranchScheduleForDate({ branch: activeBranch, dateValue: date, scheduleType }),
-    [activeBranch, date, scheduleType]
+    () =>
+      getBranchScheduleForDate({
+        branch: activeBranch,
+        dateValue: date,
+        scheduleType,
+      }),
+    [activeBranch, date, scheduleType],
   );
   const timeSlots = useMemo(
-    () => scheduleType === "delivery"
-      ? buildDeliveryTimeSlots({ branch: activeBranch, dateValue: date })
-      : buildPickupTimeSlots({ branch: activeBranch, dateValue: date }),
-    [activeBranch, date, scheduleType]
+    () =>
+      scheduleType === "delivery"
+        ? buildDeliveryTimeSlots({ branch: activeBranch, dateValue: date })
+        : buildPickupTimeSlots({ branch: activeBranch, dateValue: date }),
+    [activeBranch, date, scheduleType],
   );
   const breakLabels = useMemo(
     () => buildScheduleBreakLabels(scheduleState.schedule),
-    [scheduleState.schedule]
+    [scheduleState.schedule],
   );
   const scheduleHoursLabel = useMemo(() => {
     const schedule = scheduleState.schedule;
 
     if (!date || !schedule) return "";
-    if (schedule.isClosed) return "Closed";
+    if (schedule.isClosed) return t("closed");
 
     return `${formatPickupTimeLabel(schedule.openTime || "")} - ${formatPickupTimeLabel(schedule.closeTime || "")}`;
-  }, [date, scheduleState.schedule]);
+  }, [date, scheduleState.schedule, t]);
 
   useEffect(() => {
     if (!open) return;
@@ -142,7 +176,9 @@ export function GroupOrderScheduleDialog({
         }
       } catch {
         if (mounted) {
-          setResolvedBranch((order.branch as BranchRecord | null | undefined) ?? null);
+          setResolvedBranch(
+            (order.branch as BranchRecord | null | undefined) ?? null,
+          );
         }
       }
     };
@@ -155,7 +191,11 @@ export function GroupOrderScheduleDialog({
   }, [branchId, open, order.branch, token]);
 
   useEffect(() => {
-    if (time && scheduleState.hasOpeningHours && !timeSlots.some((slot) => slot.value === time)) {
+    if (
+      time &&
+      scheduleState.hasOpeningHours &&
+      !timeSlots.some((slot) => slot.value === time)
+    ) {
       setTime("");
     }
   }, [scheduleState.hasOpeningHours, time, timeSlots]);
@@ -169,16 +209,18 @@ export function GroupOrderScheduleDialog({
 
     if (scheduleMode === "schedule") {
       if (!date || !time) {
-        toast.error("Select a date and time.");
+        toast.error(t("selectDateTime"));
         return;
       }
 
       if (isPastDateValue(date)) {
-        toast.error("Please select a future date.");
+        toast.error(t("selectFutureDate"));
         return;
       }
 
-      const dateValue = getDateValue(getDateFromValue(date) || new Date(`${date}T00:00:00`));
+      const dateValue = getDateValue(
+        getDateFromValue(date) || new Date(`${date}T00:00:00`),
+      );
 
       if (
         !isScheduleTimeAvailable({
@@ -188,7 +230,7 @@ export function GroupOrderScheduleDialog({
           scheduleType,
         })
       ) {
-        toast.error("Selected time is unavailable.");
+        toast.error(t("timeUnavailable"));
         return;
       }
 
@@ -201,18 +243,21 @@ export function GroupOrderScheduleDialog({
 
     try {
       setSaving(true);
-      const response = await updateGroupOrderSchedule({ orderId: order.id, orderTime });
+      const response = await updateGroupOrderSchedule({
+        orderId: order.id,
+        orderTime,
+      });
 
       if (!response || response.error) {
-        toast.error(response?.message || response?.error || "Unable to update schedule.");
+        toast.error(response?.message || response?.error || t("updateFailed"));
         return;
       }
 
       onSaved(orderTime);
-      toast.success("Group order rescheduled.");
+      toast.success(t("updated"));
       onOpenChange(false);
     } catch {
-      toast.error("Unable to update schedule.");
+      toast.error(t("updateFailed"));
     } finally {
       setSaving(false);
     }
@@ -225,14 +270,14 @@ export function GroupOrderScheduleDialog({
           type="button"
           onClick={() => onOpenChange(false)}
           className="absolute right-4 top-4 text-gray-400 transition hover:text-gray-600"
-          aria-label="Close schedule editor"
+          aria-label={t("closeDialog")}
         >
           <X className="h-5 w-5" />
         </button>
 
         <div className="shrink-0 px-6 pb-4 pt-6 md:px-8 md:pt-8">
-          <h2 className="text-2xl font-semibold text-gray-900">Reschedule group order</h2>
-          <p className="mt-1 text-sm text-gray-500">Choose an allowed business time for this group order.</p>
+          <h2 className="text-2xl font-semibold text-gray-900">{t("title")}</h2>
+          <p className="mt-1 text-sm text-gray-500">{t("description")}</p>
         </div>
 
         <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 pb-4 md:px-8">
@@ -240,9 +285,11 @@ export function GroupOrderScheduleDialog({
             <div className="flex items-start gap-3">
               <Clock className="mt-0.5 h-5 w-5 text-primary" />
               <div>
-                <p className="text-sm font-semibold text-gray-900">Schedule</p>
+                <p className="text-sm font-semibold text-gray-900">
+                  {t("schedule")}
+                </p>
                 <p className="mt-1 text-xs leading-5 text-gray-500">
-                  Time cards below are generated from branch business hours.
+                  {t("businessHoursDescription")}
                 </p>
               </div>
             </div>
@@ -252,10 +299,16 @@ export function GroupOrderScheduleDialog({
             <div className="space-y-4">
               <div>
                 <div className="mb-2 flex items-center justify-between gap-2">
-                  <label className="text-sm font-medium text-gray-700">Date</label>
-                  {scheduleHoursLabel ? <span className="text-xs font-medium text-gray-500">{scheduleHoursLabel}</span> : null}
+                  <label className="text-sm font-medium text-gray-700">
+                    {t("date")}
+                  </label>
+                  {scheduleHoursLabel ? (
+                    <span className="text-xs font-medium text-gray-500">
+                      {scheduleHoursLabel}
+                    </span>
+                  ) : null}
                 </div>
-                <ScheduleRail ariaLabel="Choose schedule date">
+                <ScheduleRail ariaLabel={t("chooseDate")}>
                   {scheduleDates.map((scheduleDate) => {
                     const nextDateValue = getDateValue(scheduleDate);
                     const dateScheduleState = getBranchScheduleForDate({
@@ -263,13 +316,21 @@ export function GroupOrderScheduleDialog({
                       dateValue: nextDateValue,
                       scheduleType,
                     });
-                    const availableSlots = scheduleType === "delivery"
-                      ? buildDeliveryTimeSlots({ branch: activeBranch, dateValue: nextDateValue })
-                      : buildPickupTimeSlots({ branch: activeBranch, dateValue: nextDateValue });
+                    const availableSlots =
+                      scheduleType === "delivery"
+                        ? buildDeliveryTimeSlots({
+                            branch: activeBranch,
+                            dateValue: nextDateValue,
+                          })
+                        : buildPickupTimeSlots({
+                            branch: activeBranch,
+                            dateValue: nextDateValue,
+                          });
                     const disabled =
                       isPastDateValue(nextDateValue) ||
                       (dateScheduleState.hasOpeningHours &&
-                        (Boolean(dateScheduleState.schedule?.isClosed) || availableSlots.length === 0));
+                        (Boolean(dateScheduleState.schedule?.isClosed) ||
+                          availableSlots.length === 0));
                     const isSelected = date === nextDateValue;
 
                     return (
@@ -290,13 +351,17 @@ export function GroupOrderScheduleDialog({
                         }`}
                       >
                         <span className="block text-xs font-semibold uppercase">
-                          {scheduleDate.toLocaleDateString("en-US", { weekday: "short" })}
+                          {scheduleDate.toLocaleDateString(locale, {
+                            weekday: "short",
+                          })}
                         </span>
                         <span className="mt-1 block text-lg font-semibold">
                           {scheduleDate.getDate()}
                         </span>
                         <span className="block text-xs">
-                          {scheduleDate.toLocaleDateString("en-US", { month: "short" })}
+                          {scheduleDate.toLocaleDateString(locale, {
+                            month: "short",
+                          })}
                         </span>
                       </button>
                     );
@@ -306,23 +371,27 @@ export function GroupOrderScheduleDialog({
 
               <div>
                 <div className="mb-2 flex items-center justify-between gap-2">
-                  <label className="text-sm font-medium text-gray-700">Time</label>
+                  <label className="text-sm font-medium text-gray-700">
+                    {t("time")}
+                  </label>
                   {breakLabels.length ? (
                     <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600">
                       <PauseCircle className="h-3.5 w-3.5" />
-                      Break: {breakLabels.join(", ")}
+                      {t("break")}: {breakLabels.join(", ")}
                     </span>
                   ) : null}
                 </div>
                 {timeSlots.length ? (
-                  <ScheduleRail ariaLabel="Choose schedule time">
+                  <ScheduleRail ariaLabel={t("chooseTime")}>
                     {timeSlots.map((slot) => (
                       <button
                         key={slot.value}
                         type="button"
                         onClick={() => setTime(slot.value)}
                         className={`h-[48px] min-w-[96px] snap-start rounded-[14px] border text-sm font-semibold transition-all duration-200 ${
-                          time === slot.value ? activeTileClass : interactiveTileClass
+                          time === slot.value
+                            ? activeTileClass
+                            : interactiveTileClass
                         }`}
                       >
                         {slot.label}
@@ -331,7 +400,7 @@ export function GroupOrderScheduleDialog({
                   </ScheduleRail>
                 ) : (
                   <div className="rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-700">
-                    No available business time slots for this date. Please choose another date.
+                    {t("noSlots")}
                   </div>
                 )}
               </div>
@@ -345,7 +414,7 @@ export function GroupOrderScheduleDialog({
             onClick={() => onOpenChange(false)}
             className="inline-flex h-11 w-full items-center justify-center rounded-[12px] border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:border-gray-300 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
           >
-            Cancel
+            {t("cancel")}
           </button>
           <button
             type="button"
@@ -354,7 +423,7 @@ export function GroupOrderScheduleDialog({
             className="inline-flex h-11 w-full items-center justify-center rounded-[12px] bg-primary px-4 text-sm font-semibold text-white shadow-[0_10px_22px_rgba(206,24,27,0.20)] transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            Reschedule group order
+            {t("submit")}
           </button>
         </div>
       </div>

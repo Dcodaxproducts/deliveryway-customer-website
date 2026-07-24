@@ -189,7 +189,7 @@ describe("gift card service", () => {
       "/customer-app/gift-cards/available",
       {
         params: { restaurantId: "restaurant-1", branchId: "branch-1" },
-        headers: { "Accept-Language": "en" },
+        headers: { "Accept-Language": "de" },
       }
     );
     expect(response.items[0].amount).toBe(2500);
@@ -239,7 +239,7 @@ describe("gift card service", () => {
       },
       {
         params: { restaurantId: "restaurant-1", branchId: "branch-1" },
-        headers: { "Accept-Language": "en" },
+        headers: { "Accept-Language": "de" },
       }
     );
     expect(httpClientPostMock).not.toHaveBeenCalled();

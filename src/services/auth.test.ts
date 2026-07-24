@@ -39,7 +39,7 @@ describe("auth service", () => {
       expect.objectContaining({
         method: "POST",
         headers: {
-          "Accept-Language": "en",
+          "Accept-Language": "de",
           "Content-Type": "application/json",
         },
         body: JSON.stringify({

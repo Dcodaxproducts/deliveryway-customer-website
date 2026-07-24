@@ -4,10 +4,12 @@ import { onest } from "@/lib/fonts";
 import { Toaster } from "sonner";
 import { Providers } from "@/app/providers";
 
-const siteUrl = new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://deliveryway.dcodax.co");
-const siteTitle = "DeliveryWay | Fresh Food Delivery";
+const siteUrl = new URL(
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://deliveryway.dcodax.co",
+);
+const siteTitle = "DeliveryWay | Frische Essenslieferung";
 const siteDescription =
-  "Order fresh meals from your local restaurant with DeliveryWay. Browse offers, menu favourites, delivery, pickup, reservations, and gift cards.";
+  "Bestellen Sie mit DeliveryWay frische Gerichte bei Ihrem Restaurant vor Ort. Entdecken Sie Angebote, Favoriten, Lieferung, Abholung, Reservierungen und Geschenkkarten.";
 
 export const metadata: Metadata = {
   metadataBase: siteUrl,
@@ -19,11 +21,11 @@ export const metadata: Metadata = {
   applicationName: "DeliveryWay",
   keywords: [
     "DeliveryWay",
-    "food delivery",
-    "restaurant delivery",
-    "pickup",
-    "online food ordering",
-    "restaurant offers",
+    "Essenslieferung",
+    "Restaurant-Lieferservice",
+    "Abholung",
+    "Essen online bestellen",
+    "Restaurantangebote",
   ],
   alternates: {
     canonical: "/",
@@ -44,10 +46,10 @@ export const metadata: Metadata = {
         url: "/hero.png",
         width: 1200,
         height: 630,
-        alt: "DeliveryWay fresh food delivery preview",
+        alt: "Vorschau des DeliveryWay-Lieferservices",
       },
     ],
-    locale: "en_US",
+    locale: "de_DE",
   },
   twitter: {
     card: "summary_large_image",
@@ -72,7 +74,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="de">
       <body className={`${onest.className} ${onest.variable}`}>
         <Providers>
           <Toaster position="top-right" richColors />

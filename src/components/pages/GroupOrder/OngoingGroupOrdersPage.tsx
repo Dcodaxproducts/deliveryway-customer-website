@@ -2,7 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import {
   ArrowRight,
   CalendarDays,
@@ -16,22 +22,32 @@ import {
   XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useLocale, useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { cancelGroupOrder, fetchGroupOrderById, fetchGroupOrders } from "@/services/group-orders";
+import {
+  cancelGroupOrder,
+  fetchGroupOrderById,
+  fetchGroupOrders,
+} from "@/services/group-orders";
 import { setStoredGroupOrderCode } from "@/lib/group-order";
 import type { GroupOrder } from "@/types/group-order";
 
 const BAG_IMAGE_SRC = "/bag.png";
 
-const formatDateTime = (value?: string | null) => {
-  if (!value) return "Instant order";
+const formatDateTime = (
+  value: string | null | undefined,
+  locale: string,
+  instantLabel: string,
+  scheduledLabel: string,
+) => {
+  if (!value) return instantLabel;
 
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Scheduled order";
+  if (Number.isNaN(date.getTime())) return scheduledLabel;
 
-  return new Intl.DateTimeFormat("en", {
+  return new Intl.DateTimeFormat(locale, {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -40,29 +56,22 @@ const formatDateTime = (value?: string | null) => {
   }).format(date);
 };
 
-const getOrderTitle = (order: GroupOrder) => {
-  const branchName = order.branch?.name || order.restaurant?.name;
-  return branchName || `Group order #${String(order.id || "").slice(-6)}`;
-};
-
-function SectionHeading({
-  icon,
-  title,
-}: {
-  icon: ReactNode;
-  title: string;
-}) {
+function SectionHeading({ icon, title }: { icon: ReactNode; title: string }) {
   return (
     <div className="mb-3 flex items-center gap-3">
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[13px] bg-primary/[0.08] text-primary">
         {icon}
       </span>
-      <h2 className="text-[18px] font-semibold leading-none tracking-[-0.01em] text-gray-950">{title}</h2>
+      <h2 className="text-[18px] font-semibold leading-none tracking-[-0.01em] text-gray-950">
+        {title}
+      </h2>
     </div>
   );
 }
 
 function EmptyLockedState() {
+  const t = useTranslations("groupOrder.ongoing");
+
   return (
     <div className="relative min-h-[116px] overflow-hidden rounded-[16px] border border-dashed border-gray-300 bg-white px-6 py-5">
       <div className="relative z-10 flex items-center gap-4">
@@ -70,21 +79,36 @@ function EmptyLockedState() {
           <LockKeyhole className="h-7 w-7" strokeWidth={1.9} />
         </span>
         <div>
-          <h3 className="text-[16px] font-semibold leading-tight text-gray-950">No locked group orders</h3>
-          <p className="mt-1 text-[13px] leading-5 text-gray-500">Locked orders will appear here.</p>
+          <h3 className="text-[16px] font-semibold leading-tight text-gray-950">
+            {t("noLockedTitle")}
+          </h3>
+          <p className="mt-1 text-[13px] leading-5 text-gray-500">
+            {t("noLockedDescription")}
+          </p>
         </div>
       </div>
 
       <div className="absolute bottom-3 right-16 hidden h-[66px] w-[150px] rounded-t-full bg-violet-100/70 md:block" />
-      <LockKeyhole className="absolute bottom-7 right-[112px] hidden h-9 w-9 text-violet-500 md:block" strokeWidth={1.8} />
-      <span className="absolute right-[92px] top-8 hidden text-xl font-black text-violet-300 md:block">+</span>
-      <span className="absolute right-[154px] top-6 hidden text-xs font-black text-violet-200 md:block">+</span>
-      <span className="absolute bottom-12 right-[62px] hidden text-xl font-black text-violet-300 md:block">+</span>
+      <LockKeyhole
+        className="absolute bottom-7 right-[112px] hidden h-9 w-9 text-violet-500 md:block"
+        strokeWidth={1.8}
+      />
+      <span className="absolute right-[92px] top-8 hidden text-xl font-black text-violet-300 md:block">
+        +
+      </span>
+      <span className="absolute right-[154px] top-6 hidden text-xs font-black text-violet-200 md:block">
+        +
+      </span>
+      <span className="absolute bottom-12 right-[62px] hidden text-xl font-black text-violet-300 md:block">
+        +
+      </span>
     </div>
   );
 }
 
 export function OngoingGroupOrdersPage() {
+  const t = useTranslations("groupOrder.ongoing");
+  const locale = useLocale();
   const { token } = useAuth();
   const [orders, setOrders] = useState<GroupOrder[]>([]);
   const [loading, setLoading] = useState(true);
@@ -92,40 +116,49 @@ export function OngoingGroupOrdersPage() {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   const openOrders = useMemo(
-    () => orders.filter((order) => String(order.status || "").toUpperCase() === "OPEN"),
-    [orders]
+    () =>
+      orders.filter(
+        (order) => String(order.status || "").toUpperCase() === "OPEN",
+      ),
+    [orders],
   );
   const lockedOrders = useMemo(
-    () => orders.filter((order) => String(order.status || "").toUpperCase() === "LOCKED"),
-    [orders]
+    () =>
+      orders.filter(
+        (order) => String(order.status || "").toUpperCase() === "LOCKED",
+      ),
+    [orders],
   );
 
-  const loadOrders = useCallback(async ({ silent = false }: { silent?: boolean } = {}) => {
-    if (!token) {
-      setOrders([]);
-      setLoading(false);
-      return;
-    }
-
-    try {
-      if (silent) setRefreshing(true);
-      else setLoading(true);
-
-      const { response, groupOrders } = await fetchGroupOrders(token);
-
-      if (!response || response.error) {
-        toast.error(response?.message || response?.error || "Unable to load group orders.");
+  const loadOrders = useCallback(
+    async ({ silent = false }: { silent?: boolean } = {}) => {
+      if (!token) {
+        setOrders([]);
+        setLoading(false);
         return;
       }
 
-      setOrders(groupOrders);
-    } catch {
-      toast.error("Unable to load group orders.");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [token]);
+      try {
+        if (silent) setRefreshing(true);
+        else setLoading(true);
+
+        const { response, groupOrders } = await fetchGroupOrders(token);
+
+        if (!response || response.error) {
+          toast.error(response?.message || response?.error || t("loadFailed"));
+          return;
+        }
+
+        setOrders(groupOrders);
+      } catch {
+        toast.error(t("loadFailed"));
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [t, token],
+  );
 
   useEffect(() => {
     void loadOrders();
@@ -148,7 +181,7 @@ export function OngoingGroupOrdersPage() {
   const handleCancel = async (order: GroupOrder) => {
     if (!order.id || !token) return;
 
-    const confirmed = window.confirm("Cancel this group order?");
+    const confirmed = window.confirm(t("cancelConfirmation"));
     if (!confirmed) return;
 
     try {
@@ -156,14 +189,14 @@ export function OngoingGroupOrdersPage() {
       const response = await cancelGroupOrder({ orderId: order.id, token });
 
       if (!response || response.error) {
-        toast.error(response?.message || response?.error || "Unable to cancel group order.");
+        toast.error(response?.message || response?.error || t("cancelFailed"));
         return;
       }
 
-      toast.success("Group order cancelled.");
+      toast.success(t("cancelled"));
       await loadOrders({ silent: true });
     } catch {
-      toast.error("Unable to cancel group order.");
+      toast.error(t("cancelFailed"));
     } finally {
       setCancellingId(null);
     }
@@ -173,6 +206,10 @@ export function OngoingGroupOrdersPage() {
     const status = String(order.status || "OPEN").toUpperCase();
     const orderId = String(order.id || "");
     const isCancelling = cancellingId === orderId;
+    const orderTitle =
+      order.branch?.name ||
+      order.restaurant?.name ||
+      t("orderFallback", { id: orderId.slice(-6) });
 
     return (
       <article
@@ -192,17 +229,22 @@ export function OngoingGroupOrdersPage() {
               </span>
 
               <h3 className="mt-3 truncate text-[20px] font-semibold leading-tight tracking-[-0.02em] text-gray-950">
-                {getOrderTitle(order)}
+                {orderTitle}
               </h3>
 
               <p className="mt-2 flex flex-wrap items-center gap-2 text-[14px] font-medium text-gray-500">
                 <CalendarDays className="h-4 w-4" />
-                {formatDateTime(order.orderTime)}
+                {formatDateTime(
+                  order.orderTime,
+                  locale,
+                  t("instantOrder"),
+                  t("scheduledOrder"),
+                )}
               </p>
 
               {order.inviteCode ? (
                 <p className="mt-3 flex flex-wrap items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.13em] text-gray-500">
-                  Code:
+                  {t("code")}:
                   <span className="rounded-[10px] bg-gray-100 px-3.5 py-1.5 text-[13px] tracking-normal text-gray-950 shadow-sm">
                     {order.inviteCode}
                   </span>
@@ -217,7 +259,7 @@ export function OngoingGroupOrdersPage() {
               onClick={() => void handleOpenLobby(order)}
               className="inline-flex h-[44px] w-full max-w-[244px] items-center justify-center gap-2 self-start rounded-full bg-primary px-5 text-[14px] font-semibold text-white shadow-[0_12px_24px_rgba(206,24,27,0.18)] transition hover:-translate-y-0.5 hover:bg-primary/90 lg:self-center xl:max-w-[260px]"
             >
-              View lobby
+              {t("viewLobby")}
               <ArrowRight className="h-5 w-5" />
             </Link>
 
@@ -228,8 +270,12 @@ export function OngoingGroupOrdersPage() {
               disabled={isCancelling}
               className="h-[44px] w-full max-w-[244px] self-start rounded-full border-primary/35 bg-white px-5 text-[14px] font-semibold text-primary hover:border-primary hover:bg-primary/[0.04] lg:self-center xl:max-w-[260px]"
             >
-              {isCancelling ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <XCircle className="mr-2 h-4 w-4" />}
-              Cancel order
+              {isCancelling ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <XCircle className="mr-2 h-4 w-4" />
+              )}
+              {t("cancelOrder")}
             </Button>
           </div>
         </div>
@@ -244,22 +290,26 @@ export function OngoingGroupOrdersPage() {
           <div className="min-w-0">
             <div className="mb-5 inline-flex h-9 items-center gap-2 rounded-full bg-primary/[0.09] px-4 text-[13px] font-semibold text-primary">
               <UsersRound className="h-4 w-4" />
-              Group orders
+              {t("eyebrow")}
             </div>
 
             <h1 className="max-w-[620px] text-[32px] font-semibold leading-[1.08] tracking-[-0.045em] text-gray-950 sm:text-[36px] lg:text-[40px] xl:text-[42px]">
-              Ongoing <span className="text-primary">group orders</span>
+              {t.rich("title", {
+                highlight: (chunks) => (
+                  <span className="text-primary">{chunks}</span>
+                ),
+              })}
             </h1>
 
             <p className="mt-4 max-w-[560px] text-[15px] leading-7 text-gray-500">
-              Review your open and locked group orders, jump back into the lobby, or cancel orders that should not continue.
+              {t("description")}
             </p>
           </div>
 
           <div className="hidden min-w-0 justify-center lg:flex">
             <Image
               src={BAG_IMAGE_SRC}
-              alt="Group orders"
+              alt={t("imageAlt")}
               width={300}
               height={200}
               priority
@@ -276,8 +326,12 @@ export function OngoingGroupOrdersPage() {
               disabled={refreshing || loading}
               className="h-10 w-[118px] shrink-0 rounded-[13px] border-gray-200 bg-white px-4 text-[13px] font-semibold text-primary shadow-[0_6px_14px_rgba(15,23,42,0.05)] hover:border-primary/35 hover:bg-primary/[0.04]"
             >
-              {refreshing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-              Refresh
+              {refreshing ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="mr-2 h-4 w-4" />
+              )}
+              {t("refresh")}
             </Button>
           </div>
         </div>
@@ -285,37 +339,56 @@ export function OngoingGroupOrdersPage() {
         {loading ? (
           <div className="grid gap-4">
             {[0, 1, 2].map((item) => (
-              <div key={item} className="h-[152px] animate-pulse rounded-[18px] bg-gray-100" />
+              <div
+                key={item}
+                className="h-[152px] animate-pulse rounded-[18px] bg-gray-100"
+              />
             ))}
           </div>
         ) : orders.length === 0 ? (
           <div className="rounded-[22px] border border-dashed border-gray-200 bg-gray-50 px-6 py-14 text-center">
-            <h2 className="text-[20px] font-semibold text-gray-950">No ongoing group orders</h2>
+            <h2 className="text-[20px] font-semibold text-gray-950">
+              {t("emptyTitle")}
+            </h2>
             <p className="mx-auto mt-2 max-w-md text-[14px] leading-6 text-gray-500">
-              Open or locked group orders will appear here. Start a new group order when you are ready to invite people.
+              {t("emptyDescription")}
             </p>
             <Link
               href="/group-order"
               className="mt-6 inline-flex h-11 items-center justify-center rounded-full bg-primary px-6 text-[14px] font-semibold text-white shadow-[0_12px_26px_rgba(206,24,27,0.18)]"
             >
-              Start group order
+              {t("startOrder")}
             </Link>
           </div>
         ) : (
           <div className="space-y-7">
             <section>
-              <SectionHeading icon={<CalendarDays className="h-5 w-5" />} title={`Open orders (${openOrders.length})`} />
+              <SectionHeading
+                icon={<CalendarDays className="h-5 w-5" />}
+                title={t("openOrders", { count: openOrders.length })}
+              />
               <div className="grid gap-4">
-                {openOrders.length ? openOrders.map(renderOrder) : (
-                  <p className="rounded-[18px] bg-gray-50 px-6 py-5 text-[14px] font-medium text-gray-500">No open group orders.</p>
+                {openOrders.length ? (
+                  openOrders.map(renderOrder)
+                ) : (
+                  <p className="rounded-[18px] bg-gray-50 px-6 py-5 text-[14px] font-medium text-gray-500">
+                    {t("noOpenOrders")}
+                  </p>
                 )}
               </div>
             </section>
 
             <section>
-              <SectionHeading icon={<LockKeyhole className="h-5 w-5" />} title={`Locked orders (${lockedOrders.length})`} />
+              <SectionHeading
+                icon={<LockKeyhole className="h-5 w-5" />}
+                title={t("lockedOrders", { count: lockedOrders.length })}
+              />
               <div className="grid gap-4">
-                {lockedOrders.length ? lockedOrders.map(renderOrder) : <EmptyLockedState />}
+                {lockedOrders.length ? (
+                  lockedOrders.map(renderOrder)
+                ) : (
+                  <EmptyLockedState />
+                )}
               </div>
             </section>
 
@@ -324,15 +397,19 @@ export function OngoingGroupOrdersPage() {
                 <Headphones className="h-6 w-6" />
               </span>
               <div>
-                <h2 className="text-[16px] font-semibold leading-tight text-gray-950">Need help with a group order?</h2>
-                <p className="mt-1 text-[13px] leading-5 text-gray-500">If you have any issues or questions, our support team is here to help.</p>
+                <h2 className="text-[16px] font-semibold leading-tight text-gray-950">
+                  {t("helpTitle")}
+                </h2>
+                <p className="mt-1 text-[13px] leading-5 text-gray-500">
+                  {t("helpDescription")}
+                </p>
               </div>
               <Link
                 href="/contact"
                 className="inline-flex h-[42px] items-center justify-center gap-2 rounded-[12px] border border-primary/40 bg-white px-5 text-[14px] font-semibold text-primary transition hover:bg-primary/[0.04]"
               >
                 <MessageSquare className="h-4 w-4" />
-                Contact Support
+                {t("contactSupport")}
               </Link>
             </section>
           </div>

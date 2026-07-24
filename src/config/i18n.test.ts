@@ -13,8 +13,8 @@ describe("i18n config", () => {
     vi.unstubAllGlobals();
   });
 
-  it("uses English as the default locale", () => {
-    expect(DEFAULT_LOCALE).toBe("en");
+  it("uses German as the default locale", () => {
+    expect(DEFAULT_LOCALE).toBe("de");
   });
 
   it("supports English and German", () => {
@@ -22,9 +22,9 @@ describe("i18n config", () => {
     expect(SUPPORTED_LOCALES).toContain("de");
   });
 
-  it("resolves unsupported locales to English", () => {
-    expect(resolveLocale("fr")).toBe("en");
-    expect(resolveLocale(null)).toBe("en");
+  it("resolves unsupported locales to German", () => {
+    expect(resolveLocale("fr")).toBe("de");
+    expect(resolveLocale(null)).toBe("de");
   });
 
   it("resolves a valid locale to itself", () => {
@@ -46,7 +46,7 @@ describe("i18n config", () => {
     expect(getRequestLocale()).toBe("de");
   });
 
-  it("falls back to English when browser storage is unavailable", () => {
+  it("falls back to German when browser storage is unavailable", () => {
     vi.stubGlobal("window", {
       localStorage: {
         getItem: vi.fn(() => {
@@ -55,6 +55,6 @@ describe("i18n config", () => {
       },
     });
 
-    expect(getRequestLocale()).toBe("en");
+    expect(getRequestLocale()).toBe("de");
   });
 });
