@@ -15,6 +15,7 @@ import {
   readAuthSession,
   saveAuthSession,
 } from "@/lib/auth";
+import { mergePublicBranchIntoAuthSession } from "@/lib/branch-selector";
 import { getCurrentUser, refreshCustomerToken } from "@/services/auth";
 import type { AuthContextValue, AuthSession, AuthUser } from "@/types/auth";
 
@@ -29,26 +30,34 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const updateUser = useCallback((nextUser: AuthUser | null | ((user: AuthUser | null) => AuthUser | null)) => {
-    setUserState((currentUser) => {
-      const resolvedUser = typeof nextUser === "function" ? nextUser(currentUser) : nextUser;
-      const storedAuth = readAuthSession();
+  const updateUser = useCallback(
+    (
+      nextUser: AuthUser | null | ((user: AuthUser | null) => AuthUser | null),
+    ) => {
+      setUserState((currentUser) => {
+        const resolvedUser =
+          typeof nextUser === "function" ? nextUser(currentUser) : nextUser;
+        const storedAuth = readAuthSession();
 
-      if (storedAuth && resolvedUser) {
-        saveAuthSession({
-          ...storedAuth,
-          user: resolvedUser,
-        });
-      }
+        if (storedAuth && resolvedUser) {
+          saveAuthSession({
+            ...storedAuth,
+            user: resolvedUser,
+          });
+        }
 
-      return resolvedUser;
-    });
-  }, []);
+        return resolvedUser;
+      });
+    },
+    [],
+  );
 
   const login = useCallback((data: AuthSession) => {
-    saveAuthSession(data);
-    setToken(data.accessToken);
-    setUserState(data.user);
+    const resolvedSession = mergePublicBranchIntoAuthSession(data);
+
+    saveAuthSession(resolvedSession);
+    setToken(resolvedSession.accessToken);
+    setUserState(resolvedSession.user);
   }, []);
 
   const logout = useCallback(() => {
@@ -72,7 +81,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           setUserState(mergeStoredUserState(me, storedAuth.user));
           setToken(storedAuth.accessToken);
         } catch (error) {
-          const isUnauthorized = error instanceof Error && error.message === "Request failed";
+          const isUnauthorized =
+            error instanceof Error && error.message === "Request failed";
 
           if (!isUnauthorized) {
             setLoading(false);
@@ -100,7 +110,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           const me = await getCurrentUser(refreshedToken.accessToken);
           const latestStoredAuth = readAuthSession();
 
-          setUserState(mergeStoredUserState(me, latestStoredAuth?.user ?? storedAuth.user));
+          setUserState(
+            mergeStoredUserState(me, latestStoredAuth?.user ?? storedAuth.user),
+          );
           setToken(refreshedToken.accessToken);
         }
       } catch (error) {

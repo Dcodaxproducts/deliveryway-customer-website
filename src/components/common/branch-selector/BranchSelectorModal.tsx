@@ -10,8 +10,10 @@ import {
 } from "react-icons/fa";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { useQueryClient } from "@tanstack/react-query";
 import useBranches, { useNearbyBranches } from "@/hooks/useBranches";
 import { useAuthContext } from "@/hooks/useAuth";
+import { useCart } from "@/hooks/useCart";
 import type { Branch, BranchApiResponse } from "@/types/branch-selector";
 import {
   branchSupportsDelivery,
@@ -20,6 +22,7 @@ import {
   getBranchAddressText,
   isBranchCurrentlyAvailable,
   nearbyBranchToBranchRecord,
+  persistPublicBranchSelection,
   persistSelectedBranch,
 } from "@/lib/branch-selector";
 import {
@@ -29,6 +32,11 @@ import {
 import { usePathname } from "next/navigation";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import { AddressLocationPicker } from "@/components/common/branch-selector/AddressLocationPicker";
+import {
+  getStoredGroupOrderCode,
+  getStoredGroupOrderId,
+} from "@/lib/group-order";
+import { getApiErrorMessage } from "@/lib/errors";
 
 type BranchSearchMode = "delivery" | "pickup";
 
@@ -36,6 +44,7 @@ type BranchSelectorModalProps = {
   open: boolean;
   onClose: () => void;
   restaurantId?: string | number | null;
+  currentBranchId?: string | number | null;
   endpoint?: string;
   title?: string;
   badgeText?: string;
@@ -48,6 +57,7 @@ export function BranchSelectorModal({
   open,
   onClose,
   restaurantId,
+  currentBranchId,
   endpoint,
   title,
   badgeText,
@@ -58,10 +68,15 @@ export function BranchSelectorModal({
   const t = useTranslations("branchSelector");
   const tCommon = useTranslations("common");
   const { token, user, setUser } = useAuthContext();
+  const cartApi = useCart(token);
+  const queryClient = useQueryClient();
   const api = useBranches(token);
   const getRef = useRef(api.fetchBranchPage);
   const pathname = usePathname();
-  const isBlockedRoute = pathname === "/login" || pathname === "/auth/login";
+  const isBlockedRoute =
+    pathname === "/login" ||
+    pathname === "/auth/login" ||
+    pathname.startsWith("/checkout");
 
   useEffect(() => {
     getRef.current = api.fetchBranchPage;
@@ -89,7 +104,7 @@ export function BranchSelectorModal({
           limit: 20,
         }
       : null,
-    { enabled: open && useNearbyResults }
+    { enabled: Boolean(token && open && useNearbyResults) },
   );
 
   const [search, setSearch] = useState("");
@@ -117,38 +132,40 @@ export function BranchSelectorModal({
   const resolvedRestaurantId = useMemo(() => {
     return restaurantId || user?.restaurantId || user?.tenantId || null;
   }, [restaurantId, user]);
-  const isRenderable = Boolean(open && user && token && !isBlockedRoute);
+  const isRenderable = Boolean(open && resolvedRestaurantId && !isBlockedRoute);
 
-  const canFetch =
-    Boolean(resolvedRestaurantId) && isRenderable;
+  const canFetch = Boolean(resolvedRestaurantId) && isRenderable;
 
   const hasActiveSearch = Boolean(search.trim() || searchInput.trim());
   const resolvedTitle = title || "Choose your nearest branch";
-  const resolvedDescription =
-    description ??
-    "";
+  const resolvedDescription = description ?? "";
   const nearbyBranches = useMemo(
     () =>
       nearbyQuery.branches
         .filter((branch) =>
           branchMode === "pickup"
             ? branchSupportsPickup(branch)
-            : branchSupportsDelivery(branch)
+            : branchSupportsDelivery(branch),
         )
         .map(nearbyBranchToBranchRecord),
-    [branchMode, nearbyQuery.branches]
+    [branchMode, nearbyQuery.branches],
   );
   const shouldShowNearbyBranches = useNearbyResults && Boolean(coordinates);
-  const displayedBranches = shouldShowNearbyBranches ? nearbyBranches : branches;
+  const displayedBranches = shouldShowNearbyBranches
+    ? nearbyBranches
+    : branches;
   const isLoadingBranches =
     shouldShowNearbyBranches || permissionState === "requesting"
       ? permissionState === "requesting" || nearbyQuery.isFetching
       : loading;
-  const displayedTotalBranches = shouldShowNearbyBranches ? displayedBranches.length : totalBranches;
+  const displayedTotalBranches = shouldShowNearbyBranches
+    ? displayedBranches.length
+    : totalBranches;
 
   const buildUrl = useCallback(() => {
     const baseUrl =
-      endpoint || `/v1/branches?restaurantId=${resolvedRestaurantId}`;
+      endpoint ||
+      `/v1/customer-app/branches?restaurantId=${resolvedRestaurantId}`;
 
     const separator = baseUrl.includes("?") ? "&" : "?";
 
@@ -182,8 +199,7 @@ export function BranchSelectorModal({
       const nextTotal = meta.total ?? res?.total ?? activeBranches.length;
       const nextHasNextPage =
         meta.hasNextPage ?? res?.hasNextPage ?? page < nextTotalPages;
-      const nextHasPrevPage =
-        meta.hasPrevPage ?? res?.hasPrevPage ?? page > 1;
+      const nextHasPrevPage = meta.hasPrevPage ?? res?.hasPrevPage ?? page > 1;
 
       setBranches(activeBranches);
       setTotalPages(Math.max(1, nextTotalPages));
@@ -235,11 +251,70 @@ export function BranchSelectorModal({
     try {
       setSelectingId(branch.id);
 
-      persistSelectedBranch(branch, setUser, {
-        orderType: branchMode === "pickup" ? "TAKEAWAY" : "DELIVERY",
-      });
+      const selectedBranchId =
+        currentBranchId || user?.branchId || user?.branch?.id || "";
+
+      if (String(selectedBranchId) === String(branch.id)) {
+        onClose();
+        return;
+      }
+
+      if (
+        user &&
+        token &&
+        (getStoredGroupOrderId() || getStoredGroupOrderCode())
+      ) {
+        toast.error(t("activeGroupOrderBranchLocked"));
+        return;
+      }
+
+      if (user && token) {
+        const { response, items } = await cartApi.fetchCustomerCart({
+          customerId: user.id,
+        });
+
+        if (!response || response.error || response.success === false) {
+          toast.error(getApiErrorMessage(response, t("failedToCheckCart")));
+          return;
+        }
+
+        if (items.length > 0) {
+          const confirmed = window.confirm(t("confirmBranchSwitchClearCart"));
+
+          if (!confirmed) {
+            return;
+          }
+
+          const clearResponse = await cartApi.clearCustomerCart({
+            customerId: user.id,
+          });
+
+          if (
+            !clearResponse ||
+            clearResponse.error ||
+            clearResponse.success === false
+          ) {
+            toast.error(
+              getApiErrorMessage(clearResponse, t("failedToClearCart")),
+            );
+            return;
+          }
+        }
+      }
+
+      const orderType = branchMode === "pickup" ? "TAKEAWAY" : "DELIVERY";
+
+      if (user && token) {
+        persistSelectedBranch(branch, setUser, { orderType });
+      } else {
+        persistPublicBranchSelection(
+          { ...branch, selectedOrderType: orderType },
+          resolvedRestaurantId,
+        );
+      }
 
       toast.success(t("branchSelected", { name: branch.name }));
+      await queryClient.invalidateQueries();
       onSelected?.(branch);
       onClose();
     } catch (error) {
@@ -281,7 +356,10 @@ export function BranchSelectorModal({
     requestLocation();
   };
 
-  const handleSelectSearchLocation = (nextCoordinates: { lat: number; lng: number }, label?: string) => {
+  const handleSelectSearchLocation = (
+    nextCoordinates: { lat: number; lng: number },
+    label?: string,
+  ) => {
     acceptCoordinates(nextCoordinates, label || "Selected address");
     setUseNearbyResults(true);
   };
@@ -337,44 +415,50 @@ export function BranchSelectorModal({
               ) : null}
             </div>
           </div>
-
         </div>
 
-        <div className="grid min-h-0 flex-1 lg:grid-cols-[360px_minmax(0,1fr)]">
-          <div className="border-b border-[#EEF1F4] px-6 py-5 md:px-8 lg:border-b-0 lg:border-r lg:px-6 lg:py-6">
-            <div className="mb-4 inline-flex rounded-2xl bg-[#F9FAFB] p-1">
-              {(["delivery", "pickup"] as const).map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => handleBranchModeChange(mode)}
-                  className={`min-w-[112px] rounded-xl px-4 py-2 text-sm font-semibold transition ${
-                    branchMode === mode
-                      ? "bg-[var(--primary)] text-white shadow-sm"
-                      : "text-[#6B7280] hover:bg-white"
-                  }`}
-                >
-                  {mode === "delivery" ? "Delivery" : "Pickup"}
-                </button>
-              ))}
+        <div
+          className={`grid min-h-0 flex-1 ${
+            token ? "lg:grid-cols-[360px_minmax(0,1fr)]" : ""
+          }`}
+        >
+          {token ? (
+            <div className="border-b border-[#EEF1F4] px-6 py-5 md:px-8 lg:border-b-0 lg:border-r lg:px-6 lg:py-6">
+              <div className="mb-4 inline-flex rounded-2xl bg-[#F9FAFB] p-1">
+                {(["delivery", "pickup"] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => handleBranchModeChange(mode)}
+                    className={`min-w-[112px] rounded-xl px-4 py-2 text-sm font-semibold transition ${
+                      branchMode === mode
+                        ? "bg-[var(--primary)] text-white shadow-sm"
+                        : "text-[#6B7280] hover:bg-white"
+                    }`}
+                  >
+                    {mode === "delivery" ? "Delivery" : "Pickup"}
+                  </button>
+                ))}
+              </div>
+
+              <AddressLocationPicker
+                coordinates={coordinates}
+                locationLabel={locationLabel}
+                onSelectLocation={handleSelectSearchLocation}
+                onUseCurrentLocation={handleUseCurrentLocation}
+                isLocating={permissionState === "requesting"}
+                compact
+                actionsBelow
+              />
+
+              {errorMessage ? (
+                <p className="mt-4 rounded-2xl bg-[#F9FAFB] px-4 py-3 text-xs leading-5 text-[#6B7280]">
+                  {errorMessage ||
+                    "Location is unavailable right now. You can still search and choose a branch manually."}
+                </p>
+              ) : null}
             </div>
-
-            <AddressLocationPicker
-              coordinates={coordinates}
-              locationLabel={locationLabel}
-              onSelectLocation={handleSelectSearchLocation}
-              onUseCurrentLocation={handleUseCurrentLocation}
-              isLocating={permissionState === "requesting"}
-              compact
-              actionsBelow
-            />
-
-            {errorMessage ? (
-              <p className="mt-4 rounded-2xl bg-[#F9FAFB] px-4 py-3 text-xs leading-5 text-[#6B7280]">
-                {errorMessage || "Location is unavailable right now. You can still search and choose a branch manually."}
-              </p>
-            ) : null}
-          </div>
+          ) : null}
 
           <div className="flex min-h-0 flex-col">
             <div className="border-b border-[#EEF1F4] bg-white px-6 py-4 md:px-8">
@@ -398,10 +482,14 @@ export function BranchSelectorModal({
                 <div className="flex flex-col items-center justify-center py-16 text-center">
                   <div className="mb-5 h-12 w-12 animate-spin rounded-full border-[3px] border-[color:rgba(206,24,27,0.14)] border-t-[var(--primary)]" />
                   <p className="text-sm font-semibold text-[#111827]">
-                    {permissionState === "requesting" ? "Finding your location" : t("loadingAvailableBranches")}
+                    {permissionState === "requesting"
+                      ? "Finding your location"
+                      : t("loadingAvailableBranches")}
                   </p>
                   <p className="mt-1 text-xs text-[#9CA3AF]">
-                    {shouldShowNearbyBranches ? "Sorting nearby branches by distance" : t("fetchingRestaurantBranches")}
+                    {shouldShowNearbyBranches
+                      ? "Sorting nearby branches by distance"
+                      : t("fetchingRestaurantBranches")}
                   </p>
                 </div>
               ) : displayedBranches.length === 0 ? (
@@ -443,14 +531,22 @@ export function BranchSelectorModal({
                   {displayedBranches.map((branch) => {
                     const addressText = getBranchAddressText(branch);
                     const isSelecting = selectingId === branch.id;
-                    const isCurrent = user?.branchId === branch.id;
+                    const isCurrent =
+                      String(
+                        currentBranchId ||
+                          user?.branchId ||
+                          user?.branch?.id ||
+                          "",
+                      ) === String(branch.id);
                     const supportsDelivery = branchSupportsDelivery(branch);
                     const supportsPickup = branchSupportsPickup(branch);
                     const available = isBranchCurrentlyAvailable(branch);
                     const supportText = [
                       supportsDelivery ? "Delivery" : "",
                       supportsPickup ? "Pickup" : "",
-                    ].filter(Boolean).join(" + ");
+                    ]
+                      .filter(Boolean)
+                      .join(" + ");
 
                     return (
                       <button
@@ -489,7 +585,10 @@ export function BranchSelectorModal({
                                   </span>
                                 ) : null}
                                 <span className="rounded-full bg-[#F3F4F6] px-3 py-1 text-[11px] font-semibold text-[#4B5563]">
-                                  {available ? t("available") : branch.availability?.reason || "Availability limited"}
+                                  {available
+                                    ? t("available")
+                                    : branch.availability?.reason ||
+                                      "Availability limited"}
                                 </span>
                               </div>
                             </div>
@@ -501,7 +600,9 @@ export function BranchSelectorModal({
 
                           <div className="mt-4 inline-flex items-center gap-2 text-[13px] font-semibold text-[var(--primary)]">
                             <FaCheckCircle className="text-[12px]" />
-                            {isCurrent ? t("selectedBranch") : t("selectThisBranch")}
+                            {isCurrent
+                              ? t("selectedBranch")
+                              : t("selectThisBranch")}
                           </div>
                         </div>
                       </button>
@@ -518,7 +619,9 @@ export function BranchSelectorModal({
                     {displayedTotalBranches > 0
                       ? t("showingPageOf", {
                           page,
-                          totalPages: shouldShowNearbyBranches ? 1 : Math.max(totalPages, 1),
+                          totalPages: shouldShowNearbyBranches
+                            ? 1
+                            : Math.max(totalPages, 1),
                         })
                       : forceSelection
                         ? t("noSelectableBranch")
@@ -534,7 +637,9 @@ export function BranchSelectorModal({
                   ) : null}
                 </div>
 
-                {!shouldShowNearbyBranches && totalBranches > 0 && totalPages > 1 ? (
+                {!shouldShowNearbyBranches &&
+                totalBranches > 0 &&
+                totalPages > 1 ? (
                   <div className="flex items-center justify-center gap-2 md:justify-end">
                     <button
                       type="button"

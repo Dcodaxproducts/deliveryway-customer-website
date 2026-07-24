@@ -9,9 +9,12 @@ import {
   getSelectedOrderType,
   getSoleActiveBranch,
   isBranchCurrentlyAvailable,
+  mergePublicBranchIntoAuthSession,
   nearbyBranchToBranchRecord,
   normalizeBranch,
+  normalizePublicBranchSelection,
 } from "@/lib/branch-selector";
+import type { AuthSession } from "@/types/auth";
 import type { NearbyBranch } from "@/types/branches";
 
 const nearbyBranch: NearbyBranch = {
@@ -36,7 +39,7 @@ describe("branch selector helpers", () => {
       branchSupportsPickup({
         ...nearbyBranch,
         settings: { allowedOrderTypes: ["DELIVERY"] },
-      })
+      }),
     ).toBe(false);
   });
 
@@ -46,7 +49,7 @@ describe("branch selector helpers", () => {
       branchSupportsDelivery({
         ...nearbyBranch,
         settings: { allowedOrderTypes: ["TAKEAWAY"] },
-      })
+      }),
     ).toBe(false);
   });
 
@@ -57,7 +60,7 @@ describe("branch selector helpers", () => {
           { id: "branch-1", name: "Central", isActive: true },
           { id: "branch-2", name: "Closed", isActive: false },
         ],
-      })
+      }),
     ).toMatchObject({ id: "branch-1", isOnlyBranch: true });
 
     expect(
@@ -66,16 +69,23 @@ describe("branch selector helpers", () => {
           { id: "branch-1", name: "Central", isActive: true },
           { id: "branch-2", name: "North", isActive: true },
         ],
-      })
+      }),
     ).toBeNull();
   });
 
   it("chooses a supported default order type for automatic single-branch selection", () => {
-    expect(getDefaultBranchOrderType(nearbyBranch, "TAKEAWAY")).toBe("TAKEAWAY");
+    expect(getDefaultBranchOrderType(nearbyBranch, "TAKEAWAY")).toBe(
+      "TAKEAWAY",
+    );
     expect(
-      getDefaultBranchOrderType({ settings: { allowedOrderTypes: ["TAKEAWAY"] } }, "DELIVERY")
+      getDefaultBranchOrderType(
+        { settings: { allowedOrderTypes: ["TAKEAWAY"] } },
+        "DELIVERY",
+      ),
     ).toBe("TAKEAWAY");
-    expect(getDefaultBranchOrderType({ settings: undefined }, null)).toBe("DELIVERY");
+    expect(getDefaultBranchOrderType({ settings: undefined }, null)).toBe(
+      "DELIVERY",
+    );
   });
 
   it("formatBranchDistance works for metres and kilometres", () => {
@@ -97,7 +107,7 @@ describe("branch selector helpers", () => {
           state: "Punjab",
           country: "Pakistan",
         },
-      })
+      }),
     ).toBe("21, dha 5, 46330 Rawalpindi");
   });
 
@@ -114,12 +124,92 @@ describe("branch selector helpers", () => {
     });
   });
 
+  it("normalizes a public branch selection for anonymous browsing", () => {
+    expect(
+      normalizePublicBranchSelection({
+        restaurantId: "restaurant-1",
+        branch: nearbyBranch,
+      }),
+    ).toMatchObject({
+      restaurantId: "restaurant-1",
+      branch: {
+        id: "branch-1",
+        name: "Central",
+        restaurantId: "restaurant-1",
+      },
+    });
+
+    expect(
+      normalizePublicBranchSelection({
+        restaurantId: "restaurant-1",
+        branch: { name: "Missing id" },
+      }),
+    ).toBeNull();
+  });
+
+  it("preserves the anonymous branch when a customer starts a session", () => {
+    const session: AuthSession = {
+      accessToken: "token",
+      user: {
+        id: "customer-1",
+        email: "customer@example.com",
+        role: "CUSTOMER",
+        tenantId: "restaurant-1",
+        restaurantId: "restaurant-1",
+        branchId: "default-branch",
+      },
+    };
+
+    const selection = normalizePublicBranchSelection({
+      restaurantId: "restaurant-1",
+      branch: {
+        ...nearbyBranch,
+        selectedOrderType: "TAKEAWAY",
+      },
+    });
+
+    expect(mergePublicBranchIntoAuthSession(session, selection)).toMatchObject({
+      user: {
+        restaurantId: "restaurant-1",
+        branchId: "branch-1",
+        branch: {
+          id: "branch-1",
+          name: "Central",
+        },
+        selectedOrderType: "TAKEAWAY",
+      },
+    });
+  });
+
+  it("does not apply a branch selection from another restaurant", () => {
+    const session: AuthSession = {
+      accessToken: "token",
+      user: {
+        id: "customer-1",
+        email: "customer@example.com",
+        role: "CUSTOMER",
+        tenantId: "restaurant-2",
+        restaurantId: "restaurant-2",
+      },
+    };
+    const selection = normalizePublicBranchSelection({
+      restaurantId: "restaurant-1",
+      branch: nearbyBranch,
+    });
+
+    expect(mergePublicBranchIntoAuthSession(session, selection)).toBe(session);
+  });
+
   it("falls back to the branch selected order type", () => {
     expect(
       getSelectedOrderType({
-        branch: { id: "branch-1", name: "Central", selectedOrderType: "TAKEAWAY" },
+        branch: {
+          id: "branch-1",
+          name: "Central",
+          selectedOrderType: "TAKEAWAY",
+        },
         selectedOrderType: null,
-      })
+      }),
     ).toBe("TAKEAWAY");
   });
 
@@ -128,7 +218,7 @@ describe("branch selector helpers", () => {
       isBranchCurrentlyAvailable({
         ...nearbyBranch,
         availability: { isTemporarilyClosed: true },
-      })
+      }),
     ).toBe(false);
   });
 
@@ -150,7 +240,9 @@ describe("branch selector helpers", () => {
             isClosed: false,
             openTime: "09:00",
             closeTime: "18:00",
-            breakTimes: [{ startTime: "14:00", endTime: "15:00", note: "Lunch" }],
+            breakTimes: [
+              { startTime: "14:00", endTime: "15:00", note: "Lunch" },
+            ],
           },
         ],
         deliveryHours: [
@@ -159,7 +251,9 @@ describe("branch selector helpers", () => {
             isClosed: false,
             openTime: "10:00",
             closeTime: "20:00",
-            breakTimes: [{ startTime: "16:00", endTime: "17:00", note: "Delivery pause" }],
+            breakTimes: [
+              { startTime: "16:00", endTime: "17:00", note: "Delivery pause" },
+            ],
           },
         ],
         tableReservationsEnabled: true,
@@ -179,10 +273,18 @@ describe("branch selector helpers", () => {
     });
 
     expect(branch?.availability?.isTemporarilyClosed).toBe(true);
-    expect(branch?.availability?.temporaryClosure?.closedUntil).toBe("2026-06-10T13:00:00.000Z");
-    expect(branch?.settings?.temporaryClosure?.message).toBe("We are closed for maintenance");
-    expect(branch?.settings?.openingHours?.[0]?.breakTimes?.[0]?.note).toBe("Lunch");
-    expect(branch?.settings?.deliveryHours?.[0]?.breakTimes?.[0]?.note).toBe("Delivery pause");
+    expect(branch?.availability?.temporaryClosure?.closedUntil).toBe(
+      "2026-06-10T13:00:00.000Z",
+    );
+    expect(branch?.settings?.temporaryClosure?.message).toBe(
+      "We are closed for maintenance",
+    );
+    expect(branch?.settings?.openingHours?.[0]?.breakTimes?.[0]?.note).toBe(
+      "Lunch",
+    );
+    expect(branch?.settings?.deliveryHours?.[0]?.breakTimes?.[0]?.note).toBe(
+      "Delivery pause",
+    );
     expect(branch?.settings?.tableReservationsEnabled).toBe(true);
   });
 

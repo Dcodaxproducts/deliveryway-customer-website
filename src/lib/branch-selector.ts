@@ -1,19 +1,30 @@
 import { readAuthSession, saveAuthSession } from "@/lib/auth";
 import { formatDisplayAddress } from "@/lib/address-display";
 import {
+  safeGetLocalStorageItem,
+  safeSetLocalStorageItem,
+} from "@/lib/browser-storage";
+import {
   orderTypeToCheckoutType,
   setStoredCheckoutTypePreference,
 } from "@/lib/checkout-type-preference";
-import type { AuthContextValue, AuthUser } from "@/types/auth";
-import type { BranchOrderType, BranchScheduleTimings, BranchTemporaryClosure, NearbyBranch } from "@/types/branches";
+import type { AuthContextValue, AuthSession, AuthUser } from "@/types/auth";
+import type {
+  BranchOrderType,
+  BranchScheduleTimings,
+  BranchTemporaryClosure,
+  NearbyBranch,
+} from "@/types/branches";
 import type { BranchApiResponse, BranchRecord } from "@/types/branch-selector";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
-const getString = (value: unknown) => (typeof value === "string" ? value : undefined);
+const getString = (value: unknown) =>
+  typeof value === "string" ? value : undefined;
 
-const getBoolean = (value: unknown) => (typeof value === "boolean" ? value : undefined);
+const getBoolean = (value: unknown) =>
+  typeof value === "boolean" ? value : undefined;
 
 const getNullableString = (value: unknown) =>
   typeof value === "string" || typeof value === "number" ? String(value) : null;
@@ -28,7 +39,17 @@ const getNullableNumber = (value: unknown) => {
   return numberValue ?? null;
 };
 
-const normalizeBranchAddress = (value: unknown): BranchRecord["address"] | undefined => {
+const PUBLIC_BRANCH_STORAGE_KEY = "deliveryway-public-branch";
+export const PUBLIC_BRANCH_CHANGED_EVENT = "deliveryway:public-branch-changed";
+
+export type PublicBranchSelection = {
+  restaurantId: string;
+  branch: BranchRecord;
+};
+
+const normalizeBranchAddress = (
+  value: unknown,
+): BranchRecord["address"] | undefined => {
   if (!isRecord(value)) {
     return undefined;
   }
@@ -48,7 +69,9 @@ const normalizeBranchAddress = (value: unknown): BranchRecord["address"] | undef
   };
 };
 
-const normalizeOpeningHours = (value: unknown): NonNullable<BranchRecord["settings"]>["openingHours"] => {
+const normalizeOpeningHours = (
+  value: unknown,
+): NonNullable<BranchRecord["settings"]>["openingHours"] => {
   if (!Array.isArray(value)) {
     return undefined;
   }
@@ -70,26 +93,36 @@ const normalizeOpeningHours = (value: unknown): NonNullable<BranchRecord["settin
   }));
 };
 
-const normalizeScheduleTimings = (value: unknown): BranchScheduleTimings | null => {
+const normalizeScheduleTimings = (
+  value: unknown,
+): BranchScheduleTimings | null => {
   if (!isRecord(value)) {
     return null;
   }
 
   return {
     ...value,
-    deliveryIntervalMinutes: typeof value.deliveryIntervalMinutes === "number" || typeof value.deliveryIntervalMinutes === "string" || value.deliveryIntervalMinutes === null
-      ? value.deliveryIntervalMinutes
-      : undefined,
-    pickupIntervalMinutes: typeof value.pickupIntervalMinutes === "number" || typeof value.pickupIntervalMinutes === "string" || value.pickupIntervalMinutes === null
-      ? value.pickupIntervalMinutes
-      : undefined,
+    deliveryIntervalMinutes:
+      typeof value.deliveryIntervalMinutes === "number" ||
+      typeof value.deliveryIntervalMinutes === "string" ||
+      value.deliveryIntervalMinutes === null
+        ? value.deliveryIntervalMinutes
+        : undefined,
+    pickupIntervalMinutes:
+      typeof value.pickupIntervalMinutes === "number" ||
+      typeof value.pickupIntervalMinutes === "string" ||
+      value.pickupIntervalMinutes === null
+        ? value.pickupIntervalMinutes
+        : undefined,
     openingHours: normalizeOpeningHours(value.openingHours),
     deliveryHours: normalizeOpeningHours(value.deliveryHours),
     holidayOpeningHours: normalizeOpeningHours(value.holidayOpeningHours),
   };
 };
 
-const normalizeTemporaryClosure = (value: unknown): BranchTemporaryClosure | null => {
+const normalizeTemporaryClosure = (
+  value: unknown,
+): BranchTemporaryClosure | null => {
   if (!isRecord(value)) {
     return null;
   }
@@ -103,7 +136,9 @@ const normalizeTemporaryClosure = (value: unknown): BranchTemporaryClosure | nul
   };
 };
 
-const normalizeBranchSettings = (value: unknown): BranchRecord["settings"] | undefined => {
+const normalizeBranchSettings = (
+  value: unknown,
+): BranchRecord["settings"] | undefined => {
   if (!isRecord(value)) {
     return undefined;
   }
@@ -113,7 +148,9 @@ const normalizeBranchSettings = (value: unknown): BranchRecord["settings"] | und
     allowedOrderTypes: Array.isArray(value.allowedOrderTypes)
       ? value.allowedOrderTypes
           .map((orderType) => getString(orderType))
-          .filter((orderType): orderType is BranchOrderType => Boolean(orderType))
+          .filter((orderType): orderType is BranchOrderType =>
+            Boolean(orderType),
+          )
       : undefined,
     deliveryConfig: value.deliveryConfig,
     scheduleTimings: normalizeScheduleTimings(value.scheduleTimings),
@@ -125,7 +162,9 @@ const normalizeBranchSettings = (value: unknown): BranchRecord["settings"] | und
   };
 };
 
-const normalizeAvailability = (value: unknown): BranchRecord["availability"] => {
+const normalizeAvailability = (
+  value: unknown,
+): BranchRecord["availability"] => {
   if (!isRecord(value)) {
     return null;
   }
@@ -166,24 +205,146 @@ export const normalizeBranch = (value: unknown): BranchRecord | null => {
     settings: {
       ...settings,
       openingHours: settings?.openingHours ?? rootScheduleTimings?.openingHours,
-      deliveryHours: settings?.deliveryHours ?? rootScheduleTimings?.deliveryHours,
+      deliveryHours:
+        settings?.deliveryHours ?? rootScheduleTimings?.deliveryHours,
       holidayOpeningHours:
-        settings?.holidayOpeningHours ?? rootScheduleTimings?.holidayOpeningHours,
+        settings?.holidayOpeningHours ??
+        rootScheduleTimings?.holidayOpeningHours,
       scheduleTimings: settings?.scheduleTimings ?? rootScheduleTimings,
       tableReservationsEnabled:
-        settings?.tableReservationsEnabled ?? getBoolean(value.tableReservationsEnabled),
+        settings?.tableReservationsEnabled ??
+        getBoolean(value.tableReservationsEnabled),
     },
     scheduleTimings: rootScheduleTimings ?? settings?.scheduleTimings ?? null,
     distanceKm: getNullableNumber(value.distanceKm),
     availability: normalizeAvailability(value.availability),
-    selectedOrderType: getString(value.selectedOrderType) as BranchOrderType | undefined,
+    selectedOrderType: getString(value.selectedOrderType) as
+      BranchOrderType | undefined,
     isOnlyBranch: getBoolean(value.isOnlyBranch),
+  };
+};
+
+export const normalizePublicBranchSelection = (
+  value: unknown,
+): PublicBranchSelection | null => {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const restaurantId = getString(value.restaurantId);
+  const branch = normalizeBranch(value.branch);
+
+  if (!restaurantId || !branch) {
+    return null;
+  }
+
+  return {
+    restaurantId,
+    branch: {
+      ...branch,
+      restaurantId: branch.restaurantId ?? restaurantId,
+    },
+  };
+};
+
+export const readPublicBranchSelection = (
+  restaurantId?: string | number | null,
+) => {
+  const storedValue = safeGetLocalStorageItem(PUBLIC_BRANCH_STORAGE_KEY);
+
+  if (!storedValue) {
+    return null;
+  }
+
+  try {
+    const selection = normalizePublicBranchSelection(JSON.parse(storedValue));
+    const resolvedRestaurantId = String(restaurantId ?? "").trim();
+
+    if (
+      selection &&
+      resolvedRestaurantId &&
+      selection.restaurantId !== resolvedRestaurantId
+    ) {
+      return null;
+    }
+
+    return selection;
+  } catch {
+    return null;
+  }
+};
+
+export const persistPublicBranchSelection = (
+  branch: BranchRecord,
+  restaurantId?: string | number | null,
+) => {
+  const resolvedRestaurantId = String(
+    restaurantId ?? branch.restaurantId ?? "",
+  ).trim();
+
+  if (!resolvedRestaurantId) {
+    return;
+  }
+
+  const selection: PublicBranchSelection = {
+    restaurantId: resolvedRestaurantId,
+    branch: {
+      ...branch,
+      restaurantId: branch.restaurantId ?? resolvedRestaurantId,
+    },
+  };
+
+  safeSetLocalStorageItem(PUBLIC_BRANCH_STORAGE_KEY, JSON.stringify(selection));
+
+  if (
+    typeof window !== "undefined" &&
+    typeof window.dispatchEvent === "function"
+  ) {
+    window.dispatchEvent(
+      new CustomEvent<PublicBranchSelection>(PUBLIC_BRANCH_CHANGED_EVENT, {
+        detail: selection,
+      }),
+    );
+  }
+};
+
+export const mergePublicBranchIntoAuthSession = (
+  session: AuthSession,
+  selection: PublicBranchSelection | null = readPublicBranchSelection(
+    session.user.restaurantId ?? session.user.tenantId,
+  ),
+): AuthSession => {
+  if (!selection) {
+    return session;
+  }
+
+  const sessionRestaurantId =
+    session.user.restaurantId ?? session.user.tenantId;
+
+  if (selection.restaurantId !== sessionRestaurantId) {
+    return session;
+  }
+
+  return {
+    ...session,
+    user: {
+      ...session.user,
+      restaurantId: selection.restaurantId,
+      branchId: selection.branch.id,
+      branch: selection.branch,
+      selectedOrderType:
+        selection.branch.selectedOrderType ??
+        session.user.selectedOrderType ??
+        null,
+    },
   };
 };
 
 export const normalizeBranchList = (response: unknown): BranchRecord[] => {
   if (Array.isArray(response)) {
-    return response.map(normalizeBranch).filter((branch): branch is BranchRecord => Boolean(branch));
+    return response
+      .map(normalizeBranch)
+      .filter((branch): branch is BranchRecord => Boolean(branch));
   }
 
   if (!isRecord(response)) {
@@ -193,25 +354,35 @@ export const normalizeBranchList = (response: unknown): BranchRecord[] => {
   const data = response.data;
 
   if (Array.isArray(data)) {
-    return data.map(normalizeBranch).filter((branch): branch is BranchRecord => Boolean(branch));
+    return data
+      .map(normalizeBranch)
+      .filter((branch): branch is BranchRecord => Boolean(branch));
   }
 
   if (isRecord(data) && Array.isArray(data.data)) {
-    return data.data.map(normalizeBranch).filter((branch): branch is BranchRecord => Boolean(branch));
+    return data.data
+      .map(normalizeBranch)
+      .filter((branch): branch is BranchRecord => Boolean(branch));
   }
 
   if (isRecord(data) && Array.isArray(data.items)) {
-    return data.items.map(normalizeBranch).filter((branch): branch is BranchRecord => Boolean(branch));
+    return data.items
+      .map(normalizeBranch)
+      .filter((branch): branch is BranchRecord => Boolean(branch));
   }
 
   if (Array.isArray(response.items)) {
-    return response.items.map(normalizeBranch).filter((branch): branch is BranchRecord => Boolean(branch));
+    return response.items
+      .map(normalizeBranch)
+      .filter((branch): branch is BranchRecord => Boolean(branch));
   }
 
   return [];
 };
 
-export const normalizeBranchApiResponse = (response: unknown): BranchApiResponse => {
+export const normalizeBranchApiResponse = (
+  response: unknown,
+): BranchApiResponse => {
   const data = normalizeBranchList(response);
   const record = isRecord(response) ? response : {};
   const meta = isRecord(record.meta) ? record.meta : {};
@@ -247,13 +418,13 @@ export const getSoleActiveBranch = (response: unknown) => {
 };
 
 export const getSelectedOrderType = (
-  user?: Pick<AuthUser, "branch" | "selectedOrderType"> | null
+  user?: Pick<AuthUser, "branch" | "selectedOrderType"> | null,
 ) => user?.selectedOrderType ?? user?.branch?.selectedOrderType ?? null;
 
 export function persistSelectedBranch(
   branch: BranchRecord,
   setUser?: AuthContextValue["setUser"],
-  options: { includeBranch?: boolean; orderType?: BranchOrderType } = {}
+  options: { includeBranch?: boolean; orderType?: BranchOrderType } = {},
 ) {
   const auth = readAuthSession();
   const selectedBranch = options.orderType
@@ -265,6 +436,11 @@ export function persistSelectedBranch(
     setStoredCheckoutTypePreference(checkoutType);
   }
 
+  persistPublicBranchSelection(
+    selectedBranch,
+    branch.restaurantId ?? auth?.user.restaurantId ?? auth?.user.tenantId,
+  );
+
   if (auth?.user) {
     saveAuthSession({
       ...auth,
@@ -272,8 +448,10 @@ export function persistSelectedBranch(
         ...auth.user,
         branchId: branch.id,
         restaurantId: branch.restaurantId ?? auth.user.restaurantId ?? null,
-        selectedOrderType: options.orderType ?? auth.user.selectedOrderType ?? null,
-        branch: options.includeBranch === false ? auth.user.branch : selectedBranch,
+        selectedOrderType:
+          options.orderType ?? auth.user.selectedOrderType ?? null,
+        branch:
+          options.includeBranch === false ? auth.user.branch : selectedBranch,
       },
     });
   }
@@ -297,17 +475,22 @@ export function getBranchAddressText(branch: BranchRecord) {
   return formatBranchAddress(branch);
 }
 
-export const branchSupportsPickup = (branch: Pick<BranchRecord, "settings"> | NearbyBranch) =>
-  branch.settings?.allowedOrderTypes?.includes("TAKEAWAY") ?? false;
+export const branchSupportsPickup = (
+  branch: Pick<BranchRecord, "settings"> | NearbyBranch,
+) => branch.settings?.allowedOrderTypes?.includes("TAKEAWAY") ?? false;
 
-export const branchSupportsDelivery = (branch: Pick<BranchRecord, "settings"> | NearbyBranch) =>
-  branch.settings?.allowedOrderTypes?.includes("DELIVERY") ?? false;
+export const branchSupportsDelivery = (
+  branch: Pick<BranchRecord, "settings"> | NearbyBranch,
+) => branch.settings?.allowedOrderTypes?.includes("DELIVERY") ?? false;
 
 export const getDefaultBranchOrderType = (
   branch: Pick<BranchRecord, "settings"> | NearbyBranch,
-  preferredType?: BranchOrderType | null
+  preferredType?: BranchOrderType | null,
 ): BranchOrderType => {
-  if (preferredType && branch.settings?.allowedOrderTypes?.includes(preferredType)) {
+  if (
+    preferredType &&
+    branch.settings?.allowedOrderTypes?.includes(preferredType)
+  ) {
     return preferredType;
   }
 
@@ -322,7 +505,9 @@ export const getDefaultBranchOrderType = (
   return preferredType ?? "DELIVERY";
 };
 
-export function formatBranchAddress(branch: Pick<BranchRecord, "address"> | NearbyBranch) {
+export function formatBranchAddress(
+  branch: Pick<BranchRecord, "address"> | NearbyBranch,
+) {
   return formatDisplayAddress(branch.address, {
     fallback: "Branch location available",
   });
@@ -340,7 +525,9 @@ export function formatBranchDistance(distanceKm?: number | null) {
   return `${distanceKm.toFixed(distanceKm < 10 ? 1 : 0)} km away`;
 }
 
-export function isBranchCurrentlyAvailable(branch: Pick<BranchRecord, "availability" | "isActive"> | NearbyBranch) {
+export function isBranchCurrentlyAvailable(
+  branch: Pick<BranchRecord, "availability" | "isActive"> | NearbyBranch,
+) {
   if (branch.isActive === false || branch.availability?.isActive === false) {
     return false;
   }
@@ -354,10 +541,16 @@ export function isBranchCurrentlyAvailable(branch: Pick<BranchRecord, "availabil
   }
 
   const status = branch.availability?.status?.toLowerCase();
-  return status !== "closed" && status !== "inactive" && status !== "temporarily_closed";
+  return (
+    status !== "closed" &&
+    status !== "inactive" &&
+    status !== "temporarily_closed"
+  );
 }
 
-export const nearbyBranchToBranchRecord = (branch: NearbyBranch): BranchRecord => ({
+export const nearbyBranchToBranchRecord = (
+  branch: NearbyBranch,
+): BranchRecord => ({
   id: branch.id,
   name: branch.name,
   restaurantId: branch.restaurantId ?? null,
