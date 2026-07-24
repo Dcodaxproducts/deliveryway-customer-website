@@ -865,7 +865,7 @@
     "schedulePickup": "Schedule your pickup",
     "deliveryAddress": "Delivery address",
     "guestDeliveryAddress": "Delivery address",
-    "guestDeliveryAddressDescription": "Enter the delivery details for this guest order. We will attach it to the order without asking you to save it first.",
+    "guestDeliveryAddressDescription": "Select your delivery location, then confirm the street, house number, postal code, and city.",
     "useCurrentLocation": "Use current location",
     "gettingLocation": "Getting location...",
     "street": "Street address",

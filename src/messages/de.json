@@ -865,7 +865,7 @@
     "schedulePickup": "Abholung planen",
     "deliveryAddress": "Lieferadresse",
     "guestDeliveryAddress": "Lieferadresse",
-    "guestDeliveryAddressDescription": "Geben Sie die Lieferdetails für diese Gastbestellung ein. Wir hängen sie an die Bestellung an, ohne sie vorher speichern zu müssen.",
+    "guestDeliveryAddressDescription": "Wählen Sie Ihren Lieferort und bestätigen Sie anschließend Straße, Hausnummer, Postleitzahl und Stadt.",
     "useCurrentLocation": "Aktuellen Standort verwenden",
     "gettingLocation": "Standort wird ermittelt...",
     "street": "Straße",

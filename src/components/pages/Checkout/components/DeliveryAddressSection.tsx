@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { Check, ChevronLeft, ChevronRight, Loader2, MapPin, Navigation, Plus } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Check, ChevronLeft, ChevronRight, MapPin, Plus } from "lucide-react";
+import { AddressLocationPicker } from "@/components/common/branch-selector/AddressLocationPicker";
 import { AddressModal } from "@/components/forms/AddressModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,10 @@ import {
   type AddressRecord,
 } from "@/services/profile";
 import type { CheckoutAddressValues } from "@/validations/checkout";
+import type {
+  GoogleAddressDetails,
+  GoogleLatLngLiteral,
+} from "@/types/google-maps";
 import { useTranslations } from "next-intl";
 
 interface Props {
@@ -43,6 +48,22 @@ export function DeliveryAddressSection({
   const [loading, setLoading] = useState(false);
   const [locating, setLocating] = useState(false);
   const [addressModalOpen, setAddressModalOpen] = useState(false);
+  const guestCoordinates = useMemo<GoogleLatLngLiteral | null>(() => {
+    const lat = Number(guestDeliveryAddress.lat);
+    const lng = Number(guestDeliveryAddress.lng);
+
+    return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
+  }, [guestDeliveryAddress.lat, guestDeliveryAddress.lng]);
+  const guestLocationLabel = [
+    [guestDeliveryAddress.street, guestDeliveryAddress.houseNumber]
+      .filter(Boolean)
+      .join(" "),
+    [guestDeliveryAddress.postalCode, guestDeliveryAddress.city]
+      .filter(Boolean)
+      .join(" "),
+  ]
+    .filter(Boolean)
+    .join(", ");
   const {
     railRef: addressRailRef,
     canScrollLeft,
@@ -142,6 +163,35 @@ export function DeliveryAddressSection({
     }
   };
 
+  const handleGuestLocationSelect = useCallback(
+    (
+      coordinates: GoogleLatLngLiteral,
+      label?: string,
+      details?: GoogleAddressDetails,
+    ) => {
+      const street = details?.street?.trim();
+      const houseNumber = details?.houseNumber?.trim();
+      const postalCode = details?.postalCode?.trim();
+      const city = details?.city?.trim();
+      const state = details?.state?.trim();
+      const country = details?.country?.trim();
+
+      setGuestDeliveryAddress({
+        ...guestDeliveryAddress,
+        street: street || guestDeliveryAddress.street || label?.trim() || "",
+        houseNumber: houseNumber || guestDeliveryAddress.houseNumber,
+        area: houseNumber || guestDeliveryAddress.area,
+        postalCode: postalCode || guestDeliveryAddress.postalCode,
+        city: city || guestDeliveryAddress.city,
+        state: state || guestDeliveryAddress.state,
+        country: country || guestDeliveryAddress.country,
+        lat: String(coordinates.lat),
+        lng: String(coordinates.lng),
+      });
+    },
+    [guestDeliveryAddress, setGuestDeliveryAddress],
+  );
+
   const handleAddressCreated = async (address?: { id?: string | number }) => {
     const previousAddressIds = new Set(addresses.map((item) => item.id));
     const addressList = await fetchAddresses();
@@ -170,36 +220,30 @@ export function DeliveryAddressSection({
   if (isGuest) {
     return (
       <section className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <MapPin className="text-primary" size={28} />
-            <div>
-              <h2 className="text-[24px] font-semibold text-gray-900">
-                {t("guestDeliveryAddress")}
-              </h2>
-              <p className="mt-1 text-sm text-gray-500">
-                {t("guestDeliveryAddressDescription")}
-              </p>
-            </div>
+        <div className="flex items-center gap-3">
+          <MapPin className="text-primary" size={28} />
+          <div>
+            <h2 className="text-[24px] font-semibold text-gray-900">
+              {t("guestDeliveryAddress")}
+            </h2>
+            <p className="mt-1 text-sm text-gray-500">
+              {t("guestDeliveryAddressDescription")}
+            </p>
           </div>
-
-          <Button
-            type="button"
-            onClick={handleGetCurrentLocation}
-            disabled={locating}
-            className="h-9 rounded-full border border-primary/15 bg-primary/5 px-3.5 text-[13px] font-semibold text-primary shadow-none hover:border-primary/30 hover:bg-primary/10"
-          >
-            {locating ? (
-              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Navigation className="mr-1.5 h-3.5 w-3.5" />
-            )}
-            {locating ? t("gettingLocation") : t("useCurrentLocation")}
-          </Button>
         </div>
 
         <div className="rounded-[22px] border border-gray-100 bg-white p-5 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <AddressLocationPicker
+            coordinates={guestCoordinates}
+            locationLabel={guestLocationLabel}
+            onSelectLocation={handleGuestLocationSelect}
+            onUseCurrentLocation={handleGetCurrentLocation}
+            isLocating={locating}
+            compact
+            actionsBelow
+          />
+
+          <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">{t("street")}</label>
               <Input
@@ -240,47 +284,6 @@ export function DeliveryAddressSection({
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">{t("state")}</label>
-              <Input
-                value={guestDeliveryAddress.state}
-                onChange={(event) => updateGuestAddressField("state", event.target.value)}
-                placeholder={t("statePlaceholder")}
-                className="h-12 rounded-xl border-gray-200"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">{t("country")}</label>
-              <Input
-                value={guestDeliveryAddress.country}
-                onChange={(event) => updateGuestAddressField("country", event.target.value)}
-                placeholder={t("countryPlaceholder")}
-                className="h-12 rounded-xl border-gray-200"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">{t("latitude")}</label>
-                <Input
-                  value={guestDeliveryAddress.lat}
-                  onChange={(event) => updateGuestAddressField("lat", event.target.value)}
-                  placeholder={t("latitude")}
-                  className="h-12 rounded-xl border-gray-200"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">{t("longitude")}</label>
-                <Input
-                  value={guestDeliveryAddress.lng}
-                  onChange={(event) => updateGuestAddressField("lng", event.target.value)}
-                  placeholder={t("longitude")}
-                  className="h-12 rounded-xl border-gray-200"
-                />
-              </div>
-            </div>
           </div>
         </div>
       </section>
