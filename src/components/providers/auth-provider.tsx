@@ -16,7 +16,12 @@ import {
   saveAuthSession,
 } from "@/lib/auth";
 import { mergePublicBranchIntoAuthSession } from "@/lib/branch-selector";
-import { getCurrentUser, refreshCustomerToken } from "@/services/auth";
+import { createGuestSessionCoordinator } from "@/lib/guest-session";
+import {
+  getCurrentUser,
+  guestLoginCustomer,
+  refreshCustomerToken,
+} from "@/services/auth";
 import type { AuthContextValue, AuthSession, AuthUser } from "@/types/auth";
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -58,7 +63,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     saveAuthSession(resolvedSession);
     setToken(resolvedSession.accessToken);
     setUserState(resolvedSession.user);
+    return resolvedSession;
   }, []);
+  const [ensureGuestSession] = useState(() =>
+    createGuestSessionCoordinator({
+      readSession: readAuthSession,
+      registerGuest: (restaurantId) =>
+        guestLoginCustomer({
+          restaurantId,
+        }),
+      persistSession: login,
+    }),
+  );
 
   const logout = useCallback(() => {
     clearAuthSession();
@@ -131,6 +147,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         token,
         loading,
         login,
+        ensureGuestSession,
         logout,
         updateUser,
         setUser: updateUser,
