@@ -63,4 +63,22 @@ describe("cuisine item price display", () => {
     expect(getMenuItemBasePrice(item)).toBe(0);
     expect(getMenuItemFinalPrice(item)).toBe(0);
   });
+
+  it("applies a promotion to the resolved variation price", () => {
+    const item: MenuItem = {
+      id: "promo-pizza",
+      name: "Promo Pizza",
+      basePrice: null,
+      variations: [
+        { id: "regular", name: "Regular", price: 12, isDefault: true },
+      ],
+      promotion: {
+        discountType: "PERCENTAGE",
+        discountValue: 25,
+      },
+    };
+
+    expect(getMenuItemBasePrice(item)).toBe(12);
+    expect(getMenuItemFinalPrice(item)).toBe(9);
+  });
 });

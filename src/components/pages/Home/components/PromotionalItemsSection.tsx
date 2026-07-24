@@ -11,6 +11,11 @@ import {
   CarouselItem,
 } from "@/components/ui/carousel";
 import { FavoriteHeartButton } from "@/components/common/favorites/FavoriteHeartButton";
+import {
+  getMenuItemBasePrice,
+  getMenuItemFinalPrice,
+  getMenuItemPromotion,
+} from "@/components/pages/Cuisines/components/cuisine-display";
 import { Button } from "@/components/ui/button";
 import { getItemImageUrl, toNumber } from "@/components/pages/Items/utils/restaurant-card-utils";
 import { formatMoney } from "@/lib/money";
@@ -21,41 +26,6 @@ type PromotionalItemsSectionProps = {
   isLoading?: boolean;
   currency?: string | null;
   compact?: boolean;
-};
-
-const getPromotion = (item: MenuItem): PromotionInfo | null =>
-  item.happyHour ?? item.promotion ?? null;
-
-const getBasePrice = (item: MenuItem) =>
-  toNumber(
-    item.happyHour?.originalPrice ??
-      item.promotion?.originalPrice ??
-      item.basePrice ??
-      item.price,
-    0,
-  );
-
-const getFinalPrice = (item: MenuItem) => {
-  const basePrice = getBasePrice(item);
-  const promotion = getPromotion(item);
-  const discountValue = toNumber(promotion?.discountValue, 0);
-  const backendDiscountAmount = toNumber(promotion?.discountAmount, 0);
-  const maxDiscountAmount = toNumber(promotion?.maxDiscountAmount, 0);
-  let discountAmount = 0;
-
-  if (backendDiscountAmount > 0) {
-    discountAmount = backendDiscountAmount;
-  } else if (promotion?.discountType === "PERCENTAGE") {
-    discountAmount = (basePrice * discountValue) / 100;
-  } else if (promotion?.discountType === "FLAT") {
-    discountAmount = discountValue;
-  }
-
-  if (maxDiscountAmount > 0) {
-    discountAmount = Math.min(discountAmount, maxDiscountAmount);
-  }
-
-  return Math.max(0, basePrice - Math.min(Math.max(discountAmount, 0), basePrice));
 };
 
 const getDiscountBadge = (
@@ -113,9 +83,9 @@ function PromotionalItemCard({
   featured?: boolean;
 }) {
   const t = useTranslations("home.promotionalItems");
-  const promotion = getPromotion(item);
-  const finalPrice = getFinalPrice(item);
-  const basePrice = getBasePrice(item);
+  const promotion = getMenuItemPromotion(item);
+  const finalPrice = getMenuItemFinalPrice(item);
+  const basePrice = getMenuItemBasePrice(item);
   const oldPrice = finalPrice < basePrice ? basePrice : null;
   const badgeText = getDiscountBadge(promotion, t("specialOffer"));
   const image = getItemImageUrl(item);
