@@ -602,6 +602,7 @@ export function SignatureSelectionContent({
     addCustomerCartItem,
     addGroupOrderItem,
     clearCustomerCart,
+    ensureCustomerSession,
     fetchGroupOrders,
   } = useCart(token);
   const { fetchGroupOrderById, searchGroupOrdersByInviteCode } =
@@ -1906,11 +1907,6 @@ export function SignatureSelectionContent({
     variation?: MenuVariation | null,
     modifiersMap?: SelectedModifiersMap,
   ) => {
-    if (!customerId) {
-      toast.error(tProduct("customerNotFound"));
-      return;
-    }
-
     if (!branchId) {
       toast.error(tProduct("selectBranchFirst"));
       return;
@@ -1953,6 +1949,8 @@ export function SignatureSelectionContent({
 
     try {
       setAddingId(item.id);
+      const activeCustomerId =
+        customerId || (await ensureCustomerSession()).customerId;
 
       const splitSections =
         splitPizzaEnabled && splitPizzaItem?.id
@@ -2004,7 +2002,10 @@ export function SignatureSelectionContent({
         }
 
         if (storedGroupOrderCompleted || (!groupCode && !groupOrderId)) {
-          return addCustomerCartItem({ customerId, payload });
+          return addCustomerCartItem({
+            customerId: activeCustomerId,
+            payload,
+          });
         }
 
         let groupOrder: ApiRecord | null = null;
@@ -2046,7 +2047,7 @@ export function SignatureSelectionContent({
 
         const currentParticipant = findCurrentGroupOrderParticipant({
           order: groupOrder,
-          userId: customerId,
+          userId: activeCustomerId,
         });
 
         if (isGroupOrderParticipantCompleted(currentParticipant)) {
@@ -2055,7 +2056,10 @@ export function SignatureSelectionContent({
             inviteCode: groupOrder.inviteCode as string | number | null,
           });
           clearStoredGroupOrderCode();
-          return addCustomerCartItem({ customerId, payload });
+          return addCustomerCartItem({
+            customerId: activeCustomerId,
+            payload,
+          });
         }
 
         const response = await addGroupOrderItem({
@@ -2072,7 +2076,9 @@ export function SignatureSelectionContent({
       if (!addedToGroupOrder && isBranchCartConflictResponse(res)) {
         toast.info(tSignature("cartBranchConflict"));
 
-        const clearCartRes = await clearCustomerCart({ customerId });
+        const clearCartRes = await clearCustomerCart({
+          customerId: activeCustomerId,
+        });
 
         if (!clearCartRes || clearCartRes.error) {
           toast.error(

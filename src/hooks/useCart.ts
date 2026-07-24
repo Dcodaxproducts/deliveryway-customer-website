@@ -13,6 +13,7 @@ import {
 } from "@/components/pages/Home/utils/customer-deal-cart";
 import { queryKeys } from "@/config/query-keys";
 import { useDomainApi, type DomainApiHook } from "@/hooks/useDomainApi";
+import { useDomainContext } from "@/hooks/useDomainContext";
 import { dispatchCartChanged } from "@/lib/cart-events";
 import { getApiErrorMessage } from "@/lib/errors";
 import {
@@ -59,6 +60,7 @@ const service = {
 };
 
 export type CartApi = DomainApiHook & {
+  ensureCustomerSession: () => Promise<{ customerId: string; token: string }>;
   fetchCustomerCart: (args: { customerId: string }) => Promise<{ response: ApiResult; items: CartItemRecord[]; quote: CartQuote | null }>;
   fetchCustomerCartItem: (args: { customerId: string; cartItemId: string }) => Promise<ApiRecord | null>;
   addCustomerCartItem: (args: { customerId: string; payload: CartMutationPayload }) => Promise<ApiResult>;
@@ -76,7 +78,39 @@ export type CartApi = DomainApiHook & {
 };
 
 export const useCart = (token: string | null): CartApi => {
+  const { user, ensureGuestSession } = useAuthContext();
+  const { context: domainContext } = useDomainContext();
   const api = useDomainApi(token, { service, requestKey: queryKeys.cart.request });
+  const resolveCustomerSession = useCallback(
+    async (customerId?: string) => {
+      if (customerId && token) {
+        return { customerId, token };
+      }
+
+      const restaurantId = user?.restaurantId ?? domainContext?.restaurantId;
+
+      if (!restaurantId) {
+        throw new Error("Restaurant context is unavailable");
+      }
+
+      const session = await ensureGuestSession(restaurantId);
+
+      return {
+        customerId: session.user.id,
+        token: session.accessToken,
+      };
+    },
+    [
+      domainContext?.restaurantId,
+      ensureGuestSession,
+      token,
+      user?.restaurantId,
+    ],
+  );
+  const ensureCustomerSession = useCallback(
+    () => resolveCustomerSession(user?.id),
+    [resolveCustomerSession, user?.id],
+  );
 
   const fetchCart = useCallback(
     ({ customerId }: { customerId: string }) => fetchCustomerCart({ customerId, token }),
@@ -91,7 +125,12 @@ export const useCart = (token: string | null): CartApi => {
 
   const addCartItem = useCallback(
     async ({ customerId, payload }: { customerId: string; payload: CartMutationPayload }) => {
-      const response = await addCustomerCartItem({ customerId, payload, token });
+      const session = await resolveCustomerSession(customerId);
+      const response = await addCustomerCartItem({
+        customerId: session.customerId,
+        payload,
+        token: session.token,
+      });
 
       if (response && !response.error && response.success !== false) {
         dispatchCartChanged();
@@ -99,13 +138,19 @@ export const useCart = (token: string | null): CartApi => {
 
       return response;
     },
-    [token]
+    [resolveCustomerSession]
   );
 
   const refreshCartQuote = useCallback(
-    ({ customerId, payload }: { customerId: string; payload?: Record<string, unknown> }) =>
-      quoteCustomerCart({ customerId, payload, token }),
-    [token]
+    async ({ customerId, payload }: { customerId: string; payload?: Record<string, unknown> }) => {
+      const session = await resolveCustomerSession(customerId);
+      return quoteCustomerCart({
+        customerId: session.customerId,
+        payload,
+        token: session.token,
+      });
+    },
+    [resolveCustomerSession]
   );
 
   const updateCart = useCallback(
@@ -135,7 +180,11 @@ export const useCart = (token: string | null): CartApi => {
 
   const clearCart = useCallback(
     async ({ customerId }: { customerId: string }) => {
-      const response = await clearCustomerCart({ customerId, token });
+      const session = await resolveCustomerSession(customerId);
+      const response = await clearCustomerCart({
+        customerId: session.customerId,
+        token: session.token,
+      });
 
       if (response && !response.error && response.success !== false) {
         dispatchCartChanged({ itemCount: 0 });
@@ -143,7 +192,7 @@ export const useCart = (token: string | null): CartApi => {
 
       return response;
     },
-    [token]
+    [resolveCustomerSession]
   );
 
   const updateCartItemQuantity = useCallback(
@@ -198,17 +247,27 @@ export const useCart = (token: string | null): CartApi => {
     [token]
   );
 
-  const fetchGroups = useCallback(() => fetchGroupOrders(token), [token]);
+  const fetchGroups = useCallback(async () => {
+    const session = await resolveCustomerSession(user?.id);
+    return fetchGroupOrders(session.token);
+  }, [resolveCustomerSession, user?.id]);
 
   const addGroupItem = useCallback(
-    ({ groupOrderId, payload }: { groupOrderId: string; payload: CartMutationPayload }) =>
-      addGroupOrderItem({ groupOrderId, payload, token }),
-    [token]
+    async ({ groupOrderId, payload }: { groupOrderId: string; payload: CartMutationPayload }) => {
+      const session = await resolveCustomerSession(user?.id);
+      return addGroupOrderItem({
+        groupOrderId,
+        payload,
+        token: session.token,
+      });
+    },
+    [resolveCustomerSession, user?.id]
   );
 
   return useMemo(
     () => ({
       ...api,
+      ensureCustomerSession,
       fetchCustomerCart: fetchCart,
       fetchCustomerCartItem: fetchCartItem,
       addCustomerCartItem: addCartItem,
@@ -224,7 +283,7 @@ export const useCart = (token: string | null): CartApi => {
       fetchGroupOrders: fetchGroups,
       addGroupOrderItem: addGroupItem,
     }),
-    [addCartItem, addGroupItem, api, clearCart, deleteCartDeal, deleteCartItem, fetchCart, fetchCartItem, fetchGroups, refreshCartQuote, updateCart, updateCartDealQuantity, updateCartItem, updateCartItemQuantity, updateCartOrderType]
+    [addCartItem, addGroupItem, api, clearCart, deleteCartDeal, deleteCartItem, ensureCustomerSession, fetchCart, fetchCartItem, fetchGroups, refreshCartQuote, updateCart, updateCartDealQuantity, updateCartItem, updateCartItemQuantity, updateCartOrderType]
   );
 };
 
@@ -232,14 +291,18 @@ export const useAddDealToCart = (branchId?: string | null) => {
   const t = useTranslations("cart");
   const { token, user } = useAuthContext();
   const queryClient = useQueryClient();
-  const { addCustomerCartItem: addCartItem, quoteCustomerCart: refreshCartQuote } = useCart(token);
+  const {
+    addCustomerCartItem: addCartItem,
+    ensureCustomerSession,
+    quoteCustomerCart: refreshCartQuote,
+  } = useCart(token);
   const customerId = user?.id ?? "";
 
   return useMutation({
     mutationFn: async ({ deal, selectedMenuItemIds = [], eligibleMenuItems, cartItemPayloads }: AddDealToCartInput) => {
-      if (!customerId) {
-        throw new Error(t("customerNotFound"));
-      }
+      const session = customerId
+        ? { customerId }
+        : await ensureCustomerSession();
 
       if (!branchId) {
         throw new Error(t("selectBranchFirst"));
@@ -273,7 +336,7 @@ export const useAddDealToCart = (branchId?: string | null) => {
 
       for (const payload of payloads) {
         const response = await addCartItem({
-          customerId,
+          customerId: session.customerId,
           payload,
         });
 
@@ -283,7 +346,9 @@ export const useAddDealToCart = (branchId?: string | null) => {
       }
 
       try {
-        const quoteResponse = await refreshCartQuote({ customerId });
+        const quoteResponse = await refreshCartQuote({
+          customerId: session.customerId,
+        });
 
         if (quoteResponse && !quoteResponse.error && quoteResponse.success !== false) {
           return quoteResponse;

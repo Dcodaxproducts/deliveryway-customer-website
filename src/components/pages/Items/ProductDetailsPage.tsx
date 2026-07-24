@@ -939,6 +939,7 @@ function ProductDetailsPageContent() {
     addCustomerCartItem,
     addGroupOrderItem,
     clearCustomerCart,
+    ensureCustomerSession,
     fetchCustomerCartItem,
     fetchGroupOrders,
     updateCustomerCartItem,
@@ -2454,13 +2455,10 @@ function ProductDetailsPageContent() {
       isDealMenuItemContext,
     });
 
-  const clearCartAndRetryAdd = async () => {
-    if (!customerId) {
-      toast.error(t("customerNotFound"));
-      return null;
-    }
-
-    const clearRes = await clearCustomerCart({ customerId });
+  const clearCartAndRetryAdd = async (activeCustomerId: string) => {
+    const clearRes = await clearCustomerCart({
+      customerId: activeCustomerId,
+    });
 
     if (!clearRes || clearRes?.error) {
       toast.error(getApiErrorMessage(clearRes, t("failedClearBranchCart")));
@@ -2468,7 +2466,7 @@ function ProductDetailsPageContent() {
     }
 
     return addCustomerCartItem({
-      customerId,
+      customerId: activeCustomerId,
       payload: buildCreateCartPayload(),
     });
   };
@@ -2495,6 +2493,8 @@ function ProductDetailsPageContent() {
         toast.error(t("selectOtherPizzaHalf"));
         return;
       }
+      const activeCustomerId =
+        customerId || (await ensureCustomerSession()).customerId;
 
       const groupCode = getStoredGroupOrderCode();
       const groupOrderId = getStoredGroupOrderId();
@@ -2549,7 +2549,7 @@ function ProductDetailsPageContent() {
 
         const currentParticipant = findCurrentGroupOrderParticipant({
           order: groupOrder,
-          userId: customerId,
+          userId: activeCustomerId,
         });
 
         if (isGroupOrderParticipantCompleted(currentParticipant)) {
@@ -2558,11 +2558,6 @@ function ProductDetailsPageContent() {
             inviteCode: groupOrder.inviteCode as string | number | null,
           });
           clearStoredGroupOrderCode();
-
-          if (!customerId) {
-            toast.error(t("customerNotFound"));
-            return;
-          }
 
           if (!branchId && !isEditingCartItem) {
             toast.error(t("selectBranchFirst"));
@@ -2576,7 +2571,7 @@ function ProductDetailsPageContent() {
             });
           } else {
             res = await addCustomerCartItem({
-              customerId,
+              customerId: activeCustomerId,
               payload: buildCreateCartPayload(),
             });
           }
@@ -2591,11 +2586,6 @@ function ProductDetailsPageContent() {
           addedToGroupOrder = true;
         }
       } else {
-        if (!customerId) {
-          toast.error(t("customerNotFound"));
-          return;
-        }
-
         if (!branchId && !isEditingCartItem) {
           toast.error(t("selectBranchFirst"));
           return;
@@ -2608,7 +2598,7 @@ function ProductDetailsPageContent() {
           });
         } else {
           res = await addCustomerCartItem({
-            customerId,
+            customerId: activeCustomerId,
             payload: buildCreateCartPayload(),
           });
         }
@@ -2620,7 +2610,7 @@ function ProductDetailsPageContent() {
         isCartBranchConflict(res)
       ) {
         toast.info(t("clearingPreviousBranchCart"));
-        res = await clearCartAndRetryAdd();
+        res = await clearCartAndRetryAdd(activeCustomerId);
       }
 
       if (!res || res?.error) {

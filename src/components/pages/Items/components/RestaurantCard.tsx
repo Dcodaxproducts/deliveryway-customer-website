@@ -9,6 +9,7 @@ import useItems from "@/hooks/useItems";
 import { useCart } from "@/hooks/useCart";
 import { useAuthContext } from "@/hooks/useAuth";
 import { useGroupOrderApi } from "@/hooks/useGroupOrder";
+import { useDomainContext } from "@/hooks/useDomainContext";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -23,6 +24,7 @@ import {
   setStoredGroupOrderId,
 } from "@/lib/group-order";
 import { formatMoney as formatDisplayMoney } from "@/lib/money";
+import { resolveHomeBranchId } from "@/lib/home";
 import { AsyncSelect } from "@/components/ui/AsyncSelect";
 import { FavoriteHeartButton } from "@/components/common/favorites/FavoriteHeartButton";
 import type {
@@ -622,11 +624,13 @@ export function RestaurantCard({
     addCustomerCartItem,
     addGroupOrderItem,
     clearCustomerCart,
+    ensureCustomerSession,
     fetchGroupOrders,
   } = useCart(token);
   const { fetchGroupOrderById, searchGroupOrdersByInviteCode } =
     useGroupOrderApi(token);
   const { user } = useAuth();
+  const { context: domainContext } = useDomainContext();
 
   const [infoOpen, setInfoOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -646,7 +650,9 @@ export function RestaurantCard({
   const [animateCart, setAnimateCart] = useState(false);
 
   const customerId = user?.id;
-  const branchId = user?.branchId;
+  const branchId = String(
+    resolveHomeBranchId(user) || domainContext?.branchId || "",
+  );
   const restaurantId =
     item?.restaurantId || item?.restaurant?.id || user?.restaurantId || "";
 
@@ -2067,21 +2073,15 @@ export function RestaurantCard({
 
   const addCartItemWithBranchRetry = async (
     payload: CartPayload & Record<string, unknown>,
+    activeCustomerId: string,
   ) => {
-    if (!customerId) {
-      return {
-        success: false,
-        error: t("customerNotFound"),
-      };
-    }
-
     const cartPayload = {
       ...payload,
       branchId,
     };
 
     const firstRes = await addCustomerCartItem({
-      customerId,
+      customerId: activeCustomerId,
       payload: cartPayload,
     });
 
@@ -2089,7 +2089,9 @@ export function RestaurantCard({
       return firstRes;
     }
 
-    const clearRes = await clearCustomerCart({ customerId });
+    const clearRes = await clearCustomerCart({
+      customerId: activeCustomerId,
+    });
 
     if (isApiErrorResponse(clearRes)) {
       return {
@@ -2100,7 +2102,10 @@ export function RestaurantCard({
 
     toast.info(t("previousBranchCartCleared"));
 
-    return addCustomerCartItem({ customerId, payload: cartPayload });
+    return addCustomerCartItem({
+      customerId: activeCustomerId,
+      payload: cartPayload,
+    });
   };
 
   async function handleAddToCart() {
@@ -2143,15 +2148,12 @@ export function RestaurantCard({
         inviteCode: groupCode,
       });
 
-      if (!groupCode && !groupOrderId && !customerId) {
-        toast.error(t("customerNotFound"));
-        return;
-      }
-
       if (!groupCode && !groupOrderId && !branchId) {
         toast.error(t("selectBranch"));
         return;
       }
+      const activeCustomerId =
+        customerId || (await ensureCustomerSession()).customerId;
 
       const splitSections =
         splitPizzaEnabled && splitPizzaItem?.id
@@ -2226,7 +2228,7 @@ export function RestaurantCard({
 
         const currentParticipant = findCurrentGroupOrderParticipant({
           order: groupOrder,
-          userId: customerId,
+          userId: activeCustomerId,
         });
 
         if (isGroupOrderParticipantCompleted(currentParticipant)) {
@@ -2235,7 +2237,10 @@ export function RestaurantCard({
             inviteCode: groupOrder.inviteCode as string | number | null,
           });
           clearStoredGroupOrderCode();
-          res = await addCartItemWithBranchRetry(basePayload);
+          res = await addCartItemWithBranchRetry(
+            basePayload,
+            activeCustomerId,
+          );
         } else {
           res = await addGroupOrderItem({
             groupOrderId: String(groupOrder.id),
@@ -2244,7 +2249,10 @@ export function RestaurantCard({
           addedToGroupOrder = true;
         }
       } else {
-        res = await addCartItemWithBranchRetry(basePayload);
+        res = await addCartItemWithBranchRetry(
+          basePayload,
+          activeCustomerId,
+        );
       }
 
       if (isApiErrorResponse(res)) {
