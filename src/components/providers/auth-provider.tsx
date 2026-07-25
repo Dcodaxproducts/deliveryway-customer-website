@@ -20,6 +20,7 @@ import { createGuestSessionCoordinator } from "@/lib/guest-session";
 import {
   getCurrentUser,
   guestLoginCustomer,
+  isUnauthorizedAuthError,
   refreshCustomerToken,
 } from "@/services/auth";
 import type { AuthContextValue, AuthSession, AuthUser } from "@/types/auth";
@@ -75,12 +76,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       persistSession: login,
     }),
   );
-
   const logout = useCallback(() => {
     clearAuthSession();
     setUserState(null);
     setToken(null);
   }, []);
+  const renewGuestSession = useCallback(
+    async (restaurantId: string) => {
+      logout();
+      return login(await guestLoginCustomer({ restaurantId }));
+    },
+    [login, logout],
+  );
 
   useEffect(() => {
     const initAuth = async () => {
@@ -97,41 +104,39 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           setUserState(mergeStoredUserState(me, storedAuth.user));
           setToken(storedAuth.accessToken);
         } catch (error) {
-          const isUnauthorized =
-            error instanceof Error && error.message === "Request failed";
-
-          if (!isUnauthorized) {
-            setLoading(false);
+          if (!isUnauthorizedAuthError(error)) {
             return;
           }
 
           if (!storedAuth.refreshToken) {
             logout();
-            setLoading(false);
             return;
           }
 
-          const refreshedToken = await refreshCustomerToken({
-            refreshToken: storedAuth.refreshToken,
-          });
+          try {
+            const refreshedToken = await refreshCustomerToken({
+              refreshToken: storedAuth.refreshToken,
+            });
 
-          const refreshedAuth: AuthSession = {
-            ...storedAuth,
-            ...refreshedToken,
-            user: storedAuth.user,
-          };
+            const refreshedAuth: AuthSession = {
+              ...storedAuth,
+              ...refreshedToken,
+              user: storedAuth.user,
+            };
 
-          saveAuthSession(refreshedAuth);
+            saveAuthSession(refreshedAuth);
 
-          const me = await getCurrentUser(refreshedToken.accessToken);
-          const latestStoredAuth = readAuthSession();
+            const me = await getCurrentUser(refreshedToken.accessToken);
+            const latestStoredAuth = readAuthSession();
 
-          setUserState(
-            mergeStoredUserState(me, latestStoredAuth?.user ?? storedAuth.user),
-          );
-          setToken(refreshedToken.accessToken);
+            setUserState(
+              mergeStoredUserState(me, latestStoredAuth?.user ?? storedAuth.user),
+            );
+            setToken(refreshedToken.accessToken);
+          } catch {
+            logout();
+          }
         }
-      } catch (error) {
       } finally {
         setLoading(false);
       }
@@ -148,6 +153,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         loading,
         login,
         ensureGuestSession,
+        renewGuestSession,
         logout,
         updateUser,
         setUser: updateUser,

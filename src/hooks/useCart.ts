@@ -16,6 +16,7 @@ import { useDomainApi, type DomainApiHook } from "@/hooks/useDomainApi";
 import { useDomainContext } from "@/hooks/useDomainContext";
 import { dispatchCartChanged } from "@/lib/cart-events";
 import { getApiErrorMessage } from "@/lib/errors";
+import { runWithGuestSessionRecovery } from "@/lib/guest-session";
 import {
   addCustomerCartItem,
   addGroupOrderItem,
@@ -86,33 +87,37 @@ export type CartApi = DomainApiHook & {
 };
 
 export const useCart = (token: string | null): CartApi => {
-  const { user, ensureGuestSession } = useAuthContext();
+  const { user, ensureGuestSession, renewGuestSession } = useAuthContext();
   const { context: domainContext } = useDomainContext();
   const api = useDomainApi(token, { service, requestKey: queryKeys.cart.request });
+  const resolveRestaurantId = useCallback(() => {
+    const restaurantId = user?.restaurantId ?? domainContext?.restaurantId;
+
+    if (!restaurantId) {
+      throw new Error("Restaurant context is unavailable");
+    }
+
+    return restaurantId;
+  }, [domainContext?.restaurantId, user?.restaurantId]);
   const resolveCustomerSession = useCallback(
     async (customerId?: string) => {
       if (customerId && token) {
-        return { customerId, token };
+        return { customerId, token, isGuest: user?.isGuest === true };
       }
 
-      const restaurantId = user?.restaurantId ?? domainContext?.restaurantId;
-
-      if (!restaurantId) {
-        throw new Error("Restaurant context is unavailable");
-      }
-
-      const session = await ensureGuestSession(restaurantId);
+      const session = await ensureGuestSession(resolveRestaurantId());
 
       return {
         customerId: session.user.id,
         token: session.accessToken,
+        isGuest: session.user.isGuest === true,
       };
     },
     [
-      domainContext?.restaurantId,
       ensureGuestSession,
+      resolveRestaurantId,
       token,
-      user?.restaurantId,
+      user?.isGuest,
     ],
   );
   const ensureCustomerSession = useCallback(
@@ -141,10 +146,23 @@ export const useCart = (token: string | null): CartApi => {
 
       try {
         const session = await resolveCustomerSession(customerId);
-        const response = await addCustomerCartItem({
-          customerId: session.customerId,
-          payload,
-          token: session.token,
+        const response = await runWithGuestSessionRecovery({
+          session,
+          request: (activeSession) =>
+            addCustomerCartItem({
+              customerId: activeSession.customerId,
+              payload,
+              token: activeSession.token,
+            }),
+          renewSession: async () => {
+            const renewedSession = await renewGuestSession(resolveRestaurantId());
+
+            return {
+              customerId: renewedSession.user.id,
+              token: renewedSession.accessToken,
+              isGuest: true,
+            };
+          },
         });
 
         if (response && !response.error && response.success !== false) {
@@ -165,7 +183,7 @@ export const useCart = (token: string | null): CartApi => {
         throw error;
       }
     },
-    [resolveCustomerSession]
+    [renewGuestSession, resolveCustomerSession, resolveRestaurantId]
   );
 
   const refreshCartQuote = useCallback(

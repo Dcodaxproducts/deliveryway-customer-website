@@ -25,6 +25,7 @@ import {
 } from "@/lib/group-order";
 import { formatMoney as formatDisplayMoney } from "@/lib/money";
 import { resolveHomeBranchId } from "@/lib/home";
+import { getApiErrorMessage } from "@/lib/errors";
 import { AsyncSelect } from "@/components/ui/AsyncSelect";
 import { FavoriteHeartButton } from "@/components/common/favorites/FavoriteHeartButton";
 import type {
@@ -56,56 +57,12 @@ import {
   validateModifierSelections,
 } from "@/components/pages/Items/utils/modifier-selections";
 
-const getApiResponseMessage = (res: ApiRecord | null | undefined) => {
-  const errorValue = res?.error;
-  const dataValue = res?.data;
-  const errorRecord =
-    typeof errorValue === "object" &&
-    errorValue !== null &&
-    !Array.isArray(errorValue)
-      ? (errorValue as ApiRecord)
-      : null;
-  const dataRecord =
-    typeof dataValue === "object" &&
-    dataValue !== null &&
-    !Array.isArray(dataValue)
-      ? (dataValue as ApiRecord)
-      : null;
-  const dataErrorValue = dataRecord?.error;
-  const dataErrorRecord =
-    typeof dataErrorValue === "object" &&
-    dataErrorValue !== null &&
-    !Array.isArray(dataErrorValue)
-      ? (dataErrorValue as ApiRecord)
-      : null;
-
-  return [
-    res?.message,
-    typeof errorValue === "string" ? errorValue : "",
-    errorRecord?.message,
-    errorRecord?.code,
-    dataRecord?.message,
-    typeof dataErrorValue === "string" ? dataErrorValue : "",
-    dataErrorRecord?.message,
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .trim();
-};
-
 const isApiErrorResponse = (res: ApiRecord | null | undefined) => {
   return !res || res?.success === false || Boolean(res?.error);
 };
 
-const getApiErrorMessage = (
-  res: ApiRecord | null | undefined,
-  fallback = "Something went wrong",
-) => {
-  return getApiResponseMessage(res) || fallback;
-};
-
 const isCartBranchConflictResponse = (res: ApiRecord | null | undefined) => {
-  const message = getApiResponseMessage(res).toLowerCase();
+  const message = getApiErrorMessage(res, "").toLowerCase();
   return message.includes("branch") && message.includes("cart");
 };
 

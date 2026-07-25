@@ -92,6 +92,7 @@ export type AuthContextValue = {
   loading: boolean;
   login: (data: AuthSession) => AuthSession;
   ensureGuestSession: (restaurantId: string) => Promise<AuthSession>;
+  renewGuestSession: (restaurantId: string) => Promise<AuthSession>;
   logout: () => void;
   updateUser: (user: AuthUser | null | ((user: AuthUser | null) => AuthUser | null)) => void;
   setUser: (user: AuthUser | null | ((user: AuthUser | null) => AuthUser | null)) => void;

@@ -3,7 +3,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { API_BASE_URL } from "@/lib/axios";
 import { buildApiUrl } from "@/lib/api-endpoint";
 
-import { googleLoginCustomer } from "./auth";
+import {
+  getCurrentUser,
+  googleLoginCustomer,
+  isUnauthorizedAuthError,
+} from "./auth";
 
 const authResponse = {
   success: true,
@@ -50,5 +54,28 @@ describe("auth service", () => {
       })
     );
     expect(session.accessToken).toBe("access-token");
+  });
+
+  it("preserves the HTTP status for unauthorized auth responses", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          success: false,
+          message: "Unauthorized",
+        }),
+        { status: 401 },
+      ),
+    );
+
+    const request = getCurrentUser("expired-token");
+
+    await expect(request).rejects.toMatchObject({
+      name: "AuthRequestError",
+      message: "Unauthorized",
+      status: 401,
+    });
+    await expect(request.catch((error: unknown) => error)).resolves.toSatisfy(
+      isUnauthorizedAuthError,
+    );
   });
 });

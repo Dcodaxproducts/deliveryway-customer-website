@@ -6,6 +6,34 @@ type GuestSessionCoordinatorDependencies = {
   persistSession: (session: AuthSession) => AuthSession;
 };
 
+type CustomerSession = {
+  customerId: string;
+  token: string;
+  isGuest: boolean;
+};
+
+type GuestSessionRecoveryDependencies<TResponse extends { status?: number }> = {
+  session: CustomerSession;
+  request: (session: CustomerSession) => Promise<TResponse>;
+  renewSession: () => Promise<CustomerSession>;
+};
+
+export const runWithGuestSessionRecovery = async <
+  TResponse extends { status?: number },
+>({
+  session,
+  request,
+  renewSession,
+}: GuestSessionRecoveryDependencies<TResponse>) => {
+  const response = await request(session);
+
+  if (response.status !== 401 || !session.isGuest) {
+    return response;
+  }
+
+  return request(await renewSession());
+};
+
 export const createGuestSessionCoordinator = ({
   readSession,
   registerGuest,

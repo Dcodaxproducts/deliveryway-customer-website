@@ -29,6 +29,19 @@ const getMessage = (value: unknown, fallback: string) => {
 
 const getResponseData = (value: unknown) => (isRecord(value) ? value.data : undefined);
 
+export class AuthRequestError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+    this.name = "AuthRequestError";
+  }
+}
+
+export const isUnauthorizedAuthError = (error: unknown) =>
+  error instanceof AuthRequestError && error.status === 401;
+
 const requestAuth = async (endpoint: string, init: RequestInit = {}) => {
   const res = await fetch(buildApiUrl(API_BASE_URL, endpoint), {
     ...init,
@@ -42,7 +55,7 @@ const requestAuth = async (endpoint: string, init: RequestInit = {}) => {
   const payload = (await res.json()) as unknown;
 
   if (!res.ok) {
-    throw new Error(getMessage(payload, "Request failed"));
+    throw new AuthRequestError(getMessage(payload, "Request failed"), res.status);
   }
 
   return payload;
