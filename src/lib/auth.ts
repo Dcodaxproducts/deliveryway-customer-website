@@ -29,6 +29,13 @@ export const isAuthSession = (value: unknown): value is AuthSession => {
   return isString(value.accessToken) && isAuthUser(value.user);
 };
 
+export const isCustomerAccountUser = (user: AuthUser | null) =>
+  Boolean(
+    user &&
+      user.isGuest !== true &&
+      user.role.trim().toUpperCase() !== "GUEST",
+  );
+
 export const readAuthSession = () => {
   try {
     const storedAuth = getBrowserStorage()?.getItem(AUTH_STORAGE_KEY);

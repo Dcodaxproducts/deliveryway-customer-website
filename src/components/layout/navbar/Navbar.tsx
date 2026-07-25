@@ -32,6 +32,7 @@ import { useCustomerCoupons } from "@/hooks/useCustomerCoupons";
 import { useDomainContext } from "@/hooks/useDomainContext";
 import { useHome } from "@/hooks/useHome";
 import { CART_CHANGED_EVENT, type CartChangedDetail } from "@/lib/cart-events";
+import { isCustomerAccountUser } from "@/lib/auth";
 import {
   GROUP_ORDER_LOBBY_CHANGED_EVENT,
   getStoredGroupOrderCode,
@@ -148,7 +149,7 @@ export const Navbar = () => {
     branchId,
   });
 
-  const isAuth = !!user;
+  const hasCustomerAccount = isCustomerAccountUser(user);
   const userId = user?.id;
   const userName =
     `${user?.profile?.firstName || ""} ${user?.profile?.lastName || ""}`.trim();
@@ -554,7 +555,7 @@ export const Navbar = () => {
                 ) : null}
               </Link>
               {/* USER */}
-              {isAuth ? (
+              {hasCustomerAccount ? (
                 <div ref={dropdownRef} className="relative">
                   <button
                     onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -986,8 +987,23 @@ export const Navbar = () => {
 
             <LanguageSelector className="w-full justify-between" />
 
-            {!isAuth && (
-              <Link href="/auth/login" className="flex items-center gap-3">
+            {hasCustomerAccount ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileOpen(false);
+                  handleLogout();
+                }}
+                className="flex items-center gap-3 text-left"
+              >
+                <LogOut /> {tNav("logout")}
+              </button>
+            ) : (
+              <Link
+                href="/auth/login"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-3"
+              >
                 <User /> {tNav("login")}
               </Link>
             )}
