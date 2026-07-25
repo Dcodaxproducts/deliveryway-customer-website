@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { API_BASE_URL } from "@/lib/axios";
+import { buildApiUrl } from "@/lib/api-endpoint";
 
 import { googleLoginCustomer } from "./auth";
 
@@ -35,7 +36,7 @@ describe("auth service", () => {
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
-      `${API_BASE_URL}/v1/auth/google-login`,
+      buildApiUrl(API_BASE_URL, "/v1/auth/google-login"),
       expect.objectContaining({
         method: "POST",
         headers: {

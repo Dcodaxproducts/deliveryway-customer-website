@@ -36,8 +36,8 @@ type AddressLocationPickerProps = {
 };
 
 const DEFAULT_MAP_CENTER: GoogleLatLngLiteral = {
-  lat: 20,
-  lng: 0,
+  lat: 51.1657,
+  lng: 10.4515,
 };
 
 const MIN_QUERY_LENGTH = 3;

@@ -427,6 +427,11 @@ export const getSoleActiveBranch = (response: unknown) => {
     : null;
 };
 
+export const shouldRequireBranchSelection = (
+  restaurantId?: string | number | null,
+  branchId?: string | number | null,
+) => Boolean(restaurantId) && !branchId;
+
 export const getSelectedOrderType = (
   user?: Pick<AuthUser, "branch" | "selectedOrderType"> | null,
 ) => user?.selectedOrderType ?? user?.branch?.selectedOrderType ?? null;

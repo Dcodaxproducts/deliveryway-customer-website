@@ -29,6 +29,7 @@ import {
   useHomePromotionalItems,
 } from "@/hooks/useHomeCategories";
 import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
+import { shouldRequireBranchSelection } from "@/lib/branch-selector";
 import { resolveCustomerCurrency } from "@/lib/money";
 import type { CustomerDeal } from "@/types/customer-deals";
 import type { AuthBranch } from "@/types/auth";
@@ -329,7 +330,9 @@ const HomePage = () => {
         <Stats />
       </div>
 
-      {user && token && !branchId ? <RequiredBranchSelectionModal /> : null}
+      {shouldRequireBranchSelection(restaurantId, branchId) ? (
+        <RequiredBranchSelectionModal restaurantId={restaurantId} />
+      ) : null}
     </div>
   );
 };

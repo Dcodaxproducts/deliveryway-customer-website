@@ -105,7 +105,7 @@ export const fetchCustomerCuisines = async (params: FetchCuisinesParams) => {
   });
 
   const response = await getRequest(
-    `/customer-app/categories?${queryParams.toString()}`,
+    `/customer-app/cuisines?${queryParams.toString()}`,
   );
 
   return {
@@ -129,7 +129,7 @@ export const fetchCustomerCuisineItems = async ({
   });
 
   const response = await getRequest(
-    `/customer-app/categories/${encodeURIComponent(cuisineId)}/items?${queryParams.toString()}`,
+    `/customer-app/cuisines/${encodeURIComponent(cuisineId)}/items?${queryParams.toString()}`,
   );
 
   return {

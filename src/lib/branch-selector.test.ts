@@ -13,6 +13,7 @@ import {
   nearbyBranchToBranchRecord,
   normalizeBranch,
   normalizePublicBranchSelection,
+  shouldRequireBranchSelection,
 } from "@/lib/branch-selector";
 import type { AuthSession } from "@/types/auth";
 import type { NearbyBranch } from "@/types/branches";
@@ -33,6 +34,14 @@ const nearbyBranch: NearbyBranch = {
 };
 
 describe("branch selector helpers", () => {
+  it("requires branch selection for anonymous restaurant browsing", () => {
+    expect(shouldRequireBranchSelection("restaurant-1", null)).toBe(true);
+    expect(shouldRequireBranchSelection("restaurant-1", "branch-1")).toBe(
+      false,
+    );
+    expect(shouldRequireBranchSelection(null, null)).toBe(false);
+  });
+
   it("branchSupportsPickup checks TAKEAWAY", () => {
     expect(branchSupportsPickup(nearbyBranch)).toBe(true);
     expect(

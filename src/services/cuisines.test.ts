@@ -52,7 +52,7 @@ describe("cuisines service", () => {
     });
 
     expect(mockedGetRequest).toHaveBeenCalledWith(
-      "/customer-app/categories?restaurantId=restaurant-1&branchId=branch-1&page=2&limit=10&locale=en&search=ita&sortBy=name&sortOrder=ASC",
+      "/customer-app/cuisines?restaurantId=restaurant-1&branchId=branch-1&page=2&limit=10&locale=en&search=ita&sortBy=name&sortOrder=ASC",
     );
   });
 
@@ -70,7 +70,7 @@ describe("cuisines service", () => {
     });
 
     expect(mockedGetRequest).toHaveBeenCalledWith(
-      "/customer-app/categories/cuisine%2F1/items?restaurantId=restaurant-1&branchId=branch-1&page=1&limit=12&sortBy=sortOrder&sortOrder=ASC",
+      "/customer-app/cuisines/cuisine%2F1/items?restaurantId=restaurant-1&branchId=branch-1&page=1&limit=12&sortBy=sortOrder&sortOrder=ASC",
     );
     expect(result.items).toEqual([{ id: "item-1" }]);
   });

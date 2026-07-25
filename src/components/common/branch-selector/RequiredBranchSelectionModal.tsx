@@ -10,7 +10,9 @@ import {
   getDefaultBranchOrderType,
   getSelectedOrderType,
   getSoleActiveBranch,
+  persistPublicBranchSelection,
   persistSelectedBranch,
+  shouldRequireBranchSelection,
 } from "@/lib/branch-selector";
 
 type RequiredBranchSelectionModalProps = {
@@ -36,20 +38,22 @@ export function RequiredBranchSelectionModal({
     return restaurantId || user?.restaurantId || user?.tenantId || null;
   }, [restaurantId, user]);
 
-  const shouldShow =
-    !!token && !!user && !user?.branchId && !!resolvedRestaurantId;
+  const shouldShow = shouldRequireBranchSelection(
+    resolvedRestaurantId,
+    user?.branchId,
+  );
   const shouldCheckSingleBranch =
-    !!token &&
-    !!user &&
     !!resolvedRestaurantId &&
     (!user?.branchId || user?.branch?.isOnlyBranch !== true);
   const checkKey = shouldCheckSingleBranch
-    ? `${user?.id ?? ""}:${resolvedRestaurantId ?? ""}:${user?.branchId ?? "none"}`
+    ? `${user?.id ?? "anonymous"}:${resolvedRestaurantId ?? ""}:${user?.branchId ?? "none"}`
     : null;
   const isCheckingSingleBranch = shouldShow && checkedKey !== checkKey;
 
   const buildBranchLookupUrl = useCallback(() => {
-    const baseUrl = endpoint || `/v1/branches?restaurantId=${resolvedRestaurantId}`;
+    const baseUrl =
+      endpoint ||
+      `/v1/customer-app/branches?restaurantId=${resolvedRestaurantId}`;
     const separator = baseUrl.includes("?") ? "&" : "?";
 
     return `${baseUrl}${separator}page=1&limit=100`;
@@ -78,9 +82,19 @@ export function RequiredBranchSelectionModal({
         if (cancelled) return;
 
         if (soleBranch) {
-          persistSelectedBranch(soleBranch, setUser, {
-            orderType: getDefaultBranchOrderType(soleBranch, getSelectedOrderType(user)),
-          });
+          const orderType = getDefaultBranchOrderType(
+            soleBranch,
+            getSelectedOrderType(user),
+          );
+
+          if (user && token) {
+            persistSelectedBranch(soleBranch, setUser, { orderType });
+          } else {
+            persistPublicBranchSelection(
+              { ...soleBranch, selectedOrderType: orderType },
+              resolvedRestaurantId,
+            );
+          }
           setDismissedEmptyState(false);
           setOpen(false);
           onSelected?.(soleBranch);
