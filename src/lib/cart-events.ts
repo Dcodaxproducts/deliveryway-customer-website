@@ -4,6 +4,8 @@ export const CART_CHANGED_EVENT = "deliveryway:cart-changed";
 
 export type CartChangedDetail = {
   itemCount?: number;
+  itemCountDelta?: number;
+  mutationStatus?: "pending" | "committed" | "rolled-back";
 };
 
 export const dispatchCartChanged = (detail?: CartChangedDetail) => {

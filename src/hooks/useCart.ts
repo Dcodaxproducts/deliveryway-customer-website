@@ -59,6 +59,14 @@ const service = {
   del: deleteCart,
 };
 
+const getOptimisticCartQuantity = (payload: CartMutationPayload) => {
+  const quantity = Number(payload.quantity);
+
+  return Number.isFinite(quantity) && quantity > 0
+    ? Math.max(1, Math.floor(quantity))
+    : 1;
+};
+
 export type CartApi = DomainApiHook & {
   ensureCustomerSession: () => Promise<{ customerId: string; token: string }>;
   fetchCustomerCart: (args: { customerId: string }) => Promise<{ response: ApiResult; items: CartItemRecord[]; quote: CartQuote | null }>;
@@ -125,18 +133,37 @@ export const useCart = (token: string | null): CartApi => {
 
   const addCartItem = useCallback(
     async ({ customerId, payload }: { customerId: string; payload: CartMutationPayload }) => {
-      const session = await resolveCustomerSession(customerId);
-      const response = await addCustomerCartItem({
-        customerId: session.customerId,
-        payload,
-        token: session.token,
+      const optimisticQuantity = getOptimisticCartQuantity(payload);
+      dispatchCartChanged({
+        itemCountDelta: optimisticQuantity,
+        mutationStatus: "pending",
       });
 
-      if (response && !response.error && response.success !== false) {
-        dispatchCartChanged();
-      }
+      try {
+        const session = await resolveCustomerSession(customerId);
+        const response = await addCustomerCartItem({
+          customerId: session.customerId,
+          payload,
+          token: session.token,
+        });
 
-      return response;
+        if (response && !response.error && response.success !== false) {
+          dispatchCartChanged({ mutationStatus: "committed" });
+        } else {
+          dispatchCartChanged({
+            itemCountDelta: -optimisticQuantity,
+            mutationStatus: "rolled-back",
+          });
+        }
+
+        return response;
+      } catch (error) {
+        dispatchCartChanged({
+          itemCountDelta: -optimisticQuantity,
+          mutationStatus: "rolled-back",
+        });
+        throw error;
+      }
     },
     [resolveCustomerSession]
   );

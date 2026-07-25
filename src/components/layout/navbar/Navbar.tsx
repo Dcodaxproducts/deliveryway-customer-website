@@ -189,6 +189,7 @@ export const Navbar = () => {
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const cartRefreshRequestRef = useRef(0);
+  const pendingCartMutationsRef = useRef(0);
 
   const router = useRouter();
   const pathname = usePathname();
@@ -376,6 +377,39 @@ export const Navbar = () => {
         event instanceof CustomEvent
           ? (event.detail as CartChangedDetail | undefined)
           : undefined;
+      const mutationStatus = detail?.mutationStatus;
+
+      if (mutationStatus === "pending") {
+        pendingCartMutationsRef.current += 1;
+      } else if (
+        mutationStatus === "committed" ||
+        mutationStatus === "rolled-back"
+      ) {
+        pendingCartMutationsRef.current = Math.max(
+          0,
+          pendingCartMutationsRef.current - 1,
+        );
+      }
+
+      const itemCountDelta = detail?.itemCountDelta;
+
+      if (typeof itemCountDelta === "number") {
+        setCartItemCount((current) =>
+          toCartQuantity(current + itemCountDelta),
+        );
+
+        if (
+          mutationStatus !== "pending" &&
+          pendingCartMutationsRef.current === 0
+        ) {
+          refreshCartItemCount();
+        }
+        return;
+      }
+
+      if (pendingCartMutationsRef.current > 0) {
+        return;
+      }
 
       if (typeof detail?.itemCount === "number") {
         cartRefreshRequestRef.current += 1;

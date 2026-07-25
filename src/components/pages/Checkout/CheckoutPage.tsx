@@ -709,6 +709,17 @@ function CheckoutPageContent() {
   useEffect(() => {
     if (!user) return;
 
+    if (isGuest) {
+      setCustomer((prev) => ({
+        name: prev.name.trim().toLowerCase() === "guest customer" ? "" : prev.name,
+        phone: prev.phone,
+        email: /@guest\.deliveryways?(?:\.local)?$/i.test(prev.email.trim())
+          ? ""
+          : prev.email,
+      }));
+      return;
+    }
+
     setCustomer((prev) => ({
       ...prev,
       name: `${user.profile?.firstName || ""} ${
@@ -717,7 +728,7 @@ function CheckoutPageContent() {
       phone: user.profile?.phone || "",
       email: user.email || "",
     }));
-  }, [user]);
+  }, [isGuest, user]);
 
   useEffect(() => {
     if (!isGuest) {

@@ -166,6 +166,10 @@ const CustomerDetailsForm = ({
       value={customer.name}
       onChange={(event) => updateCustomerField("name", event.target.value)}
       placeholder={t("namePlaceholder")}
+      autoComplete="name"
+      minLength={2}
+      maxLength={100}
+      required
       className="mt-3 flex h-[55px] w-full items-center rounded-md border border-gray-200 bg-white px-4 text-gray-900 outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
     />
   ) : (
@@ -187,6 +191,10 @@ const CustomerDetailsForm = ({
       value={customer.phone}
       onChange={(event) => updateCustomerField("phone", event.target.value)}
       placeholder={t("phonePlaceholder")}
+      autoComplete="tel"
+      inputMode="tel"
+      maxLength={30}
+      required
       className="mt-3 flex h-[55px] w-full items-center rounded-md border border-gray-200 bg-white px-4 text-gray-900 outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
     />
   ) : (
@@ -207,6 +215,9 @@ const CustomerDetailsForm = ({
       value={customer.email}
       onChange={(event) => updateCustomerField("email", event.target.value)}
       placeholder={t("emailPlaceholder")}
+      autoComplete="email"
+      maxLength={254}
+      required
       className="mt-3 flex h-[55px] w-full items-center rounded-md border border-gray-200 bg-white px-4 text-gray-900 outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
     />
   ) : (

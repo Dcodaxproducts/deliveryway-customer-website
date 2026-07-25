@@ -3,7 +3,7 @@
 import { ShoppingBag, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { OrderCartSidebar } from "@/components/pages/Items/components/signature-selection/OrderCartSidebar";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,7 @@ export function SiteFloatingCart() {
   const [cartRefreshKey, setCartRefreshKey] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [hasCartItems, setHasCartItems] = useState(false);
+  const pendingCartMutationsRef = useRef(0);
   const [storedCheckoutType, setStoredCheckoutType] =
     useState<CheckoutTypePreference | null>(null);
 
@@ -55,6 +56,11 @@ export function SiteFloatingCart() {
 
   const refreshCartPresence = useCallback(
     async ({ openWhenPresent = false }: { openWhenPresent?: boolean } = {}) => {
+      if (pendingCartMutationsRef.current > 0) {
+        setHasCartItems(true);
+        return;
+      }
+
       if (loading || !customerId) {
         setHasCartItems(false);
         setIsOpen(false);
@@ -94,6 +100,27 @@ export function SiteFloatingCart() {
       const detail = event instanceof CustomEvent
         ? (event.detail as CartChangedDetail | undefined)
         : undefined;
+
+      if (detail?.mutationStatus === "pending") {
+        pendingCartMutationsRef.current += 1;
+        setHasCartItems(true);
+        setIsOpen(true);
+        return;
+      }
+
+      if (
+        detail?.mutationStatus === "committed" ||
+        detail?.mutationStatus === "rolled-back"
+      ) {
+        pendingCartMutationsRef.current = Math.max(
+          0,
+          pendingCartMutationsRef.current - 1,
+        );
+
+        if (pendingCartMutationsRef.current > 0) {
+          return;
+        }
+      }
 
       setStoredCheckoutType(getStoredCheckoutTypePreference());
       refreshCart();

@@ -23,6 +23,30 @@ describe("guest checkout contact", () => {
     ).toBe(true);
   });
 
+  it("rejects generated guest identities and malformed contact details", () => {
+    expect(
+      hasGuestContact({
+        name: "Guest Customer",
+        email: "guest+123@guest.deliveryways.local",
+        phone: "+49 151 23456789",
+      }),
+    ).toBe(false);
+    expect(
+      hasGuestContact({
+        name: "M",
+        email: "not-an-email",
+        phone: "123",
+      }),
+    ).toBe(false);
+    expect(
+      hasGuestContact({
+        name: "Max Mustermann",
+        email: "max@example.com",
+        phone: "invalid phone",
+      }),
+    ).toBe(false);
+  });
+
   it("trims and submits the entered name as firstName", () => {
     expect(
       getGuestContactPayload(
