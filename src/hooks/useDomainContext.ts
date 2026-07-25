@@ -42,7 +42,11 @@ const applyPublicBranchSelection = (
 
 export const useDomainContext = (): DomainContextState => {
   const [state, setState] = useState<DomainContextState>(() => ({
-    context: applyPublicBranchSelection(readStoredDomainContext()),
+    context: applyPublicBranchSelection(
+      readStoredDomainContext(
+        typeof window !== "undefined" ? window.location.host : null,
+      ),
+    ),
     loading: typeof window !== "undefined",
     error: null,
   }));

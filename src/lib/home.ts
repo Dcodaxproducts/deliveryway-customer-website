@@ -1,4 +1,5 @@
 import { readAuthSession } from "./auth";
+import type { DomainContext } from "./domain-context";
 import { getArrayData } from "./response";
 import type { AuthUser } from "../types/auth";
 import type { HomeBranch, HomeCategory, LandingPopup, PromotionCampaign } from "../types/home";
@@ -33,10 +34,15 @@ const normalizePromotionScope = (value: unknown) => {
 
 export const getStoredHomeAuthUser = () => readAuthSession()?.user ?? null;
 
-export const resolveHomeRestaurantId = (user?: AuthUser | null, authRestaurantId?: string | null) => {
+export const resolveHomeRestaurantId = (
+  user?: AuthUser | null,
+  authRestaurantId?: string | null,
+  domainContext?: Pick<DomainContext, "restaurantId"> | null,
+) => {
   const storedUser = getStoredHomeAuthUser();
 
   return (
+    domainContext?.restaurantId ??
     storedUser?.restaurantId ??
     storedUser?.branch?.restaurantId ??
     authRestaurantId ??
@@ -47,8 +53,27 @@ export const resolveHomeRestaurantId = (user?: AuthUser | null, authRestaurantId
   );
 };
 
-export const resolveHomeBranchId = (user?: AuthUser | null) => {
+export const resolveHomeBranchId = (
+  user?: AuthUser | null,
+  domainContext?: Pick<DomainContext, "restaurantId" | "branchId"> | null,
+) => {
   const storedUser = getStoredHomeAuthUser();
+  const domainRestaurantId = domainContext?.restaurantId?.trim();
+
+  if (domainContext?.branchId) {
+    return domainContext.branchId;
+  }
+
+  if (domainRestaurantId) {
+    const matchingUser = [storedUser, user].find((candidate) => {
+      const candidateRestaurantId =
+        candidate?.branch?.restaurantId ?? candidate?.restaurantId;
+
+      return candidateRestaurantId === domainRestaurantId;
+    });
+
+    return matchingUser?.branchId ?? matchingUser?.branch?.id ?? "";
+  }
 
   return storedUser?.branchId ?? storedUser?.branch?.id ?? user?.branchId ?? user?.branch?.id ?? "";
 };

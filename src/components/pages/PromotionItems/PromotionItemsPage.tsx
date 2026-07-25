@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import { FavoriteHeartButton } from "@/components/common/favorites/FavoriteHeartButton";
 import { useAppLocale } from "@/hooks/useAppLocale";
 import { useAuth } from "@/hooks/useAuth";
+import { useDomainContext } from "@/hooks/useDomainContext";
 import { useHome } from "@/hooks/useHome";
 import { useHomePromotionalItems, useHomePromotions } from "@/hooks/useHomeCategories";
 import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
@@ -406,12 +407,16 @@ function PromotionItemsPageContent() {
   const [selectedCategory, setSelectedCategory] = useState(ALL_ITEMS_FILTER);
   const [sortKey, setSortKey] = useState<SortKey>("popular");
   const [copiedCode, setCopiedCode] = useState("");
+  const { context: domainContext } = useDomainContext();
 
   const restaurantId = useMemo(
-    () => resolveHomeRestaurantId(user, authRestaurantId),
-    [authRestaurantId, user],
+    () => resolveHomeRestaurantId(user, authRestaurantId, domainContext),
+    [authRestaurantId, domainContext, user],
   );
-  const branchId = useMemo(() => resolveHomeBranchId(user), [user]);
+  const branchId = useMemo(
+    () => resolveHomeBranchId(user, domainContext),
+    [domainContext, user],
+  );
 
   const promotionsQuery = useHomePromotions(restaurantId, branchId, Boolean(token && promotionId));
   const promotionalItemsQuery = useHomePromotionalItems({

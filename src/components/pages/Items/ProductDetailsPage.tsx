@@ -28,8 +28,10 @@ import {
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useDomainContext } from "@/hooks/useDomainContext";
-import { getStoredRestaurantId } from "@/lib/auth";
-import { resolveHomeBranchId } from "@/lib/home";
+import {
+  resolveHomeBranchId,
+  resolveHomeRestaurantId,
+} from "@/lib/home";
 import { Download, Eye, Loader2, Minus, Plus, X } from "lucide-react";
 import { AsyncSelect } from "@/components/ui/AsyncSelect";
 import { FavoriteHeartButton } from "@/components/common/favorites/FavoriteHeartButton";
@@ -974,15 +976,9 @@ function ProductDetailsPageContent() {
   const { user, restaurantId: authRestaurantId } = useAuth();
   const { context: domainContext } = useDomainContext();
   const customerId = user?.id;
-  const branchId = String(
-    resolveHomeBranchId(user) || domainContext?.branchId || "",
-  );
+  const branchId = String(resolveHomeBranchId(user, domainContext));
   const browsingRestaurantId = String(
-    authRestaurantId ||
-      user?.restaurantId ||
-      getStoredRestaurantId() ||
-      domainContext?.restaurantId ||
-      "",
+    resolveHomeRestaurantId(user, authRestaurantId, domainContext),
   );
   const restaurantId = String(
     item?.restaurantId || item?.restaurant?.id || browsingRestaurantId,

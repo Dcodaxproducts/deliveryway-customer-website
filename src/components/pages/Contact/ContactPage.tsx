@@ -11,6 +11,7 @@ import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { queryKeys } from '@/config/query-keys'
 import { useAuth } from '@/hooks/useAuth'
+import { useDomainContext } from '@/hooks/useDomainContext'
 import { getApiErrorMessage } from '@/lib/errors'
 import { resolveHomeBranchId, resolveHomeRestaurantId } from '@/lib/home'
 import { fetchCustomerFaqs, fetchHelpSupportContent, submitContactForm } from '@/services/public-content'
@@ -20,8 +21,9 @@ const ContactPage = () => {
   const t = useTranslations("contact.form")
   const validationT = useTranslations("validation")
   const { user, restaurantId: authRestaurantId } = useAuth()
-  const restaurantId = resolveHomeRestaurantId(user, authRestaurantId)
-  const branchId = resolveHomeBranchId(user)
+  const { context: domainContext } = useDomainContext()
+  const restaurantId = resolveHomeRestaurantId(user, authRestaurantId, domainContext)
+  const branchId = resolveHomeBranchId(user, domainContext)
   const [submitting, setSubmitting] = useState(false)
   const helpSupportQuery = useQuery({
     queryKey: queryKeys.home.helpSupport(restaurantId, branchId),

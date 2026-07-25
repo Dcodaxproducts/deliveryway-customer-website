@@ -8,6 +8,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { OrderCartSidebar } from "@/components/pages/Items/components/signature-selection/OrderCartSidebar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { useDomainContext } from "@/hooks/useDomainContext";
 import { useHome } from "@/hooks/useHome";
 import { getSelectedOrderType } from "@/lib/branch-selector";
 import { CART_CHANGED_EVENT, type CartChangedDetail } from "@/lib/cart-events";
@@ -26,6 +27,7 @@ export function SiteFloatingCart() {
   const pathname = usePathname();
   const t = useTranslations("cart");
   const { user, token, loading, restaurantId } = useAuth();
+  const { context: domainContext } = useDomainContext();
   const [cartRefreshKey, setCartRefreshKey] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [hasCartItems, setHasCartItems] = useState(false);
@@ -36,8 +38,12 @@ export function SiteFloatingCart() {
   const isHiddenRoute = HIDDEN_CART_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
   const hideOnMobileHome = pathname === "/";
   const customerId = user?.id;
-  const homeRestaurantId = resolveHomeRestaurantId(user, restaurantId);
-  const branchId = resolveHomeBranchId(user);
+  const homeRestaurantId = resolveHomeRestaurantId(
+    user,
+    restaurantId,
+    domainContext,
+  );
+  const branchId = resolveHomeBranchId(user, domainContext);
   const homeQuery = useHome(
     homeRestaurantId,
     branchId,

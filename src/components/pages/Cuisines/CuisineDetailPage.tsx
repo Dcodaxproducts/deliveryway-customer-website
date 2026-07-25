@@ -22,8 +22,8 @@ function CuisineDetailContent({ cuisineId }: { cuisineId: string }) {
   const { user, restaurantId: authRestaurantId } = useAuth();
   const { context } = useDomainContext();
   const { locale } = useAppLocale();
-  const restaurantId = resolveHomeRestaurantId(user, authRestaurantId) || context?.restaurantId || "";
-  const branchId = resolveHomeBranchId(user) || context?.branchId || "";
+  const restaurantId = resolveHomeRestaurantId(user, authRestaurantId, context);
+  const branchId = resolveHomeBranchId(user, context);
   const cuisinesQuery = useCustomerCuisines({ restaurantId, branchId, locale, limit: 50, enabled: Boolean(restaurantId) });
   const itemsQuery = useCustomerCuisineItems({ cuisineId, restaurantId, branchId, locale, limit: 48, enabled: Boolean(restaurantId && cuisineId) });
   const homeQuery = useHome(restaurantId, branchId, Boolean(restaurantId && branchId));

@@ -46,8 +46,8 @@ export function CuisineSection() {
   const { user, restaurantId: authRestaurantId } = useAuth();
   const { context } = useDomainContext();
   const { locale } = useAppLocale();
-  const restaurantId = resolveHomeRestaurantId(user, authRestaurantId) || context?.restaurantId || "";
-  const branchId = resolveHomeBranchId(user) || context?.branchId || "";
+  const restaurantId = resolveHomeRestaurantId(user, authRestaurantId, context);
+  const branchId = resolveHomeBranchId(user, context);
   const params = { restaurantId, branchId, locale, limit: 8 };
   const cuisinesQuery = useCustomerCuisines({ ...params, enabled: Boolean(restaurantId) });
   const promotionalQuery = usePromotionalCuisines({ ...params, limit: 4, enabled: Boolean(restaurantId) });

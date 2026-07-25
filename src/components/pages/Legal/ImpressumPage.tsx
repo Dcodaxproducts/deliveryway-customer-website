@@ -94,14 +94,12 @@ const ImpressumPage = () => {
   const restaurantId = useMemo(
     () =>
       urlContext.restaurantId ||
-      resolveHomeRestaurantId(user, authRestaurantId) ||
-      domainContext?.restaurantId ||
-      "",
-    [authRestaurantId, domainContext?.restaurantId, urlContext.restaurantId, user],
+      resolveHomeRestaurantId(user, authRestaurantId, domainContext),
+    [authRestaurantId, domainContext, urlContext.restaurantId, user],
   );
   const branchId = useMemo(
-    () => urlContext.branchId || resolveHomeBranchId(user) || domainContext?.branchId || "",
-    [domainContext?.branchId, urlContext.branchId, user],
+    () => urlContext.branchId || resolveHomeBranchId(user, domainContext),
+    [domainContext, urlContext.branchId, user],
   );
 
   useEffect(() => {

@@ -17,8 +17,8 @@ function CuisinesPageContent() {
   const { context } = useDomainContext();
   const { locale } = useAppLocale();
   const [search, setSearch] = useState("");
-  const restaurantId = resolveHomeRestaurantId(user, authRestaurantId) || context?.restaurantId || "";
-  const branchId = resolveHomeBranchId(user) || context?.branchId || "";
+  const restaurantId = resolveHomeRestaurantId(user, authRestaurantId, context);
+  const branchId = resolveHomeBranchId(user, context);
   const params = useMemo(
     () => ({ restaurantId, branchId, locale, limit: 24, search, sortBy: "sortOrder", sortOrder: "ASC" as const }),
     [branchId, locale, restaurantId, search],

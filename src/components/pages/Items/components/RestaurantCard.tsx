@@ -620,14 +620,12 @@ export function RestaurantCard({
   }, [compactItem]);
 
   const customerId = user?.id;
-  const branchId = String(
-    resolveHomeBranchId(user) || domainContext?.branchId || "",
-  );
+  const branchId = String(resolveHomeBranchId(user, domainContext));
   const restaurantId =
     item?.restaurantId ||
     item?.restaurant?.id ||
-    user?.restaurantId ||
     domainContext?.restaurantId ||
+    user?.restaurantId ||
     "";
 
   const itemSupportsSplitPizza = Boolean(item?.supportsSplitPizza);

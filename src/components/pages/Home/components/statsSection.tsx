@@ -9,6 +9,7 @@ import {
 
 import { queryKeys } from "@/config/query-keys";
 import { useAuth } from "@/hooks/useAuth";
+import { useDomainContext } from "@/hooks/useDomainContext";
 import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
 import { fetchBranchStats } from "@/services/public-content";
 
@@ -21,8 +22,13 @@ const compactNumber = (value: number) =>
 export default function Stats() {
   const t = useTranslations("home.stats");
   const { user, restaurantId: authRestaurantId } = useAuth();
-  const restaurantId = resolveHomeRestaurantId(user, authRestaurantId);
-  const branchId = resolveHomeBranchId(user);
+  const { context: domainContext } = useDomainContext();
+  const restaurantId = resolveHomeRestaurantId(
+    user,
+    authRestaurantId,
+    domainContext,
+  );
+  const branchId = resolveHomeBranchId(user, domainContext);
   const statsQuery = useQuery({
     queryKey: queryKeys.home.branchStats(restaurantId, branchId),
     queryFn: () => fetchBranchStats(restaurantId, branchId),

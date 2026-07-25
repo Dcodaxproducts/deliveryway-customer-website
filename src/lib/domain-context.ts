@@ -70,11 +70,26 @@ export const normalizeDomainContext = (value: unknown): DomainContext | null => 
   };
 };
 
-export const readStoredDomainContext = (): DomainContext | null => {
+export const readStoredDomainContext = (
+  currentHost?: string | null,
+): DomainContext | null => {
   if (typeof window === "undefined") return null;
 
   try {
-    return normalizeDomainContext(JSON.parse(window.localStorage.getItem(STORAGE_KEY) || "null"));
+    const context = normalizeDomainContext(
+      JSON.parse(window.localStorage.getItem(STORAGE_KEY) || "null"),
+    );
+    const normalizedCurrentHost = normalizeDomainHost(currentHost ?? "");
+
+    if (
+      context &&
+      normalizedCurrentHost &&
+      normalizeDomainHost(context.host ?? "") !== normalizedCurrentHost
+    ) {
+      return null;
+    }
+
+    return context;
   } catch {
     return null;
   }

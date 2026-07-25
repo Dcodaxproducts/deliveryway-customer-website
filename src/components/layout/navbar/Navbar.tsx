@@ -142,11 +142,12 @@ export const Navbar = () => {
   const { token, loading: authLoading, restaurantId } = useAuth();
   const { context: domainContext, loading: domainLoading } = useDomainContext();
   const { get } = useMenu(token);
-  const homeRestaurantId =
-    resolveHomeRestaurantId(user, restaurantId) ||
-    domainContext?.restaurantId ||
-    "";
-  const branchId = resolveHomeBranchId(user) || domainContext?.branchId || "";
+  const homeRestaurantId = resolveHomeRestaurantId(
+    user,
+    restaurantId,
+    domainContext,
+  );
+  const branchId = resolveHomeBranchId(user, domainContext);
   const homeQuery = useHome(
     homeRestaurantId,
     branchId,

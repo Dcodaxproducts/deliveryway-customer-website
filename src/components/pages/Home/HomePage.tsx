@@ -164,15 +164,12 @@ const HomePage = () => {
   const { branding: fallbackBranding } = useBranding();
 
   const restaurantId = useMemo(
-    () =>
-      resolveHomeRestaurantId(user, authRestaurantId) ||
-      domainContext?.restaurantId ||
-      "",
-    [authRestaurantId, domainContext?.restaurantId, user],
+    () => resolveHomeRestaurantId(user, authRestaurantId, domainContext),
+    [authRestaurantId, domainContext, user],
   );
   const branchId = useMemo(
-    () => resolveHomeBranchId(user) || domainContext?.branchId || "",
-    [domainContext?.branchId, user],
+    () => resolveHomeBranchId(user, domainContext),
+    [domainContext, user],
   );
   const hasRestaurantContext = Boolean(restaurantId);
   const homeQuery = useHome(restaurantId, branchId, hasRestaurantContext);

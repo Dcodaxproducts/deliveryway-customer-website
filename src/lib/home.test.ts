@@ -63,4 +63,49 @@ describe("home helpers", () => {
       })
     ).toBe("branch-1");
   });
+
+  it("uses the current storefront domain instead of a stale auth restaurant", () => {
+    expect(
+      resolveHomeRestaurantId(
+        {
+          ...baseUser,
+          restaurantId: "stale-restaurant",
+        },
+        "stale-restaurant",
+        { restaurantId: "domain-restaurant" },
+      ),
+    ).toBe("domain-restaurant");
+  });
+
+  it("uses the current storefront branch instead of a stale auth branch", () => {
+    expect(
+      resolveHomeBranchId(
+        {
+          ...baseUser,
+          restaurantId: "stale-restaurant",
+          branchId: "stale-branch",
+        },
+        {
+          restaurantId: "domain-restaurant",
+          branchId: "domain-branch",
+        },
+      ),
+    ).toBe("domain-branch");
+  });
+
+  it("does not reuse an auth branch from another storefront restaurant", () => {
+    expect(
+      resolveHomeBranchId(
+        {
+          ...baseUser,
+          restaurantId: "stale-restaurant",
+          branchId: "stale-branch",
+        },
+        {
+          restaurantId: "domain-restaurant",
+          branchId: null,
+        },
+      ),
+    ).toBe("");
+  });
 });

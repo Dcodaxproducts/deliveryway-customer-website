@@ -189,10 +189,8 @@ export const Footer = () => {
   const t = useTranslations("footer");
   const { user, loading } = useAuthContext();
   const { context: domainContext, loading: domainLoading } = useDomainContext();
-  const restaurantId =
-    resolveHomeRestaurantId(user) || domainContext?.restaurantId || "";
-  const branchId =
-    resolveHomeBranchId(user) || domainContext?.branchId || "";
+  const restaurantId = resolveHomeRestaurantId(user, null, domainContext);
+  const branchId = resolveHomeBranchId(user, domainContext);
   const homeQuery = useHome(
     restaurantId,
     branchId || null,

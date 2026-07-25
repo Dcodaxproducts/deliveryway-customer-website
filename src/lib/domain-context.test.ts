@@ -1,8 +1,17 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getLocalDomainContext, normalizeDomainContext, normalizeDomainHost } from "./domain-context";
+import {
+  getLocalDomainContext,
+  normalizeDomainContext,
+  normalizeDomainHost,
+  readStoredDomainContext,
+} from "./domain-context";
 
 describe("domain context helpers", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it("normalizes hostnames from full URLs and host headers", () => {
     expect(normalizeDomainHost("https://Pizza.Example.com/menu")).toBe("pizza.example.com");
     expect(normalizeDomainHost("www.brand.example.com:3000")).toBe("brand.example.com");
@@ -38,5 +47,20 @@ describe("domain context helpers", () => {
 
   it("does not provide a fallback for deployed domains", () => {
     expect(getLocalDomainContext("restaurant.delivery-way.de")).toBeNull();
+  });
+
+  it("does not hydrate domain context stored for another restaurant host", () => {
+    vi.stubGlobal("window", {
+      localStorage: {
+        getItem: () =>
+          JSON.stringify({
+            restaurantId: "restaurant-1",
+            branchId: "branch-1",
+            host: "first.delivery-way.de",
+          }),
+      },
+    });
+
+    expect(readStoredDomainContext("second.delivery-way.de")).toBeNull();
   });
 });

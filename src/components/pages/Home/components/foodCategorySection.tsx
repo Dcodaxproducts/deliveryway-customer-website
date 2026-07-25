@@ -332,12 +332,12 @@ export function FoodCategorySection() {
   const { user, restaurantId: authRestaurantId } = useAuth();
   const { context: domainContext } = useDomainContext();
   const { locale } = useAppLocale();
-  const restaurantId =
-    resolveHomeRestaurantId(user, authRestaurantId) ||
-    domainContext?.restaurantId ||
-    "";
-  const branchId =
-    resolveHomeBranchId(user) || domainContext?.branchId || "";
+  const restaurantId = resolveHomeRestaurantId(
+    user,
+    authRestaurantId,
+    domainContext,
+  );
+  const branchId = resolveHomeBranchId(user, domainContext);
   const hasRestaurantContext = Boolean(restaurantId);
   const categoriesQuery = useHomeCategories(
     restaurantId,

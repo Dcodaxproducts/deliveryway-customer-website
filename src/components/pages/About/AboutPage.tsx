@@ -12,14 +12,16 @@ import { useLocale } from 'next-intl'
 import { queryKeys } from '@/config/query-keys'
 import { useAuth } from '@/hooks/useAuth'
 import { useCustomerReviews } from '@/hooks/useCustomerReviews'
+import { useDomainContext } from '@/hooks/useDomainContext'
 import { resolveHomeBranchId, resolveHomeRestaurantId } from '@/lib/home'
 import { fetchAboutContent, fetchBranchStats, type AboutTestimonial } from '@/services/public-content'
 
 const AboutPage = () => {
   const locale = useLocale()
   const { user, restaurantId: authRestaurantId } = useAuth()
-  const restaurantId = resolveHomeRestaurantId(user, authRestaurantId)
-  const branchId = resolveHomeBranchId(user)
+  const { context: domainContext } = useDomainContext()
+  const restaurantId = resolveHomeRestaurantId(user, authRestaurantId, domainContext)
+  const branchId = resolveHomeBranchId(user, domainContext)
   const aboutQuery = useQuery({
     queryKey: queryKeys.home.about(restaurantId),
     queryFn: () => fetchAboutContent(restaurantId),

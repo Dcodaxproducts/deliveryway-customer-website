@@ -25,8 +25,10 @@ import { useAppLocale } from "@/hooks/useAppLocale";
 import { useCustomerDeals } from "@/hooks/useCustomerDeals";
 import { useDomainContext } from "@/hooks/useDomainContext";
 import { useHome } from "@/hooks/useHome";
-import { getStoredRestaurantId } from "@/lib/auth";
-import { resolveHomeBranchId } from "@/lib/home";
+import {
+  resolveHomeBranchId,
+  resolveHomeRestaurantId,
+} from "@/lib/home";
 import { resolveCustomerCurrency } from "@/lib/money";
 import { setItemsMenuViewMode } from "@/lib/view-preferences";
 import type { ApiMeta, ItemsCategory, MenuItem } from "@/components/pages/Items/types";
@@ -118,17 +120,15 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
   const requestInFlightRef = useRef(false);
 
   const restaurantId = useMemo(() => {
-    return (
-      authRestaurantId ||
-      user?.restaurantId ||
-      getStoredRestaurantId() ||
-      domainContext?.restaurantId ||
-      ""
+    return resolveHomeRestaurantId(
+      user,
+      authRestaurantId,
+      domainContext,
     );
-  }, [authRestaurantId, domainContext?.restaurantId, user?.restaurantId]);
+  }, [authRestaurantId, domainContext, user]);
   const branchId = useMemo(
-    () => resolveHomeBranchId(user) || domainContext?.branchId || "",
-    [domainContext?.branchId, user],
+    () => resolveHomeBranchId(user, domainContext),
+    [domainContext, user],
   );
   const homeQuery = useHome(
     restaurantId,
