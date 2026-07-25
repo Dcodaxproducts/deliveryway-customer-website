@@ -59,7 +59,7 @@ export const useDealScopedItemsDetails = ({
   items?: CustomerDealMenuItem[];
   enabled: boolean;
 }) => {
-  const { token, user } = useAuth();
+  const { token, user, restaurantId } = useAuth();
   const branchId = user?.branchId || user?.branch?.id || null;
   const uniqueItemIds = useMemo(
     () => Array.from(new Set(itemIds.map((id) => id.trim()).filter(Boolean))),
@@ -90,6 +90,7 @@ export const useDealScopedItemsDetails = ({
       const details = await fetchMenuItemDetailsByIds({
         itemIds: uniqueItemIds,
         itemSearchTermsById,
+        restaurantId,
         branchId,
         token,
       });

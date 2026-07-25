@@ -105,11 +105,13 @@ export const fetchMenuItemDetails = async ({
 export const fetchMenuItemDetailsByIds = async ({
   itemIds,
   itemSearchTermsById = {},
+  restaurantId,
   branchId,
   token,
 }: {
   itemIds: string[];
   itemSearchTermsById?: Record<string, string[]>;
+  restaurantId?: string | number | null;
   branchId?: string | number | null;
   token?: string | null;
 }) => {
@@ -126,11 +128,40 @@ export const fetchMenuItemDetailsByIds = async ({
             .filter(Boolean),
         ),
       );
-      let matchedItem: MenuItem | null = null;
+      const fetchDetails = async (identifier: string) => {
+        const params = new URLSearchParams();
 
-      for (const searchTerm of searchTerms) {
+        if (restaurantId) {
+          params.set("restaurantId", String(restaurantId));
+        }
+        if (branchId) {
+          params.set("branchId", String(branchId));
+        }
+
+        const query = params.toString();
+        const response = await getItems(
+          `/customer-app/items/${encodeURIComponent(identifier)}${query ? `?${query}` : ""}`,
+          token,
+        );
+        const item =
+          typeof response.data === "object" &&
+          response.data !== null &&
+          !Array.isArray(response.data)
+            ? (response.data as MenuItem)
+            : null;
+
+        return item?.id ? item : null;
+      };
+      let matchedItem = await fetchDetails(itemId);
+
+      for (const searchTerm of searchTerms.slice(1)) {
+        if (matchedItem) break;
+
         const params = new URLSearchParams({ search: searchTerm });
 
+        if (restaurantId) {
+          params.set("restaurantId", String(restaurantId));
+        }
         if (branchId) {
           params.set("branchId", String(branchId));
         }
@@ -141,9 +172,10 @@ export const fetchMenuItemDetailsByIds = async ({
         );
         const items = normalizeApiArray<MenuItem>(response);
         const normalizedSearchTerm = searchTerm.toLowerCase();
-
-        matchedItem =
-          items.find((item) => String(item?.id || "") === itemId) ||
+        const summary =
+          items.find(
+            (item) => String(item?.id || "") === itemId,
+          ) ||
           items.find(
             (item) =>
               String(item?.slug || "").toLowerCase() === normalizedSearchTerm,
@@ -151,11 +183,12 @@ export const fetchMenuItemDetailsByIds = async ({
           items.find(
             (item) =>
               String(item?.name || "").toLowerCase() === normalizedSearchTerm,
-          ) ||
-          null;
+          );
 
-        if (matchedItem) {
-          break;
+        if (summary) {
+          matchedItem = await fetchDetails(
+            String(summary.slug || summary.id || itemId),
+          );
         }
       }
 

@@ -24,16 +24,14 @@ describe("fetchMenuItemDetailsByIds", () => {
     getItemsMock.mockReset();
   });
 
-  it("falls back to scoped item slug when id search does not return the item", async () => {
-    getItemsMock.mockResolvedValueOnce({ data: [] }).mockResolvedValueOnce({
-      data: [
-        {
-          id: "pizza-id",
-          slug: "pizza-tse",
-          name: "Pizza Tse",
-          modifierGroups: [{ id: "group-1", minSelect: 1 }],
-        },
-      ],
+  it("loads full item details so deal add-ons are preserved", async () => {
+    getItemsMock.mockResolvedValueOnce({
+      data: {
+        id: "pizza-id",
+        slug: "pizza-tse",
+        name: "Pizza Tse",
+        modifierGroups: [{ id: "group-1", minSelect: 1 }],
+      },
     });
 
     const details = await fetchMenuItemDetailsByIds({
@@ -41,17 +39,13 @@ describe("fetchMenuItemDetailsByIds", () => {
       itemSearchTermsById: {
         "pizza-id": ["pizza-tse", "Pizza Tse"],
       },
+      restaurantId: "restaurant-1",
+      branchId: "branch-1",
       token: "token-1",
     });
 
-    expect(getItemsMock).toHaveBeenNthCalledWith(
-      1,
-      "/customer-app/items?search=pizza-id",
-      "token-1",
-    );
-    expect(getItemsMock).toHaveBeenNthCalledWith(
-      2,
-      "/customer-app/items?search=pizza-tse",
+    expect(getItemsMock).toHaveBeenCalledWith(
+      "/customer-app/items/pizza-id?restaurantId=restaurant-1&branchId=branch-1",
       "token-1",
     );
     expect(details["pizza-id"]?.modifierGroups).toEqual([
@@ -61,10 +55,13 @@ describe("fetchMenuItemDetailsByIds", () => {
 
   it("falls back to scoped item name when id and slug searches miss", async () => {
     getItemsMock
-      .mockResolvedValueOnce({ data: [] })
+      .mockResolvedValueOnce({ data: null })
       .mockResolvedValueOnce({ data: [] })
       .mockResolvedValueOnce({
-        data: [{ id: "simple-id", name: "No Add-Ons", modifiers: [] }],
+        data: [{ id: "simple-id", slug: "no-add-ons", name: "No Add-Ons" }],
+      })
+      .mockResolvedValueOnce({
+        data: { id: "simple-id", name: "No Add-Ons", modifiers: [] },
       });
 
     const details = await fetchMenuItemDetailsByIds({
@@ -79,13 +76,23 @@ describe("fetchMenuItemDetailsByIds", () => {
       "/customer-app/items?search=No+Add-Ons",
       undefined,
     );
+    expect(getItemsMock).toHaveBeenNthCalledWith(
+      4,
+      "/customer-app/items/no-add-ons",
+      undefined,
+    );
     expect(details["simple-id"]?.name).toBe("No Add-Ons");
   });
 
   it("passes branchId through every fallback item details search", async () => {
     getItemsMock
-      .mockResolvedValueOnce({ data: [] })
-      .mockResolvedValueOnce({ data: [{ id: "pizza-id", slug: "pizza-tse" }] });
+      .mockResolvedValueOnce({ data: null })
+      .mockResolvedValueOnce({
+        data: [{ id: "pizza-id", slug: "pizza-tse" }],
+      })
+      .mockResolvedValueOnce({
+        data: { id: "pizza-id", slug: "pizza-tse" },
+      });
 
     await fetchMenuItemDetailsByIds({
       itemIds: ["pizza-id"],
@@ -96,12 +103,17 @@ describe("fetchMenuItemDetailsByIds", () => {
 
     expect(getItemsMock).toHaveBeenNthCalledWith(
       1,
-      "/customer-app/items?search=pizza-id&branchId=branch-1",
+      "/customer-app/items/pizza-id?branchId=branch-1",
       "token-1",
     );
     expect(getItemsMock).toHaveBeenNthCalledWith(
       2,
       "/customer-app/items?search=pizza-tse&branchId=branch-1",
+      "token-1",
+    );
+    expect(getItemsMock).toHaveBeenNthCalledWith(
+      3,
+      "/customer-app/items/pizza-tse?branchId=branch-1",
       "token-1",
     );
   });
