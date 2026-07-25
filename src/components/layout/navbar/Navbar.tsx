@@ -45,6 +45,12 @@ import {
 } from "@/lib/home";
 import { formatMoney, resolveCustomerCurrency } from "@/lib/money";
 import { fetchCustomerCart } from "@/services/cart";
+import type {
+  MenuItem as CustomerMenuItem,
+  MenuVariation,
+  VariationPriceOverride,
+} from "@/components/pages/Items/types";
+import { getMenuItemCardPrice } from "@/components/pages/Items/utils/product-pricing";
 
 type MenuItem = {
   id: string;
@@ -55,11 +61,11 @@ type MenuItem = {
   description: string;
   imageUrl: string;
   sku: string;
-  basePrice: string;
+  basePrice: string | number | null;
   prepTimeMinutes: number;
   dietaryFlags: string[];
   allergenFlags: string[];
-  isActive: boolean;
+  isActive?: boolean | null;
   deletedAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -75,6 +81,7 @@ type MenuItem = {
     name: string;
     slug: string;
     imageUrl?: string;
+    variations?: MenuVariation[];
   };
   menuLinks?: Array<{
     id: string;
@@ -91,7 +98,8 @@ type MenuItem = {
       isActive: boolean;
     };
   }>;
-  variations?: unknown[];
+  variations?: MenuVariation[];
+  variationPriceOverrides?: VariationPriceOverride[];
   modifierLinks?: unknown[];
   _count?: {
     variations: number;
@@ -555,7 +563,7 @@ export const Navbar = () => {
                 ) : null}
               </Link>
               {/* USER */}
-              {hasCustomerAccount ? (
+              {user ? (
                 <div ref={dropdownRef} className="relative">
                   <button
                     onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -574,7 +582,9 @@ export const Navbar = () => {
                       />
                     </span>
                     <span className="truncate text-sm font-semibold">
-                      {userName || tNav("user")}
+                      {hasCustomerAccount && userName
+                        ? userName
+                        : tNav("user")}
                     </span>
                     <ChevronDown
                       size={15}
@@ -608,11 +618,15 @@ export const Navbar = () => {
 
                         <div className="min-w-0">
                           <p className="truncate text-[15px] font-semibold leading-5 text-[#1D1712]">
-                            {userName || tNav("user")}
+                            {hasCustomerAccount && userName
+                              ? userName
+                              : tNav("user")}
                           </p>
-                          <p className="mt-0.5 truncate text-[12px] leading-5 text-[#7F7167]">
-                            {user?.email}
-                          </p>
+                          {hasCustomerAccount ? (
+                            <p className="mt-0.5 truncate text-[12px] leading-5 text-[#7F7167]">
+                              {user.email}
+                            </p>
+                          ) : null}
                         </div>
 
                         <div className="absolute -bottom-[7px] left-0 right-0 flex items-center justify-center text-[#D8A95D]">
@@ -623,18 +637,20 @@ export const Navbar = () => {
                       </div>
 
                       <div className="space-y-2 px-5 py-4">
-                        <Link
-                          href="/profile"
-                          onClick={() => setDropdownOpen(false)}
-                          className="group flex min-h-9 items-center gap-3 rounded-xl text-[#1D1712] transition-colors hover:text-primary"
-                        >
-                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#F8F4EF] text-primary shadow-[0_7px_16px_rgba(42,27,14,0.07)] ring-1 ring-[#F1EAE2]">
-                            <User size={17} strokeWidth={1.8} />
-                          </span>
-                          <span className="text-sm font-medium leading-5">
-                            {tNav("myProfile")}
-                          </span>
-                        </Link>
+                        {hasCustomerAccount ? (
+                          <Link
+                            href="/profile"
+                            onClick={() => setDropdownOpen(false)}
+                            className="group flex min-h-9 items-center gap-3 rounded-xl text-[#1D1712] transition-colors hover:text-primary"
+                          >
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#F8F4EF] text-primary shadow-[0_7px_16px_rgba(42,27,14,0.07)] ring-1 ring-[#F1EAE2]">
+                              <User size={17} strokeWidth={1.8} />
+                            </span>
+                            <span className="text-sm font-medium leading-5">
+                              {tNav("myProfile")}
+                            </span>
+                          </Link>
+                        ) : null}
 
                         <Link
                           href="/orders-history"
@@ -649,31 +665,35 @@ export const Navbar = () => {
                           </span>
                         </Link>
 
-                        <Link
-                          href="/favourites"
-                          onClick={() => setDropdownOpen(false)}
-                          className="group flex min-h-9 items-center gap-3 rounded-xl text-[#1D1712] transition-colors hover:text-primary"
-                        >
-                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#F8F4EF] text-primary shadow-[0_7px_16px_rgba(42,27,14,0.07)] ring-1 ring-[#F1EAE2]">
-                            <Heart size={17} strokeWidth={1.8} />
-                          </span>
-                          <span className="text-sm font-medium leading-5">
-                            {tNav("myFavourites")}
-                          </span>
-                        </Link>
+                        {hasCustomerAccount ? (
+                          <>
+                            <Link
+                              href="/favourites"
+                              onClick={() => setDropdownOpen(false)}
+                              className="group flex min-h-9 items-center gap-3 rounded-xl text-[#1D1712] transition-colors hover:text-primary"
+                            >
+                              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#F8F4EF] text-primary shadow-[0_7px_16px_rgba(42,27,14,0.07)] ring-1 ring-[#F1EAE2]">
+                                <Heart size={17} strokeWidth={1.8} />
+                              </span>
+                              <span className="text-sm font-medium leading-5">
+                                {tNav("myFavourites")}
+                              </span>
+                            </Link>
 
-                        <Link
-                          href="/reservations"
-                          onClick={() => setDropdownOpen(false)}
-                          className="group flex min-h-9 items-center gap-3 rounded-xl text-[#1D1712] transition-colors hover:text-primary"
-                        >
-                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#F8F4EF] text-primary shadow-[0_7px_16px_rgba(42,27,14,0.07)] ring-1 ring-[#F1EAE2]">
-                            <CalendarDays size={17} strokeWidth={1.8} />
-                          </span>
-                          <span className="text-sm font-medium leading-5">
-                            {tNav("myReservations")}
-                          </span>
-                        </Link>
+                            <Link
+                              href="/reservations"
+                              onClick={() => setDropdownOpen(false)}
+                              className="group flex min-h-9 items-center gap-3 rounded-xl text-[#1D1712] transition-colors hover:text-primary"
+                            >
+                              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#F8F4EF] text-primary shadow-[0_7px_16px_rgba(42,27,14,0.07)] ring-1 ring-[#F1EAE2]">
+                                <CalendarDays size={17} strokeWidth={1.8} />
+                              </span>
+                              <span className="text-sm font-medium leading-5">
+                                {tNav("myReservations")}
+                              </span>
+                            </Link>
+                          </>
+                        ) : null}
 
                         <Link
                           href="/notifications"
@@ -703,17 +723,32 @@ export const Navbar = () => {
                       </div>
 
                       <div className="px-3 pb-3">
-                        <button
-                          onClick={handleLogout}
-                          className="flex min-h-11 w-full items-center gap-3 rounded-xl bg-[#FCF7F6] px-5 text-left text-primary transition-colors hover:bg-[#FCEEEE]"
-                        >
-                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#F7EDED] text-primary ring-1 ring-[#F1DEDE]">
-                            <LogOut size={17} strokeWidth={1.8} />
-                          </span>
-                          <span className="text-sm font-medium leading-5">
-                            {tNav("logout")}
-                          </span>
-                        </button>
+                        {hasCustomerAccount ? (
+                          <button
+                            onClick={handleLogout}
+                            className="flex min-h-11 w-full items-center gap-3 rounded-xl bg-[#FCF7F6] px-5 text-left text-primary transition-colors hover:bg-[#FCEEEE]"
+                          >
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#F7EDED] text-primary ring-1 ring-[#F1DEDE]">
+                              <LogOut size={17} strokeWidth={1.8} />
+                            </span>
+                            <span className="text-sm font-medium leading-5">
+                              {tNav("logout")}
+                            </span>
+                          </button>
+                        ) : (
+                          <Link
+                            href="/auth/login"
+                            onClick={() => setDropdownOpen(false)}
+                            className="flex min-h-11 w-full items-center gap-3 rounded-xl bg-[#FCF7F6] px-5 text-left text-primary transition-colors hover:bg-[#FCEEEE]"
+                          >
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#F7EDED] text-primary ring-1 ring-[#F1DEDE]">
+                              <User size={17} strokeWidth={1.8} />
+                            </span>
+                            <span className="text-sm font-medium leading-5">
+                              {tNav("login")}
+                            </span>
+                          </Link>
+                        )}
                       </div>
                     </div>
                   )}
@@ -819,10 +854,16 @@ export const Navbar = () => {
                           </div>
 
                           <div className="shrink-0 text-sm font-semibold text-gray-900">
-                            {formatMoney(item.basePrice, currency, {
+                            {formatMoney(
+                              getMenuItemCardPrice(
+                                item as unknown as CustomerMenuItem,
+                              ),
+                              currency,
+                              {
                               minimumFractionDigits: 2,
                               maximumFractionDigits: 2,
-                            })}
+                              },
+                            )}
                           </div>
                         </div>
 
@@ -847,7 +888,7 @@ export const Navbar = () => {
                             </span>
                           ) : null}
 
-                          {!item.isActive ? (
+                          {item.isActive === false ? (
                             <span className="rounded-full bg-red-100 px-2.5 py-1 text-red-600">
                               {tCommon("inactive")}
                             </span>
@@ -986,6 +1027,32 @@ export const Navbar = () => {
             </Link>
 
             <LanguageSelector className="w-full justify-between" />
+
+            {user ? (
+              <>
+                <Link
+                  href="/orders-history"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-3"
+                >
+                  <ShoppingBag /> {tNav("myOrders")}
+                </Link>
+                <Link
+                  href="/notifications"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-3"
+                >
+                  <Bell /> {tNav("notifications")}
+                </Link>
+                <Link
+                  href="/contact"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-3"
+                >
+                  <HelpCircle /> {tNav("helpCenter")}
+                </Link>
+              </>
+            ) : null}
 
             {hasCustomerAccount ? (
               <button

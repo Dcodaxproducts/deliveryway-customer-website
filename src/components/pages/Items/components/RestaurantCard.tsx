@@ -52,10 +52,15 @@ import {
 } from "@/components/pages/Items/utils/restaurant-card-utils";
 import { getModifierPriceForVariation } from "@/components/pages/Items/utils/modifier-pricing";
 import {
+  getLowestPricedVariation,
+  getMenuItemCardPrice,
+} from "@/components/pages/Items/utils/product-pricing";
+import {
   buildModifierSelections,
   getModifierGroupSelectedQuantity,
   validateModifierSelections,
 } from "@/components/pages/Items/utils/modifier-selections";
+import { hasMenuItemCustomization } from "@/components/pages/Items/utils/product-cart";
 
 const isApiErrorResponse = (res: ApiRecord | null | undefined) => {
   return !res || res?.success === false || Boolean(res?.error);
@@ -566,7 +571,7 @@ function ProductInfoContent({ item }: { item: MenuItem | null }) {
 }
 
 export function RestaurantCard({
-  item,
+  item: compactItem,
   currency,
 }: {
   item: MenuItem;
@@ -576,7 +581,7 @@ export function RestaurantCard({
   const tErrors = useTranslations("errors");
   const router = useRouter();
   const { token } = useAuthContext();
-  const { fetchSplitPizzaMenuItems } = useItems(token);
+  const { fetchMenuItemDetails, fetchSplitPizzaMenuItems } = useItems(token);
   const {
     addCustomerCartItem,
     addGroupOrderItem,
@@ -589,6 +594,9 @@ export function RestaurantCard({
   const { user } = useAuth();
   const { context: domainContext } = useDomainContext();
 
+  const [item, setItem] = useState(compactItem);
+  const [hasLoadedDetails, setHasLoadedDetails] = useState(false);
+  const [loadingDetails, setLoadingDetails] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
@@ -606,12 +614,21 @@ export function RestaurantCard({
 
   const [animateCart, setAnimateCart] = useState(false);
 
+  useEffect(() => {
+    setItem(compactItem);
+    setHasLoadedDetails(false);
+  }, [compactItem]);
+
   const customerId = user?.id;
   const branchId = String(
     resolveHomeBranchId(user) || domainContext?.branchId || "",
   );
   const restaurantId =
-    item?.restaurantId || item?.restaurant?.id || user?.restaurantId || "";
+    item?.restaurantId ||
+    item?.restaurant?.id ||
+    user?.restaurantId ||
+    domainContext?.restaurantId ||
+    "";
 
   const itemSupportsSplitPizza = Boolean(item?.supportsSplitPizza);
 
@@ -2236,10 +2253,10 @@ export function RestaurantCard({
     }
   }
 
-  const handlePlusClick = (event?: React.MouseEvent<HTMLElement>) => {
+  const handlePlusClick = async (event?: React.MouseEvent<HTMLElement>) => {
     event?.stopPropagation();
 
-    if (loading) return;
+    if (loading || loadingDetails) return;
 
     const groupCode = getStoredGroupOrderCode();
     const groupOrderId = getStoredGroupOrderId();
@@ -2256,13 +2273,43 @@ export function RestaurantCard({
       !storedGroupOrderCompleted && (groupCode || groupOrderId),
     );
 
-    if (!hasOptions) {
+    let itemHasOptions = hasOptions;
+
+    if (!hasLoadedDetails && restaurantId && item.id) {
+      setLoadingDetails(true);
+
+      try {
+        const { response, item: detailedItem } = await fetchMenuItemDetails({
+          restaurantId: String(restaurantId),
+          branchId,
+          identifier: String(item.id),
+        });
+
+        if (isApiErrorResponse(response) || !detailedItem) {
+          toast.error(
+            getApiErrorMessage(response, tErrors("somethingWentWrong")),
+          );
+          return;
+        }
+
+        setItem(detailedItem);
+        setHasLoadedDetails(true);
+        itemHasOptions = hasMenuItemCustomization(detailedItem);
+      } catch {
+        toast.error(tErrors("somethingWentWrong"));
+        return;
+      } finally {
+        setLoadingDetails(false);
+      }
+    }
+
+    if (!itemHasOptions) {
       if (!hasActiveGroupContext && !branchId) {
         toast.error(t("selectBranchFirst"));
         return;
       }
 
-      handleAddToCart();
+      void handleAddToCart();
       return;
     }
 
@@ -2273,7 +2320,7 @@ export function RestaurantCard({
     if (event.key !== "Enter" && event.key !== " ") return;
 
     event.preventDefault();
-    handlePlusClick();
+    void handlePlusClick();
   };
 
   const handleNavigateToDetails = () => {
@@ -2287,10 +2334,10 @@ export function RestaurantCard({
 
   const hasInfoBoxContent = hasProductInfoContent(item);
 
-  const defaultCardVariation = getDefaultVariation(item);
-  const displayCardPrice = getMenuItemResolvedPrice(item, defaultCardVariation);
+  const lowestCardVariation = getLowestPricedVariation(item);
+  const displayCardPrice = getMenuItemCardPrice(item);
   const cardPromotionPricing = getPromotionPricing({
-    source: getPromotionSourceForPrice(item, defaultCardVariation),
+    source: getPromotionSourceForPrice(item, lowestCardVariation),
     originalPrice: displayCardPrice,
   });
 

@@ -37,4 +37,15 @@ describe("formatDisplayAddress", () => {
       "Main Road, 40, 45475 Essen, NRW"
     );
   });
+
+  it("ignores punctuation-only address fields", () => {
+    expect(
+      formatDisplayAddress({
+        street: "Musterstraße 20",
+        area: ",",
+        postalCode: "45000",
+        city: "Musterstadt",
+      })
+    ).toBe("Musterstraße 20, 45000 Musterstadt");
+  });
 });

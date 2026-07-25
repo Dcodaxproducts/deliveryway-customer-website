@@ -15,6 +15,8 @@ import { useHome } from "@/hooks/useHome";
 import { useLoyalty } from "@/hooks/useLoyalty";
 import { toast } from "sonner";
 import { useAuthContext } from "@/hooks/useAuth";
+import { useDomainContext } from "@/hooks/useDomainContext";
+import { resolveCheckoutContext } from "@/components/pages/Checkout/utils/checkout-context";
 import { X } from "lucide-react";
 import {
   Elements,
@@ -274,10 +276,6 @@ const mergeCartItemsWithExistingDetails = (
 const isGuestUser = (user: ReturnType<typeof useAuthContext>["user"]) =>
   user?.isGuest === true || String(user?.role || "").toUpperCase() === "GUEST";
 
-const getCheckoutRestaurantId = (
-  user: ReturnType<typeof useAuthContext>["user"],
-) => user?.restaurantId || user?.branch?.restaurantId || user?.tenantId || "";
-
 const normalizeGuestPrivacyPolicy = (
   value: unknown,
   restaurantId: string,
@@ -338,6 +336,7 @@ function CheckoutPageContent() {
   const searchParams = useSearchParams();
   const type = searchParams.get("type");
   const { user, token } = useAuthContext();
+  const { context: domainContext } = useDomainContext();
   const [storedCheckoutType, setStoredCheckoutType] =
     useState<CheckoutTypePreference | null>(null);
   const [hasLoadedCheckoutTypePreference, setHasLoadedCheckoutTypePreference] =
@@ -348,7 +347,8 @@ function CheckoutPageContent() {
   const activeTab =
     type === "pickup" || type === "delivery" ? type : preferredCheckoutType;
   const isGuest = isGuestUser(user);
-  const restaurantId = getCheckoutRestaurantId(user);
+  const { restaurantId, branchId: checkoutContextBranchId } =
+    resolveCheckoutContext({ user, domainContext });
 
   const [couponCode, setCouponCode] = useState("");
   const [couponDiscount, setCouponDiscount] = useState(0);
@@ -368,7 +368,7 @@ function CheckoutPageContent() {
   const { updateCustomerCart, updateCustomerCartOrderType, quoteCustomerCart } =
     useCart(token);
   const { fetchLoyalty } = useLoyalty(token);
-  const checkoutBranchId = user?.branchId || user?.branch?.id || null;
+  const checkoutBranchId = checkoutContextBranchId;
   const homeQuery = useHome(
     restaurantId,
     checkoutBranchId,

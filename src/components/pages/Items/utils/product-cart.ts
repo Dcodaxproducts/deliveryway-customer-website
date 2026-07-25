@@ -64,6 +64,18 @@ export const getRestaurantMenuId = (item: MenuItem | null) =>
 
 const hasOptions = (value: unknown) => Array.isArray(value) && value.length > 0;
 
+export const hasMenuItemCustomization = (item: MenuItem | null) =>
+  item?.supportsSplitPizza === true ||
+  hasOptions(item?.variations) ||
+  hasOptions(item?.category?.variations) ||
+  hasOptions(item?.modifiers) ||
+  hasOptions(item?.modifierLinks) ||
+  hasOptions(item?.modifierGroups) ||
+  hasOptions(item?.categoryModifierGroups) ||
+  hasOptions(item?.category?.modifierLinks) ||
+  hasOptions(item?.category?.modifierGroups) ||
+  hasOptions(item?.category?.categoryModifierGroups);
+
 const supportsDealIdCartPayload = (item: MenuItem | null) =>
   item?.supportsDealIdCartPayload === true ||
   item?.supportsDealCartPayload === true ||

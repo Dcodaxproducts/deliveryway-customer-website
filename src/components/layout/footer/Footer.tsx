@@ -16,6 +16,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 
 import { useAuthContext } from "@/hooks/useAuth";
+import { useDomainContext } from "@/hooks/useDomainContext";
 import { formatDisplayAddress } from "@/lib/address-display";
 import { useHome } from "@/hooks/useHome";
 import { normalizeBranch } from "@/lib/branch-selector";
@@ -187,12 +188,15 @@ export const Footer = () => {
   const pathname = usePathname();
   const t = useTranslations("footer");
   const { user, loading } = useAuthContext();
-  const restaurantId = resolveHomeRestaurantId(user);
-  const branchId = resolveHomeBranchId(user);
+  const { context: domainContext, loading: domainLoading } = useDomainContext();
+  const restaurantId =
+    resolveHomeRestaurantId(user) || domainContext?.restaurantId || "";
+  const branchId =
+    resolveHomeBranchId(user) || domainContext?.branchId || "";
   const homeQuery = useHome(
     restaurantId,
     branchId || null,
-    Boolean(!loading && restaurantId),
+    Boolean(!loading && !domainLoading && restaurantId),
   );
   const homeData = homeQuery.data?.data;
   const restaurant = homeData?.restaurant;

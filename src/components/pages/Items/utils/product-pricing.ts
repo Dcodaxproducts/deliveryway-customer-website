@@ -51,6 +51,50 @@ export const getVariationDisplayText = (menuItem: MenuItem | null | undefined, v
   return String(override?.displayText ?? variation.displayText ?? variation.name ?? "");
 };
 
+export const getLowestPricedVariation = (
+  menuItem: MenuItem | null | undefined
+) => {
+  const variations = [
+    ...normalizeArray<MenuVariation>(menuItem?.variations),
+    ...normalizeArray<MenuVariation>(menuItem?.category?.variations),
+    ...normalizeArray<VariationPriceOverride>(
+      menuItem?.variationPriceOverrides
+    )
+      .map((entry) => entry.variation)
+      .filter((variation): variation is MenuVariation => Boolean(variation)),
+  ].filter((variation) => variation.isActive !== false);
+  const uniqueVariations = new Map<string, MenuVariation>();
+
+  for (const variation of variations) {
+    const id = getId(variation.id);
+    if (id && !uniqueVariations.has(id)) {
+      uniqueVariations.set(id, variation);
+    }
+  }
+
+  return Array.from(uniqueVariations.values()).reduce<MenuVariation | null>(
+    (lowest, variation) => {
+      if (!lowest) return variation;
+
+      return getVariationDisplayPrice(menuItem, variation) <
+        getVariationDisplayPrice(menuItem, lowest)
+        ? variation
+        : lowest;
+    },
+    null
+  );
+};
+
+export const getMenuItemCardPrice = (
+  menuItem: MenuItem | null | undefined
+) => {
+  const lowestVariation = getLowestPricedVariation(menuItem);
+
+  return lowestVariation
+    ? getVariationDisplayPrice(menuItem, lowestVariation)
+    : getMenuItemDisplayPrice(menuItem);
+};
+
 export const getModifierOverrideAmount = (
   overrides: VariationPriceOverride[] | undefined,
   modifier: Modifier | null | undefined

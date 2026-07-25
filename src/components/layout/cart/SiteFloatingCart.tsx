@@ -104,7 +104,6 @@ export function SiteFloatingCart() {
       if (detail?.mutationStatus === "pending") {
         pendingCartMutationsRef.current += 1;
         setHasCartItems(true);
-        setIsOpen(true);
         return;
       }
 

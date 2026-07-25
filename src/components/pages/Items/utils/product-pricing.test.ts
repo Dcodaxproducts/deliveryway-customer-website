@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getMenuItemBasePrice, getMenuItemDisplayPrice, getModifierOverrideAmount, getVariationDisplayPrice, getVariationPickupPrice } from "./product-pricing";
+import { getLowestPricedVariation, getMenuItemBasePrice, getMenuItemCardPrice, getMenuItemDisplayPrice, getModifierOverrideAmount, getVariationDisplayPrice, getVariationPickupPrice } from "./product-pricing";
 
 describe("product pricing", () => {
   it("parses base price", () => {
@@ -64,5 +64,22 @@ describe("product pricing", () => {
   it("uses modifier override amounts", () => {
     expect(getModifierOverrideAmount([{ modifierId: "m1", priceDelta: "2.5" }], { id: "m1", name: "Cheese" })).toBe(2.5);
     expect(getModifierOverrideAmount([{ modifierId: "m1", price: "3" }], { id: "m1", name: "Cheese" })).toBe(3);
+  });
+
+  it("uses the lowest active variation price for customer cards", () => {
+    const item = {
+      basePrice: 0,
+      variations: [
+        { id: "large", name: "Large", price: 18, isActive: true },
+        { id: "small", name: "Small", price: 11, isActive: true },
+        { id: "hidden", name: "Hidden", price: 5, isActive: false },
+      ],
+      variationPriceOverrides: [
+        { variationId: "small", price: 9 },
+      ],
+    };
+
+    expect(getLowestPricedVariation(item)?.id).toBe("small");
+    expect(getMenuItemCardPrice(item)).toBe(9);
   });
 });

@@ -8,6 +8,7 @@ import {
   canSendDealIdForReadyMadeItem,
   canSendDealIdWithModifierSelections,
   getApiErrorMessage,
+  hasMenuItemCustomization,
   isCartBranchConflict,
   isDealMenuItemCustomizable,
   isDealMenuItemReadyMade,
@@ -15,6 +16,19 @@ import {
 } from "./product-cart";
 
 describe("product cart helpers", () => {
+  it("detects customization returned only by the full item details response", () => {
+    expect(
+      hasMenuItemCustomization({
+        id: "item-1",
+        category: {
+          name: "Pizza",
+          modifierGroups: [{ id: "extras", name: "Extras" }],
+        },
+      })
+    ).toBe(true);
+    expect(hasMenuItemCustomization({ id: "item-2" })).toBe(false);
+  });
+
   it("builds modifier payloads from grouped selections", () => {
     expect(
       buildModifiersPayload({

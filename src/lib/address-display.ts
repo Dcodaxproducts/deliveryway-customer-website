@@ -6,7 +6,10 @@ const isRecord = (value: unknown): value is AddressRecord =>
 const getText = (value: unknown) => {
   if (typeof value === "string") {
     const text = value.trim();
-    return text && text.toLowerCase() !== "null" ? text : "";
+    const hasAddressContent = /[\p{L}\p{N}]/u.test(text);
+    return text && text.toLowerCase() !== "null" && hasAddressContent
+      ? text
+      : "";
   }
 
   if (typeof value === "number") {
