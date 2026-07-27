@@ -405,13 +405,15 @@ export const HeroSection = ({
                   </p>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={isSingleBranchRestaurant ? () => void handleFindFood() : handleFindNearbyBranches}
-                className="h-10 rounded-xl border border-primary/20 bg-white px-4 text-sm font-semibold text-primary transition hover:bg-primary/5"
-              >
-                {isSingleBranchRestaurant ? t("findFood") : t("changeBranch")}
-              </button>
+              {showBranchLocationControls ? (
+                <button
+                  type="button"
+                  onClick={handleFindNearbyBranches}
+                  className="h-10 rounded-xl border border-primary/20 bg-white px-4 text-sm font-semibold text-primary transition hover:bg-primary/5"
+                >
+                  {t("changeBranch")}
+                </button>
+              ) : null}
             </div>
           ) : null}
 
