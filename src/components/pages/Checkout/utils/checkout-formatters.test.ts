@@ -4,6 +4,7 @@ import {
   getDisplayTotalAmount,
   getServiceChargeLabel,
   getTipAdjustedDisplayTotalAmount,
+  removeDeliveryFeeFromPickupTotal,
   shouldShowPositiveAmountLine,
 } from "./checkout-formatters";
 
@@ -32,6 +33,23 @@ describe("checkout formatters", () => {
 
   it("prefers payableAmount over totalAmount", () => {
     expect(getDisplayTotalAmount({ totalAmount: 1200, payableAmount: 900 })).toBe(900);
+  });
+
+  it("removes a stale delivery fee from pickup totals only", () => {
+    expect(
+      removeDeliveryFeeFromPickupTotal({
+        checkoutType: "pickup",
+        deliveryFee: 5,
+        total: 30,
+      }),
+    ).toBe(25);
+    expect(
+      removeDeliveryFeeFromPickupTotal({
+        checkoutType: "delivery",
+        deliveryFee: 5,
+        total: 30,
+      }),
+    ).toBe(30);
   });
 
   it("adds tip to display total only when quoted total is still pre-tip", () => {

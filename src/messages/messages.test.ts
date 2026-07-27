@@ -65,4 +65,8 @@ describe("message catalog completeness", () => {
       expect(deMessages).toHaveProperty(namespace);
     }
   });
+
+  it("provides the German closing-time label", () => {
+    expect(deMessages.items.common.closesAt).toBe("Schließt um {time}");
+  });
 });

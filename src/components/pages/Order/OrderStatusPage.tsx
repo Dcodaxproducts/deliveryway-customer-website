@@ -5,6 +5,7 @@ import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import useOrders from "@/hooks/useOrders";
 import usePayments from "@/hooks/usePayments";
+import { useOrderTracking } from "@/hooks/useOrderTracking";
 import { useAuthContext } from "@/hooks/useAuth";
 import OrderSummary from "@/components/pages/Order/components/OrderSummary";
 import type { Order } from "@/services/orders";
@@ -64,7 +65,11 @@ function OrderStatusContent() {
     });
   };
 
-  const fetchOrder = useCallback(async () => {
+  const fetchOrder = useCallback(async ({
+    silent = false,
+  }: {
+    silent?: boolean;
+  } = {}) => {
     if (!orderId) {
       setNotFound(true);
       setLoading(false);
@@ -72,28 +77,59 @@ function OrderStatusContent() {
     }
 
     try {
-      setLoading(true);
-      setNotFound(false);
+      if (!silent) {
+        setLoading(true);
+        setNotFound(false);
+      }
 
       const { response: res, order: nextOrder } = await fetchOrderById({ orderId });
 
       if (!res || res.success === false || !nextOrder) {
-        setNotFound(true);
-        setOrder(null);
+        if (!silent) {
+          setNotFound(true);
+          setOrder(null);
+        }
         return;
       }
 
+      setNotFound(false);
       setOrder(nextOrder);
     } catch {
-      setNotFound(true);
+      if (!silent) {
+        setNotFound(true);
+      }
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   }, [fetchOrderById, orderId]);
 
   useEffect(() => {
     fetchOrder();
   }, [fetchOrder]);
+
+  const refreshOrder = useCallback(() => {
+    void fetchOrder({ silent: true });
+  }, [fetchOrder]);
+
+  useOrderTracking({
+    orderId,
+    token,
+    onUpdate: refreshOrder,
+  });
+
+  useEffect(() => {
+    if (!orderId) return;
+
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === "visible") {
+        refreshOrder();
+      }
+    }, 30_000);
+
+    return () => window.clearInterval(interval);
+  }, [orderId, refreshOrder]);
 
   const handleChangePaymentMethod = async (paymentMethod: string) => {
     if (!order?.id) return;

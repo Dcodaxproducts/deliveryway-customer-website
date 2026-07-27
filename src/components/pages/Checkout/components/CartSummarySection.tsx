@@ -21,6 +21,7 @@ import {
   getDisplayTotalAmount,
   getServiceChargeLabel,
   getTipAdjustedDisplayTotalAmount,
+  removeDeliveryFeeFromPickupTotal,
   shouldShowPositiveAmountLine,
 } from "@/components/pages/Checkout/utils/checkout-formatters";
 import {
@@ -998,9 +999,11 @@ export function CartSummarySection({
   const quoteTipAmount =
     toNullableNumber(resolvedQuote?.tipAmount) ??
     Math.max(0, toNumber(appliedTipAmount, 0));
-  const quotePayableAmount = resolvedQuote
-    ? getDisplayTotalAmount(resolvedQuote)
-    : null;
+  const quotePayableAmount = removeDeliveryFeeFromPickupTotal({
+    checkoutType,
+    deliveryFee: quoteDeliveryFee,
+    total: resolvedQuote ? getDisplayTotalAmount(resolvedQuote) : null,
+  });
   const serviceChargeAmount = getServiceChargeAmountFromQuote(resolvedQuote);
   const serviceChargeLabel = getServiceChargeLabel({
     serviceChargeType: resolvedQuote?.serviceChargeType,
@@ -1084,9 +1087,11 @@ export function CartSummarySection({
     tipAmount,
   });
 
-  const backendTotalBeforeDiscount = toNullableNumber(
-    resolvedQuote?.totalBeforeDiscount,
-  );
+  const backendTotalBeforeDiscount = removeDeliveryFeeFromPickupTotal({
+    checkoutType,
+    deliveryFee: quoteDeliveryFee,
+    total: toNullableNumber(resolvedQuote?.totalBeforeDiscount),
+  });
   const totalBeforeDiscount =
     backendTotalBeforeDiscount ?? computedTotalBeforeDiscount;
   const payableBeforeLoyaltyPreview = Math.max(

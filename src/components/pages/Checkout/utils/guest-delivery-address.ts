@@ -1,4 +1,5 @@
 import type { CheckoutAddressValues } from "@/validations/checkout";
+import type { StoredDeliveryLocation } from "@/lib/delivery-location";
 
 export const trimGuestDeliveryAddress = (
   address: CheckoutAddressValues,
@@ -46,4 +47,25 @@ export const hasGuestDeliveryAddress = (
       trimmed.lat &&
       trimmed.lng,
   );
+};
+
+export const getGuestDeliveryAddressFromStoredLocation = (
+  location: StoredDeliveryLocation | null,
+): CheckoutAddressValues | null => {
+  if (!location?.address) return null;
+
+  const address = location.address;
+
+  return {
+    street: address.street?.trim() ?? "",
+    houseNumber: address.houseNumber?.trim() ?? "",
+    postalCode: address.postalCode?.trim() ?? "",
+    city: address.city?.trim() ?? "",
+    state: address.state?.trim() ?? "",
+    country: address.country?.trim() ?? "",
+    area: "",
+    lat: String(location.lat),
+    lng: String(location.lng),
+    isDefault: false,
+  };
 };

@@ -19,6 +19,20 @@ export const getDisplayTotalAmount = (quote: TotalsInput | null | undefined) => 
   return toNullableNumber(quote?.payableAmount) ?? toNullableNumber(quote?.totalAmount) ?? 0;
 };
 
+export const removeDeliveryFeeFromPickupTotal = ({
+  checkoutType,
+  deliveryFee,
+  total,
+}: {
+  checkoutType: "delivery" | "pickup";
+  deliveryFee: unknown;
+  total: number | null;
+}) => {
+  if (total === null || checkoutType === "delivery") return total;
+
+  return Math.max(0, total - Math.max(0, toNullableNumber(deliveryFee) ?? 0));
+};
+
 export const getTipAdjustedDisplayTotalAmount = ({
   displayTotal,
   tipAmount,

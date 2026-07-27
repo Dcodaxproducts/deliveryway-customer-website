@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  getGuestDeliveryAddressFromStoredLocation,
   getGuestDeliveryAddressPayload,
   hasGuestDeliveryAddress,
 } from "./guest-delivery-address";
@@ -48,5 +49,23 @@ describe("guest delivery address", () => {
       lat: "52.532",
       lng: "13.384",
     });
+  });
+
+  it("hydrates checkout from the structured location selected on home", () => {
+    expect(
+      getGuestDeliveryAddressFromStoredLocation({
+        lat: 52.532,
+        lng: 13.384,
+        label: "Hauptstraße 12, 10115 Berlin",
+        address: {
+          street: "Hauptstraße",
+          houseNumber: "12",
+          postalCode: "10115",
+          city: "Berlin",
+          state: "Berlin",
+          country: "Germany",
+        },
+      }),
+    ).toEqual(completeAddress);
   });
 });

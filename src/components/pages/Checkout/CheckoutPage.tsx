@@ -72,10 +72,12 @@ import {
 } from "@/components/pages/Checkout/utils/pickup-schedule";
 import type { LoyaltySummary } from "@/services/loyalty";
 import {
+  getGuestDeliveryAddressFromStoredLocation,
   getGuestDeliveryAddressPayload,
   hasGuestDeliveryAddress,
   trimGuestDeliveryAddress,
 } from "@/components/pages/Checkout/utils/guest-delivery-address";
+import { getStoredDeliveryLocation } from "@/lib/delivery-location";
 import {
   getGuestContactPayload,
   hasGuestContact,
@@ -423,6 +425,7 @@ function CheckoutPageContent() {
   const [loadingLoyalty, setLoadingLoyalty] = useState(false);
   const loadedCartCustomerIdRef = useRef<string | null>(null);
   const lastQuoteSignatureRef = useRef("");
+  const syncedOrderTypeRef = useRef<string | null>(null);
   const totalPreparationMinutes = useMemo(
     () => getCartPreparationMinutes(cartItems),
     [cartItems],
@@ -697,6 +700,22 @@ function CheckoutPageContent() {
     branchSupportsPickup(checkoutBranch);
 
   useEffect(() => {
+    if (!isGuest) return;
+
+    const storedAddress = getGuestDeliveryAddressFromStoredLocation(
+      getStoredDeliveryLocation(),
+    );
+
+    if (!storedAddress) return;
+
+    setGuestDeliveryAddress((currentAddress) =>
+      hasGuestDeliveryAddress(currentAddress)
+        ? currentAddress
+        : storedAddress,
+    );
+  }, [isGuest]);
+
+  useEffect(() => {
     if (
       !availablePaymentMethods.includes(
         paymentMethod as CheckoutPaymentMethod,
@@ -782,6 +801,8 @@ function CheckoutPageContent() {
 
   useEffect(() => {
     if (!customerId || loadingCart) return;
+    let cancelled = false;
+    syncedOrderTypeRef.current = null;
 
     const quoteSignature = getCheckoutQuoteSignature({
       activeTab,
@@ -802,6 +823,8 @@ function CheckoutPageContent() {
         orderType,
       });
 
+      if (cancelled) return;
+
       if (hasBackendError(orderTypeRes)) {
         lastQuoteSignatureRef.current = "";
         reportBackendError(
@@ -812,7 +835,10 @@ function CheckoutPageContent() {
         return;
       }
 
+      syncedOrderTypeRef.current = orderType;
       syncCartFromResponse(orderTypeRes);
+
+      if (activeTab === "pickup") return;
 
       const payload: Record<string, unknown> = {};
 
@@ -834,6 +860,8 @@ function CheckoutPageContent() {
         payload,
       });
 
+      if (cancelled) return;
+
       if (!hasBackendError(res)) {
         if (!syncCartFromResponse(res)) {
           const quoteData = normalizeCartQuote(asRecord(res?.data));
@@ -847,7 +875,10 @@ function CheckoutPageContent() {
       }
     }, 450);
 
-    return () => window.clearTimeout(quoteTimer);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(quoteTimer);
+    };
   }, [
     activeTab,
     customerId,
@@ -1288,6 +1319,27 @@ function CheckoutPageContent() {
       if (activeTab === "pickup" && !pickupAllowed) {
         toast.error(t("toast.pickupUnavailable"));
         return;
+      }
+
+      const checkoutOrderType = getCheckoutOrderType(activeTab);
+
+      if (syncedOrderTypeRef.current !== checkoutOrderType) {
+        const orderTypeRes = await updateCustomerCartOrderType({
+          customerId,
+          orderType: checkoutOrderType,
+        });
+
+        if (hasBackendError(orderTypeRes)) {
+          reportBackendError(
+            t("toast.quoteFailed"),
+            orderTypeRes,
+            t("toast.quoteFailed"),
+          );
+          return;
+        }
+
+        syncedOrderTypeRef.current = checkoutOrderType;
+        syncCartFromResponse(orderTypeRes);
       }
 
       if (

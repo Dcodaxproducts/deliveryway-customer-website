@@ -34,6 +34,7 @@ import { isRemoteHttpsImageUrl, resolveHttpsImageUrl } from "@/lib/image-fallbac
 import { fetchAddresses } from "@/services/profile";
 import type { AuthBranch } from "@/types/auth";
 import type { BranchOrderType, NearbyBranch } from "@/types/branches";
+import type { GoogleAddressDetails } from "@/types/google-maps";
 import type { HomeBranch } from "@/types/home";
 
 type HeroSectionProps = {
@@ -283,8 +284,16 @@ export const HeroSection = ({
     requestLocation();
   };
 
-  const handleSelectSearchLocation = (nextCoordinates: { lat: number; lng: number }, label?: string) => {
-    acceptCoordinates(nextCoordinates, label || t("selectedAddress"));
+  const handleSelectSearchLocation = (
+    nextCoordinates: { lat: number; lng: number },
+    label?: string,
+    details?: GoogleAddressDetails,
+  ) => {
+    acceptCoordinates(
+      nextCoordinates,
+      label || t("selectedAddress"),
+      details,
+    );
     setShowResults(true);
   };
 

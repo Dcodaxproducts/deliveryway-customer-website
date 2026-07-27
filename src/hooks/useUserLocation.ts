@@ -2,61 +2,26 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { safeGetLocalStorageItem, safeRemoveLocalStorageItem, safeSetLocalStorageItem } from "@/lib/browser-storage";
+import {
+  clearStoredDeliveryLocation,
+  getStoredDeliveryLocation,
+  setStoredDeliveryLocation,
+} from "@/lib/delivery-location";
 import { isReliableGeolocationAccuracy } from "@/lib/geolocation";
-import { reverseGeocode } from "@/services/geocoding";
+import {
+  parseReverseGeocodeAddress,
+  reverseGeocode,
+} from "@/services/geocoding";
+import type { GoogleAddressDetails } from "@/types/google-maps";
 
 export type UserCoordinates = {
   lat: number;
   lng: number;
 };
 
-type StoredUserLocation = UserCoordinates & {
-  label?: string;
-};
-
 export type LocationPermissionState = "idle" | "requesting" | "granted" | "denied" | "unsupported";
 
-const USER_LOCATION_STORAGE_KEY = "deliveryway:last-user-location";
-
 const isBrowser = () => typeof window !== "undefined";
-
-const isCoordinates = (value: unknown): value is UserCoordinates => {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    return false;
-  }
-
-  const record = value as Record<string, unknown>;
-  return typeof record.lat === "number" && Number.isFinite(record.lat) && typeof record.lng === "number" && Number.isFinite(record.lng);
-};
-
-const isStoredUserLocation = (value: unknown): value is StoredUserLocation => {
-  if (!isCoordinates(value)) {
-    return false;
-  }
-
-  const record = value as Record<string, unknown>;
-  return typeof record.label === "undefined" || typeof record.label === "string";
-};
-
-const readStoredCoordinates = () => {
-  const stored = safeGetLocalStorageItem(USER_LOCATION_STORAGE_KEY);
-
-  if (!stored) {
-    return null;
-  }
-
-  try {
-    const parsed = JSON.parse(stored) as unknown;
-    return isStoredUserLocation(parsed) ? parsed : null;
-  } catch {
-    return null;
-  }
-};
-
-const saveCoordinates = (location: StoredUserLocation) => {
-  safeSetLocalStorageItem(USER_LOCATION_STORAGE_KEY, JSON.stringify(location));
-};
 
 export const useUserLocation = () => {
   const [coordinates, setCoordinates] = useState<UserCoordinates | null>(null);
@@ -65,7 +30,7 @@ export const useUserLocation = () => {
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
-    const storedCoordinates = readStoredCoordinates();
+    const storedCoordinates = getStoredDeliveryLocation();
 
     if (storedCoordinates) {
       setCoordinates(storedCoordinates);
@@ -74,13 +39,18 @@ export const useUserLocation = () => {
     }
   }, []);
 
-  const acceptCoordinates = useCallback((nextCoordinates: UserCoordinates, label = "") => {
+  const acceptCoordinates = useCallback((
+    nextCoordinates: UserCoordinates,
+    label = "",
+    address?: GoogleAddressDetails,
+  ) => {
     const nextLocation = {
       ...nextCoordinates,
       label,
+      ...(address ? { address } : {}),
     };
 
-    saveCoordinates(nextLocation);
+    setStoredDeliveryLocation(nextLocation);
     setCoordinates(nextCoordinates);
     setLocationLabel(label);
     setPermissionState("granted");
@@ -88,7 +58,7 @@ export const useUserLocation = () => {
   }, []);
 
   const clearLocation = useCallback(() => {
-    safeRemoveLocalStorageItem(USER_LOCATION_STORAGE_KEY);
+    clearStoredDeliveryLocation();
     setCoordinates(null);
     setLocationLabel("");
     setPermissionState("idle");
@@ -104,7 +74,7 @@ export const useUserLocation = () => {
 
     setPermissionState("requesting");
     setErrorMessage("");
-    safeRemoveLocalStorageItem(USER_LOCATION_STORAGE_KEY);
+    clearStoredDeliveryLocation();
     setCoordinates(null);
     setLocationLabel("");
 
@@ -125,7 +95,23 @@ export const useUserLocation = () => {
 
         reverseGeocode(nextCoordinates.lat, nextCoordinates.lng)
           .then((data) => {
-            acceptCoordinates(nextCoordinates, data.displayName || "Current location");
+            const parsedAddress = parseReverseGeocodeAddress(
+              data.address,
+              data.displayName,
+            );
+
+            acceptCoordinates(
+              nextCoordinates,
+              data.displayName || "Current location",
+              {
+                street: parsedAddress.street,
+                houseNumber: parsedAddress.houseNumber,
+                postalCode: parsedAddress.postalCode,
+                city: parsedAddress.city,
+                state: parsedAddress.state,
+                country: parsedAddress.country,
+              },
+            );
           })
           .catch(() => {
             acceptCoordinates(nextCoordinates, "Current location");
