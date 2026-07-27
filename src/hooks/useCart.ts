@@ -28,6 +28,7 @@ import {
   fetchCustomerCart,
   fetchCustomerCartItem,
   fetchGroupOrders,
+  getCustomerCartItemCount,
   getCart,
   patchCart,
   postCart,
@@ -167,7 +168,11 @@ export const useCart = (token: string | null): CartApi => {
         });
 
         if (response && !response.error && response.success !== false) {
-          dispatchCartChanged({ mutationStatus: "committed" });
+          dispatchCartChanged({
+            itemCount: getCustomerCartItemCount(response.data),
+            mutationStatus: "committed",
+            refreshCart: true,
+          });
         } else {
           dispatchCartChanged({
             itemCountDelta: -optimisticQuantity,
@@ -216,7 +221,10 @@ export const useCart = (token: string | null): CartApi => {
       const response = await updateCustomerCartItem({ cartItemId, payload, token });
 
       if (response && !response.error && response.success !== false) {
-        dispatchCartChanged();
+        dispatchCartChanged({
+          itemCount: getCustomerCartItemCount(response.data),
+          refreshCart: true,
+        });
       }
 
       return response;
@@ -246,7 +254,9 @@ export const useCart = (token: string | null): CartApi => {
       const response = await updateCustomerCartItemQuantity({ customerId, cartItemId, quantity, token });
 
       if (response && !response.error && response.success !== false) {
-        dispatchCartChanged();
+        dispatchCartChanged({
+          itemCount: getCustomerCartItemCount(response.data),
+        });
       }
 
       return response;
@@ -259,7 +269,9 @@ export const useCart = (token: string | null): CartApi => {
       const response = await updateCustomerCartDealQuantity({ customerId, dealTargetId, quantity, token });
 
       if (response && !response.error && response.success !== false) {
-        dispatchCartChanged();
+        dispatchCartChanged({
+          itemCount: getCustomerCartItemCount(response.data),
+        });
       }
 
       return response;
@@ -272,7 +284,9 @@ export const useCart = (token: string | null): CartApi => {
       const response = await deleteCustomerCartItem({ customerId, cartItemId, token });
 
       if (response && !response.error && response.success !== false) {
-        dispatchCartChanged();
+        dispatchCartChanged({
+          itemCount: getCustomerCartItemCount(response.data),
+        });
       }
 
       return response;
@@ -285,7 +299,9 @@ export const useCart = (token: string | null): CartApi => {
       const response = await deleteCustomerCartDeal({ customerId, dealTargetId, token });
 
       if (response && !response.error && response.success !== false) {
-        dispatchCartChanged();
+        dispatchCartChanged({
+          itemCount: getCustomerCartItemCount(response.data),
+        });
       }
 
       return response;
@@ -390,7 +406,11 @@ export const useAddDealToCart = (branchId?: string | null) => {
 
       return response;
     },
-    onSuccess: async () => {
+    onSuccess: async (response) => {
+      dispatchCartChanged({
+        itemCount: getCustomerCartItemCount(response.data),
+        refreshCart: true,
+      });
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.cart.current }),
         queryClient.invalidateQueries({ queryKey: queryKeys.checkout.all }),

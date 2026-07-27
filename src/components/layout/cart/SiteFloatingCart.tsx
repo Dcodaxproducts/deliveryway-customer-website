@@ -128,16 +128,19 @@ export function SiteFloatingCart() {
       }
 
       setStoredCheckoutType(getStoredCheckoutTypePreference());
-      refreshCart();
 
       if (typeof detail?.itemCount === "number") {
         const nextHasCartItems = detail.itemCount > 0;
 
         setHasCartItems(nextHasCartItems);
         setIsOpen(nextHasCartItems);
+        if (detail.refreshCart) {
+          refreshCart();
+        }
         return;
       }
 
+      refreshCart();
       void refreshCartPresence({ openWhenPresent: true });
     };
 

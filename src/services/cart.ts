@@ -203,6 +203,21 @@ const resolveCartRecord = (responseData: unknown) => {
         : resData;
 };
 
+export const normalizeCustomerCartData = (responseData: unknown) => {
+  const cart = resolveCartRecord(responseData);
+
+  return {
+    items: normalizeArray<CartItemRecord>(cart?.items),
+    quote: normalizeCartQuote(getCartQuoteSource(cart)),
+  };
+};
+
+export const getCustomerCartItemCount = (responseData: unknown) =>
+  normalizeCustomerCartData(responseData).items.reduce((total, item) => {
+    const quantity = Number(item.quantity);
+    return total + (Number.isFinite(quantity) ? Math.max(0, Math.floor(quantity)) : 0);
+  }, 0);
+
 export const fetchCustomerCart = async ({
   customerId,
   token,
@@ -216,12 +231,11 @@ export const fetchCustomerCart = async ({
     return { response, items: [] as CartItemRecord[], quote: null as CartQuote | null };
   }
 
-  const cart = resolveCartRecord(response.data);
+  const cart = normalizeCustomerCartData(response.data);
 
   return {
     response,
-    items: normalizeArray<CartItemRecord>(cart?.items),
-    quote: normalizeCartQuote(getCartQuoteSource(cart)),
+    ...cart,
   };
 };
 

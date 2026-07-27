@@ -44,7 +44,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
-import { dispatchCartChanged } from "@/lib/cart-events";
+import { normalizeCustomerCartData } from "@/services/cart";
 import { cn } from "@/lib/utils";
 
 type OrderCartSidebarProps = {
@@ -59,7 +59,6 @@ type OrderCartSidebarProps = {
 export function OrderCartSidebar({
   customerId,
   cartRefreshKey,
-  onCartRefresh,
   presentation = "embedded",
   checkoutType = "delivery",
   currency,
@@ -103,6 +102,12 @@ export function OrderCartSidebar({
     } finally {
       setLoadingCart(false);
     }
+  };
+
+  const syncCartFromMutationResponse = (responseData: unknown) => {
+    const { items, quote } = normalizeCustomerCartData(responseData);
+    setCartItems(items.map((item) => normalizeCartItem(item)));
+    setCartQuote(quote as ApiRecord | null);
   };
 
   useEffect(() => {
@@ -230,8 +235,7 @@ export function OrderCartSidebar({
         return;
       }
 
-      onCartRefresh?.();
-      await fetchCart();
+      syncCartFromMutationResponse(res.data);
     } catch (err) {
       toast.error(cartT("failedUpdateQuantity"));
       await fetchCart();
@@ -243,8 +247,6 @@ export function OrderCartSidebar({
   const deleteItem = async (id: string) => {
     if (!customerId) return;
     const item = cartItems.find((cartItem) => String(cartItem.id) === id);
-    const previousTotalItems = totalItems;
-    const deletedQuantity = Math.max(1, toNumber(item?.quantity, 1));
 
     try {
       setActionId(id);
@@ -260,10 +262,7 @@ export function OrderCartSidebar({
       }
 
       toast.success(cartT("itemRemoved"));
-      setCartItems((prev) => prev.filter((cartItem) => String(cartItem.id) !== id));
-      dispatchCartChanged({ itemCount: Math.max(0, previousTotalItems - deletedQuantity) });
-      onCartRefresh?.();
-      await fetchCart();
+      syncCartFromMutationResponse(res.data);
     } catch (err) {
       toast.error(cartT("failedRemoveItem"));
     } finally {

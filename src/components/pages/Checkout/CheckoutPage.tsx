@@ -1007,7 +1007,9 @@ function CheckoutPageContent() {
             Math.max(1, toNumber(currentItem?.quantity, 1)),
         ),
       });
-      await fetchCart();
+      if (!syncCartFromResponse(res)) {
+        await fetchCart();
+      }
       toast.success(t("toast.itemRemoved"));
     } catch (err) {
       setCartItems(previousCartItems);
@@ -1264,7 +1266,9 @@ function CheckoutPageContent() {
         return;
       }
 
-      await fetchCart();
+      if (!syncCartFromResponse(res)) {
+        await fetchCart();
+      }
       setAppliedTipAmount(normalizedTip);
       applyTipToCurrentQuote(normalizedTip);
       clearBackendError();

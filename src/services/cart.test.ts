@@ -7,6 +7,8 @@ import {
   cleanAddCartItemPayload,
   deleteCustomerCartDeal,
   fetchCustomerCart,
+  getCustomerCartItemCount,
+  normalizeCustomerCartData,
   normalizeCartQuote,
   quoteCustomerCart,
   updateCustomerCart,
@@ -701,6 +703,38 @@ describe("cart service", () => {
         discountAmount: 301,
       },
     });
+  });
+
+  it("normalizes mutation cart data without another cart request", () => {
+    const normalized = normalizeCustomerCartData({
+      data: {
+        items: [
+          { id: "cart-item-1", quantity: 2 },
+          { id: "cart-item-2", quantity: 1 },
+        ],
+        quote: {
+          subtotal: 30,
+          payableAmount: 35,
+        },
+      },
+    });
+
+    expect(normalized.items).toHaveLength(2);
+    expect(normalized.quote).toMatchObject({
+      subtotal: 30,
+      payableAmount: 35,
+    });
+    expect(
+      getCustomerCartItemCount({
+        data: {
+          items: [
+            { id: "cart-item-1", quantity: 2 },
+            { id: "cart-item-2", quantity: 1 },
+          ],
+        },
+      }),
+    ).toBe(3);
+    expect(getCartMock).not.toHaveBeenCalled();
   });
 
   it("normalizes coupon quote values from wrapped cart response", async () => {
