@@ -1317,12 +1317,6 @@ function CheckoutPageContent() {
 
       const cartOrderTime =
         scheduledDeliveryAt === undefined ? null : scheduledDeliveryAt;
-      const scheduleUpdated = await setCartSchedule(cartOrderTime);
-      if (!scheduleUpdated) return;
-
-      const addressUpdated = await setCartAddress();
-      if (!addressUpdated) return;
-
       const checkoutTipAmount = Math.max(
         0,
         toNumber(cartQuote?.tipAmount, appliedTipAmount),
@@ -1357,6 +1351,9 @@ function CheckoutPageContent() {
         customerId,
         payload: {
           ...(cartOrderTime !== undefined ? { orderTime: cartOrderTime } : {}),
+          ...(activeTab === "delivery" && !isGuest
+            ? { deliveryAddressId: selectedAddress }
+            : {}),
           ...(checkoutTipAmount > 0 ? { tipAmount: checkoutTipAmount } : {}),
           ...(checkoutLoyaltyPoints > 0
             ? { loyaltyPoints: checkoutLoyaltyPoints }

@@ -85,7 +85,7 @@ export const useDealScopedItemsDetails = ({
 
   const query = useQuery({
     queryKey: queryKeys.items.dealScopedDetails(uniqueItemIds, itemSearchTermsById, branchId),
-    enabled: enabled && uniqueItemIds.length > 0 && Boolean(token),
+    enabled: enabled && uniqueItemIds.length > 0,
     queryFn: async () => {
       const details = await fetchMenuItemDetailsByIds({
         itemIds: uniqueItemIds,

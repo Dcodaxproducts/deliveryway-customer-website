@@ -251,6 +251,21 @@ export const addCustomerCartItem = ({
   token?: string | null;
 }) => postCart(`/v1/cart/items?customerId=${customerId}`, cleanAddCartItemPayload(payload), token);
 
+export const addCustomerCartDealItems = ({
+  customerId,
+  payloads,
+  token,
+}: {
+  customerId: string;
+  payloads: CartMutationPayload[];
+  token?: string | null;
+}) =>
+  postCart(
+    `/v1/cart/deals?customerId=${customerId}`,
+    { items: payloads.map((payload) => cleanAddCartItemPayload(payload)) },
+    token,
+  );
+
 export const cleanAddCartItemPayload = (
   payload: CartMutationPayload,
   pathname = getCurrentPathname()

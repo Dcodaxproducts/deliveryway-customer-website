@@ -54,17 +54,18 @@ describe("deal eligible item helpers", () => {
         modifierLinks: [{ id: "link-1" }],
         minSelect: 1,
         minQuantity: 1,
+        isRequired: true,
       })
     ).toMatchObject({
       id: "pizza",
       name: "Pizza",
       variations: [{ id: "large", name: "Large" }],
-      modifierGroups: [],
-      modifiers: [],
-      modifierLinks: [],
-      minSelect: null,
-      minQuantity: null,
-      isRequired: false,
+      modifierGroups: [{ id: "addons", name: "Add-ons", isRequired: true }],
+      modifiers: [{ id: "cheese", name: "Cheese" }],
+      modifierLinks: [{ id: "link-1" }],
+      minSelect: 1,
+      minQuantity: 1,
+      isRequired: true,
     });
   });
 

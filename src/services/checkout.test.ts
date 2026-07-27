@@ -72,6 +72,24 @@ describe("checkout service", () => {
     expect(postCheckoutMock.mock.calls[0][0]).not.toContain("/api/v1");
   });
 
+  it("sends the selected saved address in the checkout request", async () => {
+    postCheckoutMock.mockResolvedValue({ success: true });
+
+    await checkoutCustomerCart({
+      customerId: "customer-1",
+      payload: {
+        paymentMethod: "COD",
+        deliveryAddressId: "address-1",
+      },
+    });
+
+    expect(postCheckoutMock).toHaveBeenCalledWith(
+      "/v1/cart/checkout?customerId=customer-1",
+      { paymentMethod: "COD", deliveryAddressId: "address-1" },
+      undefined,
+    );
+  });
+
   it("sends customerId when applying checkout coupon", async () => {
     patchCheckoutMock.mockResolvedValue({ success: true });
 

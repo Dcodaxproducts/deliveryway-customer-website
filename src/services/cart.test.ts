@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   addGroupOrderItem,
   addCustomerCartItem,
+  addCustomerCartDealItems,
   cleanAddCartItemPayload,
   deleteCustomerCartDeal,
   fetchCustomerCart,
@@ -56,6 +57,31 @@ describe("cart service", () => {
         quantity: 1,
       },
       undefined
+    );
+  });
+
+  it("adds an N-item deal with one batched cart request", async () => {
+    postCartMock.mockResolvedValue({ success: true });
+
+    await addCustomerCartDealItems({
+      customerId: "customer-1",
+      token: "token-1",
+      payloads: [
+        { branchId: "branch-1", menuItemId: "pizza-1", dealId: "deal-1", quantity: 1 },
+        { branchId: "branch-1", menuItemId: "drink-1", dealId: "deal-1", quantity: 1 },
+      ],
+    });
+
+    expect(postCartMock).toHaveBeenCalledTimes(1);
+    expect(postCartMock).toHaveBeenCalledWith(
+      "/v1/cart/deals?customerId=customer-1",
+      {
+        items: [
+          { branchId: "branch-1", menuItemId: "pizza-1", dealId: "deal-1", quantity: 1 },
+          { branchId: "branch-1", menuItemId: "drink-1", dealId: "deal-1", quantity: 1 },
+        ],
+      },
+      "token-1",
     );
   });
 

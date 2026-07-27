@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   getDealCategoryRuleForItem,
+  getDealScopedItemCustomizationState,
   getDealTypeLabel,
   isFixedItemDeal,
 } from "@/components/pages/Home/utils/customer-deal-cart";
@@ -209,10 +210,22 @@ export function DealChooserDrawer({
     () => items.map((item) => item.id.trim()).filter(Boolean),
     [items],
   );
+  const detailItemIds = useMemo(
+    () =>
+      items
+        .filter(
+          (item) =>
+            selectedMenuItemIds.includes(item.id) &&
+            getDealScopedItemCustomizationState(item) === "UNKNOWN",
+        )
+        .map((item) => item.id.trim())
+        .filter(Boolean),
+    [items, selectedMenuItemIds],
+  );
   const itemDetailsQuery = useDealScopedItemsDetails({
-    itemIds,
+    itemIds: detailItemIds,
     items,
-    enabled: open && itemIds.length > 0,
+    enabled: open && detailItemIds.length > 0,
   });
 
   const detailedItems = useMemo(
@@ -407,9 +420,10 @@ export function DealChooserDrawer({
       }
 
       const selectedItem = detailedItemsById.get(menuItemId);
-      const shouldExpand = selectedItem
-        ? isDealChooserItemConfigurable(selectedItem)
-        : true;
+      const shouldExpand =
+        !selectedItem ||
+        isDealChooserItemConfigurable(selectedItem) ||
+        getDealScopedItemCustomizationState(selectedItem) === "UNKNOWN";
       const categoryRule = selectedItem
         ? getDealCategoryRuleForItem(deal, selectedItem)
         : null;

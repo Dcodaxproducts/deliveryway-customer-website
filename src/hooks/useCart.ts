@@ -19,6 +19,7 @@ import { getApiErrorMessage } from "@/lib/errors";
 import { runWithGuestSessionRecovery } from "@/lib/guest-session";
 import {
   addCustomerCartItem,
+  addCustomerCartDealItems,
   addGroupOrderItem,
   clearCustomerCart,
   deleteCustomerCartItem,
@@ -337,16 +338,14 @@ export const useAddDealToCart = (branchId?: string | null) => {
   const { token, user } = useAuthContext();
   const queryClient = useQueryClient();
   const {
-    addCustomerCartItem: addCartItem,
     ensureCustomerSession,
-    quoteCustomerCart: refreshCartQuote,
   } = useCart(token);
   const customerId = user?.id ?? "";
 
   return useMutation({
     mutationFn: async ({ deal, selectedMenuItemIds = [], eligibleMenuItems, cartItemPayloads }: AddDealToCartInput) => {
       const session = customerId
-        ? { customerId }
+        ? { customerId, token }
         : await ensureCustomerSession();
 
       if (!branchId) {
@@ -379,31 +378,17 @@ export const useAddDealToCart = (branchId?: string | null) => {
         throw new Error(t("dealNoItems"));
       }
 
-      for (const payload of payloads) {
-        const response = await addCartItem({
-          customerId: session.customerId,
-          payload,
-        });
+      const response = await addCustomerCartDealItems({
+        customerId: session.customerId,
+        payloads,
+        token: session.token,
+      });
 
-        if (!response || response.error || response.success === false) {
-          throw new Error(getApiErrorMessage(response, t("failedAddDealItem")));
-        }
+      if (!response || response.error || response.success === false) {
+        throw new Error(getApiErrorMessage(response, t("failedAddDealItem")));
       }
 
-      try {
-        const quoteResponse = await refreshCartQuote({
-          customerId: session.customerId,
-        });
-
-        if (quoteResponse && !quoteResponse.error && quoteResponse.success !== false) {
-          return quoteResponse;
-        }
-      } catch {
-        // Deal rows were already added successfully. Quote can fail before a
-        // delivery address is selected, so do not show a false add-to-cart error.
-      }
-
-      return { success: true };
+      return response;
     },
     onSuccess: async () => {
       await Promise.all([

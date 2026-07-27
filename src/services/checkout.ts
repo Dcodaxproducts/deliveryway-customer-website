@@ -12,6 +12,7 @@ export type CheckoutCartPayload = Record<string, unknown> & {
   paymentMethod: string;
   scheduledDeliveryAt?: string | null;
   orderTime?: string | null;
+  deliveryAddressId?: string | null;
   tipAmount?: number;
   loyaltyPoints?: number;
   guestContact?: {
