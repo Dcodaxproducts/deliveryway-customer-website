@@ -13,6 +13,7 @@ import {
   nearbyBranchToBranchRecord,
   normalizeBranch,
   normalizePublicBranchSelection,
+  shouldShowBranchLocationControls,
   shouldRequireBranchSelection,
 } from "@/lib/branch-selector";
 import type { AuthSession } from "@/types/auth";
@@ -34,6 +35,12 @@ const nearbyBranch: NearbyBranch = {
 };
 
 describe("branch selector helpers", () => {
+  it("hides location controls when the restaurant has one branch", () => {
+    expect(shouldShowBranchLocationControls(true)).toBe(false);
+    expect(shouldShowBranchLocationControls(false)).toBe(true);
+    expect(shouldShowBranchLocationControls()).toBe(true);
+  });
+
   it("requires branch selection for anonymous restaurant browsing", () => {
     expect(shouldRequireBranchSelection("restaurant-1", null)).toBe(true);
     expect(shouldRequireBranchSelection("restaurant-1", "branch-1")).toBe(

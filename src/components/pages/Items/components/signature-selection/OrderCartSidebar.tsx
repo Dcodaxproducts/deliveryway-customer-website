@@ -37,6 +37,8 @@ import {
   type CartItem,
   normalizeCartItem,
   recalculateCartItemQuantity,
+  resolveCartQuotePayableAmount,
+  resolveCartQuoteSubtotal,
   toNumber,
 } from "@/components/pages/Checkout/utils/checkout-normalizers";
 import { Button } from "@/components/ui/button";
@@ -166,7 +168,7 @@ export function OrderCartSidebar({
     serviceChargeLabel: t("totals.serviceCharge"),
     serviceChargeWithPercentageLabel: (value) => t("totals.serviceChargeWithPercentage", { value }),
   });
-  const quoteSubtotal = cartQuote ? toNumber(cartQuote.subtotal, itemTotal) : itemTotal;
+  const quoteSubtotal = resolveCartQuoteSubtotal(cartQuote?.subtotal, itemTotal);
   const appliedPromotion =
     typeof cartQuote?.appliedPromotion === "object" && cartQuote.appliedPromotion !== null
       ? cartQuote.appliedPromotion
@@ -184,13 +186,15 @@ export function OrderCartSidebar({
     orderFee: selectedOrderFee,
     tipAmount,
   });
-  const finalTotal = Math.max(
-    0,
-    toNumber(
-      cartQuote?.payableAmount ?? cartQuote?.totalAmount,
+  const finalTotal = resolveCartQuotePayableAmount({
+    quoteAmount: cartQuote?.payableAmount ?? cartQuote?.totalAmount,
+    fallbackAmount: Math.max(
+      0,
       totalBeforeDiscount - discount - loyaltyDiscount - walletAppliedAmount
-    )
-  );
+    ),
+    hasAppliedOffset:
+      discount > 0 || loyaltyDiscount > 0 || walletAppliedAmount > 0,
+  });
   const hasActualDiscount =
     cartQuote?.hasDiscount === true ||
     discount > 0 ||

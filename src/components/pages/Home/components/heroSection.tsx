@@ -23,6 +23,7 @@ import {
   nearbyBranchToBranchRecord,
   normalizeBranch,
   persistSelectedBranch,
+  shouldShowBranchLocationControls,
 } from "@/lib/branch-selector";
 import {
   checkoutTypeToOrderType,
@@ -88,6 +89,9 @@ export const HeroSection = ({
 
   const selectedBranch = useMemo(() => normalizeBranch(branch ?? user?.branch), [branch, user?.branch]);
   const isSingleBranchRestaurant = Boolean(selectedBranch?.isOnlyBranch);
+  const showBranchLocationControls = shouldShowBranchLocationControls(
+    selectedBranch?.isOnlyBranch
+  );
   const selectedOrderType = getSelectedOrderType(user) ?? selectedBranch?.selectedOrderType ?? null;
   const selectedOrderLabel =
     selectedOrderType === "TAKEAWAY"
@@ -421,8 +425,8 @@ export const HeroSection = ({
             }}
           />
 
-          {isSingleBranchRestaurant && !(mode === "delivery" && !hasAddressBookSession) ? null : (
-          <div ref={branchSearchRef} className="relative">
+          {showBranchLocationControls ? (
+            <div ref={branchSearchRef} className="relative">
             <AddressLocationPicker
               coordinates={coordinates}
               locationLabel={locationLabel}
@@ -497,8 +501,8 @@ export const HeroSection = ({
                 )}
               </div>
             ) : null}
-          </div>
-          )}
+            </div>
+          ) : null}
         </div>
       </div>
     </main>

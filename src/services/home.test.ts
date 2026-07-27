@@ -108,11 +108,11 @@ describe("getHomeCategories", () => {
     ]);
     expect(getRequestMock).toHaveBeenNthCalledWith(
       1,
-      "/customer-app/categories?restaurantId=restaurant-1&page=1&limit=50&sortBy=sortOrder&sortOrder=ASC",
+      "/customer-app/categories?restaurantId=restaurant-1&page=1&limit=50&sortBy=createdAt&sortOrder=ASC",
     );
     expect(getRequestMock).toHaveBeenNthCalledWith(
       2,
-      "/customer-app/categories?restaurantId=restaurant-1&page=2&limit=50&sortBy=sortOrder&sortOrder=ASC",
+      "/customer-app/categories?restaurantId=restaurant-1&page=2&limit=50&sortBy=createdAt&sortOrder=ASC",
     );
   });
 

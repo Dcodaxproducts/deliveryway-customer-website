@@ -47,7 +47,7 @@ export const fetchMenuItemsPage = async ({
     restaurantId,
     page: String(page),
     limit: String(limit),
-    sortBy: "sortOrder",
+    sortBy: "createdAt",
     sortOrder: "ASC",
   });
 
@@ -265,7 +265,7 @@ export const fetchMenuCategoriesPage = async ({
     restaurantId,
     page: String(page),
     limit: String(limit),
-    sortBy: "sortOrder",
+    sortBy: "createdAt",
     sortOrder: "ASC",
   });
 

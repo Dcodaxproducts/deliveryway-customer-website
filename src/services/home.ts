@@ -185,7 +185,7 @@ export const getHomeCategories = async (restaurantId: string) => {
       restaurantId,
       page: String(page),
       limit: String(HOME_CATEGORIES_PAGE_LIMIT),
-      sortBy: "sortOrder",
+      sortBy: "createdAt",
       sortOrder: "ASC",
     });
 

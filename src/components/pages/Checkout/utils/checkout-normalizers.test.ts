@@ -9,9 +9,32 @@ import {
   normalizeCartItem,
   normalizeCartResponse,
   recalculateCartItemQuantity,
+  resolveCartQuotePayableAmount,
+  resolveCartQuoteSubtotal,
 } from "./checkout-normalizers";
 
 describe("checkout normalizers", () => {
+  it("uses item pricing when a stale cart quote returns zero totals", () => {
+    expect(resolveCartQuoteSubtotal(0, 17)).toBe(17);
+    expect(
+      resolveCartQuotePayableAmount({
+        quoteAmount: 0,
+        fallbackAmount: 17,
+        hasAppliedOffset: false,
+      })
+    ).toBe(17);
+  });
+
+  it("preserves a legitimate zero payable total after discounts", () => {
+    expect(
+      resolveCartQuotePayableAmount({
+        quoteAmount: 0,
+        fallbackAmount: 0,
+        hasAppliedOffset: true,
+      })
+    ).toBe(0);
+  });
+
   it("normalizes backend errors", () => {
     expect(getBackendErrorMessage({ data: { error: { message: "No stock" } } })).toBe("No stock");
   });

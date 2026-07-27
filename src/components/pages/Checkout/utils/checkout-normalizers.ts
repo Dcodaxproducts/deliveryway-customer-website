@@ -98,6 +98,43 @@ export const toNumber = (value: unknown, fallback = 0) => {
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
+const toPresentNumber = (value: unknown) => {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+export const resolveCartQuoteSubtotal = (quoteSubtotal: unknown, itemTotal: number) => {
+  const parsedSubtotal = toPresentNumber(quoteSubtotal);
+
+  if (itemTotal > 0 && (parsedSubtotal === null || parsedSubtotal <= 0)) {
+    return itemTotal;
+  }
+
+  return Math.max(0, parsedSubtotal ?? itemTotal);
+};
+
+export const resolveCartQuotePayableAmount = ({
+  quoteAmount,
+  fallbackAmount,
+  hasAppliedOffset,
+}: {
+  quoteAmount: unknown;
+  fallbackAmount: number;
+  hasAppliedOffset: boolean;
+}) => {
+  const parsedAmount = toPresentNumber(quoteAmount);
+
+  if (fallbackAmount > 0 && parsedAmount === 0 && !hasAppliedOffset) {
+    return fallbackAmount;
+  }
+
+  return Math.max(0, parsedAmount ?? fallbackAmount);
+};
+
 export const asRecord = (value: unknown): ApiRecord =>
   typeof value === "object" && value !== null && !Array.isArray(value)
     ? (value as ApiRecord)

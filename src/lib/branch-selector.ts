@@ -432,6 +432,9 @@ export const shouldRequireBranchSelection = (
   branchId?: string | number | null,
 ) => Boolean(restaurantId) && !branchId;
 
+export const shouldShowBranchLocationControls = (isOnlyBranch?: boolean) =>
+  isOnlyBranch !== true;
+
 export const getSelectedOrderType = (
   user?: Pick<AuthUser, "branch" | "selectedOrderType"> | null,
 ) => user?.selectedOrderType ?? user?.branch?.selectedOrderType ?? null;
