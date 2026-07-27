@@ -136,6 +136,23 @@ describe("fetchMenuItemDetailsByIds", () => {
     );
   });
 
+  it("caps paginated menu items at the public API maximum", async () => {
+    getItemsMock.mockResolvedValueOnce({ data: [], meta: { page: 1 } });
+
+    await fetchMenuItemsPage({
+      restaurantId: "restaurant-1",
+      branchId: "branch-1",
+      categoryId: "category-1",
+      page: 1,
+      limit: 100,
+    });
+
+    expect(getItemsMock).toHaveBeenCalledWith(
+      "/customer-app/items?restaurantId=restaurant-1&page=1&limit=50&sortBy=createdAt&sortOrder=ASC&categoryId=category-1&branchId=branch-1",
+      undefined,
+    );
+  });
+
   it("fetches public item details by slug without an auth token", async () => {
     getItemsMock.mockResolvedValueOnce({
       data: { id: "pizza-id", slug: "pizza-tse", modifiers: [] },

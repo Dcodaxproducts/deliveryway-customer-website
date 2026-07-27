@@ -156,9 +156,11 @@ export const canSubmitDealSelection = ({
 export const useDealEligibleItems = ({
   deal,
   open,
+  branchId,
 }: {
   deal: CustomerDeal | null;
   open: boolean;
+  branchId?: string | null;
 }) => {
   const { token, restaurantId: authRestaurantId, user } = useAuth();
   const { fetchMenuItemsPage } = useItems(token);
@@ -181,7 +183,7 @@ export const useDealEligibleItems = ({
   }, [deal]);
   const categoryIdsKey = categoryIds.join(":");
   const restaurantId = deal?.restaurant?.id || authRestaurantId || "";
-  const branchId = user?.branchId || user?.branch?.id || null;
+  const resolvedBranchId = branchId || user?.branchId || user?.branch?.id || null;
   const shouldFetchAllMenuItems = deal ? isFlexibleAllItemsDeal(deal) : false;
 
   useEffect(() => {
@@ -215,7 +217,7 @@ export const useDealEligibleItems = ({
         if (shouldFetchAllMenuItems) {
           const { items } = await fetchMenuItemsPage({
             restaurantId,
-            branchId,
+            branchId: resolvedBranchId,
             page: 1,
             limit: 100,
           });
@@ -239,7 +241,7 @@ export const useDealEligibleItems = ({
           categoryIds.map((categoryId) =>
             fetchMenuItemsPage({
               restaurantId,
-              branchId,
+              branchId: resolvedBranchId,
               categoryId,
               page: 1,
               limit: 100,
@@ -280,12 +282,12 @@ export const useDealEligibleItems = ({
       isMounted = false;
     };
   }, [
-    branchId,
     categoryIds,
     categoryIdsKey,
     deal,
     fetchMenuItemsPage,
     open,
+    resolvedBranchId,
     restaurantId,
     shouldFetchAllMenuItems,
   ]);

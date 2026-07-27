@@ -43,10 +43,11 @@ export const fetchMenuItemsPage = async ({
   limit: number;
   token?: string | null;
 }) => {
+  const safeLimit = Math.min(50, Math.max(1, Math.floor(limit)));
   const params = new URLSearchParams({
     restaurantId,
     page: String(page),
-    limit: String(limit),
+    limit: String(safeLimit),
     sortBy: "createdAt",
     sortOrder: "ASC",
   });

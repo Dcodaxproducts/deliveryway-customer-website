@@ -191,7 +191,11 @@ export function DealChooserDrawer({
 }: DealChooserDrawerProps) {
   const t = useTranslations("home.deals");
   const addDealMutation = useAddDealToCart(branchId);
-  const { items, isLoading, error } = useDealEligibleItems({ deal, open });
+  const { items, isLoading, error } = useDealEligibleItems({
+    deal,
+    open,
+    branchId,
+  });
   const [selectedMenuItemIds, setSelectedMenuItemIds] = useState<string[]>([]);
   const [expandedItemIds, setExpandedItemIds] = useState<string[]>([]);
   const [configurationsByItemId, setConfigurationsByItemId] = useState<
