@@ -32,6 +32,12 @@ const getField = (record: AddressRecord, keys: string[]) => {
 const removePostalCityComma = (value: string) =>
   value.replace(/\b(\d{4,6}),\s+([^,\d][^,]*)/g, "$1 $2");
 
+const removeStreetHouseComma = (value: string) =>
+  value.replace(/^([^,]+),\s+([^,]+)(?=,\s+\d{4,6}\b)/, "$1 $2");
+
+const normalizeAddressSeparators = (value: string) =>
+  removePostalCityComma(removeStreetHouseComma(value));
+
 export const getAddressRecord = (value: unknown) => {
   if (!isRecord(value)) return null;
 
@@ -47,7 +53,7 @@ export const formatDisplayAddress = (
   options: { includeRegionCountry?: boolean; fallback?: string } = {}
 ) => {
   if (typeof value === "string") {
-    return removePostalCityComma(value.trim());
+    return normalizeAddressSeparators(value.trim());
   }
 
   const address = getAddressRecord(value);
@@ -63,11 +69,7 @@ export const formatDisplayAddress = (
     "area",
   ]);
   const firstLine =
-    street && houseOrShop
-      ? street.endsWith(".")
-        ? `${street} ${houseOrShop}`
-        : `${street}, ${houseOrShop}`
-      : street || houseOrShop;
+    street && houseOrShop ? `${street} ${houseOrShop}` : street || houseOrShop;
   const parts = [
     firstLine,
     [
@@ -85,5 +87,9 @@ export const formatDisplayAddress = (
     );
   }
 
-  return removePostalCityComma(parts.filter(Boolean).join(", ")) || options.fallback || "";
+  return (
+    normalizeAddressSeparators(parts.filter(Boolean).join(", ")) ||
+    options.fallback ||
+    ""
+  );
 };

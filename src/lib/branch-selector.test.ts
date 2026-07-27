@@ -124,7 +124,7 @@ describe("branch selector helpers", () => {
           country: "Pakistan",
         },
       }),
-    ).toBe("21, dha 5, 46330 Rawalpindi");
+    ).toBe("21 dha 5, 46330 Rawalpindi");
   });
 
   it("keeps selected branch persistence shape compatible", () => {

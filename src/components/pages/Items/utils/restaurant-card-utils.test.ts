@@ -34,7 +34,7 @@ describe("restaurant card utils", () => {
         postalCode: "46330",
         city: "Rawalpindi",
       })
-    ).toBe("21, dha 5, 46330 Rawalpindi");
+    ).toBe("21 dha 5, 46330 Rawalpindi");
     expect(
       getRestaurantAddress(
         {
