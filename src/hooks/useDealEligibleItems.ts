@@ -38,7 +38,10 @@ export const toDealEligibleMenuItem = (
     basePrice: item.basePrice ?? item.price,
     discountedBasePrice: item.discountedBasePrice,
     category: {
-      id: item.categoryId ? String(item.categoryId) : undefined,
+      id:
+        item.categoryId || item.category?.id
+          ? String(item.categoryId ?? item.category?.id)
+          : undefined,
       name:
         typeof item.category?.name === "string"
           ? item.category.name
@@ -183,7 +186,8 @@ export const useDealEligibleItems = ({
   }, [deal]);
   const categoryIdsKey = categoryIds.join(":");
   const restaurantId = deal?.restaurant?.id || authRestaurantId || "";
-  const resolvedBranchId = branchId || user?.branchId || user?.branch?.id || null;
+  const resolvedBranchId =
+    branchId || user?.branchId || user?.branch?.id || null;
   const shouldFetchAllMenuItems = deal ? isFlexibleAllItemsDeal(deal) : false;
 
   useEffect(() => {

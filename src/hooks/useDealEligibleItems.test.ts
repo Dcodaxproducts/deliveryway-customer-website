@@ -31,7 +31,7 @@ describe("deal eligible item helpers", () => {
           { id: "drink", name: "Drink duplicate" },
           { id: "side", name: "Side" },
         ],
-      ])
+      ]),
     ).toEqual([
       { id: "pizza", name: "Pizza" },
       { id: "drink", name: "Drink" },
@@ -55,7 +55,7 @@ describe("deal eligible item helpers", () => {
         minSelect: 1,
         minQuantity: 1,
         isRequired: true,
-      })
+      }),
     ).toMatchObject({
       id: "pizza",
       name: "Pizza",
@@ -66,6 +66,25 @@ describe("deal eligible item helpers", () => {
       minSelect: 1,
       minQuantity: 1,
       isRequired: true,
+    });
+  });
+
+  it("preserves a nested category id returned by the public items API", () => {
+    expect(
+      toDealEligibleMenuItem({
+        id: "cola",
+        name: "Cola",
+        category: {
+          id: "drinks",
+          name: "Drinks",
+        },
+      }),
+    ).toMatchObject({
+      id: "cola",
+      category: {
+        id: "drinks",
+        name: "Drinks",
+      },
     });
   });
 
@@ -86,12 +105,24 @@ describe("deal eligible item helpers", () => {
 
     expect(
       filterDealItemsForForcedCategoryVariations(deal, [
-        { id: "margherita", name: "Margherita", category: { id: "pizza-category" } },
-        { id: "pepperoni", name: "Pepperoni", category: { id: "pizza-category" } },
+        {
+          id: "margherita",
+          name: "Margherita",
+          category: { id: "pizza-category" },
+        },
+        {
+          id: "pepperoni",
+          name: "Pepperoni",
+          category: { id: "pizza-category" },
+        },
         { id: "cola", name: "Cola", category: { id: "drink-category" } },
-      ])
+      ]),
     ).toEqual([
-      { id: "margherita", name: "Margherita", category: { id: "pizza-category" } },
+      {
+        id: "margherita",
+        name: "Margherita",
+        category: { id: "pizza-category" },
+      },
       { id: "cola", name: "Cola", category: { id: "drink-category" } },
     ]);
   });
@@ -110,8 +141,16 @@ describe("deal eligible item helpers", () => {
       ],
     };
     const items = [
-      { id: "margherita", name: "Margherita", category: { id: "pizza-category" } },
-      { id: "pepperoni", name: "Pepperoni", category: { id: "pizza-category" } },
+      {
+        id: "margherita",
+        name: "Margherita",
+        category: { id: "pizza-category" },
+      },
+      {
+        id: "pepperoni",
+        name: "Pepperoni",
+        category: { id: "pizza-category" },
+      },
     ];
 
     expect(filterDealItemsForForcedCategoryVariations(deal, items)).toBe(items);
@@ -133,18 +172,36 @@ describe("deal eligible item helpers", () => {
 
     expect(
       filterDealItemsForForcedCategoryVariations(deal, [
-        { id: "margherita", name: "Margherita", category: { id: "pizza-category" } },
-        { id: "pepperoni", name: "Pepperoni", category: { id: "pizza-category" } },
-      ])
+        {
+          id: "margherita",
+          name: "Margherita",
+          category: { id: "pizza-category" },
+        },
+        {
+          id: "pepperoni",
+          name: "Pepperoni",
+          category: { id: "pizza-category" },
+        },
+      ]),
     ).toEqual([
-      { id: "margherita", name: "Margherita", category: { id: "pizza-category" } },
+      {
+        id: "margherita",
+        name: "Margherita",
+        category: { id: "pizza-category" },
+      },
     ]);
   });
 
   it("requires selected count to meet deal required quantity", () => {
-    expect(canSubmitDealSelection({ selectedCount: 1, requiredCount: 2 })).toBe(false);
-    expect(canSubmitDealSelection({ selectedCount: 2, requiredCount: 2 })).toBe(true);
-    expect(canSubmitDealSelection({ selectedCount: 3, requiredCount: 2 })).toBe(false);
+    expect(canSubmitDealSelection({ selectedCount: 1, requiredCount: 2 })).toBe(
+      false,
+    );
+    expect(canSubmitDealSelection({ selectedCount: 2, requiredCount: 2 })).toBe(
+      true,
+    );
+    expect(canSubmitDealSelection({ selectedCount: 3, requiredCount: 2 })).toBe(
+      false,
+    );
   });
 
   it("uses scoped fixed item count as required count for fixed chooser deals", () => {
@@ -157,7 +214,7 @@ describe("deal eligible item helpers", () => {
           { id: "pizza", name: "Pizza" },
           { id: "drink", name: "Drink" },
         ],
-      })
+      }),
     ).toBe(2);
   });
 });
