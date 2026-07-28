@@ -7,6 +7,7 @@ import {
   cleanAddCartItemPayload,
   deleteCustomerCartDeal,
   fetchCustomerCart,
+  fetchCustomerCartForOrderType,
   getCustomerCartItemCount,
   normalizeCustomerCartData,
   normalizeCartQuote,
@@ -587,6 +588,67 @@ describe("cart service", () => {
       { orderType: "TAKEAWAY" },
       undefined
     );
+  });
+
+  it("uses the selected order type quote before rendering the cart summary", async () => {
+    patchCartMock.mockResolvedValue({
+      success: true,
+      data: {
+        data: {
+          items: [{ id: "cart-item-1", quantity: 1 }],
+          quote: {
+            subtotal: 9.55,
+            serviceChargeAmount: 3,
+            deliveryFee: 0,
+            payableAmount: 12.55,
+          },
+        },
+      },
+    });
+
+    const cart = await fetchCustomerCartForOrderType({
+      customerId: "customer-1",
+      orderType: "TAKEAWAY",
+      token: "token-1",
+    });
+
+    expect(patchCartMock).toHaveBeenCalledWith(
+      "/v1/cart?customerId=customer-1",
+      { orderType: "TAKEAWAY" },
+      "token-1",
+    );
+    expect(getCartMock).not.toHaveBeenCalled();
+    expect(cart.items).toEqual([{ id: "cart-item-1", quantity: 1 }]);
+    expect(cart.quote).toMatchObject({
+      subtotal: 9.55,
+      serviceChargeAmount: 3,
+      deliveryFee: 0,
+      payableAmount: 12.55,
+    });
+  });
+
+  it("falls back to GET cart when order-type sync has no cart payload", async () => {
+    patchCartMock.mockResolvedValue({ success: true });
+    getCartMock.mockResolvedValue({
+      success: true,
+      data: {
+        data: {
+          items: [{ id: "cart-item-1" }],
+          quote: { subtotal: 9.55, payableAmount: 12.55 },
+        },
+      },
+    });
+
+    const cart = await fetchCustomerCartForOrderType({
+      customerId: "customer-1",
+      orderType: "DELIVERY",
+    });
+
+    expect(getCartMock).toHaveBeenCalledWith(
+      "/v1/cart?customerId=customer-1",
+      undefined,
+    );
+    expect(cart.quote?.payableAmount).toBe(12.55);
   });
 
   it("normalizes customer cart quote from GET cart response", async () => {

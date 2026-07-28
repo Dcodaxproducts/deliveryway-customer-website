@@ -394,6 +394,35 @@ export const updateCustomerCartOrderType = ({
   token?: string | null;
 }) => patchCart(`/v1/cart?customerId=${customerId}`, { orderType }, token);
 
+export const fetchCustomerCartForOrderType = async ({
+  customerId,
+  orderType,
+  token,
+}: {
+  customerId: string;
+  orderType: CartOrderType;
+  token?: string | null;
+}) => {
+  const response = await updateCustomerCartOrderType({
+    customerId,
+    orderType,
+    token,
+  });
+
+  if (response && !response.error && response.success !== false) {
+    const cart = normalizeCustomerCartData(response.data);
+
+    if (cart.quote || cart.items.length > 0) {
+      return {
+        response,
+        ...cart,
+      };
+    }
+  }
+
+  return fetchCustomerCart({ customerId, token });
+};
+
 export const quoteCustomerCart = ({
   customerId,
   payload = {},

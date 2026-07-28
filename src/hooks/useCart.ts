@@ -26,6 +26,7 @@ import {
   deleteCustomerCartDeal,
   deleteCart,
   fetchCustomerCart,
+  fetchCustomerCartForOrderType,
   fetchCustomerCartItem,
   fetchGroupOrders,
   getCustomerCartItemCount,
@@ -73,6 +74,14 @@ const getOptimisticCartQuantity = (payload: CartMutationPayload) => {
 export type CartApi = DomainApiHook & {
   ensureCustomerSession: () => Promise<{ customerId: string; token: string }>;
   fetchCustomerCart: (args: { customerId: string }) => Promise<{ response: ApiResult; items: CartItemRecord[]; quote: CartQuote | null }>;
+  fetchCustomerCartForOrderType: (args: {
+    customerId: string;
+    orderType: "DELIVERY" | "TAKEAWAY";
+  }) => Promise<{
+    response: ApiResult;
+    items: CartItemRecord[];
+    quote: CartQuote | null;
+  }>;
   fetchCustomerCartItem: (args: { customerId: string; cartItemId: string }) => Promise<ApiRecord | null>;
   addCustomerCartItem: (args: { customerId: string; payload: CartMutationPayload }) => Promise<ApiResult>;
   quoteCustomerCart: (args: { customerId: string; payload?: Record<string, unknown> }) => Promise<ApiResult>;
@@ -130,6 +139,21 @@ export const useCart = (token: string | null): CartApi => {
   const fetchCart = useCallback(
     ({ customerId }: { customerId: string }) => fetchCustomerCart({ customerId, token }),
     [token]
+  );
+  const fetchCartForOrderType = useCallback(
+    ({
+      customerId,
+      orderType,
+    }: {
+      customerId: string;
+      orderType: "DELIVERY" | "TAKEAWAY";
+    }) =>
+      fetchCustomerCartForOrderType({
+        customerId,
+        orderType,
+        token,
+      }),
+    [token],
   );
 
   const fetchCartItem = useCallback(
@@ -331,6 +355,7 @@ export const useCart = (token: string | null): CartApi => {
       ...api,
       ensureCustomerSession,
       fetchCustomerCart: fetchCart,
+      fetchCustomerCartForOrderType: fetchCartForOrderType,
       fetchCustomerCartItem: fetchCartItem,
       addCustomerCartItem: addCartItem,
       quoteCustomerCart: refreshCartQuote,
@@ -345,7 +370,7 @@ export const useCart = (token: string | null): CartApi => {
       fetchGroupOrders: fetchGroups,
       addGroupOrderItem: addGroupItem,
     }),
-    [addCartItem, addGroupItem, api, clearCart, deleteCartDeal, deleteCartItem, ensureCustomerSession, fetchCart, fetchCartItem, fetchGroups, refreshCartQuote, updateCart, updateCartDealQuantity, updateCartItem, updateCartItemQuantity, updateCartOrderType]
+    [addCartItem, addGroupItem, api, clearCart, deleteCartDeal, deleteCartItem, ensureCustomerSession, fetchCart, fetchCartForOrderType, fetchCartItem, fetchGroups, refreshCartQuote, updateCart, updateCartDealQuantity, updateCartItem, updateCartItemQuantity, updateCartOrderType]
   );
 };
 

@@ -19,6 +19,7 @@ import {
   formatCurrency,
   getAddonQuantity,
   getAddonTotal,
+  getCartBillTotals,
   getCheckoutPriceAdjustmentTotal,
   getItemImage,
   getItemPricing,
@@ -30,7 +31,11 @@ import {
   isDealCartItem,
   type CheckoutType,
 } from "@/components/pages/Checkout/components/CartSummarySection";
-import { getServiceChargeLabel } from "@/components/pages/Checkout/utils/checkout-formatters";
+import {
+  getDisplayTotalAmount,
+  getServiceChargeLabel,
+  removeDeliveryFeeFromPickupTotal,
+} from "@/components/pages/Checkout/utils/checkout-formatters";
 import {
   getAppliedPromotionDiscountLine,
   type ApiRecord,
@@ -38,7 +43,6 @@ import {
   normalizeCartItem,
   recalculateCartItemQuantity,
   resolveCartQuotePayableAmount,
-  resolveCartQuoteSubtotal,
   toNumber,
 } from "@/components/pages/Checkout/utils/checkout-normalizers";
 import { Button } from "@/components/ui/button";
@@ -68,7 +72,7 @@ export function OrderCartSidebar({
   const router = useRouter();
   const { token } = useAuth();
   const {
-    fetchCustomerCart,
+    fetchCustomerCartForOrderType,
     updateCustomerCartItemQuantity,
     updateCustomerCartDealQuantity,
     deleteCustomerCartItem,
@@ -86,7 +90,11 @@ export function OrderCartSidebar({
     try {
       setLoadingCart(true);
 
-      const { response: res, items, quote } = await fetchCustomerCart({ customerId });
+      const { response: res, items, quote } =
+        await fetchCustomerCartForOrderType({
+          customerId,
+          orderType: checkoutType === "pickup" ? "TAKEAWAY" : "DELIVERY",
+        });
 
       if (!res || res.error) {
         setCartItems([]);
@@ -112,7 +120,7 @@ export function OrderCartSidebar({
 
   useEffect(() => {
     void fetchCart();
-  }, [customerId, cartRefreshKey]);
+  }, [customerId, cartRefreshKey, checkoutType]);
 
   const splitLabels = useMemo(
     () => ({
@@ -138,14 +146,9 @@ export function OrderCartSidebar({
     [cartItems]
   );
 
-  const itemTotal = useMemo(
-    () => pricingItems.reduce((acc, entry) => acc + entry.pricing.itemSubtotal, 0),
-    [pricingItems]
-  );
-
-  const depositTotal = useMemo(
-    () => pricingItems.reduce((acc, entry) => acc + entry.pricing.depositTotal, 0),
-    [pricingItems]
+  const { itemTotal, depositTotal, displaySubtotal } = useMemo(
+    () => getCartBillTotals(pricingItems, cartQuote?.subtotal),
+    [cartQuote?.subtotal, pricingItems],
   );
 
   const checkoutPriceAdjustment = getCheckoutPriceAdjustmentTotal(cartItems, checkoutType);
@@ -173,7 +176,6 @@ export function OrderCartSidebar({
     serviceChargeLabel: t("totals.serviceCharge"),
     serviceChargeWithPercentageLabel: (value) => t("totals.serviceChargeWithPercentage", { value }),
   });
-  const quoteSubtotal = resolveCartQuoteSubtotal(cartQuote?.subtotal, itemTotal);
   const appliedPromotion =
     typeof cartQuote?.appliedPromotion === "object" && cartQuote.appliedPromotion !== null
       ? cartQuote.appliedPromotion
@@ -187,12 +189,21 @@ export function OrderCartSidebar({
   const loyaltyDiscount = Math.max(0, toNumber(cartQuote?.loyaltyDiscountAmount, 0));
   const walletAppliedAmount = Math.max(0, toNumber(cartQuote?.walletAppliedAmount, 0));
   const totalBeforeDiscount = getTotalBeforeDiscount({
-    subtotal: quoteSubtotal,
+    subtotal: displaySubtotal,
+    deposit: depositTotal,
     orderFee: selectedOrderFee,
+    serviceCharge: serviceChargeAmount,
     tipAmount,
   });
+  const quotePayableAmount = cartQuote
+    ? removeDeliveryFeeFromPickupTotal({
+        checkoutType,
+        deliveryFee: cartQuote.deliveryFee,
+        total: getDisplayTotalAmount(cartQuote),
+      })
+    : null;
   const finalTotal = resolveCartQuotePayableAmount({
-    quoteAmount: cartQuote?.payableAmount ?? cartQuote?.totalAmount,
+    quoteAmount: quotePayableAmount,
     fallbackAmount: Math.max(
       0,
       totalBeforeDiscount - discount - loyaltyDiscount - walletAppliedAmount
@@ -588,7 +599,7 @@ export function OrderCartSidebar({
           <div className="space-y-3 border-t border-black/5 pt-5 text-sm text-gray-500">
             <div className="flex items-center justify-between">
               <span>{t("itemTotal")}</span>
-              <span>{formatCurrency(quoteSubtotal, currency)}</span>
+              <span>{formatCurrency(itemTotal, currency)}</span>
             </div>
 
             {depositTotal > 0 ? (
@@ -671,9 +682,6 @@ export function OrderCartSidebar({
             <ArrowRight className="h-4 w-4" />
           </Button>
 
-          <p className="mt-4 text-center text-[11px] text-[#b0b0b0]">
-            {cartT("averageDeliveryTime")}
-          </p>
         </div>
       </div>
     </aside>
