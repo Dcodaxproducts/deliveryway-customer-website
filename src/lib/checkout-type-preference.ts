@@ -17,6 +17,28 @@ export const checkoutTypeToOrderType = (
   checkoutType: CheckoutTypePreference
 ): BranchOrderType => (checkoutType === "pickup" ? "TAKEAWAY" : "DELIVERY");
 
+export const resolveCheckoutTypePreference = ({
+  availableTypes,
+  selectedOrderType,
+  storedType,
+}: {
+  availableTypes: readonly CheckoutTypePreference[];
+  selectedOrderType?: BranchOrderType | null;
+  storedType: CheckoutTypePreference | null;
+}): CheckoutTypePreference | null => {
+  const selectedType = orderTypeToCheckoutType(selectedOrderType);
+
+  if (storedType && availableTypes.includes(storedType)) {
+    return storedType;
+  }
+
+  if (selectedType && availableTypes.includes(selectedType)) {
+    return selectedType;
+  }
+
+  return availableTypes[0] ?? null;
+};
+
 export const getStoredCheckoutTypePreference = (): CheckoutTypePreference | null => {
   const stored = safeGetLocalStorageItem(CHECKOUT_TYPE_PREFERENCE_KEY);
 

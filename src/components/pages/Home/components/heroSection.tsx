@@ -28,6 +28,7 @@ import {
 import {
   checkoutTypeToOrderType,
   getStoredCheckoutTypePreference,
+  resolveCheckoutTypePreference,
   setStoredCheckoutTypePreference,
 } from "@/lib/checkout-type-preference";
 import { isRemoteHttpsImageUrl, resolveHttpsImageUrl } from "@/lib/image-fallback";
@@ -167,13 +168,16 @@ export const HeroSection = ({
   }, [availableModes, mode]);
 
   useEffect(() => {
-    const storedMode = getStoredCheckoutTypePreference();
+    const preferredMode = resolveCheckoutTypePreference({
+      availableTypes: availableModes,
+      selectedOrderType,
+      storedType: getStoredCheckoutTypePreference(),
+    });
 
-    if (!storedMode || !availableModes.includes(storedMode)) return;
-    if (storedMode === "delivery" && availableModes.includes("pickup")) return;
-
-    setMode(storedMode);
-  }, [availableModes]);
+    if (preferredMode) {
+      setMode(preferredMode);
+    }
+  }, [availableModes, selectedOrderType]);
 
   const applyModeChange = (nextMode: BranchSearchMode) => {
     setMode(nextMode);
