@@ -157,9 +157,16 @@ const normalizeBranchSettings = (
       ? value.allowedPaymentMethods
           .map((method) => getString(method))
           .filter((method): method is BranchPaymentMethod =>
-            ["COD", "CARD_ON_DELIVERY", "PAYPAL", "STRIPE", "WALLET"].includes(
-              method ?? "",
-            ),
+            [
+              "COD",
+              "CARD_ON_DELIVERY",
+              "PAYPAL",
+              "STRIPE",
+              "EASYPAISA",
+              "JAZZCASH",
+              "BANK_TRANSFER",
+              "WALLET",
+            ].includes(method ?? ""),
           )
       : undefined,
     deliveryConfig: value.deliveryConfig,

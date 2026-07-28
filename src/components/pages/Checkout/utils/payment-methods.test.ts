@@ -6,12 +6,19 @@ describe("getAvailableCheckoutPaymentMethods", () => {
   it("returns only configured methods in checkout display order", () => {
     expect(
       getAvailableCheckoutPaymentMethods({
-        allowedPaymentMethods: ["STRIPE", "COD", "UNKNOWN"],
+        allowedPaymentMethods: [
+          "BANK_TRANSFER",
+          "JAZZCASH",
+          "STRIPE",
+          "COD",
+          "EASYPAISA",
+          "UNKNOWN",
+        ],
         allowCardOnDelivery: true,
         allowCashOnDelivery: true,
         isGuest: false,
       }),
-    ).toEqual(["COD", "STRIPE"]);
+    ).toEqual(["COD", "STRIPE", "EASYPAISA", "JAZZCASH", "BANK_TRANSFER"]);
   });
 
   it("hides wallet for guests and card-on-delivery for pickup", () => {

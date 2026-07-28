@@ -34,7 +34,8 @@ export type CheckoutCartPayload = Record<string, unknown> & {
 };
 
 export const normalizeCheckoutPaymentMethod = (paymentMethod: unknown) => {
-  const normalized = typeof paymentMethod === "string" ? paymentMethod.trim().toUpperCase() : "";
+  const normalized =
+    typeof paymentMethod === "string" ? paymentMethod.trim().toUpperCase() : "";
 
   if (normalized === "CARD") {
     return "STRIPE";
@@ -48,7 +49,10 @@ export const normalizeCheckoutPaymentMethod = (paymentMethod: unknown) => {
     normalized === "CARD_ON_DELIVERY" ||
     normalized === "COD" ||
     normalized === "PAYPAL" ||
-    normalized === "STRIPE"
+    normalized === "STRIPE" ||
+    normalized === "EASYPAISA" ||
+    normalized === "JAZZCASH" ||
+    normalized === "BANK_TRANSFER"
   ) {
     return normalized;
   }
@@ -56,7 +60,9 @@ export const normalizeCheckoutPaymentMethod = (paymentMethod: unknown) => {
   return typeof paymentMethod === "string" ? paymentMethod : "";
 };
 
-export const normalizeCheckoutPayload = (payload: CheckoutCartPayload): Record<string, unknown> => {
+export const normalizeCheckoutPayload = (
+  payload: CheckoutCartPayload,
+): Record<string, unknown> => {
   const { orderTime, scheduledDeliveryAt, ...rest } = payload;
   delete rest.orderType;
   rest.paymentMethod = normalizeCheckoutPaymentMethod(rest.paymentMethod);
@@ -87,7 +93,11 @@ export const checkoutCustomerCart = ({
   payload: CheckoutCartPayload;
   token?: string | null;
 }): Promise<ApiResult> =>
-  postCheckout(`/v1/cart/checkout?customerId=${customerId}`, normalizeCheckoutPayload(payload), token);
+  postCheckout(
+    `/v1/cart/checkout?customerId=${customerId}`,
+    normalizeCheckoutPayload(payload),
+    token,
+  );
 
 export const applyCheckoutCoupon = ({
   customerId,
@@ -101,7 +111,7 @@ export const applyCheckoutCoupon = ({
   patchCheckout(
     `/v1/cart/coupon?customerId=${encodeURIComponent(customerId)}`,
     { couponCode },
-    token
+    token,
   );
 
 export const removeCheckoutCoupon = ({
@@ -113,5 +123,5 @@ export const removeCheckoutCoupon = ({
 }): Promise<ApiResult> =>
   deleteCheckout(
     `/v1/cart/coupon?customerId=${encodeURIComponent(customerId)}`,
-    token
+    token,
   );

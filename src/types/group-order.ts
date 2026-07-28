@@ -6,7 +6,15 @@ export type GroupOrderParticipantStatus =
   "ACTIVE" | "PENDING" | "COMPLETED" | string;
 export type GroupOrderType = "DINE_IN" | "TAKEAWAY" | "DELIVERY" | string;
 export type GroupOrderPaymentMethod =
-  "COD" | "CARD_ON_DELIVERY" | "PAYPAL" | "STRIPE" | "WALLET" | string;
+  | "COD"
+  | "CARD_ON_DELIVERY"
+  | "PAYPAL"
+  | "STRIPE"
+  | "EASYPAISA"
+  | "JAZZCASH"
+  | "BANK_TRANSFER"
+  | "WALLET"
+  | string;
 
 export type GroupOrderUser = {
   id?: string | number | null;

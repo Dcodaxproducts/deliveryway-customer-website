@@ -45,7 +45,7 @@ describe("checkout service", () => {
         orderTime: "2026-06-10T19:30:00.000Z",
         paymentMethod: "COD",
       },
-      undefined
+      undefined,
     );
     expect(postCheckoutMock.mock.calls[0][0]).not.toContain("/api/v1");
   });
@@ -67,7 +67,7 @@ describe("checkout service", () => {
         paymentMethod: "COD",
         tipAmount: 150,
       },
-      undefined
+      undefined,
     );
     expect(postCheckoutMock.mock.calls[0][0]).not.toContain("/api/v1");
   });
@@ -102,7 +102,7 @@ describe("checkout service", () => {
     expect(patchCheckoutMock).toHaveBeenCalledWith(
       "/v1/cart/coupon?customerId=customer%201",
       { couponCode: "SAVE10" },
-      "token-1"
+      "token-1",
     );
   });
 
@@ -113,7 +113,7 @@ describe("checkout service", () => {
 
     expect(deleteCheckoutMock).toHaveBeenCalledWith(
       "/v1/cart/coupon?customerId=customer%201",
-      "token-1"
+      "token-1",
     );
   });
 
@@ -134,7 +134,7 @@ describe("checkout service", () => {
         paymentMethod: "COD",
         loyaltyPoints: 100,
       },
-      undefined
+      undefined,
     );
   });
 
@@ -142,9 +142,16 @@ describe("checkout service", () => {
     expect(normalizeCheckoutPaymentMethod("cod")).toBe("COD");
     expect(normalizeCheckoutPaymentMethod("paypal")).toBe("PAYPAL");
     expect(normalizeCheckoutPaymentMethod("stripe")).toBe("STRIPE");
+    expect(normalizeCheckoutPaymentMethod("easypaisa")).toBe("EASYPAISA");
+    expect(normalizeCheckoutPaymentMethod("jazzcash")).toBe("JAZZCASH");
+    expect(normalizeCheckoutPaymentMethod("bank_transfer")).toBe(
+      "BANK_TRANSFER",
+    );
     expect(normalizeCheckoutPaymentMethod("wallet")).toBe("WALLET");
     expect(normalizeCheckoutPaymentMethod("card")).toBe("STRIPE");
-    expect(normalizeCheckoutPaymentMethod("CARD_ON_DELIVERY")).toBe("CARD_ON_DELIVERY");
+    expect(normalizeCheckoutPaymentMethod("CARD_ON_DELIVERY")).toBe(
+      "CARD_ON_DELIVERY",
+    );
   });
 
   it("sends wallet as a checkout payment method", async () => {
@@ -162,7 +169,7 @@ describe("checkout service", () => {
       {
         paymentMethod: "WALLET",
       },
-      undefined
+      undefined,
     );
   });
 
@@ -181,7 +188,7 @@ describe("checkout service", () => {
       {
         paymentMethod: "CARD_ON_DELIVERY",
       },
-      undefined
+      undefined,
     );
   });
 
@@ -201,7 +208,7 @@ describe("checkout service", () => {
       {
         paymentMethod: "COD",
       },
-      undefined
+      undefined,
     );
     expect(postCheckoutMock.mock.calls[0][1]).not.toHaveProperty("orderType");
   });
@@ -253,7 +260,7 @@ describe("checkout service", () => {
           lng: "7.0116",
         },
       },
-      undefined
+      undefined,
     );
   });
 
@@ -262,7 +269,7 @@ describe("checkout service", () => {
       normalizeCheckoutPayload({
         paymentMethod: "COD",
         customerNote: "",
-      })
+      }),
     ).toEqual({
       paymentMethod: "COD",
       customerNote: "",
@@ -274,7 +281,7 @@ describe("checkout service", () => {
       normalizeCheckoutPayload({
         orderTime: "2026-06-10T19:30:00.000Z",
         paymentMethod: "COD",
-      })
+      }),
     ).toEqual({
       orderTime: "2026-06-10T19:30:00.000Z",
       paymentMethod: "COD",
@@ -286,7 +293,7 @@ describe("checkout service", () => {
       normalizeCheckoutPayload({
         orderTime: null,
         paymentMethod: "COD",
-      })
+      }),
     ).toEqual({
       orderTime: null,
       paymentMethod: "COD",

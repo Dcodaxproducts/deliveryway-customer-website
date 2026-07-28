@@ -3,6 +3,9 @@ export type CheckoutPaymentMethod =
   | "CARD_ON_DELIVERY"
   | "PAYPAL"
   | "STRIPE"
+  | "EASYPAISA"
+  | "JAZZCASH"
+  | "BANK_TRANSFER"
   | "WALLET";
 
 const paymentMethodOrder: CheckoutPaymentMethod[] = [
@@ -10,6 +13,9 @@ const paymentMethodOrder: CheckoutPaymentMethod[] = [
   "CARD_ON_DELIVERY",
   "PAYPAL",
   "STRIPE",
+  "EASYPAISA",
+  "JAZZCASH",
+  "BANK_TRANSFER",
   "WALLET",
 ];
 

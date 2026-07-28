@@ -4,6 +4,9 @@ export type BranchPaymentMethod =
   | "CARD_ON_DELIVERY"
   | "PAYPAL"
   | "STRIPE"
+  | "EASYPAISA"
+  | "JAZZCASH"
+  | "BANK_TRANSFER"
   | "WALLET";
 
 export type BranchTemporaryClosure = {
