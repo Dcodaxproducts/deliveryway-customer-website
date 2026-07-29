@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   getDealCategoryRuleForItem,
+  getSelectedDealItemIdsForDetails,
   getDealScopedItemCustomizationState,
   getDealTypeLabel,
   isFixedItemDeal,
@@ -232,15 +233,7 @@ export function DealChooserDrawer({
     [items],
   );
   const detailItemIds = useMemo(
-    () =>
-      items
-        .filter(
-          (item) =>
-            selectedMenuItemIds.includes(item.id) &&
-            getDealScopedItemCustomizationState(item) === "UNKNOWN",
-        )
-        .map((item) => item.id.trim())
-        .filter(Boolean),
+    () => getSelectedDealItemIdsForDetails(items, selectedMenuItemIds),
     [items, selectedMenuItemIds],
   );
   const itemDetailsQuery = useDealScopedItemsDetails({

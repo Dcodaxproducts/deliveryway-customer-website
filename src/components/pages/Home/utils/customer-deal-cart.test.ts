@@ -12,6 +12,7 @@ import {
   getDealActionKind,
   getDealImage,
   getDealRequirementText,
+  getSelectedDealItemIdsForDetails,
   getDealScopedItemIdsForDetails,
   getDealScopedItemCustomizationState,
   getUnknownDealScopedItemIds,
@@ -77,6 +78,23 @@ const flexibleAllItemsDeal: CustomerDeal = {
 };
 
 describe("customer deal cart helpers", () => {
+  it("hydrates selected category items even when compact metadata looks simple", () => {
+    const compactItem = {
+      id: "category-item",
+      name: "Garlic Pasta",
+      modifierGroups: [],
+      modifiers: [],
+      modifierLinks: [],
+    };
+
+    expect(
+      getSelectedDealItemIdsForDetails(
+        [compactItem, { ...compactItem, id: "other-item" }],
+        ["category-item", "category-item", "missing-item"],
+      ),
+    ).toEqual(["category-item"]);
+  });
+
   it("fixed deal builds payload for all scoped items", () => {
     expect(buildFixedDealCartItemsInput(fixedDeal, "branch-1")).toEqual([
       { branchId: "branch-1", menuItemId: "burger-id", dealId: "deal-1", quantity: 1 },

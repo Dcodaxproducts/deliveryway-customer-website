@@ -141,6 +141,23 @@ export const getUnknownDealScopedItemIds = (deal: CustomerDeal) =>
     .map(({ id }) => id.trim())
     .filter(Boolean);
 
+export const getSelectedDealItemIdsForDetails = (
+  items: CustomerDealMenuItem[],
+  selectedMenuItemIds: string[],
+) => {
+  const availableIds = new Set(
+    items.map(({ id }) => id.trim()).filter(Boolean),
+  );
+
+  return Array.from(
+    new Set(
+      selectedMenuItemIds
+        .map((id) => id.trim())
+        .filter((id) => id && availableIds.has(id)),
+    ),
+  );
+};
+
 export const getDealScopedItemIdsForDetails = (deal: CustomerDeal) => {
   if (isFixedItemDeal(deal)) {
     return [];
