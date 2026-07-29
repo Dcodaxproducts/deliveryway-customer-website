@@ -24,6 +24,17 @@ export type SavedDeliveryAddressCandidate = {
   isDefault?: boolean;
 };
 
+export const requiresDeliveryAddressCapture = ({
+  usesSavedAddresses,
+  savedAddressCount = 0,
+  hasGuestLocation = false,
+}: {
+  usesSavedAddresses: boolean;
+  savedAddressCount?: number;
+  hasGuestLocation?: boolean;
+}) =>
+  usesSavedAddresses ? savedAddressCount === 0 : !hasGuestLocation;
+
 const isFiniteCoordinate = (value: unknown) =>
   typeof value === "number" && Number.isFinite(value);
 

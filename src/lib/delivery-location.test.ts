@@ -4,6 +4,7 @@ import {
   clearStoredDeliveryLocation,
   getStoredDeliveryLocation,
   getStoredSelectedDeliveryAddressId,
+  requiresDeliveryAddressCapture,
   resolvePreferredSavedDeliveryAddressId,
   setStoredSelectedDeliveryAddressId,
   setStoredDeliveryLocation,
@@ -99,5 +100,35 @@ describe("delivery location storage", () => {
         storedAddressId: null,
       }),
     ).toBe("home-selected-address");
+  });
+
+  it("requires address capture before activating delivery without an address", () => {
+    expect(
+      requiresDeliveryAddressCapture({
+        usesSavedAddresses: true,
+        savedAddressCount: 0,
+      }),
+    ).toBe(true);
+    expect(
+      requiresDeliveryAddressCapture({
+        usesSavedAddresses: false,
+        hasGuestLocation: false,
+      }),
+    ).toBe(true);
+  });
+
+  it("allows delivery when a saved address or guest location already exists", () => {
+    expect(
+      requiresDeliveryAddressCapture({
+        usesSavedAddresses: true,
+        savedAddressCount: 1,
+      }),
+    ).toBe(false);
+    expect(
+      requiresDeliveryAddressCapture({
+        usesSavedAddresses: false,
+        hasGuestLocation: true,
+      }),
+    ).toBe(false);
   });
 });

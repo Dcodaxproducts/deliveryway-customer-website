@@ -14,6 +14,13 @@ import { useUserLocation } from "@/hooks/useUserLocation";
 import { AddressLocationPicker } from "@/components/common/branch-selector/AddressLocationPicker";
 import { AddressModal } from "@/components/forms/AddressModal";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   branchSupportsDelivery,
   branchSupportsPickup,
   formatBranchAddress,
@@ -27,13 +34,13 @@ import {
 } from "@/lib/branch-selector";
 import {
   checkoutTypeToOrderType,
-  getStoredCheckoutTypePreference,
-  resolveCheckoutTypePreference,
+  resolveHomeCheckoutType,
   setStoredCheckoutTypePreference,
 } from "@/lib/checkout-type-preference";
 import {
   getStoredDeliveryLocation,
   getStoredSelectedDeliveryAddressId,
+  requiresDeliveryAddressCapture,
   resolvePreferredSavedDeliveryAddressId,
   setStoredSelectedDeliveryAddressId,
 } from "@/lib/delivery-location";
@@ -58,6 +65,9 @@ type BranchSearchMode = "delivery" | "pickup";
 const getOrderType = (mode: BranchSearchMode): BranchOrderType =>
   mode === "pickup" ? "TAKEAWAY" : "DELIVERY";
 
+const isGuestUser = (user: ReturnType<typeof useAuthContext>["user"]) =>
+  user?.isGuest === true || String(user?.role || "").toUpperCase() === "GUEST";
+
 export const HeroSection = ({
   title,
   description,
@@ -76,6 +86,8 @@ export const HeroSection = ({
   const [showResults, setShowResults] = useState(false);
   const [isCheckingDeliveryAddresses, setIsCheckingDeliveryAddresses] = useState(false);
   const [addressModalOpen, setAddressModalOpen] = useState(false);
+  const [deliveryLocationDialogOpen, setDeliveryLocationDialogOpen] =
+    useState(false);
   const {
     coordinates,
     locationLabel,
@@ -108,7 +120,7 @@ export const HeroSection = ({
       : selectedOrderType === "DELIVERY"
         ? t("deliveryPanelTitle")
         : "";
-  const hasAddressBookSession = Boolean(token && user);
+  const hasAddressBookSession = Boolean(token && user && !isGuestUser(user));
   const isSelectedBranchAvailable = selectedBranch ? isBranchCurrentlyAvailable(selectedBranch) : true;
   const orderPanelTitle = mode === "delivery"
     ? isSelectedBranchAvailable
@@ -175,30 +187,33 @@ export const HeroSection = ({
   }, [availableModes, mode]);
 
   useEffect(() => {
-    const preferredMode = resolveCheckoutTypePreference({
-      availableTypes: availableModes,
-      selectedOrderType,
-      storedType: getStoredCheckoutTypePreference(),
-    });
+    const preferredMode = resolveHomeCheckoutType(availableModes);
 
     if (preferredMode) {
       setMode(preferredMode);
     }
-  }, [availableModes, selectedOrderType]);
+  }, [availableModes]);
 
-  const applyModeChange = (nextMode: BranchSearchMode) => {
-    setMode(nextMode);
-    setStoredCheckoutTypePreference(nextMode);
+  const applyModeChange = useCallback(
+    (nextMode: BranchSearchMode) => {
+      setMode(nextMode);
+      setStoredCheckoutTypePreference(nextMode);
 
-    if (selectedBranch) {
-      persistSelectedBranch({
-        ...selectedBranch,
-        settings: selectedBranch.settings ?? undefined,
-      }, setUser, {
-        orderType: checkoutTypeToOrderType(nextMode),
-      });
-    }
-  };
+      if (selectedBranch) {
+        persistSelectedBranch(
+          {
+            ...selectedBranch,
+            settings: selectedBranch.settings ?? undefined,
+          },
+          setUser,
+          {
+            orderType: checkoutTypeToOrderType(nextMode),
+          },
+        );
+      }
+    },
+    [selectedBranch, setUser],
+  );
 
   const rememberSelectedDeliveryAddress = useCallback(
     (savedAddresses: Awaited<ReturnType<typeof fetchAddresses>>) => {
@@ -218,16 +233,34 @@ export const HeroSection = ({
   );
 
   useEffect(() => {
-    if (mode !== "delivery" || !hasAddressBookSession || deliveryAddressPromptedRef.current) return;
+    if (mode !== "delivery" || deliveryAddressPromptedRef.current) return;
 
     deliveryAddressPromptedRef.current = true;
+
+    if (!hasAddressBookSession) {
+      if (
+        requiresDeliveryAddressCapture({
+          usesSavedAddresses: false,
+          hasGuestLocation: Boolean(coordinates),
+        })
+      ) {
+        setDeliveryLocationDialogOpen(true);
+      }
+      return;
+    }
+
     void (async () => {
       try {
         setIsCheckingDeliveryAddresses(true);
         const savedAddresses = await fetchAddresses({ get });
         rememberSelectedDeliveryAddress(savedAddresses);
 
-        if (savedAddresses.length === 0) {
+        if (
+          requiresDeliveryAddressCapture({
+            usesSavedAddresses: true,
+            savedAddressCount: savedAddresses.length,
+          })
+        ) {
           setAddressModalOpen(true);
           toast.info(t("addDeliveryAddressFirst"));
         }
@@ -242,8 +275,16 @@ export const HeroSection = ({
     hasAddressBookSession,
     mode,
     rememberSelectedDeliveryAddress,
+    coordinates,
     t,
   ]);
+
+  useEffect(() => {
+    if (!deliveryLocationDialogOpen || !coordinates) return;
+
+    setDeliveryLocationDialogOpen(false);
+    applyModeChange("delivery");
+  }, [applyModeChange, coordinates, deliveryLocationDialogOpen]);
 
   const handleModeChange = async (nextMode: BranchSearchMode) => {
     if (nextMode !== "delivery") {
@@ -257,7 +298,12 @@ export const HeroSection = ({
         const savedAddresses = await fetchAddresses({ get });
         rememberSelectedDeliveryAddress(savedAddresses);
 
-        if (savedAddresses.length === 0) {
+        if (
+          requiresDeliveryAddressCapture({
+            usesSavedAddresses: true,
+            savedAddressCount: savedAddresses.length,
+          })
+        ) {
           setAddressModalOpen(true);
           toast.info(t("addDeliveryAddressFirst"));
           return;
@@ -268,9 +314,14 @@ export const HeroSection = ({
       } finally {
         setIsCheckingDeliveryAddresses(false);
       }
-    } else {
-      toast.info(t("selectDeliveryMapFirst"));
-      setShowResults(true);
+    } else if (
+      requiresDeliveryAddressCapture({
+        usesSavedAddresses: false,
+        hasGuestLocation: Boolean(coordinates),
+      })
+    ) {
+      setDeliveryLocationDialogOpen(true);
+      return;
     }
 
     applyModeChange(nextMode);
@@ -296,7 +347,12 @@ export const HeroSection = ({
         const savedAddresses = await fetchAddresses({ get });
         rememberSelectedDeliveryAddress(savedAddresses);
 
-        if (savedAddresses.length === 0) {
+        if (
+          requiresDeliveryAddressCapture({
+            usesSavedAddresses: true,
+            savedAddressCount: savedAddresses.length,
+          })
+        ) {
           setAddressModalOpen(true);
           toast.info(t("addDeliveryAddressFirst"));
           return;
@@ -307,9 +363,13 @@ export const HeroSection = ({
       } finally {
         setIsCheckingDeliveryAddresses(false);
       }
-    } else if (!coordinates) {
-      toast.error(t("selectDeliveryLocationFirst"));
-      setShowResults(true);
+    } else if (
+      requiresDeliveryAddressCapture({
+        usesSavedAddresses: false,
+        hasGuestLocation: Boolean(coordinates),
+      })
+    ) {
+      setDeliveryLocationDialogOpen(true);
       return;
     }
 
@@ -478,6 +538,34 @@ export const HeroSection = ({
               toast.success(t("deliveryAddressSaved"));
             }}
           />
+
+          <Dialog
+            open={deliveryLocationDialogOpen}
+            onOpenChange={setDeliveryLocationDialogOpen}
+          >
+            <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>{t("selectDeliveryLocationFirst")}</DialogTitle>
+                <DialogDescription>
+                  {t("selectDeliveryMapFirst")}
+                </DialogDescription>
+              </DialogHeader>
+              <AddressLocationPicker
+                coordinates={coordinates}
+                locationLabel={locationLabel}
+                onSelectLocation={handleSelectSearchLocation}
+                onUseCurrentLocation={requestLocation}
+                isLocating={permissionState === "requesting"}
+                mapOpen
+                showMapToggle={false}
+              />
+              {errorMessage ? (
+                <p className="rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-600">
+                  {errorMessage}
+                </p>
+              ) : null}
+            </DialogContent>
+          </Dialog>
 
           {showBranchLocationControls ? (
             <div ref={branchSearchRef} className="relative">
