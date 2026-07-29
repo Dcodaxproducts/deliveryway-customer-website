@@ -112,7 +112,7 @@ describe("customer deal cart helpers", () => {
     ]);
   });
 
-  it("flexible item deal builds payload only for selected eligible items", () => {
+  it("keeps repeated eligible selections while removing unknown items", () => {
     expect(
       buildSelectedFlexibleDealCartItemsInput(
         flexibleItemDeal,
@@ -122,6 +122,7 @@ describe("customer deal cart helpers", () => {
     ).toEqual([
       { branchId: "branch-1", menuItemId: "drink-id", dealId: "deal-2", quantity: 1 },
       { branchId: "branch-1", menuItemId: "burger-id", dealId: "deal-2", quantity: 1 },
+      { branchId: "branch-1", menuItemId: "drink-id", dealId: "deal-2", quantity: 1 },
     ]);
   });
 

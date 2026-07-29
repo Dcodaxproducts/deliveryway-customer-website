@@ -210,6 +210,23 @@ export function DealChooserDrawer({
 
   const requiredQuantity = getDealRequiredSelectionCount(deal);
   const selectedCount = selectedMenuItemIds.length;
+  const fixedItemIds = useMemo(
+    () =>
+      (deal?.scopeMenuItems ?? [])
+        .map((item) => item.id.trim())
+        .filter(Boolean),
+    [deal?.scopeMenuItems],
+  );
+  const fixedItemIdSet = useMemo(() => new Set(fixedItemIds), [fixedItemIds]);
+  const selectedQuantityByItemId = useMemo(() => {
+    const quantities = new Map<string, number>();
+
+    selectedMenuItemIds.forEach((itemId) => {
+      quantities.set(itemId, (quantities.get(itemId) ?? 0) + 1);
+    });
+
+    return quantities;
+  }, [selectedMenuItemIds]);
   const itemIds = useMemo(
     () => items.map((item) => item.id.trim()).filter(Boolean),
     [items],
@@ -253,25 +270,33 @@ export function DealChooserDrawer({
   );
   const selectedModifiersTotal = useMemo(() => {
     return selectedItems.reduce((total, item) => {
+      const quantity = selectedQuantityByItemId.get(item.id) ?? 0;
+
       return (
         total +
-        getDealChooserSelectedModifiersTotal({
-          item,
-          configuration: configurationsByItemId[item.id],
-          modifierPriceResolver: ({ modifier, modifierId }) => {
-            const forcedVariation = resolveForcedVariationForDealItem(deal, item);
+        quantity *
+          getDealChooserSelectedModifiersTotal({
+            item,
+            configuration: configurationsByItemId[item.id],
+            modifierPriceResolver: ({ modifier, modifierId }) => {
+              const forcedVariation = resolveForcedVariationForDealItem(deal, item);
 
-            return getDealModifierPrice({
-              item,
-              modifierId,
-              fallbackPriceDelta: modifier?.priceDelta,
-              forcedVariationId: forcedVariation?.variationId,
-            });
-          },
-        })
+              return getDealModifierPrice({
+                item,
+                modifierId,
+                fallbackPriceDelta: modifier?.priceDelta,
+                forcedVariationId: forcedVariation?.variationId,
+              });
+            },
+          })
       );
     }, 0);
-  }, [configurationsByItemId, deal, selectedItems]);
+  }, [
+    configurationsByItemId,
+    deal,
+    selectedItems,
+    selectedQuantityByItemId,
+  ]);
   const displayedDealTotal = Math.max(
     0,
     getDealChooserNumber(deal?.discountValue, 0) + selectedModifiersTotal,
@@ -289,8 +314,13 @@ export function DealChooserDrawer({
   const selectedCountByCategoryId = useMemo(() => {
     const counts = new Map<string, number>();
 
-    selectedItems.forEach((item) => {
-      const categoryId = item.category?.id?.trim();
+    selectedMenuItemIds.forEach((itemId) => {
+      if (fixedItemIdSet.has(itemId)) {
+        return;
+      }
+
+      const item = detailedItemsById.get(itemId);
+      const categoryId = item?.category?.id?.trim();
 
       if (categoryId) {
         counts.set(categoryId, (counts.get(categoryId) ?? 0) + 1);
@@ -298,7 +328,11 @@ export function DealChooserDrawer({
     });
 
     return counts;
-  }, [selectedItems]);
+  }, [
+    detailedItemsById,
+    fixedItemIdSet,
+    selectedMenuItemIds,
+  ]);
   const itemSections = useMemo(() => {
     if (!deal?.scopeCategoryRules?.length) {
       return [
@@ -311,7 +345,7 @@ export function DealChooserDrawer({
       ];
     }
 
-    return (deal.scopeCategoryRules ?? []).map((rule) => ({
+    const categorySections = (deal.scopeCategoryRules ?? []).map((rule) => ({
       id: rule.menuCategoryId,
       title: categoryNamesById.get(rule.menuCategoryId) || t("category"),
       helper: t("categoryRuleLimit", {
@@ -319,10 +353,34 @@ export function DealChooserDrawer({
         count: rule.itemLimit,
       }),
       items: detailedItems.filter(
-        (item) => item.category?.id === rule.menuCategoryId,
+        (item) =>
+          item.category?.id === rule.menuCategoryId &&
+          !fixedItemIdSet.has(item.id),
       ),
     }));
-  }, [categoryNamesById, deal, detailedItems, selectedCountByCategoryId, t]);
+
+    if (fixedItemIds.length < 1) {
+      return categorySections;
+    }
+
+    return [
+      {
+        id: "required-items",
+        title: t("requiredItems"),
+        helper: t("requiredItemsCount", { count: fixedItemIds.length }),
+        items: detailedItems.filter((item) => fixedItemIdSet.has(item.id)),
+      },
+      ...categorySections,
+    ];
+  }, [
+    categoryNamesById,
+    deal,
+    detailedItems,
+    fixedItemIds.length,
+    fixedItemIdSet,
+    selectedCountByCategoryId,
+    t,
+  ]);
   const canAddSelectedItems = canSubmitDealSelection({
     selectedCount,
     requiredCount: requiredQuantity,
@@ -364,6 +422,18 @@ export function DealChooserDrawer({
     setItemErrorsById(keepVisibleRecord);
     setGroupErrorsByItemId(keepVisibleRecord);
   }, [itemIds, open]);
+
+  useEffect(() => {
+    if (!open || fixedItemIds.length < 1) return;
+
+    setSelectedMenuItemIds((current) => {
+      const currentWithoutFixed = current.filter(
+        (itemId) => !fixedItemIdSet.has(itemId),
+      );
+
+      return [...fixedItemIds, ...currentWithoutFixed];
+    });
+  }, [fixedItemIds, fixedItemIdSet, open]);
 
   const updateItemConfiguration = useCallback(
     (
@@ -412,6 +482,10 @@ export function DealChooserDrawer({
 
   const toggleSelectedItem = useCallback(
     (menuItemId: string, checked: boolean) => {
+      if (!checked && fixedItemIdSet.has(menuItemId)) {
+        return;
+      }
+
       if (!checked) {
         setSelectedMenuItemIds((current) =>
           current.filter((id) => id !== menuItemId),
@@ -480,9 +554,75 @@ export function DealChooserDrawer({
       clearItemConfiguration,
       deal,
       detailedItemsById,
+      fixedItemIdSet,
       requiredQuantity,
       t,
       updateItemConfiguration,
+    ],
+  );
+
+  const changeSelectedItemQuantity = useCallback(
+    (menuItemId: string, delta: 1 | -1) => {
+      const item = detailedItemsById.get(menuItemId);
+
+      if (!item || fixedItemIdSet.has(menuItemId)) {
+        return;
+      }
+
+      const categoryRule = getDealCategoryRuleForItem(deal, item);
+
+      setSelectedMenuItemIds((current) => {
+        const currentQuantity = current.filter((id) => id === menuItemId).length;
+
+        if (delta < 0) {
+          if (currentQuantity <= 1) {
+            clearItemConfiguration(menuItemId);
+            return current.filter((id) => id !== menuItemId);
+          }
+
+          const next = [...current];
+          next.splice(next.lastIndexOf(menuItemId), 1);
+          return next;
+        }
+
+        if (current.length >= requiredQuantity) {
+          toast.error(t("maxDealItems", { count: requiredQuantity }));
+          return current;
+        }
+
+        if (categoryRule) {
+          const selectedInCategory = current.filter((id) => {
+            const selectedItem = detailedItemsById.get(id);
+            return (
+              selectedItem?.category?.id === categoryRule.menuCategoryId &&
+              !fixedItemIdSet.has(id)
+            );
+          }).length;
+
+          if (selectedInCategory >= categoryRule.itemLimit) {
+            toast.error(
+              t("maxCategoryItems", {
+                category:
+                  categoryNamesById.get(categoryRule.menuCategoryId) ||
+                  t("category"),
+                count: categoryRule.itemLimit,
+              }),
+            );
+            return current;
+          }
+        }
+
+        return [...current, menuItemId];
+      });
+    },
+    [
+      categoryNamesById,
+      clearItemConfiguration,
+      deal,
+      detailedItemsById,
+      fixedItemIdSet,
+      requiredQuantity,
+      t,
     ],
   );
 
@@ -1123,6 +1263,9 @@ export function DealChooserDrawer({
 
                 {section.items.map((item) => {
                   const checked = selectedMenuItemIds.includes(item.id);
+                  const selectedQuantity =
+                    selectedQuantityByItemId.get(item.id) ?? 0;
+                  const isFixedItem = fixedItemIdSet.has(item.id);
                   const categoryName = item.category?.name?.trim();
                   const description = item.description?.trim();
                   const configurable = isDealChooserItemConfigurable(item);
@@ -1207,14 +1350,51 @@ export function DealChooserDrawer({
                               : t("options")}
                           </Button>
                         ) : null}
-                        <Checkbox
-                          className="size-5"
-                          checked={checked}
-                          disabled={disableUnchecked}
-                          onCheckedChange={(value) =>
-                            toggleSelectedItem(item.id, value === true)
-                          }
-                        />
+                        {checked && !isFixedItem ? (
+                          <div className="flex shrink-0 items-center gap-1 rounded-full border border-gray-200 bg-white p-1">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="size-7 rounded-full"
+                              aria-label={t("decreaseItemQuantity", {
+                                item: item.name,
+                              })}
+                              onClick={() =>
+                                changeSelectedItemQuantity(item.id, -1)
+                              }
+                            >
+                              <Minus className="size-3.5" />
+                            </Button>
+                            <span className="min-w-5 text-center text-sm font-semibold">
+                              {selectedQuantity}
+                            </span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="size-7 rounded-full"
+                              aria-label={t("increaseItemQuantity", {
+                                item: item.name,
+                              })}
+                              disabled={disableUnchecked}
+                              onClick={() =>
+                                changeSelectedItemQuantity(item.id, 1)
+                              }
+                            >
+                              <Plus className="size-3.5" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <Checkbox
+                            className="size-5"
+                            checked={checked}
+                            disabled={disableUnchecked || isFixedItem}
+                            onCheckedChange={(value) =>
+                              toggleSelectedItem(item.id, value === true)
+                            }
+                          />
+                        )}
                       </div>
                       {renderItemConfiguration(item)}
                     </div>

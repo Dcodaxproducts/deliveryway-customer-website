@@ -26,6 +26,7 @@ export const useHomePromotions = (
     queryKey: queryKeys.home.promotions(restaurantId, branchId),
     queryFn: () => getHomePromotions(restaurantId ?? "", branchId),
     enabled: enabled && Boolean(restaurantId),
+    refetchInterval: 30_000,
   });
 
 export const useHomePromotionalItems = ({

@@ -411,10 +411,19 @@ const getAllergenAdditives = (item: MenuItem | null) => {
   const templateMap = getAllergenTemplateMap(item);
   const seen = new Set<string>();
 
-  const directEntries = normalizeArray<ApiRecord>(item?.allergenAdditives)
-    .map((entry: ApiRecord) => {
-      const code = String(entry?.code || entry?.value || "").trim();
-      const directLabel = String(entry?.label || entry?.name || "").trim();
+  const directEntries = normalizeArray<unknown>(item?.allergenAdditives)
+    .map((entry) => {
+      if (typeof entry === "string") {
+        return { code: "", label: entry.trim() };
+      }
+
+      if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+        return { code: "", label: "" };
+      }
+
+      const record = entry as ApiRecord;
+      const code = String(record.code || record.value || "").trim();
+      const directLabel = String(record.label || record.name || "").trim();
       const mappedLabel = code ? templateMap.get(code) : "";
 
       return {
@@ -2370,9 +2379,9 @@ export function RestaurantCard({
               ) : null}
             </div>
 
-            <p className="mb-2 text-xs text-gray-500">
-              {truncatedDesc || t("freshPremiumItem")}
-            </p>
+            {truncatedDesc ? (
+              <p className="mb-2 text-xs text-gray-500">{truncatedDesc}</p>
+            ) : null}
 
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <p className="text-sm font-semibold text-gray-900">
@@ -2410,7 +2419,8 @@ export function RestaurantCard({
             </button>
           </div>
 
-          <div className="relative order-1 h-[118px] w-[112px] shrink-0 overflow-hidden rounded-xl md:order-2 md:h-[110px] md:w-[120px]">
+          {item?.imageUrl ? (
+            <div className="relative order-1 h-[118px] w-[112px] shrink-0 overflow-hidden rounded-xl md:order-2 md:h-[110px] md:w-[120px]">
             {cardPromotionPricing.hasPromotion ? (
               <div className="absolute left-2 top-2 z-10">
                 <PromotionBadge
@@ -2422,7 +2432,7 @@ export function RestaurantCard({
             ) : null}
 
             <Image
-              src={item?.imageUrl || "/placeholder.png"}
+              src={item.imageUrl}
               alt={item?.name || "item"}
               fill
               className="object-cover"
@@ -2448,7 +2458,29 @@ export function RestaurantCard({
                 <Plus size={14} />
               )}
             </button>
-          </div>
+            </div>
+          ) : (
+            <div className="order-1 flex shrink-0 flex-col gap-2 md:order-2">
+              <FavoriteHeartButton
+                menuItemId={item?.id}
+                className="h-9 w-9"
+              />
+              <button
+                type="button"
+                onClick={(event) => {
+                  handlePlusClick(event);
+                }}
+                disabled={loading}
+                className="rounded-full bg-primary p-2 text-white shadow-sm transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {loading ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <Plus size={14} />
+                )}
+              </button>
+            </div>
+          )}
         </div>
 
         {animateCart ? (

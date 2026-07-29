@@ -312,17 +312,36 @@ export function ItemsListing({
     if (viewMode !== "onePage") return;
     if (!scrollTarget?.id) return;
 
-    const el = sectionRefs.current[String(scrollTarget.id)];
+    let frameId = 0;
+    let attempts = 0;
 
-    if (!el) return;
+    const scrollWhenReady = () => {
+      const el = sectionRefs.current[String(scrollTarget.id)];
 
-    window.requestAnimationFrame(() => {
+      if (!el) {
+        attempts += 1;
+        if (attempts < 20) {
+          frameId = window.requestAnimationFrame(scrollWhenReady);
+        }
+        return;
+      }
+
       el.scrollIntoView({
         behavior: "smooth",
         block: "start",
       });
-    });
-  }, [viewMode, scrollTarget?.id, scrollTarget?.nonce]);
+    };
+
+    frameId = window.requestAnimationFrame(scrollWhenReady);
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [
+    categoryIdsKey,
+    sections.length,
+    viewMode,
+    scrollTarget?.id,
+    scrollTarget?.nonce,
+  ]);
 
   /* ================= ONE PAGE ACTIVE CATEGORY TRACKING ================= */
 

@@ -419,10 +419,19 @@ const getAllergenAdditives = (item: MenuItem | null) => {
   const templateMap = getAllergenTemplateMap(item);
   const seen = new Set<string>();
 
-  const directEntries = normalizeArray<ApiRecord>(item?.allergenAdditives)
-    .map((entry: ApiRecord) => {
-      const code = String(entry?.code || entry?.value || "").trim();
-      const directLabel = String(entry?.label || entry?.name || "").trim();
+  const directEntries = normalizeArray<unknown>(item?.allergenAdditives)
+    .map((entry) => {
+      if (typeof entry === "string") {
+        return { code: "", label: entry.trim() };
+      }
+
+      if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+        return { code: "", label: "" };
+      }
+
+      const record = entry as ApiRecord;
+      const code = String(record.code || record.value || "").trim();
+      const directLabel = String(record.label || record.name || "").trim();
       const mappedLabel = code ? templateMap.get(code) : "";
 
       return {

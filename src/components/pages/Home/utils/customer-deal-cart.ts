@@ -424,14 +424,13 @@ export const buildSelectedFlexibleDealCartItemsInput = (
       .filter(canSelectFlexibleDealItem)
       .map((item) => [item.id.trim(), item])
   );
-  const uniqueSelectedIds = Array.from(new Set(selectedMenuItemIds));
   const resolvedBranchId = branchId.trim();
 
   if (!resolvedBranchId) {
     return [];
   }
 
-    return uniqueSelectedIds
+  return selectedMenuItemIds
     .map((menuItemId) => menuItemId.trim())
     .filter((menuItemId) => eligibleIds.has(menuItemId))
     .map((menuItemId) => {

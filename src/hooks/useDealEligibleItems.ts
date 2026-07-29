@@ -129,7 +129,7 @@ export const getDealRequiredSelectionCount = (deal: CustomerDeal | null) => {
   );
 
   if (categoryRuleQuantity > 0) {
-    return categoryRuleQuantity;
+    return categoryRuleQuantity + deal.scopeMenuItems.length;
   }
 
   const parsed = Number(deal.dealRequiredQuantity);
@@ -297,15 +297,21 @@ export const useDealEligibleItems = ({
   ]);
 
   const items = useMemo(
-    () =>
-      filterDealItemsForForcedCategoryVariations(
+    () => {
+      const eligibleItems = filterDealItemsForForcedCategoryVariations(
         deal,
         shouldFetchAllMenuItems
           ? allMenuItems
           : categoryIds.length > 0
             ? categoryItems
             : (deal?.scopeMenuItems ?? []),
-      ),
+      );
+
+      return mergeUniqueDealEligibleItems([
+        deal?.scopeMenuItems ?? [],
+        eligibleItems,
+      ]);
+    },
     [
       allMenuItems,
       categoryIds.length,

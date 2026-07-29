@@ -217,4 +217,18 @@ describe("deal eligible item helpers", () => {
       }),
     ).toBe(2);
   });
+
+  it("adds fixed items to category-group quantities for mixed deals", () => {
+    expect(
+      getDealRequiredSelectionCount({
+        ...baseDeal,
+        dealSelectionMode: "FLEXIBLE_ITEMS",
+        scopeMenuItems: [{ id: "burger", name: "Burger" }],
+        scopeCategoryRules: [
+          { menuCategoryId: "sides", itemLimit: 2 },
+          { menuCategoryId: "drinks", itemLimit: 1 },
+        ],
+      }),
+    ).toBe(4);
+  });
 });
