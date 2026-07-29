@@ -19,13 +19,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { getItemImageUrl, toNumber } from "@/components/pages/Items/utils/restaurant-card-utils";
 import { formatMoney } from "@/lib/money";
-import type { MenuItem, PromotionInfo } from "@/components/pages/Items/types";
+import type { CheckoutType, MenuItem, PromotionInfo } from "@/components/pages/Items/types";
 
 type PromotionalItemsSectionProps = {
   items: MenuItem[];
   isLoading?: boolean;
   currency?: string | null;
   compact?: boolean;
+  checkoutType?: CheckoutType;
 };
 
 const getDiscountBadge = (
@@ -76,16 +77,18 @@ function PromotionalItemCard({
   currency,
   compact = false,
   featured = false,
+  checkoutType = "delivery",
 }: {
   item: MenuItem;
   currency?: string | null;
   compact?: boolean;
   featured?: boolean;
+  checkoutType?: CheckoutType;
 }) {
   const t = useTranslations("home.promotionalItems");
   const promotion = getMenuItemPromotion(item);
-  const finalPrice = getMenuItemFinalPrice(item);
-  const basePrice = getMenuItemBasePrice(item);
+  const finalPrice = getMenuItemFinalPrice(item, checkoutType);
+  const basePrice = getMenuItemBasePrice(item, checkoutType);
   const oldPrice = finalPrice < basePrice ? basePrice : null;
   const badgeText = getDiscountBadge(promotion, t("specialOffer"));
   const image = getItemImageUrl(item);
@@ -187,6 +190,7 @@ export function PromotionalItemsSection({
   isLoading = false,
   currency,
   compact = false,
+  checkoutType = "delivery",
 }: PromotionalItemsSectionProps) {
   const t = useTranslations("home.promotionalItems");
 
@@ -230,6 +234,7 @@ export function PromotionalItemsSection({
               item={item}
               currency={currency}
               compact
+              checkoutType={checkoutType}
             />
           ))}
         </div>
@@ -268,6 +273,7 @@ export function PromotionalItemsSection({
                 item={item}
                 currency={currency}
                 featured={index === 1}
+                checkoutType={checkoutType}
               />
             </CarouselItem>
           ))}

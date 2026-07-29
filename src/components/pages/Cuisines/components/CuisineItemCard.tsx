@@ -14,6 +14,8 @@ import {
 } from "@/components/pages/Cuisines/components/cuisine-display";
 import { formatMoney } from "@/lib/money";
 import type { MenuItem } from "@/components/pages/Items/types";
+import { useAuth } from "@/hooks/useAuth";
+import { orderTypeToCheckoutType } from "@/lib/checkout-type-preference";
 
 const getItemHref = (item: MenuItem) => {
   const itemId = String(item.id ?? "");
@@ -24,8 +26,13 @@ const getItemHref = (item: MenuItem) => {
 
 export function CuisineItemCard({ item, currency }: { item: MenuItem; currency?: string | null }) {
   const t = useTranslations("cuisines");
-  const finalPrice = getMenuItemFinalPrice(item);
-  const basePrice = getMenuItemBasePrice(item);
+  const { user } = useAuth();
+  const checkoutType =
+    orderTypeToCheckoutType(
+      user?.selectedOrderType ?? user?.branch?.selectedOrderType,
+    ) ?? "delivery";
+  const finalPrice = getMenuItemFinalPrice(item, checkoutType);
+  const basePrice = getMenuItemBasePrice(item, checkoutType);
   const oldPrice = finalPrice < basePrice ? basePrice : null;
   const badge = getMenuItemPromotionBadge(item, t("badges.promotion"), currency);
 

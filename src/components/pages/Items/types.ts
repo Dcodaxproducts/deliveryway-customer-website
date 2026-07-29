@@ -188,6 +188,7 @@ export type MenuItem = {
   price?: string | number | null;
   basePrice?: string | number | null;
   pickupPrice?: string | number | null;
+  pricingMode?: "SINGLE" | "MULTIPLE" | string | null;
   imageUrl?: string | null;
   categoryId?: string | null;
   category?: Record<string, unknown> & { name?: string | null; variations?: MenuVariation[]; variationLinks?: Array<{ variation?: MenuVariation | null }>; modifierLinks?: ModifierLink[]; modifierGroups?: ModifierGroup[]; categoryModifierGroups?: ModifierGroup[] };

@@ -106,6 +106,7 @@ describe("branch selector helpers", () => {
 
   it("formatBranchDistance works for metres and kilometres", () => {
     expect(formatBranchDistance(0.42)).toBe("420 m away");
+    expect(formatBranchDistance(0.001)).toBe("< 50 m away");
     expect(formatBranchDistance(3.25)).toBe("3.3 km away");
     expect(formatBranchDistance(14.2)).toBe("14 km away");
     expect(formatBranchDistance(null)).toBe("");

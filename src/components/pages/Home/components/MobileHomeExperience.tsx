@@ -14,7 +14,7 @@ import { resolveHttpsImageUrl } from "@/lib/image-fallback";
 import type { Branding } from "@/types/branding";
 import type { HomeCategory } from "@/types/home";
 import type { CustomerDeal } from "@/types/customer-deals";
-import type { MenuItem } from "@/components/pages/Items/types";
+import type { CheckoutType, MenuItem } from "@/components/pages/Items/types";
 
 type MobileHomeExperienceProps = {
   restaurantName: string;
@@ -28,6 +28,7 @@ type MobileHomeExperienceProps = {
   promotionalItemsLoading: boolean;
   deals: CustomerDeal[];
   currency?: string | null;
+  checkoutType?: CheckoutType;
 };
 
 const getCategoryImage = (category: HomeCategory) =>
@@ -50,6 +51,7 @@ export function MobileHomeExperience({
   promotionalItemsLoading,
   deals,
   currency,
+  checkoutType = "delivery",
 }: MobileHomeExperienceProps) {
   const router = useRouter();
   const t = useTranslations("home.mobile");
@@ -222,6 +224,7 @@ export function MobileHomeExperience({
           isLoading={promotionalItemsLoading}
           currency={currency}
           compact
+          checkoutType={checkoutType}
         />
 
         {activeDeals.length === 0 &&

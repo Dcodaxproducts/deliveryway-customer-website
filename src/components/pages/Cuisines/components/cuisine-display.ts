@@ -1,7 +1,8 @@
 import { formatMoney } from "@/lib/money";
-import type { MenuItem, PromotionInfo } from "@/components/pages/Items/types";
+import type { CheckoutType, MenuItem, PromotionInfo } from "@/components/pages/Items/types";
 import type { CustomerCuisine } from "@/services/cuisines";
 import { toNumber } from "@/components/pages/Items/utils/restaurant-card-utils";
+import { getMenuItemCardPrice } from "@/components/pages/Items/utils/product-pricing";
 
 export const CUISINE_FALLBACK_IMAGE = "/categories/cuisine-fallback-v1.webp";
 
@@ -76,16 +77,27 @@ export const getMenuItemPromotion = (item: MenuItem): PromotionInfo | null => {
   return item.happyHour ?? item.promotion ?? variation?.happyHour ?? variation?.promotion ?? null;
 };
 
-export const getMenuItemBasePrice = (item: MenuItem) =>
-  firstPositiveNumber(
+export const getMenuItemBasePrice = (
+  item: MenuItem,
+  checkoutType?: CheckoutType,
+) => {
+  if (checkoutType) {
+    return getMenuItemCardPrice(item, checkoutType);
+  }
+
+  return firstPositiveNumber(
     item.happyHour?.originalPrice,
     item.promotion?.originalPrice,
     item.basePrice,
     item.price,
   ) ?? getVariationBasePrice(item) ?? 0;
+};
 
-export const getMenuItemFinalPrice = (item: MenuItem) => {
-  const basePrice = getMenuItemBasePrice(item);
+export const getMenuItemFinalPrice = (
+  item: MenuItem,
+  checkoutType?: CheckoutType,
+) => {
+  const basePrice = getMenuItemBasePrice(item, checkoutType);
   const promotion = getMenuItemPromotion(item);
   const discountValue = toNumber(promotion?.discountValue, 0);
   const backendDiscountAmount = toNumber(promotion?.discountAmount, 0);

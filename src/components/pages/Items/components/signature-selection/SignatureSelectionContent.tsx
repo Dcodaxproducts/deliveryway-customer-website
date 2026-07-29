@@ -2438,7 +2438,7 @@ export function SignatureSelectionContent({
                 {showQuantitySelector ? (
                   <div className="mt-3 flex items-center justify-between gap-3 rounded-full border border-primary/10 bg-white/85 px-2 py-1.5 shadow-sm">
                     <span className="pl-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                      Qty
+                      {tProduct("quantityShort")}
                     </span>
 
                     <div className="flex items-center rounded-full bg-gray-100 p-0.5">
@@ -2641,7 +2641,7 @@ export function SignatureSelectionContent({
                   {showQuantitySelector ? (
                     <div className="mt-3 flex items-center justify-between gap-3 rounded-full border border-primary/10 bg-white/90 px-2 py-1.5 shadow-sm">
                       <span className="pl-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                        Qty
+                        {tProduct("quantityShort")}
                       </span>
 
                       <div className="flex items-center rounded-full bg-gray-100 p-0.5">

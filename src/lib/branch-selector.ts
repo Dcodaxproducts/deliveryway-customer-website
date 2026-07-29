@@ -544,7 +544,13 @@ export function formatBranchDistance(distanceKm?: number | null) {
   }
 
   if (distanceKm < 1) {
-    return `${Math.max(1, Math.round(distanceKm * 1000))} m away`;
+    const distanceMeters = Math.round(distanceKm * 1000);
+
+    if (distanceMeters < 50) {
+      return "< 50 m away";
+    }
+
+    return `${distanceMeters} m away`;
   }
 
   return `${distanceKm.toFixed(distanceKm < 10 ? 1 : 0)} km away`;

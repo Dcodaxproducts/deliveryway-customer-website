@@ -35,6 +35,7 @@ import type { CustomerDeal } from "@/types/customer-deals";
 import type { AuthBranch } from "@/types/auth";
 import type { BranchScheduleTimings, BranchSettings } from "@/types/branches";
 import type { HomeBranch, HomeRestaurant } from "@/types/home";
+import { orderTypeToCheckoutType } from "@/lib/checkout-type-preference";
 
 const getRestaurantHeroImage = (restaurant?: HomeRestaurant | null) =>
   restaurant?.coverImage ||
@@ -208,6 +209,10 @@ const HomePage = () => {
     () => mergeHomeBranch(homeData?.branch, user?.branch),
     [homeData?.branch, user?.branch],
   );
+  const checkoutType =
+    orderTypeToCheckoutType(
+      user?.selectedOrderType ?? user?.branch?.selectedOrderType,
+    ) ?? "delivery";
   const landingPopup = homeData?.landingPopup ?? null;
   const heroTitle =
     homeData?.restaurant?.name ?? branding.restaurantName ?? t("defaultTitle");
@@ -259,6 +264,7 @@ const HomePage = () => {
         promotionalItemsLoading={promotionalItemsQuery.isLoading}
         deals={dealsQuery.deals}
         currency={currency}
+        checkoutType={checkoutType}
       />
 
       <div className="md:hidden">
@@ -300,6 +306,7 @@ const HomePage = () => {
           items={promotionalItemsQuery.data ?? []}
           isLoading={promotionalItemsQuery.isLoading}
           currency={currency}
+          checkoutType={checkoutType}
         />
 
         <CustomerDealsSection

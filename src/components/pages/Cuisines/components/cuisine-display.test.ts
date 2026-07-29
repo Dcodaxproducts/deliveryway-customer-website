@@ -81,4 +81,23 @@ describe("cuisine item price display", () => {
     expect(getMenuItemBasePrice(item)).toBe(12);
     expect(getMenuItemFinalPrice(item)).toBe(9);
   });
+
+  it("applies promotions after resolving fulfillment pricing", () => {
+    const item: MenuItem = {
+      id: "fulfillment-promo",
+      basePrice: 10,
+      pricingMode: "MULTIPLE",
+      deliveryPriceAdjustment: 2,
+      takeawayPriceAdjustment: -2,
+      promotion: {
+        discountType: "PERCENTAGE",
+        discountValue: 25,
+      },
+    };
+
+    expect(getMenuItemBasePrice(item, "delivery")).toBe(12);
+    expect(getMenuItemFinalPrice(item, "delivery")).toBe(9);
+    expect(getMenuItemBasePrice(item, "pickup")).toBe(8);
+    expect(getMenuItemFinalPrice(item, "pickup")).toBe(6);
+  });
 });

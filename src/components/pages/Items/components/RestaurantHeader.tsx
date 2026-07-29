@@ -19,6 +19,15 @@ import { formatAddress, getBranchHoursDetails, getBranchHoursSummary, getCurrent
 import type { BranchRecord } from "@/types/branch-selector";
 
 const CATEGORY_PAGE_LIMIT = 50;
+const WEEKDAY_KEYS = new Set([
+  "MONDAY",
+  "TUESDAY",
+  "WEDNESDAY",
+  "THURSDAY",
+  "FRIDAY",
+  "SATURDAY",
+  "SUNDAY",
+]);
 
 const getCategoryItemCount = (category: ItemsCategory) => {
   const count = Number(
@@ -52,6 +61,15 @@ function BranchHoursDialog({
   const deliveryDetails = getBranchHoursDetails(branchHours.regularDeliverySchedule);
   const holidayDetails = getBranchHoursDetails(branchHours.holidaySchedule);
   const showDeliveryDetails = deliveryDetails.length > 0 && !branchHours.deliveryMatchesOpening;
+  const getDayLabel = (day: { dayOfWeek?: string; dayLabel: string }) => {
+    const dayKey = String(day.dayOfWeek || "").toUpperCase();
+
+    if (WEEKDAY_KEYS.has(dayKey)) {
+      return t(`weekdays.${dayKey}`);
+    }
+
+    return day.dayLabel === "Today" ? t("today") : day.dayLabel;
+  };
 
   return (
     <OpeningHoursDialog
@@ -68,7 +86,7 @@ function BranchHoursDialog({
           icon: Store,
           rows: openingDetails.map((day) => ({
             id: `opening-${day.dayOfWeek}`,
-            title: day.dayLabel,
+            title: getDayLabel(day),
             subtitle: t("openingHours"),
             statusLabel: day.status === "closed" ? t("closed") : day.status === "open" ? t("open") : t("hoursAvailable"),
             isClosed: Boolean(day.isClosed),
@@ -87,7 +105,7 @@ function BranchHoursDialog({
               icon: Truck,
               rows: deliveryDetails.map((day) => ({
                 id: `delivery-${day.dayOfWeek}`,
-                title: day.dayLabel,
+                title: getDayLabel(day),
                 subtitle: t("deliveryHours"),
                 statusLabel: day.status === "closed" ? t("closed") : day.status === "open" ? t("open") : t("hoursAvailable"),
                 isClosed: Boolean(day.isClosed),
@@ -107,7 +125,7 @@ function BranchHoursDialog({
               icon: CalendarDays,
               rows: holidayDetails.map((day, index) => ({
                 id: `holiday-${day.date || day.dayOfWeek || index}`,
-                title: day.dayLabel,
+                title: getDayLabel(day),
                 subtitle: t("holidayHours"),
                 statusLabel: day.status === "closed" ? t("closed") : day.status === "open" ? t("open") : t("hoursAvailable"),
                 isClosed: Boolean(day.isClosed),

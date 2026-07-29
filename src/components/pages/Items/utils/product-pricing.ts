@@ -1,4 +1,4 @@
-import type { MenuItem, MenuVariation, Modifier, VariationPriceOverride } from "../types";
+import type { CheckoutType, MenuItem, MenuVariation, Modifier, VariationPriceOverride } from "../types";
 import { normalizeArray, toNumber } from "./product-normalizers";
 
 const getId = (value: unknown) => {
@@ -41,6 +41,57 @@ export const getVariationPickupPrice = (menuItem: MenuItem | null | undefined, v
   );
 };
 
+const getOrderTypeAdjustment = (
+  menuItem: MenuItem | null | undefined,
+  checkoutType: CheckoutType,
+) => {
+  if (menuItem?.pricingMode !== "MULTIPLE") return 0;
+
+  return toNumber(
+    checkoutType === "pickup"
+      ? menuItem.takeawayPriceAdjustment
+      : menuItem.deliveryPriceAdjustment,
+    0,
+  );
+};
+
+const getVariationPickupOverride = (
+  menuItem: MenuItem | null | undefined,
+  variation: MenuVariation,
+) =>
+  normalizeArray<VariationPriceOverride>(menuItem?.variationPriceOverrides).find(
+    (entry) => getId(entry.variationId ?? entry.variation?.id) === getId(variation.id),
+  )?.pickupPrice;
+
+export const getVariationFulfillmentPrice = (
+  menuItem: MenuItem | null | undefined,
+  variation: MenuVariation | null | undefined,
+  checkoutType: CheckoutType,
+) => {
+  if (!variation) {
+    return Math.max(
+      0,
+      getMenuItemDisplayPrice(menuItem) +
+        getOrderTypeAdjustment(menuItem, checkoutType),
+    );
+  }
+
+  const pickupOverride = getVariationPickupOverride(menuItem, variation);
+  const hasPickupOverride =
+    checkoutType === "pickup" &&
+    pickupOverride !== undefined &&
+    pickupOverride !== null;
+  const basePrice = hasPickupOverride
+    ? toNumber(pickupOverride, 0)
+    : getVariationDisplayPrice(menuItem, variation);
+
+  return Math.max(
+    0,
+    basePrice +
+      (hasPickupOverride ? 0 : getOrderTypeAdjustment(menuItem, checkoutType)),
+  );
+};
+
 export const getVariationDisplayText = (menuItem: MenuItem | null | undefined, variation: MenuVariation | null | undefined) => {
   if (!variation) return "";
 
@@ -52,7 +103,8 @@ export const getVariationDisplayText = (menuItem: MenuItem | null | undefined, v
 };
 
 export const getLowestPricedVariation = (
-  menuItem: MenuItem | null | undefined
+  menuItem: MenuItem | null | undefined,
+  checkoutType: CheckoutType = "delivery",
 ) => {
   const variations = [
     ...normalizeArray<MenuVariation>(menuItem?.variations),
@@ -76,8 +128,8 @@ export const getLowestPricedVariation = (
     (lowest, variation) => {
       if (!lowest) return variation;
 
-      return getVariationDisplayPrice(menuItem, variation) <
-        getVariationDisplayPrice(menuItem, lowest)
+      return getVariationFulfillmentPrice(menuItem, variation, checkoutType) <
+        getVariationFulfillmentPrice(menuItem, lowest, checkoutType)
         ? variation
         : lowest;
     },
@@ -86,13 +138,14 @@ export const getLowestPricedVariation = (
 };
 
 export const getMenuItemCardPrice = (
-  menuItem: MenuItem | null | undefined
+  menuItem: MenuItem | null | undefined,
+  checkoutType: CheckoutType = "delivery",
 ) => {
-  const lowestVariation = getLowestPricedVariation(menuItem);
+  const lowestVariation = getLowestPricedVariation(menuItem, checkoutType);
 
   return lowestVariation
-    ? getVariationDisplayPrice(menuItem, lowestVariation)
-    : getMenuItemDisplayPrice(menuItem);
+    ? getVariationFulfillmentPrice(menuItem, lowestVariation, checkoutType)
+    : getVariationFulfillmentPrice(menuItem, null, checkoutType);
 };
 
 export const getModifierOverrideAmount = (

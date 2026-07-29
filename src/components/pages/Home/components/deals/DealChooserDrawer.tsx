@@ -1129,7 +1129,7 @@ export function DealChooserDrawer({
                       {canShowQuantitySelector ? (
                         <div className="mt-2 flex items-center justify-between gap-3 rounded-full border border-primary/10 bg-white/90 px-2 py-1 shadow-sm">
                           <span className="pl-2 text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-                            Qty
+                            {t("quantityShort")}
                           </span>
 
                           <div className="flex items-center rounded-full bg-gray-100 p-0.5">

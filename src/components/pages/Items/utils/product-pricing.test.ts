@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getLowestPricedVariation, getMenuItemBasePrice, getMenuItemCardPrice, getMenuItemDisplayPrice, getModifierOverrideAmount, getVariationDisplayPrice, getVariationPickupPrice } from "./product-pricing";
+import { getLowestPricedVariation, getMenuItemBasePrice, getMenuItemCardPrice, getMenuItemDisplayPrice, getModifierOverrideAmount, getVariationDisplayPrice, getVariationFulfillmentPrice, getVariationPickupPrice } from "./product-pricing";
 
 describe("product pricing", () => {
   it("parses base price", () => {
@@ -81,5 +81,32 @@ describe("product pricing", () => {
 
     expect(getLowestPricedVariation(item)?.id).toBe("small");
     expect(getMenuItemCardPrice(item)).toBe(9);
+  });
+
+  it("switches item card pricing between delivery and pickup", () => {
+    const item = {
+      basePrice: 10,
+      pricingMode: "MULTIPLE",
+      deliveryPriceAdjustment: 2,
+      takeawayPriceAdjustment: -1,
+    };
+
+    expect(getMenuItemCardPrice(item, "delivery")).toBe(12);
+    expect(getMenuItemCardPrice(item, "pickup")).toBe(9);
+  });
+
+  it("uses an explicit pickup variation price without adding the item adjustment", () => {
+    const item = {
+      basePrice: 10,
+      pricingMode: "MULTIPLE",
+      takeawayPriceAdjustment: 4,
+      variationPriceOverrides: [
+        { variationId: "regular", price: 12, pickupPrice: 9 },
+      ],
+    };
+    const variation = { id: "regular", name: "Regular", price: 12 };
+
+    expect(getVariationFulfillmentPrice(item, variation, "delivery")).toBe(12);
+    expect(getVariationFulfillmentPrice(item, variation, "pickup")).toBe(9);
   });
 });
