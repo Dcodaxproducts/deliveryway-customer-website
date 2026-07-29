@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { BadgePercent, Clock3, MapPinned, ShoppingBag, Store, Truck } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
@@ -31,6 +31,12 @@ import {
   resolveCheckoutTypePreference,
   setStoredCheckoutTypePreference,
 } from "@/lib/checkout-type-preference";
+import {
+  getStoredDeliveryLocation,
+  getStoredSelectedDeliveryAddressId,
+  resolvePreferredSavedDeliveryAddressId,
+  setStoredSelectedDeliveryAddressId,
+} from "@/lib/delivery-location";
 import { isRemoteHttpsImageUrl, resolveHttpsImageUrl } from "@/lib/image-fallback";
 import { fetchAddresses } from "@/services/profile";
 import type { AuthBranch } from "@/types/auth";
@@ -61,6 +67,7 @@ export const HeroSection = ({
   const t = useTranslations("home.hero");
   const router = useRouter();
   const { user, setUser, token } = useAuthContext();
+  const userId = user?.id ?? null;
   const { get } = useCheckout(token);
   const resolvedHeroImage = resolveHttpsImageUrl(heroImage, "/hero.png");
   const branchSearchRef = useRef<HTMLDivElement | null>(null);
@@ -193,6 +200,23 @@ export const HeroSection = ({
     }
   };
 
+  const rememberSelectedDeliveryAddress = useCallback(
+    (savedAddresses: Awaited<ReturnType<typeof fetchAddresses>>) => {
+      if (!userId) return;
+
+      const addressId = resolvePreferredSavedDeliveryAddressId({
+        addresses: savedAddresses,
+        location: getStoredDeliveryLocation(),
+        storedAddressId: getStoredSelectedDeliveryAddressId(userId),
+      });
+
+      if (addressId) {
+        setStoredSelectedDeliveryAddressId(userId, addressId);
+      }
+    },
+    [userId],
+  );
+
   useEffect(() => {
     if (mode !== "delivery" || !hasAddressBookSession || deliveryAddressPromptedRef.current) return;
 
@@ -201,6 +225,7 @@ export const HeroSection = ({
       try {
         setIsCheckingDeliveryAddresses(true);
         const savedAddresses = await fetchAddresses({ get });
+        rememberSelectedDeliveryAddress(savedAddresses);
 
         if (savedAddresses.length === 0) {
           setAddressModalOpen(true);
@@ -212,7 +237,13 @@ export const HeroSection = ({
         setIsCheckingDeliveryAddresses(false);
       }
     })();
-  }, [get, hasAddressBookSession, mode, t]);
+  }, [
+    get,
+    hasAddressBookSession,
+    mode,
+    rememberSelectedDeliveryAddress,
+    t,
+  ]);
 
   const handleModeChange = async (nextMode: BranchSearchMode) => {
     if (nextMode !== "delivery") {
@@ -224,6 +255,7 @@ export const HeroSection = ({
       try {
         setIsCheckingDeliveryAddresses(true);
         const savedAddresses = await fetchAddresses({ get });
+        rememberSelectedDeliveryAddress(savedAddresses);
 
         if (savedAddresses.length === 0) {
           setAddressModalOpen(true);
@@ -262,6 +294,7 @@ export const HeroSection = ({
       try {
         setIsCheckingDeliveryAddresses(true);
         const savedAddresses = await fetchAddresses({ get });
+        rememberSelectedDeliveryAddress(savedAddresses);
 
         if (savedAddresses.length === 0) {
           setAddressModalOpen(true);
@@ -433,7 +466,13 @@ export const HeroSection = ({
           <AddressModal
             open={addressModalOpen}
             onOpenChange={setAddressModalOpen}
-            onSuccess={() => {
+            onSuccess={(address) => {
+              if (userId && address?.id) {
+                setStoredSelectedDeliveryAddressId(
+                  userId,
+                  String(address.id),
+                );
+              }
               setAddressModalOpen(false);
               applyModeChange("delivery");
               toast.success(t("deliveryAddressSaved"));

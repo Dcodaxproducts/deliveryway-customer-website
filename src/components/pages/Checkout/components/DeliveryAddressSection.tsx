@@ -10,6 +10,12 @@ import { useHorizontalDragScroll } from "@/components/pages/Checkout/hooks/use-h
 import { useCheckout } from "@/hooks/useCheckout";
 import { useAuth } from "@/hooks/useAuth";
 import { formatDisplayAddress } from "@/lib/address-display";
+import {
+  getStoredDeliveryLocation,
+  getStoredSelectedDeliveryAddressId,
+  resolvePreferredSavedDeliveryAddressId,
+  setStoredSelectedDeliveryAddressId,
+} from "@/lib/delivery-location";
 import { isReliableGeolocationAccuracy } from "@/lib/geolocation";
 import { parseReverseGeocodeAddress, reverseGeocode } from "@/services/geocoding";
 import { toast } from "sonner";
@@ -41,7 +47,8 @@ export function DeliveryAddressSection({
 }: Props) {
   const t = useTranslations("checkout");
   const addressT = useTranslations("addresses");
-  const { token } = useAuth();
+  const { token, user } = useAuth();
+  const userId = user?.id ?? null;
   const { get } = useCheckout(token);
 
   const [addresses, setAddresses] = useState<AddressRecord[]>([]);
@@ -86,12 +93,17 @@ export function DeliveryAddressSection({
 
       setAddresses(addressList);
       if (!selectedAddress) {
-        const preferredAddress =
-          addressList.find((item) => item.isDefault) ??
-          (addressList.length === 1 ? addressList[0] : null);
+        const preferredAddressId = userId
+          ? resolvePreferredSavedDeliveryAddressId({
+              addresses: addressList,
+              location: getStoredDeliveryLocation(),
+              storedAddressId: getStoredSelectedDeliveryAddressId(userId),
+            })
+          : null;
 
-        if (preferredAddress) {
-          setSelectedAddress(preferredAddress.id);
+        if (preferredAddressId && userId) {
+          setSelectedAddress(preferredAddressId);
+          setStoredSelectedDeliveryAddressId(userId, preferredAddressId);
         }
       }
 
@@ -101,7 +113,7 @@ export function DeliveryAddressSection({
     } finally {
       setLoading(false);
     }
-  }, [get, selectedAddress, setSelectedAddress]);
+  }, [get, selectedAddress, setSelectedAddress, userId]);
 
   useEffect(() => {
     if (isGuest) return;
@@ -202,6 +214,9 @@ export function DeliveryAddressSection({
 
     if (newAddress) {
       setSelectedAddress(newAddress.id);
+      if (userId) {
+        setStoredSelectedDeliveryAddressId(userId, newAddress.id);
+      }
     }
   };
 
@@ -331,7 +346,12 @@ export function DeliveryAddressSection({
                 key={addr.id}
                 type="button"
                 aria-pressed={isSelected}
-                onClick={() => setSelectedAddress(addr.id)}
+                onClick={() => {
+                  setSelectedAddress(addr.id);
+                  if (userId) {
+                    setStoredSelectedDeliveryAddressId(userId, addr.id);
+                  }
+                }}
                 className={`group flex w-full items-center gap-4 rounded-[20px] border p-5 text-left transition-all duration-200 sm:p-6 ${
                   isSelected
                     ? "border-primary/35 bg-primary/[0.035] shadow-[0_16px_40px_rgba(211,18,26,0.10)]"
@@ -411,7 +431,12 @@ export function DeliveryAddressSection({
                 type="button"
                 role="option"
                 aria-selected={isSelected}
-                onClick={() => setSelectedAddress(addr.id)}
+                onClick={() => {
+                  setSelectedAddress(addr.id);
+                  if (userId) {
+                    setStoredSelectedDeliveryAddressId(userId, addr.id);
+                  }
+                }}
                 className={`min-h-[124px] w-full snap-start rounded-[18px] border p-6 text-left shadow-[0_20px_48px_rgba(15,23,42,0.13)] transition-all duration-200
                   ${
                     isSelected

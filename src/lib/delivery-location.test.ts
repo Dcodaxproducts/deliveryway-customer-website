@@ -3,6 +3,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   clearStoredDeliveryLocation,
   getStoredDeliveryLocation,
+  getStoredSelectedDeliveryAddressId,
+  resolvePreferredSavedDeliveryAddressId,
+  setStoredSelectedDeliveryAddressId,
   setStoredDeliveryLocation,
 } from "@/lib/delivery-location";
 
@@ -63,5 +66,38 @@ describe("delivery location storage", () => {
 
     clearStoredDeliveryLocation();
     expect(getStoredDeliveryLocation()).toBeNull();
+  });
+
+  it("keeps a selected saved address scoped to the authenticated customer", () => {
+    setStoredSelectedDeliveryAddressId("customer-1", "address-2");
+
+    expect(getStoredSelectedDeliveryAddressId("customer-1")).toBe("address-2");
+    expect(getStoredSelectedDeliveryAddressId("customer-2")).toBeNull();
+  });
+
+  it("resolves the saved address selected by location before checkout", () => {
+    expect(
+      resolvePreferredSavedDeliveryAddressId({
+        addresses: [
+          {
+            id: "default-address",
+            lat: "52.5000",
+            lng: "13.3000",
+            isDefault: true,
+          },
+          {
+            id: "home-selected-address",
+            lat: "52.532",
+            lng: "13.384",
+          },
+        ],
+        location: {
+          lat: 52.532,
+          lng: 13.384,
+          label: "Hauptstraße 12, 10115 Berlin",
+        },
+        storedAddressId: null,
+      }),
+    ).toBe("home-selected-address");
   });
 });
