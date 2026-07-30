@@ -28,6 +28,7 @@ vi.mock("@/services/items", () => ({
 }));
 
 import { useDealScopedItemsDetails } from "./useDealScopedItemsDetails";
+import { getModifierPriceForVariation } from "@/components/pages/Items/utils/modifier-pricing";
 
 describe("useDealScopedItemsDetails", () => {
   beforeEach(() => {
@@ -46,6 +47,17 @@ describe("useDealScopedItemsDetails", () => {
           id: "pizza-category",
           name: "Pizza",
         },
+        modifierPriceOverrides: [
+          {
+            modifierId: "extra-cheese",
+            priceDelta: "0",
+            modifier: {
+              id: "extra-cheese",
+              name: "Extra cheese",
+              priceDelta: "1.55",
+            },
+          },
+        ],
       },
     });
 
@@ -62,14 +74,30 @@ describe("useDealScopedItemsDetails", () => {
       | undefined;
 
     expect(queryOptions).toBeDefined();
-    await expect(queryOptions?.queryFn()).resolves.toEqual({
+    const details = await queryOptions?.queryFn();
+
+    expect(details).toEqual({
       "pizza-id": expect.objectContaining({
         category: {
           id: "pizza-category",
           name: "Pizza",
         },
+        modifierPriceOverrides: [
+          expect.objectContaining({
+            modifierId: "extra-cheese",
+            priceDelta: "0",
+          }),
+        ],
       }),
     });
+    const item = (details as Record<string, unknown>)["pizza-id"];
+
+    expect(
+      getModifierPriceForVariation({
+        item: item as Parameters<typeof getModifierPriceForVariation>[0]["item"],
+        modifierId: "extra-cheese",
+      }),
+    ).toBe(1.55);
 
     expect(mocks.fetchMenuItemDetailsByIds).toHaveBeenCalledWith({
       itemIds: ["pizza-id"],

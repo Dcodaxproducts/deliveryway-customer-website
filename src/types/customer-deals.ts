@@ -10,6 +10,11 @@ export type CustomerDealMenuItemCategory = {
   id?: string;
   name?: string;
   imageUrl?: string | null;
+  variations?: CustomerDealMenuItemOption[];
+  variationLinks?: CustomerDealMenuItemOption[];
+  modifierGroups?: CustomerDealMenuItemOption[];
+  categoryModifierGroups?: CustomerDealMenuItemOption[];
+  modifierLinks?: CustomerDealMenuItemOption[];
 };
 
 export type CustomerDealMenuItemOption = Record<string, unknown>;
@@ -24,7 +29,10 @@ export type CustomerDealMenuItem = {
   discountedBasePrice?: string | number | null;
   category?: CustomerDealMenuItemCategory | null;
   variations?: CustomerDealMenuItemOption[];
+  variationPriceOverrides?: CustomerDealMenuItemOption[];
+  modifierPriceOverrides?: CustomerDealMenuItemOption[];
   modifierGroups?: CustomerDealMenuItemOption[];
+  categoryModifierGroups?: CustomerDealMenuItemOption[];
   modifiers?: CustomerDealMenuItemOption[];
   modifierLinks?: CustomerDealMenuItemOption[];
   supportsSplitPizza?: boolean | null;

@@ -2736,7 +2736,6 @@ function ProductDetailsPageContent() {
                   </span>
                 </>
               ) : null}
-              <span>• 20–25 mins delivery</span>
             </div>
           </div>
 
