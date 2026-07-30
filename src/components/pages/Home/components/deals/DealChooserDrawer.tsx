@@ -239,6 +239,8 @@ export function DealChooserDrawer({
   const itemDetailsQuery = useDealScopedItemsDetails({
     itemIds: detailItemIds,
     items,
+    restaurantId: deal?.restaurant?.id,
+    branchId,
     enabled: open && detailItemIds.length > 0,
   });
 

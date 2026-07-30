@@ -53,14 +53,20 @@ const toDealScopedMenuItem = (item: MenuItem): CustomerDealMenuItem | null => {
 export const useDealScopedItemsDetails = ({
   itemIds,
   items = [],
+  restaurantId: scopedRestaurantId,
+  branchId: scopedBranchId,
   enabled,
 }: {
   itemIds: string[];
   items?: CustomerDealMenuItem[];
+  restaurantId?: string | number | null;
+  branchId?: string | number | null;
   enabled: boolean;
 }) => {
-  const { token, user, restaurantId } = useAuth();
-  const branchId = user?.branchId || user?.branch?.id || null;
+  const { token, user, restaurantId: authRestaurantId } = useAuth();
+  const restaurantId = scopedRestaurantId || authRestaurantId || null;
+  const branchId =
+    scopedBranchId || user?.branchId || user?.branch?.id || null;
   const uniqueItemIds = useMemo(
     () => Array.from(new Set(itemIds.map((id) => id.trim()).filter(Boolean))),
     [itemIds]
@@ -84,7 +90,12 @@ export const useDealScopedItemsDetails = ({
   );
 
   const query = useQuery({
-    queryKey: queryKeys.items.dealScopedDetails(uniqueItemIds, itemSearchTermsById, branchId),
+    queryKey: queryKeys.items.dealScopedDetails(
+      uniqueItemIds,
+      itemSearchTermsById,
+      restaurantId,
+      branchId,
+    ),
     enabled: enabled && uniqueItemIds.length > 0,
     queryFn: async () => {
       const details = await fetchMenuItemDetailsByIds({

@@ -25,8 +25,17 @@ export const queryKeys = {
     dealScopedDetails: (
       itemIds: string[],
       itemSearchTermsById?: Record<string, string[]>,
+      restaurantId?: string | number | null,
       branchId?: string | number | null
-    ) => ["items", "deal-scoped-details", itemIds, itemSearchTermsById ?? {}, branchId ?? ""] as const,
+    ) =>
+      [
+        "items",
+        "deal-scoped-details",
+        itemIds,
+        itemSearchTermsById ?? {},
+        restaurantId ?? "",
+        branchId ?? "",
+      ] as const,
   },
   cart: {
     current: ["cart", "current"] as const,

@@ -526,6 +526,8 @@ export const CustomerDealsSection = ({
   const scopedDetailsQuery = useDealScopedItemsDetails({
     itemIds: pendingDetailItemIds,
     items: pendingDeal?.scopeMenuItems ?? [],
+    restaurantId: pendingDeal?.restaurant?.id,
+    branchId,
     enabled: Boolean(pendingDeal && pendingDetailItemIds.length > 0),
   });
 
