@@ -14,6 +14,7 @@ import {
   CalendarDays,
   Coffee,
   Heart,
+  ImageOff,
   Users,
 } from "lucide-react";
 import Link from "next/link";
@@ -125,6 +126,53 @@ type SearchResponse = {
 const isSearchResponse = (value: unknown): value is SearchResponse =>
   typeof value === "object" && value !== null && "success" in value;
 
+const normalizeSearchImageUrl = (src?: string | null) => {
+  const trimmed = src?.trim();
+  if (!trimmed) return null;
+  if (trimmed.startsWith("/")) return trimmed;
+
+  try {
+    const parsed = new URL(trimmed);
+    return parsed.protocol === "http:" || parsed.protocol === "https:"
+      ? trimmed
+      : null;
+  } catch {
+    return null;
+  }
+};
+
+const SearchResultImage = ({
+  imageUrl,
+  name,
+}: {
+  imageUrl?: string | null;
+  name: string;
+}) => {
+  const normalizedImageUrl = normalizeSearchImageUrl(imageUrl);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setFailed(false);
+  }, [normalizedImageUrl]);
+
+  return (
+    <div className="relative flex h-[72px] w-[72px] shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-gray-100 bg-gray-50 text-gray-300">
+      {normalizedImageUrl && !failed ? (
+        <Image
+          src={normalizedImageUrl}
+          alt={name}
+          fill
+          className="object-cover"
+          unoptimized
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        <ImageOff size={24} strokeWidth={1.6} aria-hidden="true" />
+      )}
+    </div>
+  );
+};
+
 const NAV_LINKS = [
   { href: "/", labelKey: "home" },
   { href: "/items", labelKey: "items" },
@@ -214,25 +262,6 @@ export const Navbar = () => {
 
   const isNavLinkDisabled = (href: string) =>
     href === "/reservetable" && !tableReservationsEnabled;
-
-  const getSafeImageSrc = (src?: string | null) => {
-    if (!src || typeof src !== "string") return "/placeholder-food.png";
-
-    const trimmed = src.trim();
-    if (!trimmed) return "/placeholder-food.png";
-
-    if (trimmed.startsWith("/")) return trimmed;
-
-    try {
-      const parsed = new URL(trimmed);
-      if (parsed.protocol === "http:" || parsed.protocol === "https:") {
-        return trimmed;
-      }
-      return "/placeholder-food.png";
-    } catch {
-      return "/placeholder-food.png";
-    }
-  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -833,15 +862,10 @@ export const Navbar = () => {
                       onClick={() => handleSearchItemClick(item)}
                       className="flex w-full items-start gap-4 px-5 py-4 text-left transition hover:bg-orange-50/40"
                     >
-                      <div className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-2xl bg-gray-100">
-                        <Image
-                          src={getSafeImageSrc(item.imageUrl)}
-                          alt={item.name}
-                          fill
-                          className="object-cover"
-                          unoptimized
-                        />
-                      </div>
+                      <SearchResultImage
+                        imageUrl={item.imageUrl}
+                        name={item.name}
+                      />
 
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-4">

@@ -650,6 +650,13 @@
     "loading": "Wird geladen..."
   },
   "items": {
+    "reviews": {
+      "title": "Kundenerfahrungen",
+      "empty": "Noch keine Bewertungen.",
+      "verifiedCount": "{count, plural, one {# verifizierte Bewertung} other {# verifizierte Bewertungen}}",
+      "verifiedUser": "Verifizierter Nutzer",
+      "ordered": "Bestellt: {items}"
+    },
     "common": {
       "fullMenu": "Vollständiges Menü",
       "fullMenuLower": "Vollständiges Menü",

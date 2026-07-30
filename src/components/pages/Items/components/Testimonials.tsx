@@ -1,6 +1,7 @@
 "use client";
 
 import { Star } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { CustomerReview } from "@/services/public-content";
 
 type TestimonialItem = {
@@ -16,27 +17,6 @@ type TestimonialsProps = {
   menuItemId?: string | null;
   averageRating?: number | null;
 };
-
-const fallbackTestimonials: TestimonialItem[] = [
-  {
-    name: "Eleanor M.",
-    initials: "EM",
-    text: `"The smoke profile is incredible. It’s subtle yet omnipresent. Best Wagyu I’ve had outside of Kyoto."`,
-    rating: 5,
-  },
-  {
-    name: "James R.",
-    initials: "JR",
-    text: `"That white-oak fire finish gives it a crust that is second to none. Absolutely worth the price for a special occasion."`,
-    rating: 5,
-  },
-  {
-    name: "Sarah W.",
-    initials: "SW",
-    text: `"Service was impeccable and the steak arrived exactly as requested. The pairing recommendation was spot on."`,
-    rating: 4,
-  },
-];
 
 const getInitials = (name: string) => {
   const initials = name
@@ -84,22 +64,46 @@ const StarRow = ({ rating }: { rating: number }) => {
   );
 };
 
-const Testimonials = ({ reviews = [], menuItemId = null, averageRating = null }: TestimonialsProps) => {
-  const dynamicTestimonials = reviews.slice(0, 3).map((review) => {
+export const buildCustomerTestimonials = (
+  reviews: CustomerReview[],
+  menuItemId?: string | null,
+): TestimonialItem[] =>
+  reviews.slice(0, 3).map((review) => {
     const name = buildCustomerName(review);
     const comment = review.comment?.trim();
 
     return {
       name,
       initials: getInitials(name),
-      text: comment ? `"${comment}"` : "Rated this order after enjoying this item.",
+      text: comment ? `"${comment}"` : "",
       rating: review.rating,
       orderedItems: buildOrderedItems(review, menuItemId),
     };
   });
-  const testimonials = dynamicTestimonials.length ? dynamicTestimonials : fallbackTestimonials;
-  const displayAverage = averageRating ?? 4.9;
-  const reviewCount = reviews.length || 124;
+
+const Testimonials = ({ reviews = [], menuItemId = null, averageRating = null }: TestimonialsProps) => {
+  const t = useTranslations("items.reviews");
+  const testimonials = buildCustomerTestimonials(reviews, menuItemId);
+  const displayAverage =
+    averageRating ??
+    (reviews.length
+      ? reviews.reduce((total, review) => total + review.rating, 0) /
+        reviews.length
+      : null);
+  const reviewCount = reviews.length;
+
+  if (!reviewCount || displayAverage === null) {
+    return (
+      <section className="px-6 py-12 md:px-12 lg:px-20">
+        <div className="mx-auto max-w-[1200px] rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-6 py-10 text-center">
+          <h2 className="text-[28px] font-semibold text-gray-900">
+            {t("title")}
+          </h2>
+          <p className="mt-2 text-sm text-gray-500">{t("empty")}</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-12 px-6 md:px-12 lg:px-20">
@@ -107,7 +111,7 @@ const Testimonials = ({ reviews = [], menuItemId = null, averageRating = null }:
 
       <div className="max-w-[1200px] mx-auto mb-10">
         <h2 className="text-[28px] font-semibold text-gray-900">
-          User Experiences
+          {t("title")}
         </h2>
 
         <div className="flex items-center gap-3 mt-2">
@@ -126,7 +130,7 @@ const Testimonials = ({ reviews = [], menuItemId = null, averageRating = null }:
               {displayAverage.toFixed(1)} / 5.0
             </span>
             <span className="ml-1 text-gray-400">
-              ({reviewCount} verified {reviewCount === 1 ? "review" : "reviews"})
+              ({t("verifiedCount", { count: reviewCount })})
             </span>
           </p>
         </div>
@@ -142,13 +146,15 @@ const Testimonials = ({ reviews = [], menuItemId = null, averageRating = null }:
             <StarRow rating={item.rating} />
 
             {/* Text */}
-            <p className="text-[15px] text-gray-700 leading-relaxed mb-6">
-              {item.text}
-            </p>
+            {item.text ? (
+              <p className="text-[15px] text-gray-700 leading-relaxed mb-6">
+                {item.text}
+              </p>
+            ) : null}
 
             {item.orderedItems ? (
               <p className="mb-4 text-xs text-gray-400">
-                Ordered: {item.orderedItems}
+                {t("ordered", { items: item.orderedItems })}
               </p>
             ) : null}
 
@@ -164,7 +170,7 @@ const Testimonials = ({ reviews = [], menuItemId = null, averageRating = null }:
                   {item.name}
                 </p>
                 <p className="text-[11px] tracking-wide uppercase text-gray-400">
-                  Verified User
+                  {t("verifiedUser")}
                 </p>
               </div>
 

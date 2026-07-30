@@ -32,7 +32,15 @@ import {
   resolveHomeBranchId,
   resolveHomeRestaurantId,
 } from "@/lib/home";
-import { Download, Eye, Loader2, Minus, Plus, X } from "lucide-react";
+import {
+  Download,
+  Eye,
+  ImageOff,
+  Loader2,
+  Minus,
+  Plus,
+  X,
+} from "lucide-react";
 import { AsyncSelect } from "@/components/ui/AsyncSelect";
 import { FavoriteHeartButton } from "@/components/common/favorites/FavoriteHeartButton";
 import type {
@@ -967,9 +975,14 @@ function ProductDetailsPageContent() {
   const [instructions, setInstructions] = useState("");
 
   const [infoOpen, setInfoOpen] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
 
   const [selectedVariation, setSelectedVariation] =
     useState<MenuVariation | null>(null);
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [item?.imageUrl]);
 
   const [selectedModifiers, setSelectedModifiers] =
     useState<ModifierSelectionMap>({});
@@ -2662,7 +2675,6 @@ function ProductDetailsPageContent() {
             We could not find the requested menu item.
           </p>
         </div>
-        <TestimonialsSection />
       </>
     );
   }
@@ -2671,15 +2683,22 @@ function ProductDetailsPageContent() {
     <>
       <div className="mx-auto grid grid-cols-1 gap-8 px-4 py-6 sm:px-6 md:grid-cols-2 md:px-10 md:py-10 lg:gap-12 lg:px-40">
         <div className="flex flex-col gap-6">
-          <div className="relative overflow-hidden rounded-2xl">
-            <Image
-              src={item?.imageUrl || "/placeholder.png"}
-              alt={item?.name || t("productImageAlt")}
-              width={600}
-              height={600}
-              className="h-[250px] w-full object-cover sm:h-[350px] md:h-auto"
-              unoptimized
-            />
+          <div className="relative overflow-hidden rounded-2xl bg-gray-50">
+            {item.imageUrl?.trim() && !imageFailed ? (
+              <Image
+                src={item.imageUrl}
+                alt={item.name || t("productImageAlt")}
+                width={600}
+                height={600}
+                className="h-[250px] w-full object-cover sm:h-[350px] md:h-auto"
+                unoptimized
+                onError={() => setImageFailed(true)}
+              />
+            ) : (
+              <div className="flex h-[250px] w-full items-center justify-center border border-dashed border-gray-200 text-gray-300 sm:h-[350px]">
+                <ImageOff size={42} strokeWidth={1.5} aria-hidden="true" />
+              </div>
+            )}
 
             <FavoriteHeartButton
               menuItemId={item?.id}

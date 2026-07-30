@@ -2264,6 +2264,36 @@ export function RestaurantCard({
     }
   }
 
+  const loadDetailedItem = async () => {
+    if (hasLoadedDetails || !restaurantId || !item.id) return item;
+
+    setLoadingDetails(true);
+
+    try {
+      const { response, item: detailedItem } = await fetchMenuItemDetails({
+        restaurantId: String(restaurantId),
+        branchId,
+        identifier: String(item.id),
+      });
+
+      if (isApiErrorResponse(response) || !detailedItem) {
+        toast.error(
+          getApiErrorMessage(response, tErrors("somethingWentWrong")),
+        );
+        return null;
+      }
+
+      setItem(detailedItem);
+      setHasLoadedDetails(true);
+      return detailedItem;
+    } catch {
+      toast.error(tErrors("somethingWentWrong"));
+      return null;
+    } finally {
+      setLoadingDetails(false);
+    }
+  };
+
   const handlePlusClick = async (event?: React.MouseEvent<HTMLElement>) => {
     event?.stopPropagation();
 
@@ -2287,31 +2317,10 @@ export function RestaurantCard({
     let itemHasOptions = hasOptions;
 
     if (!hasLoadedDetails && restaurantId && item.id) {
-      setLoadingDetails(true);
+      const detailedItem = await loadDetailedItem();
+      if (!detailedItem) return;
 
-      try {
-        const { response, item: detailedItem } = await fetchMenuItemDetails({
-          restaurantId: String(restaurantId),
-          branchId,
-          identifier: String(item.id),
-        });
-
-        if (isApiErrorResponse(response) || !detailedItem) {
-          toast.error(
-            getApiErrorMessage(response, tErrors("somethingWentWrong")),
-          );
-          return;
-        }
-
-        setItem(detailedItem);
-        setHasLoadedDetails(true);
-        itemHasOptions = hasMenuItemCustomization(detailedItem);
-      } catch {
-        toast.error(tErrors("somethingWentWrong"));
-        return;
-      } finally {
-        setLoadingDetails(false);
-      }
+      itemHasOptions = hasMenuItemCustomization(detailedItem);
     }
 
     if (!itemHasOptions) {
@@ -2325,6 +2334,17 @@ export function RestaurantCard({
     }
 
     setOpen(true);
+  };
+
+  const handleInfoClick = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+
+    if (loadingDetails) return;
+
+    const detailedItem = await loadDetailedItem();
+    if (!detailedItem) return;
+
+    setInfoOpen(true);
   };
 
   const handleCardKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -2375,10 +2395,8 @@ export function RestaurantCard({
               {hasInfoBoxContent ? (
                 <button
                   type="button"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setInfoOpen(true);
-                  }}
+                  onClick={handleInfoClick}
+                  disabled={loadingDetails}
                   className="rounded-full border border-gray-200 bg-gray-50 p-1.5 text-gray-500 transition hover:text-primary"
                   title={t("viewIngredients")}
                 >

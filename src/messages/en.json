@@ -650,6 +650,13 @@
     "loading": "Loading..."
   },
   "items": {
+    "reviews": {
+      "title": "User Experiences",
+      "empty": "No reviews yet.",
+      "verifiedCount": "{count, plural, one {# verified review} other {# verified reviews}}",
+      "verifiedUser": "Verified User",
+      "ordered": "Ordered: {items}"
+    },
     "common": {
       "fullMenu": "Full Menu",
       "fullMenuLower": "Full menu",
