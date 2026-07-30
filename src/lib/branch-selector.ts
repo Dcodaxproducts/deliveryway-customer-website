@@ -547,13 +547,13 @@ export function formatBranchDistance(distanceKm?: number | null) {
     const distanceMeters = Math.round(distanceKm * 1000);
 
     if (distanceMeters < 50) {
-      return "< 50 m away";
+      return "< 50 m";
     }
 
-    return `${distanceMeters} m away`;
+    return `${distanceMeters} m`;
   }
 
-  return `${distanceKm.toFixed(distanceKm < 10 ? 1 : 0)} km away`;
+  return `${distanceKm.toFixed(distanceKm < 10 ? 1 : 0)} km`;
 }
 
 export function isBranchCurrentlyAvailable(

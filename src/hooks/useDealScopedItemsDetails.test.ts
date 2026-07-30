@@ -38,6 +38,17 @@ describe("useDealScopedItemsDetails", () => {
   });
 
   it("uses the storefront deal context when loading selectable item options", async () => {
+    mocks.fetchMenuItemDetailsByIds.mockResolvedValue({
+      "pizza-id": {
+        id: "pizza-id",
+        name: "Pizza Tuna",
+        category: {
+          id: "pizza-category",
+          name: "Pizza",
+        },
+      },
+    });
+
     useDealScopedItemsDetails({
       itemIds: ["pizza-id"],
       items: [{ id: "pizza-id", name: "Pizza Tuna" }],
@@ -51,7 +62,14 @@ describe("useDealScopedItemsDetails", () => {
       | undefined;
 
     expect(queryOptions).toBeDefined();
-    await queryOptions?.queryFn();
+    await expect(queryOptions?.queryFn()).resolves.toEqual({
+      "pizza-id": expect.objectContaining({
+        category: {
+          id: "pizza-category",
+          name: "Pizza",
+        },
+      }),
+    });
 
     expect(mocks.fetchMenuItemDetailsByIds).toHaveBeenCalledWith({
       itemIds: ["pizza-id"],

@@ -505,7 +505,12 @@ export const HeroSection = ({
                     {selectedBranch.name}
                   </p>
                   <p className="mt-1 text-xs text-[#6B7280]">
-                    {[formatBranchDistance(selectedBranch.distanceKm), selectedOrderLabel]
+                    {[
+                      formatBranchDistance(selectedBranch.distanceKm)
+                        ? `${formatBranchDistance(selectedBranch.distanceKm)} ${t("away")}`
+                        : "",
+                      selectedOrderLabel,
+                    ]
                       .filter(Boolean)
                       .join(" - ") || t("selectedBranch")}
                   </p>
@@ -628,7 +633,15 @@ export const HeroSection = ({
                               {formatBranchAddress(branch)}
                             </p>
                             <p className="mt-2 text-xs font-semibold text-primary">
-                              {[formatBranchDistance(branch.distanceKm), available ? t("available") : branch.availability?.reason || t("availabilityLimited")]
+                              {[
+                                formatBranchDistance(branch.distanceKm)
+                                  ? `${formatBranchDistance(branch.distanceKm)} ${t("away")}`
+                                  : "",
+                                available
+                                  ? t("available")
+                                  : branch.availability?.reason ||
+                                    t("availabilityLimited"),
+                              ]
                                 .filter(Boolean)
                                 .join(" - ")}
                             </p>

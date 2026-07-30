@@ -1741,9 +1741,12 @@ export function RestaurantCard({
         selectionType === "SINGLE" || maxSelect === 1 ? "radio" : "checkbox";
       const groupSelectionLabel =
         maxSelect && maxSelect > 0
-          ? `Min ${Math.max(0, toNumber(group?.minSelect, 0))} · Max ${maxSelect}`
+          ? t("selectionRange", {
+              min: Math.max(0, toNumber(group?.minSelect, 0)),
+              max: maxSelect,
+            })
           : isRequired
-            ? "Required"
+            ? t("required")
             : t("optional");
 
       return (
@@ -1768,7 +1771,7 @@ export function RestaurantCard({
 
             <span className="shrink-0 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
               {selectedQuantity}
-              {maxSelect ? ` / ${maxSelect}` : ""} selected
+              {maxSelect ? ` / ${maxSelect}` : ""} {t("selected")}
             </span>
           </div>
 
@@ -1923,7 +1926,7 @@ export function RestaurantCard({
 
           <span className="shrink-0 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
             {selectedCount}
-            {maxSelect ? ` / ${maxSelect}` : ""} selected
+            {maxSelect ? ` / ${maxSelect}` : ""} {t("selected")}
           </span>
         </div>
 

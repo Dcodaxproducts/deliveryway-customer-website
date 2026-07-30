@@ -31,7 +31,10 @@ const toDealScopedMenuItem = (item: MenuItem): CustomerDealMenuItem | null => {
     basePrice: item.basePrice ?? item.price,
     discountedBasePrice: item.discountedBasePrice,
     category: {
-      id: item.categoryId ? String(item.categoryId) : undefined,
+      id:
+        item.categoryId || item.category?.id
+          ? String(item.categoryId ?? item.category?.id)
+          : undefined,
       name: typeof item.category?.name === "string" ? item.category.name : undefined,
     },
     variations: normalizeOptions(item.variations),

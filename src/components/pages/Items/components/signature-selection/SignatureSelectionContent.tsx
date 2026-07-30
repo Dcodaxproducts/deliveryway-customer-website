@@ -2356,7 +2356,7 @@ export function SignatureSelectionContent({
 
           <span className="shrink-0 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
             {selectedCount}
-            {maxSelect ? ` / ${maxSelect}` : ""} selected
+            {maxSelect ? ` / ${maxSelect}` : ""} {tProduct("selected")}
           </span>
         </div>
 
@@ -2544,14 +2544,17 @@ export function SignatureSelectionContent({
               <p className="text-xs text-gray-500">
                 {maxSelect === 1
                   ? isRequired
-                    ? "Select 1 required option"
-                    : "Select up to 1 option"
+                    ? tProduct("selectRequiredOption")
+                    : tProduct("selectUpToOptions", { count: 1 })
                   : maxSelect
                     ? minSelect > 0
-                      ? `Select ${minSelect}-${maxSelect}`
-                      : `Select up to ${maxSelect}`
+                      ? tProduct("selectOptionRange", {
+                          min: minSelect,
+                          max: maxSelect,
+                        })
+                      : tProduct("selectUpToOptions", { count: maxSelect })
                     : minSelect > 0
-                      ? `Select at least ${minSelect}`
+                      ? tProduct("selectAtLeastOptions", { count: minSelect })
                       : tProduct("optional")}
               </p>
             </div>

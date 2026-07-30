@@ -378,7 +378,10 @@ export default function RestaurantHeader() {
     : t("hoursAvailable");
   const openingSubLabel = restaurant?.branchHours.opening.status === "open" && openingCloseTime
     ? t("closesAt", { time: openingCloseTime })
-    : restaurant?.branchHours.opening.value;
+    : restaurant?.branchHours.opening.reason === "before-open" &&
+        restaurant.branchHours.opening.opensAt
+      ? t("opensAt", { time: restaurant.branchHours.opening.opensAt })
+      : restaurant?.branchHours.opening.value;
   const openingSubLabelText = String(openingSubLabel || "");
   const shouldShowOpeningTooltip = openingSubLabelText.length > 28;
   const deliveryHoursLabel = currentDeliveryDetail?.hoursLabel || restaurant?.branchHours.delivery.value;

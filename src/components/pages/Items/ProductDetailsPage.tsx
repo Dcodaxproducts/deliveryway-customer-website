@@ -1548,12 +1548,12 @@ function ProductDetailsPageContent() {
 
     if (maxSelect) {
       return minSelect > 0
-        ? `Select ${minSelect}-${maxSelect} add-ons`
-        : `Select up to ${maxSelect} add-ons`;
+        ? t("selectAddonRange", { min: minSelect, max: maxSelect })
+        : t("selectUpToAddons", { count: maxSelect });
     }
 
     if (minSelect > 0) {
-      return `Select at least ${minSelect} add-on${minSelect === 1 ? "" : "s"}`;
+      return t("selectAtLeastAddons", { count: minSelect });
     }
 
     return t("optionalAddons");
@@ -2238,7 +2238,7 @@ function ProductDetailsPageContent() {
                 </p>
                 {isRequired ? (
                   <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
-                    Required
+                    {t("required")}
                   </span>
                 ) : null}
               </div>

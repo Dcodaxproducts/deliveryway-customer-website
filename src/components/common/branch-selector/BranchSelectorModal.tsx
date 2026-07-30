@@ -576,7 +576,8 @@ export function BranchSelectorModal({
                               <div className="mt-3 flex flex-wrap gap-2">
                                 {formatBranchDistance(branch.distanceKm) ? (
                                   <span className="rounded-full bg-[#F3F4F6] px-3 py-1 text-[11px] font-semibold text-[#4B5563]">
-                                    {formatBranchDistance(branch.distanceKm)}
+                                    {formatBranchDistance(branch.distanceKm)}{" "}
+                                    {t("away")}
                                   </span>
                                 ) : null}
                                 {supportText ? (
