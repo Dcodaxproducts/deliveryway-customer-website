@@ -30,6 +30,10 @@ export type AuthUser = {
     phone?: string | null;
     bio?: string;
     createdAt?: string;
+    metadata?: {
+      locale?: "de" | "en";
+      [key: string]: unknown;
+    } | null;
   };
 };
 

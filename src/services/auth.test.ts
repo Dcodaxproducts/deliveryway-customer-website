@@ -7,6 +7,7 @@ import {
   getCurrentUser,
   googleLoginCustomer,
   isUnauthorizedAuthError,
+  updateCustomerLocale,
 } from "./auth";
 
 const authResponse = {
@@ -76,6 +77,27 @@ describe("auth service", () => {
     });
     await expect(request.catch((error: unknown) => error)).resolves.toSatisfy(
       isUnauthorizedAuthError,
+    );
+  });
+
+  it("persists the authenticated customer's email locale", async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(JSON.stringify({ success: true }), { status: 200 }));
+
+    await updateCustomerLocale("access-token", "de");
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      buildApiUrl(API_BASE_URL, "/v1/auth/me/profile"),
+      expect.objectContaining({
+        method: "PATCH",
+        headers: expect.objectContaining({
+          Authorization: "Bearer access-token",
+          "Accept-Language": "de",
+          "Content-Type": "application/json",
+        }),
+        body: JSON.stringify({ locale: "de" }),
+      }),
     );
   });
 });

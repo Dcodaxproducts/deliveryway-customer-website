@@ -14,6 +14,8 @@ import {
 } from "@/config/i18n";
 import deMessages from "@/messages/de.json";
 import enMessages from "@/messages/en.json";
+import { useAuthContext } from "@/components/providers/auth-provider";
+import { updateCustomerLocale } from "@/services/auth";
 
 type I18nProviderProps = {
   children: ReactNode;
@@ -51,6 +53,7 @@ const persistLocale = (locale: AppLocale) => {
 
 export function I18nProvider({ children }: I18nProviderProps) {
   const queryClient = useQueryClient();
+  const { token, user, loading: authLoading, updateUser } = useAuthContext();
   const [locale, setLocaleState] = useState<AppLocale>(DEFAULT_LOCALE);
   const [isLocaleReady, setIsLocaleReady] = useState(false);
   const previousLocaleRef = useRef<AppLocale | null>(null);
@@ -78,6 +81,57 @@ export function I18nProvider({ children }: I18nProviderProps) {
       void queryClient.invalidateQueries();
     }
   }, [isLocaleReady, locale, queryClient]);
+
+  useEffect(() => {
+    if (
+      !isLocaleReady ||
+      authLoading ||
+      !token ||
+      !user ||
+      user.isGuest ||
+      user.profile?.metadata?.locale === locale
+    ) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void updateCustomerLocale(token, locale)
+      .then(() => {
+        if (cancelled) {
+          return;
+        }
+
+        updateUser((currentUser) =>
+          currentUser
+            ? {
+                ...currentUser,
+                profile: currentUser.profile
+                  ? {
+                      ...currentUser.profile,
+                      metadata: {
+                        ...(currentUser.profile.metadata ?? {}),
+                        locale,
+                      },
+                    }
+                  : currentUser.profile,
+              }
+            : currentUser,
+        );
+      })
+      .catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    authLoading,
+    isLocaleReady,
+    locale,
+    token,
+    updateUser,
+    user,
+  ]);
 
   const setLocale = useCallback((nextLocale: AppLocale) => {
     setLocaleState(nextLocale);

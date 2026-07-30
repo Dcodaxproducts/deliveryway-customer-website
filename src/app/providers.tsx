@@ -14,11 +14,11 @@ type ProvidersProps = {
 export function Providers({ children }: ProvidersProps) {
   return (
     <QueryProvider>
-      <I18nProvider>
-        <AuthProvider>
+      <AuthProvider>
+        <I18nProvider>
           <BrandingProvider>{children}</BrandingProvider>
-        </AuthProvider>
-      </I18nProvider>
+        </I18nProvider>
+      </AuthProvider>
     </QueryProvider>
   );
 }

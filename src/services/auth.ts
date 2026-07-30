@@ -1,5 +1,5 @@
 import { buildApiUrl } from "@/lib/api-endpoint";
-import { getRequestLocale } from "@/config/i18n";
+import { getRequestLocale, type AppLocale } from "@/config/i18n";
 import { API_BASE_URL } from "@/lib/axios";
 import { isAuthSession, isAuthUser } from "@/lib/auth";
 import type {
@@ -141,4 +141,17 @@ export const getCurrentUser = async (token: string) => {
   });
 
   return normalizeAuthUser(payload, "FETCH_ME_FAILED");
+};
+
+export const updateCustomerLocale = async (
+  token: string,
+  locale: AppLocale,
+): Promise<void> => {
+  await requestAuth("/v1/auth/me/profile", {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ locale }),
+  });
 };
