@@ -79,13 +79,11 @@ export const mergeUniqueDealEligibleItems = (
   return Array.from(itemsById.values());
 };
 
-export const filterDealItemsForForcedCategoryVariations = (
+export const filterDealItemsForCategoryRules = (
   deal: CustomerDeal | null,
   items: CustomerDealMenuItem[],
 ): CustomerDealMenuItem[] => {
-  const forcedRules = (deal?.scopeCategoryRules ?? []).filter((rule) =>
-    rule.variationId?.trim(),
-  );
+  const forcedRules = deal?.scopeCategoryRules ?? [];
 
   if (forcedRules.length === 0) {
     return items;
@@ -298,7 +296,7 @@ export const useDealEligibleItems = ({
 
   const items = useMemo(
     () => {
-      const eligibleItems = filterDealItemsForForcedCategoryVariations(
+      const eligibleItems = filterDealItemsForCategoryRules(
         deal,
         shouldFetchAllMenuItems
           ? allMenuItems

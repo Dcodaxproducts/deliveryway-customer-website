@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   canSubmitDealSelection,
-  filterDealItemsForForcedCategoryVariations,
+  filterDealItemsForCategoryRules,
   getDealRequiredSelectionCount,
   mergeUniqueDealEligibleItems,
   toDealEligibleMenuItem,
@@ -104,7 +104,7 @@ describe("deal eligible item helpers", () => {
     };
 
     expect(
-      filterDealItemsForForcedCategoryVariations(deal, [
+      filterDealItemsForCategoryRules(deal, [
         {
           id: "margherita",
           name: "Margherita",
@@ -127,7 +127,7 @@ describe("deal eligible item helpers", () => {
     ]);
   });
 
-  it("does not filter category deal items when no forced variation is selected", () => {
+  it("filters category deal items when no forced variation is selected", () => {
     const deal: CustomerDeal = {
       ...baseDeal,
       scopeCategories: [{ id: "pizza-category", name: "Pizza" }],
@@ -153,7 +153,13 @@ describe("deal eligible item helpers", () => {
       },
     ];
 
-    expect(filterDealItemsForForcedCategoryVariations(deal, items)).toBe(items);
+    expect(filterDealItemsForCategoryRules(deal, items)).toEqual([
+      {
+        id: "margherita",
+        name: "Margherita",
+        category: { id: "pizza-category" },
+      },
+    ]);
   });
 
   it("hides backend excluded ids for forced variations when eligible ids are absent", () => {
@@ -171,7 +177,7 @@ describe("deal eligible item helpers", () => {
     };
 
     expect(
-      filterDealItemsForForcedCategoryVariations(deal, [
+      filterDealItemsForCategoryRules(deal, [
         {
           id: "margherita",
           name: "Margherita",
