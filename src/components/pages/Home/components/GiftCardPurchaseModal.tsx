@@ -49,6 +49,7 @@ const createDefaultValues = (
 ): GiftCardGuestPurchaseFormValues => ({
   amount: selectedGiftCard?.amount ?? 0,
   buyerEmail: "",
+  recipientEmail: "",
   buyerName: "",
   title: selectedGiftCard?.title ?? "",
   message: "",
@@ -296,6 +297,27 @@ export const GiftCardPurchaseModal = ({
                   className="h-11 rounded-xl"
                   {...register("buyerName")}
                 />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="guest-gift-card-recipient-email"
+                  className="mb-2 block text-xs font-semibold uppercase text-gray-500"
+                >
+                  {t("recipientEmail")}
+                </label>
+                <Input
+                  id="guest-gift-card-recipient-email"
+                  type="email"
+                  placeholder={t("recipientEmailPlaceholder")}
+                  className="h-11 rounded-xl"
+                  {...register("recipientEmail")}
+                />
+                {errors.recipientEmail ? (
+                  <p className="mt-2 text-sm text-red-600">
+                    {errors.recipientEmail.message}
+                  </p>
+                ) : null}
               </div>
 
               <div>

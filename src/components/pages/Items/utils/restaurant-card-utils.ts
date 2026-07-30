@@ -805,3 +805,11 @@ export const resolveHasNext = ({ meta, page, limit, receivedCount, totalLoaded }
   if (total > 0) return totalLoaded < total;
   return receivedCount >= limit;
 };
+
+export const localizeBranchHoursValue = (
+  value: string | null | undefined,
+  translate: (key: string) => string,
+) =>
+  String(value || "").trim().toLowerCase() === "closed"
+    ? translate("closed")
+    : value || "";

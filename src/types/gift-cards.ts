@@ -31,6 +31,7 @@ export type GiftCardAvailabilityParams = {
 export type GiftCardGuestPurchasePayload = {
   amount: number;
   buyerEmail: string;
+  recipientEmail: string;
   buyerName?: string;
   branchId?: string;
   title?: string;

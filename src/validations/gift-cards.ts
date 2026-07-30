@@ -39,7 +39,11 @@ export const giftCardPurchaseSchema = z.object({
 });
 
 export const giftCardGuestPurchaseSchema = giftCardPurchaseSchema.extend({
-  buyerEmail: z.email("Enter a valid email address").trim(),
+  buyerEmail: z.string().trim().email("Enter a valid email address"),
+  recipientEmail: z
+    .string()
+    .trim()
+    .email("Enter a valid recipient email address"),
   buyerName: optionalTrimmedString,
   branchId: optionalTrimmedString,
   currency: optionalTrimmedString,
@@ -84,6 +88,7 @@ export const buildGiftCardGuestPurchasePayload = (
   return {
     ...purchasePayload,
     buyerEmail: values.buyerEmail.trim(),
+    recipientEmail: values.recipientEmail.trim(),
     ...(getOptionalText(values.buyerName) ? { buyerName: getOptionalText(values.buyerName) } : {}),
     ...(getOptionalText(values.branchId) ? { branchId: getOptionalText(values.branchId) } : {}),
     ...(getOptionalText(values.currency) ? { currency: getOptionalText(values.currency) } : {}),

@@ -214,6 +214,7 @@ describe("gift card service", () => {
       {
         amount: 2500,
         buyerEmail: "buyer@example.com",
+        recipientEmail: "recipient@example.com",
         buyerName: " Buyer ",
         branchId: "branch-1",
         title: " Dinner ",
@@ -231,6 +232,7 @@ describe("gift card service", () => {
       {
         amount: 2500,
         buyerEmail: "buyer@example.com",
+        recipientEmail: "recipient@example.com",
         buyerName: "Buyer",
         branchId: "branch-1",
         title: "Dinner",

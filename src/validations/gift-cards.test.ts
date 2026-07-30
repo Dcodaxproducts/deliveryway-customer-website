@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildGiftCardGuestPurchasePayload,
   buildGiftCardPurchasePayload,
   buildGiftCardRedeemPayload,
+  giftCardGuestPurchaseSchema,
   giftCardPurchaseSchema,
   giftCardRedeemSchema,
 } from "./gift-cards";
@@ -34,6 +36,31 @@ describe("giftCardPurchaseSchema", () => {
       amount: 1000,
       title: "Birthday Gift Card",
       expiresAt: new Date("2099-06-05T00:00").toISOString(),
+    });
+  });
+
+  it("requires a recipient email for guest purchases", () => {
+    expect(
+      giftCardGuestPurchaseSchema.safeParse({
+        amount: 50,
+        buyerEmail: "buyer@example.com",
+      }).success
+    ).toBe(false);
+  });
+
+  it("sends buyer and recipient emails as separate normalized fields", () => {
+    const result = giftCardGuestPurchaseSchema.parse({
+      amount: 50,
+      buyerEmail: " buyer@example.com ",
+      recipientEmail: " recipient@example.com ",
+      buyerName: " Buyer ",
+    });
+
+    expect(buildGiftCardGuestPurchasePayload(result)).toEqual({
+      amount: 50,
+      buyerEmail: "buyer@example.com",
+      recipientEmail: "recipient@example.com",
+      buyerName: "Buyer",
     });
   });
 });

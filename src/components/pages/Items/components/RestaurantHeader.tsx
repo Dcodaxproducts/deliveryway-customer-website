@@ -15,7 +15,7 @@ import { normalizeBranch } from "@/lib/branch-selector";
 import { OpeningHoursDialog } from "@/components/common/popups/OpeningHoursDialog";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 import type { AuthRestaurantUser, ItemsCategory, StoredAuthState } from "@/components/pages/Items/types";
-import { formatAddress, getBranchHoursDetails, getBranchHoursSummary, getCurrentBranchHoursDetail, getImageUrl, getOperatingHours, getRatingInfo, getRestaurantAddress, getRestaurantName, hasText, resolveHasNext } from "@/components/pages/Items/utils/restaurant-card-utils";
+import { formatAddress, getBranchHoursDetails, getBranchHoursSummary, getCurrentBranchHoursDetail, getImageUrl, getOperatingHours, getRatingInfo, getRestaurantAddress, getRestaurantName, hasText, localizeBranchHoursValue, resolveHasNext } from "@/components/pages/Items/utils/restaurant-card-utils";
 import type { BranchRecord } from "@/types/branch-selector";
 
 const CATEGORY_PAGE_LIMIT = 50;
@@ -381,10 +381,13 @@ export default function RestaurantHeader() {
     : restaurant?.branchHours.opening.reason === "before-open" &&
         restaurant.branchHours.opening.opensAt
       ? t("opensAt", { time: restaurant.branchHours.opening.opensAt })
-      : restaurant?.branchHours.opening.value;
+      : localizeBranchHoursValue(restaurant?.branchHours.opening.value, t);
   const openingSubLabelText = String(openingSubLabel || "");
   const shouldShowOpeningTooltip = openingSubLabelText.length > 28;
-  const deliveryHoursLabel = currentDeliveryDetail?.hoursLabel || restaurant?.branchHours.delivery.value;
+  const deliveryHoursLabel = localizeBranchHoursValue(
+    currentDeliveryDetail?.hoursLabel || restaurant?.branchHours.delivery.value,
+    t,
+  );
   const primaryOpeningBreakLabel = currentOpeningBreakLabels[0] ?? "";
   const primaryDeliveryBreakLabel = currentDeliveryBreakLabels[0] ?? primaryOpeningBreakLabel;
   const openingBreakText = primaryOpeningBreakLabel

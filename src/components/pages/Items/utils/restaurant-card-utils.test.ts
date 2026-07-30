@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { areBranchSchedulesIdentical, formatAddress, formatPrice, getBranchHoursDetails, getBranchHoursSummary, getImageUrl, getOperatingHours, getRestaurantAddress, getRestaurantName, getSplitPizzaPricingVariation, mergeUniqueById, resolveHasNext, resolvePromotionBadge } from "./restaurant-card-utils";
+import { areBranchSchedulesIdentical, formatAddress, formatPrice, getBranchHoursDetails, getBranchHoursSummary, getImageUrl, getOperatingHours, getRestaurantAddress, getRestaurantName, getSplitPizzaPricingVariation, localizeBranchHoursValue, mergeUniqueById, resolveHasNext, resolvePromotionBadge } from "./restaurant-card-utils";
 
 describe("restaurant card utils", () => {
   afterEach(() => {
@@ -10,6 +10,17 @@ describe("restaurant card utils", () => {
   it("formats price and fallback image", () => {
     expect(formatPrice("12.5")).toBe("12.50");
     expect(getImageUrl({}, { imageUrl: "hero.jpg" })).toBe("hero.jpg");
+  });
+
+  it("localizes semantic closed hour summaries", () => {
+    expect(
+      localizeBranchHoursValue("Closed", (key) =>
+        key === "closed" ? "Geschlossen" : key
+      )
+    ).toBe("Geschlossen");
+    expect(localizeBranchHoursValue("09:00 - 17:00", (key) => key)).toBe(
+      "09:00 - 17:00"
+    );
   });
 
   it("formats address and operating hours", () => {
