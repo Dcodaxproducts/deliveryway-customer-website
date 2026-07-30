@@ -8,6 +8,10 @@ import {
   buildModifierSelections,
   validateModifierSelections,
 } from "@/components/pages/Items/utils/modifier-selections";
+import {
+  getModifierPriceForVariation,
+  type ModifierPricingMenuItem,
+} from "@/components/pages/Items/utils/modifier-pricing";
 import type { AddCartItemPayload, CartModifierSelectionInput } from "@/types/cart";
 import type { CustomerDeal, CustomerDealMenuItem } from "@/types/customer-deals";
 
@@ -53,6 +57,30 @@ export const getDealChooserId = (value: unknown) => String(value ?? "").trim();
 export const getDealChooserNumber = (value: unknown, fallback = 0) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+export const getDealChooserModifierPrice = ({
+  item,
+  modifierId,
+  fallbackPriceDelta,
+  forcedVariationId,
+}: {
+  item: CustomerDealMenuItem;
+  modifierId: string;
+  fallbackPriceDelta: unknown;
+  forcedVariationId?: string | null;
+}) => {
+  const resolvedPrice = getModifierPriceForVariation({
+    item: item as ModifierPricingMenuItem,
+    selectedVariationId: forcedVariationId,
+    modifierId,
+  });
+
+  if (forcedVariationId || resolvedPrice !== 0) {
+    return resolvedPrice;
+  }
+
+  return getDealChooserNumber(fallbackPriceDelta, 0);
 };
 
 export const getDealChooserModifierName = (modifier: DealChooserModifier) =>

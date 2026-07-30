@@ -27,6 +27,7 @@ import {
   buildDealCartItemPayload,
   getDealChooserGroupHelperText,
   getDealChooserId,
+  getDealChooserModifierPrice,
   getDealChooserModifierGroups,
   getDealChooserModifierName,
   getDealChooserNumber,
@@ -41,10 +42,6 @@ import {
 } from "@/components/pages/Home/utils/deal-chooser-validation";
 import { formatDealPrice } from "@/components/pages/Home/utils/customer-deals-formatters";
 import { getModifierGroupSelectedQuantity } from "@/components/pages/Items/utils/modifier-selections";
-import {
-  getModifierPriceForVariation,
-  type ModifierPricingMenuItem,
-} from "@/components/pages/Items/utils/modifier-pricing";
 import {
   canSubmitDealSelection,
   getDealRequiredSelectionCount,
@@ -117,28 +114,6 @@ const resolveForcedVariationForDealItem = (
     variationId;
 
   return { variationId, label };
-};
-
-const getDealModifierPrice = ({
-  item,
-  modifierId,
-  fallbackPriceDelta,
-  forcedVariationId,
-}: {
-  item: CustomerDealMenuItem;
-  modifierId: string;
-  fallbackPriceDelta: unknown;
-  forcedVariationId?: string | null;
-}) => {
-  if (!forcedVariationId) {
-    return getDealChooserNumber(fallbackPriceDelta, 0);
-  }
-
-  return getModifierPriceForVariation({
-    item: item as ModifierPricingMenuItem,
-    selectedVariationId: forcedVariationId,
-    modifierId,
-  });
 };
 
 const formatModifierSelectionPrice = (
@@ -276,7 +251,7 @@ export function DealChooserDrawer({
             modifierPriceResolver: ({ modifier, modifierId }) => {
               const forcedVariation = resolveForcedVariationForDealItem(deal, item);
 
-              return getDealModifierPrice({
+              return getDealChooserModifierPrice({
                 item,
                 modifierId,
                 fallbackPriceDelta: modifier?.priceDelta,
@@ -1074,7 +1049,7 @@ export function DealChooserDrawer({
                       ),
                     ),
                   );
-                  const modifierPrice = getDealModifierPrice({
+                  const modifierPrice = getDealChooserModifierPrice({
                     item,
                     modifierId,
                     fallbackPriceDelta: modifier.priceDelta,

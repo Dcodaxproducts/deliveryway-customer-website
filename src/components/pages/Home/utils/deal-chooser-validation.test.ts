@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildDealCartItemPayload,
+  getDealChooserModifierPrice,
   getDealChooserSelectedModifiersTotal,
   getSelectedModifiersByGroup,
   validateDealChooserItemConfiguration,
@@ -181,6 +182,31 @@ describe("deal chooser validation", () => {
         },
       })
     ).toBe(4.5);
+  });
+
+  it("resolves paid extras without a forced deal variation", () => {
+    const item: CustomerDealMenuItem = {
+      ...requiredModifierItem,
+      modifierPriceOverrides: [
+        {
+          modifierId: "salami",
+          priceDelta: "0",
+          modifier: {
+            id: "salami",
+            name: "Salami",
+            priceDelta: "1.55",
+          },
+        },
+      ],
+    };
+
+    expect(
+      getDealChooserModifierPrice({
+        item,
+        modifierId: "salami",
+        fallbackPriceDelta: 0,
+      }),
+    ).toBe(1.55);
   });
 
   it("allows forced-variation modifier prices to drive deal display totals", () => {
