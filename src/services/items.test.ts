@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  clearMenuItemDetailsCache,
   fetchMenuCategoriesPage,
   fetchMenuItemDetails,
   fetchMenuItemDetailsByIds,
@@ -22,6 +23,7 @@ vi.mock("@/services/domain-api", () => ({
 describe("fetchMenuItemDetailsByIds", () => {
   beforeEach(() => {
     getItemsMock.mockReset();
+    clearMenuItemDetailsCache();
   });
 
   it("loads full item details so deal add-ons are preserved", async () => {
@@ -171,6 +173,51 @@ describe("fetchMenuItemDetailsByIds", () => {
     expect(result.item).toEqual(
       expect.objectContaining({ id: "pizza-id", slug: "pizza-tse" }),
     );
+  });
+
+  it("reuses pizza details after cart-driven rerenders instead of reloading add-ons", async () => {
+    getItemsMock.mockResolvedValue({
+      data: {
+        id: "pizza-id",
+        slug: "pizza-tse",
+        modifierGroups: [{ id: "toppings" }],
+      },
+    });
+
+    const request = {
+      restaurantId: "restaurant-1",
+      branchId: "branch-1",
+      identifier: "pizza-id",
+      token: "customer-token",
+    };
+    const first = await fetchMenuItemDetails(request);
+    const repeated = await fetchMenuItemDetails(request);
+
+    expect(getItemsMock).toHaveBeenCalledTimes(1);
+    expect(repeated).toBe(first);
+    expect(repeated.item?.modifierGroups).toEqual([{ id: "toppings" }]);
+  });
+
+  it("deduplicates simultaneous pizza detail requests", async () => {
+    let resolveRequest:
+      | ((value: { data: { id: string; modifierGroups: never[] } }) => void)
+      | undefined;
+    getItemsMock.mockReturnValue(
+      new Promise((resolve) => {
+        resolveRequest = resolve;
+      }),
+    );
+
+    const request = {
+      restaurantId: "restaurant-1",
+      identifier: "pizza-id",
+    };
+    const first = fetchMenuItemDetails(request);
+    const second = fetchMenuItemDetails(request);
+    resolveRequest?.({ data: { id: "pizza-id", modifierGroups: [] } });
+
+    await expect(Promise.all([first, second])).resolves.toHaveLength(2);
+    expect(getItemsMock).toHaveBeenCalledTimes(1);
   });
 
   it("passes branchId when fetching split-pizza menu items", async () => {

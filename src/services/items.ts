@@ -10,11 +10,32 @@ import type {
 } from "@/components/pages/Items/types";
 
 const itemsService = createDomainApiService();
+const MENU_ITEM_DETAILS_CACHE_TTL_MS = 60_000;
+const MENU_ITEM_DETAILS_CACHE_MAX_ENTRIES = 100;
+
+type MenuItemDetailsResult = {
+  response: Awaited<ReturnType<typeof getItems>>;
+  item: MenuItem | null;
+};
+
+const menuItemDetailsCache = new Map<
+  string,
+  { expiresAt: number; result: MenuItemDetailsResult }
+>();
+const menuItemDetailsRequests = new Map<
+  string,
+  Promise<MenuItemDetailsResult>
+>();
 
 export const getItems = itemsService.get;
 export const postItems = itemsService.post;
 export const patchItems = itemsService.patch;
 export const deleteItems = itemsService.del;
+
+export const clearMenuItemDetailsCache = () => {
+  menuItemDetailsCache.clear();
+  menuItemDetailsRequests.clear();
+};
 
 export const fetchMenuItems = async (
   endpoint: string,
@@ -89,18 +110,53 @@ export const fetchMenuItemDetails = async ({
     params.set("branchId", String(branchId));
   }
 
-  const response = await getItems(
-    `/customer-app/items/${encodeURIComponent(identifier)}?${params.toString()}`,
-    token,
-  );
-  const item =
-    typeof response.data === "object" &&
-    response.data !== null &&
-    !Array.isArray(response.data)
-      ? (response.data as MenuItem)
-      : null;
+  const endpoint = `/customer-app/items/${encodeURIComponent(identifier)}?${params.toString()}`;
+  const cacheKey = `${token ?? "guest"}:${endpoint}`;
+  const cached = menuItemDetailsCache.get(cacheKey);
 
-  return { response, item };
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.result;
+  }
+  menuItemDetailsCache.delete(cacheKey);
+
+  const pendingRequest = menuItemDetailsRequests.get(cacheKey);
+  if (pendingRequest) {
+    return pendingRequest;
+  }
+
+  const request = (async (): Promise<MenuItemDetailsResult> => {
+    const response = await getItems(endpoint, token);
+    const item =
+      typeof response.data === "object" &&
+      response.data !== null &&
+      !Array.isArray(response.data)
+        ? (response.data as MenuItem)
+        : null;
+    const result = { response, item };
+
+    if (item) {
+      if (
+        menuItemDetailsCache.size >= MENU_ITEM_DETAILS_CACHE_MAX_ENTRIES
+      ) {
+        const oldestKey = menuItemDetailsCache.keys().next().value;
+        if (oldestKey) menuItemDetailsCache.delete(oldestKey);
+      }
+      menuItemDetailsCache.set(cacheKey, {
+        expiresAt: Date.now() + MENU_ITEM_DETAILS_CACHE_TTL_MS,
+        result,
+      });
+    }
+
+    return result;
+  })();
+
+  menuItemDetailsRequests.set(cacheKey, request);
+
+  try {
+    return await request;
+  } finally {
+    menuItemDetailsRequests.delete(cacheKey);
+  }
 };
 
 export const fetchMenuItemDetailsByIds = async ({

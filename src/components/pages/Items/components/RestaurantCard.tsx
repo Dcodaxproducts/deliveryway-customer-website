@@ -623,11 +623,15 @@ export function RestaurantCard({
   const [splitPizzaItem, setSplitPizzaItem] = useState<MenuItem | null>(null);
 
   const [animateCart, setAnimateCart] = useState(false);
+  const compactItemIdentity = String(compactItem.id || compactItem.slug || "");
+  const activeItemIdentity = String(item.id || item.slug || "");
 
   useEffect(() => {
+    if (activeItemIdentity === compactItemIdentity) return;
+
     setItem(compactItem);
     setHasLoadedDetails(false);
-  }, [compactItem]);
+  }, [activeItemIdentity, compactItem, compactItemIdentity]);
 
   const customerId = user?.id;
   const branchId = String(resolveHomeBranchId(user, domainContext));
