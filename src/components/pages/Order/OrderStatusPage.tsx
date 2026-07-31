@@ -22,10 +22,15 @@ import { loadStripe } from "@stripe/stripe-js";
 import {
   getOrderProgressStep,
   getOrderProgressStepKeys,
+  getTerminalOrderState,
   type OrderProgressStepKey,
 } from "@/components/pages/Order/order-status-progress";
 import { resolveCustomerCurrency } from "@/lib/money";
-import { isPaymentPendingStripeOrder, isPendingOnlinePaymentOrder, isPlacedPaidOrder } from "@/components/pages/Order/payment-state";
+import {
+  isPaymentPendingStripeOrder,
+  isPendingOnlinePaymentOrder,
+  isPlacedPaidOrder,
+} from "@/components/pages/Order/payment-state";
 
 function OrderStatusContent() {
   const t = useTranslations("orderStatus");
@@ -43,7 +48,9 @@ function OrderStatusContent() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [continuingPayment, setContinuingPayment] = useState(false);
-  const [changingPaymentMethod, setChangingPaymentMethod] = useState<string | null>(null);
+  const [changingPaymentMethod, setChangingPaymentMethod] = useState<
+    string | null
+  >(null);
   const [stripePayment, setStripePayment] = useState({
     open: false,
     clientSecret: "",
@@ -65,45 +72,50 @@ function OrderStatusContent() {
     });
   };
 
-  const fetchOrder = useCallback(async ({
-    silent = false,
-  }: {
-    silent?: boolean;
-  } = {}) => {
-    if (!orderId) {
-      setNotFound(true);
-      setLoading(false);
-      return;
-    }
-
-    try {
-      if (!silent) {
-        setLoading(true);
-        setNotFound(false);
-      }
-
-      const { response: res, order: nextOrder } = await fetchOrderById({ orderId });
-
-      if (!res || res.success === false || !nextOrder) {
-        if (!silent) {
-          setNotFound(true);
-          setOrder(null);
-        }
+  const fetchOrder = useCallback(
+    async ({
+      silent = false,
+    }: {
+      silent?: boolean;
+    } = {}) => {
+      if (!orderId) {
+        setNotFound(true);
+        setLoading(false);
         return;
       }
 
-      setNotFound(false);
-      setOrder(nextOrder);
-    } catch {
-      if (!silent) {
-        setNotFound(true);
+      try {
+        if (!silent) {
+          setLoading(true);
+          setNotFound(false);
+        }
+
+        const { response: res, order: nextOrder } = await fetchOrderById({
+          orderId,
+        });
+
+        if (!res || res.success === false || !nextOrder) {
+          if (!silent) {
+            setNotFound(true);
+            setOrder(null);
+          }
+          return;
+        }
+
+        setNotFound(false);
+        setOrder(nextOrder);
+      } catch {
+        if (!silent) {
+          setNotFound(true);
+        }
+      } finally {
+        if (!silent) {
+          setLoading(false);
+        }
       }
-    } finally {
-      if (!silent) {
-        setLoading(false);
-      }
-    }
-  }, [fetchOrderById, orderId]);
+    },
+    [fetchOrderById, orderId],
+  );
 
   useEffect(() => {
     fetchOrder();
@@ -144,20 +156,30 @@ function OrderStatusContent() {
         payload: {
           paymentMethod: normalizedPaymentMethod,
           currency: resolveCustomerCurrency({
-            moneyCurrency: order.transactions?.find((transaction) => transaction.currency)?.currency,
+            moneyCurrency: order.transactions?.find(
+              (transaction) => transaction.currency,
+            )?.currency,
           }),
-          note: normalizedPaymentMethod === "STRIPE" ? "Retry order payment" : "Switch order payment method",
+          note:
+            normalizedPaymentMethod === "STRIPE"
+              ? "Retry order payment"
+              : "Switch order payment method",
         },
       });
 
       if (!attempt.response || attempt.response.success === false) {
-        toast.error(attempt.response?.message || checkoutT("toast.failedInitiatePayment"));
+        toast.error(
+          attempt.response?.message || checkoutT("toast.failedInitiatePayment"),
+        );
         return;
       }
 
       if (normalizedPaymentMethod === "STRIPE") {
         if (!attempt.clientSecret || !attempt.publishableKey) {
-          toast.error(attempt.response?.message || checkoutT("toast.failedInitiatePayment"));
+          toast.error(
+            attempt.response?.message ||
+              checkoutT("toast.failedInitiatePayment"),
+          );
           return;
         }
 
@@ -198,14 +220,17 @@ function OrderStatusContent() {
   const paymentPendingStripeOrder = isPaymentPendingStripeOrder(order);
   const canSwitchPaymentMethod = isPendingOnlinePaymentOrder(order);
   const placedPaidOrder = isPlacedPaidOrder(order);
-  const showSuccessNotice = !loading && order?.id && isSuccessView && placedPaidOrder;
-  const showPaymentPendingNotice = !loading && order?.id && paymentPendingStripeOrder;
+  const showSuccessNotice =
+    !loading && order?.id && isSuccessView && placedPaidOrder;
+  const showPaymentPendingNotice =
+    !loading && order?.id && paymentPendingStripeOrder;
   const successNoticeTitle = t("successNotice.title");
   const successNoticeDescription = t("successNotice.description");
 
   const currentStep = paymentPendingStripeOrder
     ? 0
     : getOrderProgressStep(order?.status, order?.orderType);
+  const terminalOrderState = getTerminalOrderState(order?.status);
 
   const getOrderTypeLabel = (value?: string | null) => {
     switch (String(value || "").toUpperCase()) {
@@ -220,18 +245,21 @@ function OrderStatusContent() {
     }
   };
 
-  const orderSteps = getOrderProgressStepKeys(order?.orderType).map((key, index) => ({
-    id: index + 1,
-    title: t(`steps.${key}Title` as `steps.${OrderProgressStepKey}Title`),
-    desc: t(`steps.${key}Description` as `steps.${OrderProgressStepKey}Description`),
-  })).map((step) => ({
-    ...step,
-    active: step.id <= currentStep,
-  }));
+  const orderSteps = getOrderProgressStepKeys(order?.orderType)
+    .map((key, index) => ({
+      id: index + 1,
+      title: t(`steps.${key}Title` as `steps.${OrderProgressStepKey}Title`),
+      desc: t(
+        `steps.${key}Description` as `steps.${OrderProgressStepKey}Description`,
+      ),
+    }))
+    .map((step) => ({
+      ...step,
+      active: step.id <= currentStep,
+    }));
 
   return (
     <div className="max-w-[1400px] mx-auto mt-[36px] mb-[113px] px-6 md:px-30 pt-5">
-
       {/* ================= NOT FOUND ================= */}
       {!loading && notFound && (
         <div className="bg-white rounded-xl shadow-lg p-10 text-center">
@@ -254,133 +282,146 @@ function OrderStatusContent() {
       {/* ================= NORMAL FLOW ================= */}
       {!notFound && (
         <>
-        {showSuccessNotice ? (
-          <div className="mb-6 rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
-            <p className="text-sm font-semibold text-emerald-700">
-              {successNoticeTitle}
-            </p>
-            <p className="mt-1 text-sm leading-6 text-gray-500">
-              {successNoticeDescription}
-            </p>
-          </div>
-        ) : null}
-
-        {showPaymentPendingNotice ? (
-          <div className="mb-6 rounded-2xl border border-amber-100 bg-amber-50 p-5 shadow-sm">
-            <p className="text-sm font-semibold text-amber-800">
-              {t("successNotice.paymentPendingTitle")}
-            </p>
-            <p className="mt-1 text-sm leading-6 text-amber-700">
-              {t("successNotice.paymentPendingDescription")}
-            </p>
-          </div>
-        ) : null}
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
-
-          {/* LEFT */}
-          <div className="lg:col-span-7">
-
-            {/* HEADER */}
-            <div className="mb-[35px]">
-              <h1 className="text-xl font-semibold text-gray-900 mb-[10px]">
-                {paymentPendingStripeOrder ? t("paymentPendingHeading") : t("trackYourOrder")}
-              </h1>
-
-              <p className="text-sm text-gray-400">
-                {t("orderMeta", {
-                  id: order?.id || "...",
-                  type: getOrderTypeLabel(order?.orderType),
-                })}
+          {showSuccessNotice ? (
+            <div className="mb-6 rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
+              <p className="text-sm font-semibold text-emerald-700">
+                {successNoticeTitle}
+              </p>
+              <p className="mt-1 text-sm leading-6 text-gray-500">
+                {successNoticeDescription}
               </p>
             </div>
+          ) : null}
 
-            {/* STATUS CARD */}
-            <div className="bg-white rounded-[10px] shadow-lg px-[61px] py-[35px] border border-gray-50">
+          {showPaymentPendingNotice ? (
+            <div className="mb-6 rounded-2xl border border-amber-100 bg-amber-50 p-5 shadow-sm">
+              <p className="text-sm font-semibold text-amber-800">
+                {t("successNotice.paymentPendingTitle")}
+              </p>
+              <p className="mt-1 text-sm leading-6 text-amber-700">
+                {t("successNotice.paymentPendingDescription")}
+              </p>
+            </div>
+          ) : null}
 
-              <h2 className="text-xl font-semibold mb-[36px]">
-                {paymentPendingStripeOrder ? t("paymentPendingStatus") : t("orderStatus")}
-              </h2>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+            {/* LEFT */}
+            <div className="lg:col-span-7">
+              {/* HEADER */}
+              <div className="mb-[35px]">
+                <h1 className="text-xl font-semibold text-gray-900 mb-[10px]">
+                  {paymentPendingStripeOrder
+                    ? t("paymentPendingHeading")
+                    : t("trackYourOrder")}
+                </h1>
 
-              {/* LOADING */}
-              {loading && (
-                <div className="space-y-6 animate-pulse">
-                  {[...Array(4)].map((_, i) => (
-                    <div key={i} className="flex gap-6">
-                      <div className="w-9 h-9 bg-gray-200 rounded-full" />
-                      <div className="flex-1 space-y-2">
-                        <div className="h-4 w-40 bg-gray-200 rounded" />
-                        <div className="h-3 w-60 bg-gray-100 rounded" />
+                <p className="text-sm text-gray-400">
+                  {t("orderMeta", {
+                    id: order?.id || "...",
+                    type: getOrderTypeLabel(order?.orderType),
+                  })}
+                </p>
+              </div>
+
+              {/* STATUS CARD */}
+              <div className="bg-white rounded-[10px] shadow-lg px-[61px] py-[35px] border border-gray-50">
+                <h2 className="text-xl font-semibold mb-[36px]">
+                  {paymentPendingStripeOrder
+                    ? t("paymentPendingStatus")
+                    : t("orderStatus")}
+                </h2>
+
+                {/* LOADING */}
+                {loading && (
+                  <div className="space-y-6 animate-pulse">
+                    {[...Array(4)].map((_, i) => (
+                      <div key={i} className="flex gap-6">
+                        <div className="w-9 h-9 bg-gray-200 rounded-full" />
+                        <div className="flex-1 space-y-2">
+                          <div className="h-4 w-40 bg-gray-200 rounded" />
+                          <div className="h-3 w-60 bg-gray-100 rounded" />
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
 
-              {/* DATA */}
-              {!loading && paymentPendingStripeOrder ? (
-                <div className="rounded-2xl border border-amber-100 bg-amber-50 p-5 text-sm leading-6 text-amber-800">
-                  <p className="font-semibold">{t("paymentPendingStatus")}</p>
-                  <p className="mt-1">{t("paymentPendingTrackingDescription")}</p>
-                </div>
-              ) : null}
+                {/* DATA */}
+                {!loading && paymentPendingStripeOrder ? (
+                  <div className="rounded-2xl border border-amber-100 bg-amber-50 p-5 text-sm leading-6 text-amber-800">
+                    <p className="font-semibold">{t("paymentPendingStatus")}</p>
+                    <p className="mt-1">
+                      {t("paymentPendingTrackingDescription")}
+                    </p>
+                  </div>
+                ) : null}
 
-              {!loading && !paymentPendingStripeOrder && (
-                <div className="space-y-0">
-                  {orderSteps.map((step, index) => (
-                    <div key={step.id} className="relative flex gap-6 pb-10">
+                {!loading &&
+                !paymentPendingStripeOrder &&
+                terminalOrderState ? (
+                  <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-red-800">
+                    <p className="font-semibold">
+                      {t(`terminal.${terminalOrderState}Title`)}
+                    </p>
+                    <p className="mt-1 text-sm leading-6">
+                      {t(`terminal.${terminalOrderState}Description`)}
+                    </p>
+                  </div>
+                ) : null}
 
-                      {index !== orderSteps.length - 1 && (
-                        <div className="absolute left-[17px] top-10 w-px h-full border-l-2 border-dashed border-gray-200" />
-                      )}
-
-                      <div
-                        className={`relative z-10 flex items-center justify-center w-9 h-9 rounded-full text-sm font-medium ${
-                          step.active
-                            ? "bg-primary text-white"
-                            : "bg-[#D9D9D9] text-white"
-                        }`}
-                      >
-                        {step.id}
-                      </div>
-
-                      <div className="pt-1">
-                        <h3
-                          className={`text-[18px] font-medium mb-[4px] ${
-                            step.active
-                              ? "text-gray-900"
-                              : "text-gray-400"
-                          }`}
+                {!loading &&
+                  !paymentPendingStripeOrder &&
+                  !terminalOrderState && (
+                    <div className="space-y-0">
+                      {orderSteps.map((step, index) => (
+                        <div
+                          key={step.id}
+                          className="relative flex gap-6 pb-10"
                         >
-                          {step.title}
-                        </h3>
+                          {index !== orderSteps.length - 1 && (
+                            <div className="absolute left-[17px] top-10 w-px h-full border-l-2 border-dashed border-gray-200" />
+                          )}
 
-                        <p className="text-sm text-gray-400">
-                          {step.desc}
-                        </p>
-                      </div>
+                          <div
+                            className={`relative z-10 flex items-center justify-center w-9 h-9 rounded-full text-sm font-medium ${
+                              step.active
+                                ? "bg-primary text-white"
+                                : "bg-[#D9D9D9] text-white"
+                            }`}
+                          >
+                            {step.id}
+                          </div>
+
+                          <div className="pt-1">
+                            <h3
+                              className={`text-[18px] font-medium mb-[4px] ${
+                                step.active ? "text-gray-900" : "text-gray-400"
+                              }`}
+                            >
+                              {step.title}
+                            </h3>
+
+                            <p className="text-sm text-gray-400">{step.desc}</p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              )}
-
+                  )}
+              </div>
             </div>
 
+            {/* RIGHT */}
+            <div className="lg:col-span-5">
+              <OrderSummary
+                order={order}
+                onContinuePayment={handleContinuePayment}
+                continuingPayment={continuingPayment}
+                onChangePaymentMethod={handleChangePaymentMethod}
+                changingPaymentMethod={changingPaymentMethod}
+                canSwitchPaymentMethod={canSwitchPaymentMethod}
+              />
+            </div>
           </div>
-
-          {/* RIGHT */}
-          <div className="lg:col-span-5">
-            <OrderSummary
-              order={order}
-              onContinuePayment={handleContinuePayment}
-              continuingPayment={continuingPayment}
-              onChangePaymentMethod={handleChangePaymentMethod}
-              changingPaymentMethod={changingPaymentMethod}
-              canSwitchPaymentMethod={canSwitchPaymentMethod}
-            />
-          </div>
-
-        </div>
         </>
       )}
 
@@ -403,7 +444,10 @@ function OrderStatusContent() {
               {t("completePaymentDescription")}
             </p>
 
-            <Elements stripe={stripePromise} options={{ clientSecret: stripePayment.clientSecret }}>
+            <Elements
+              stripe={stripePromise}
+              options={{ clientSecret: stripePayment.clientSecret }}
+            >
               <OrderPaymentElement onSuccess={handlePaymentSuccess} />
             </Elements>
           </div>
@@ -466,7 +510,11 @@ const OrderPaymentElement = ({ onSuccess }: { onSuccess: () => void }) => {
 
 export function OrderStatusPage() {
   return (
-    <Suspense fallback={<div className="max-w-[1400px] mx-auto mt-[36px] mb-[113px] px-6 md:px-30 pt-5" />}>
+    <Suspense
+      fallback={
+        <div className="max-w-[1400px] mx-auto mt-[36px] mb-[113px] px-6 md:px-30 pt-5" />
+      }
+    >
       <OrderStatusContent />
     </Suspense>
   );

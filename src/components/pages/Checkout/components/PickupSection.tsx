@@ -1,10 +1,11 @@
-import { CustomerDetailsForm } from "@/components/pages/Checkout/components/CustomerDetailsForm"
-import { SelectPickupTimeSection } from "@/components/pages/Checkout/components/TimeSection"
-import NotesSection from "@/components/pages/Checkout/components/NotesSection"
-import { PaymentMethodSection } from "@/components/pages/Checkout/components/PaymentMethodSection"
+import { CustomerDetailsForm } from "@/components/pages/Checkout/components/CustomerDetailsForm";
+import { SelectPickupTimeSection } from "@/components/pages/Checkout/components/TimeSection";
+import NotesSection from "@/components/pages/Checkout/components/NotesSection";
+import { PaymentMethodSection } from "@/components/pages/Checkout/components/PaymentMethodSection";
 import type { BranchRecord } from "@/types/branch-selector";
 import { useTranslations } from "next-intl";
 import type { CheckoutPaymentMethod } from "@/components/pages/Checkout/utils/payment-methods";
+import type { GuestContactErrors } from "@/components/pages/Checkout/utils/guest-contact";
 
 type PickupSectionProps = {
   selectedAddress: string | null;
@@ -32,6 +33,8 @@ type PickupSectionProps = {
   pickupScheduleMode: "now" | "schedule";
   setPickupScheduleMode: (value: "now" | "schedule") => void;
   selectedBranch?: BranchRecord | null;
+  contactErrors?: GuestContactErrors;
+  onContactFieldChange?: (field: "name" | "phone" | "email") => void;
 };
 
 export function PickupSection(props: PickupSectionProps) {

@@ -79,8 +79,10 @@ import {
 } from "@/components/pages/Checkout/utils/guest-delivery-address";
 import { getStoredDeliveryLocation } from "@/lib/delivery-location";
 import {
+  getGuestContactErrors,
   getGuestContactPayload,
   hasGuestContact,
+  type GuestContactErrors,
 } from "@/components/pages/Checkout/utils/guest-contact";
 import {
   getAvailableCheckoutPaymentMethods,
@@ -658,6 +660,7 @@ function CheckoutPageContent() {
     phone: "",
     email: "",
   });
+  const [contactErrors, setContactErrors] = useState<GuestContactErrors>({});
   const [privacyPolicyAccepted, setPrivacyPolicyAccepted] = useState(false);
   const [guestPrivacyPolicy, setGuestPrivacyPolicy] =
     useState<GuestPrivacyPolicy | null>(null);
@@ -709,17 +712,13 @@ function CheckoutPageContent() {
     if (!storedAddress) return;
 
     setGuestDeliveryAddress((currentAddress) =>
-      hasGuestDeliveryAddress(currentAddress)
-        ? currentAddress
-        : storedAddress,
+      hasGuestDeliveryAddress(currentAddress) ? currentAddress : storedAddress,
     );
   }, [isGuest]);
 
   useEffect(() => {
     if (
-      !availablePaymentMethods.includes(
-        paymentMethod as CheckoutPaymentMethod,
-      )
+      !availablePaymentMethods.includes(paymentMethod as CheckoutPaymentMethod)
     ) {
       setPaymentMethod(availablePaymentMethods[0] ?? "");
     }
@@ -730,7 +729,8 @@ function CheckoutPageContent() {
 
     if (isGuest) {
       setCustomer((prev) => ({
-        name: prev.name.trim().toLowerCase() === "guest customer" ? "" : prev.name,
+        name:
+          prev.name.trim().toLowerCase() === "guest customer" ? "" : prev.name,
         phone: prev.phone,
         email: /@guest\.deliveryways?(?:\.local)?$/i.test(prev.email.trim())
           ? ""
@@ -940,10 +940,9 @@ function CheckoutPageContent() {
     );
 
     try {
-      const endpoint =
-        isDealCartItem(currentItem)
-          ? `/v1/cart/deals/${encodeURIComponent(id)}?customerId=${customerId}`
-          : `/v1/cart/items/${id}?customerId=${customerId}`;
+      const endpoint = isDealCartItem(currentItem)
+        ? `/v1/cart/deals/${encodeURIComponent(id)}?customerId=${customerId}`
+        : `/v1/cart/items/${id}?customerId=${customerId}`;
       const res = await patch(endpoint, {
         quantity: newQty,
       });
@@ -1306,7 +1305,16 @@ function CheckoutPageContent() {
       }
 
       if (isGuest && !hasGuestContact(customer)) {
-        toast.error(t("toast.enterGuestContact"));
+        const errors = getGuestContactErrors(customer);
+        setContactErrors(errors);
+        const firstInvalidField = (["name", "phone", "email"] as const).find(
+          (field) => errors[field],
+        );
+        document
+          .querySelector<HTMLInputElement>(
+            `[name="guest-${firstInvalidField}"]`,
+          )
+          ?.focus();
         return;
       }
 
@@ -1623,6 +1631,15 @@ function CheckoutPageContent() {
 
           {activeTab === "delivery" ? (
             <DeliverySection
+              contactErrors={contactErrors}
+              onContactFieldChange={(field) =>
+                setContactErrors((current) => {
+                  if (!current[field]) return current;
+                  const next = { ...current };
+                  delete next[field];
+                  return next;
+                })
+              }
               selectedAddress={selectedAddress}
               setSelectedAddress={setSelectedAddress}
               note={note}
@@ -1648,6 +1665,15 @@ function CheckoutPageContent() {
             />
           ) : (
             <PickupSection
+              contactErrors={contactErrors}
+              onContactFieldChange={(field) =>
+                setContactErrors((current) => {
+                  if (!current[field]) return current;
+                  const next = { ...current };
+                  delete next[field];
+                  return next;
+                })
+              }
               selectedAddress={selectedAddress}
               setSelectedAddress={setSelectedAddress}
               note={note}

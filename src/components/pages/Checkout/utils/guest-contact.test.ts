@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   getGuestContactPayload,
+  getGuestContactErrors,
   hasGuestContact,
 } from "./guest-contact";
 
@@ -45,6 +46,32 @@ describe("guest checkout contact", () => {
         phone: "invalid phone",
       }),
     ).toBe(false);
+  });
+
+  it("identifies each invalid field independently", () => {
+    expect(
+      getGuestContactErrors({
+        name: "M",
+        email: "not-an-email",
+        phone: "123",
+      }),
+    ).toEqual({
+      name: "invalid",
+      phone: "invalid",
+      email: "invalid",
+    });
+
+    expect(
+      getGuestContactErrors({
+        name: "",
+        email: "",
+        phone: "",
+      }),
+    ).toEqual({
+      name: "required",
+      phone: "required",
+      email: "required",
+    });
   });
 
   it("trims and submits the entered name as firstName", () => {

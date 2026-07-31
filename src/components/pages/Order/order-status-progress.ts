@@ -14,6 +14,17 @@ const normalizeValue = (value?: string | null) =>
     .trim()
     .toUpperCase();
 
+export type TerminalOrderState = "rejected" | "cancelled" | null;
+
+export const getTerminalOrderState = (
+  status?: string | null,
+): TerminalOrderState => {
+  const normalizedStatus = normalizeValue(status);
+  if (normalizedStatus === "REJECTED") return "rejected";
+  if (normalizedStatus === "CANCELLED") return "cancelled";
+  return null;
+};
+
 export const isDeliveryOrder = (orderType?: string | null) =>
   normalizeValue(orderType) === "DELIVERY";
 
@@ -21,7 +32,7 @@ const isDineInOrder = (orderType?: string | null) =>
   ["DINE_IN", "DINEIN", "TABLE"].includes(normalizeValue(orderType));
 
 export const getOrderProgressStepKeys = (
-  orderType?: string | null
+  orderType?: string | null,
 ): OrderProgressStepKey[] => {
   if (isDeliveryOrder(orderType)) {
     return ["placed", "confirmed", "preparing", "outForDelivery", "delivered"];
@@ -36,7 +47,7 @@ export const getOrderProgressStepKeys = (
 
 export const getOrderProgressStep = (
   status?: string | null,
-  orderType?: string | null
+  orderType?: string | null,
 ) => {
   const normalizedStatus = normalizeValue(status);
 
@@ -45,7 +56,11 @@ export const getOrderProgressStep = (
   if (["PREPARING", "IN_PROGRESS"].includes(normalizedStatus)) return 3;
 
   if (isDeliveryOrder(orderType)) {
-    if (["OUT_FOR_DELIVERY", "DISPATCHED", "ON_THE_WAY"].includes(normalizedStatus)) {
+    if (
+      ["OUT_FOR_DELIVERY", "DISPATCHED", "ON_THE_WAY"].includes(
+        normalizedStatus,
+      )
+    ) {
       return 4;
     }
 
@@ -58,7 +73,11 @@ export const getOrderProgressStep = (
   }
 
   if (["READY_FOR_PICKUP", "READY"].includes(normalizedStatus)) return 4;
-  if (["PICKED_UP", "COLLECTED", "DELIVERED", "COMPLETED"].includes(normalizedStatus)) {
+  if (
+    ["PICKED_UP", "COLLECTED", "DELIVERED", "COMPLETED"].includes(
+      normalizedStatus,
+    )
+  ) {
     return 5;
   }
 

@@ -90,11 +90,14 @@ export function OrderCartSidebar({
     try {
       setLoadingCart(true);
 
-      const { response: res, items, quote } =
-        await fetchCustomerCartForOrderType({
-          customerId,
-          orderType: checkoutType === "pickup" ? "TAKEAWAY" : "DELIVERY",
-        });
+      const {
+        response: res,
+        items,
+        quote,
+      } = await fetchCustomerCartForOrderType({
+        customerId,
+        orderType: checkoutType === "pickup" ? "TAKEAWAY" : "DELIVERY",
+      });
 
       if (!res || res.error) {
         setCartItems([]);
@@ -129,7 +132,7 @@ export function OrderCartSidebar({
       rightHalf: t("rightHalf"),
       selectedItem: t("selectedItem"),
     }),
-    [t]
+    [t],
   );
 
   const pricingItems = useMemo(
@@ -138,12 +141,16 @@ export function OrderCartSidebar({
         item,
         pricing: getItemPricing(item, checkoutType),
       })),
-    [cartItems, checkoutType]
+    [cartItems, checkoutType],
   );
 
   const totalItems = useMemo(
-    () => cartItems.reduce((acc, item) => acc + Math.max(1, toNumber(item.quantity, 1)), 0),
-    [cartItems]
+    () =>
+      cartItems.reduce(
+        (acc, item) => acc + Math.max(1, toNumber(item.quantity, 1)),
+        0,
+      ),
+    [cartItems],
   );
 
   const { itemTotal, depositTotal, displaySubtotal } = useMemo(
@@ -151,7 +158,10 @@ export function OrderCartSidebar({
     [cartQuote?.subtotal, pricingItems],
   );
 
-  const checkoutPriceAdjustment = getCheckoutPriceAdjustmentTotal(cartItems, checkoutType);
+  const checkoutPriceAdjustment = getCheckoutPriceAdjustmentTotal(
+    cartItems,
+    checkoutType,
+  );
   const hasCartQuote = Boolean(cartQuote);
   const deliveryAdjustmentFee =
     checkoutType === "delivery" ? checkoutPriceAdjustment : 0;
@@ -163,31 +173,64 @@ export function OrderCartSidebar({
           ? deliveryAdjustmentFee
           : toNumber(cartQuote?.deliveryFee, 0)
       : 0;
-  const pickupFee = checkoutType === "pickup" && !hasCartQuote ? checkoutPriceAdjustment : 0;
+  const pickupFee =
+    checkoutType === "pickup" && !hasCartQuote ? checkoutPriceAdjustment : 0;
   const selectedOrderFee = checkoutType === "pickup" ? pickupFee : deliveryFee;
+  const deliveryPolicy =
+    cartQuote?.deliveryPolicy &&
+    typeof cartQuote.deliveryPolicy === "object" &&
+    !Array.isArray(cartQuote.deliveryPolicy)
+      ? (cartQuote.deliveryPolicy as ApiRecord)
+      : null;
+  const minimumOrderAmount = Math.max(
+    0,
+    toNumber(deliveryPolicy?.minOrderAmount, 0),
+  );
+  const freeDeliveryThreshold = Math.max(
+    0,
+    toNumber(deliveryPolicy?.freeDeliveryThreshold, 0),
+  );
   const tipAmount = Math.max(0, toNumber(cartQuote?.tipAmount, 0));
   const serviceChargeAmount = getServiceChargeAmountFromQuote(cartQuote);
   const serviceChargeLabel = getServiceChargeLabel({
-    serviceChargeType: typeof cartQuote?.serviceChargeType === "string" ? cartQuote.serviceChargeType : null,
+    serviceChargeType:
+      typeof cartQuote?.serviceChargeType === "string"
+        ? cartQuote.serviceChargeType
+        : null,
     serviceChargeValue:
-      typeof cartQuote?.serviceChargeValue === "string" || typeof cartQuote?.serviceChargeValue === "number"
+      typeof cartQuote?.serviceChargeValue === "string" ||
+      typeof cartQuote?.serviceChargeValue === "number"
         ? cartQuote.serviceChargeValue
         : null,
     serviceChargeLabel: t("totals.serviceCharge"),
-    serviceChargeWithPercentageLabel: (value) => t("totals.serviceChargeWithPercentage", { value }),
+    serviceChargeWithPercentageLabel: (value) =>
+      t("totals.serviceChargeWithPercentage", { value }),
   });
   const appliedPromotion =
-    typeof cartQuote?.appliedPromotion === "object" && cartQuote.appliedPromotion !== null
+    typeof cartQuote?.appliedPromotion === "object" &&
+    cartQuote.appliedPromotion !== null
       ? cartQuote.appliedPromotion
       : null;
   const hasAppliedPromotion = Boolean(
-    appliedPromotion && ("id" in appliedPromotion || "title" in appliedPromotion)
+    appliedPromotion &&
+    ("id" in appliedPromotion || "title" in appliedPromotion),
   );
   const promotionDiscountLine = getAppliedPromotionDiscountLine(cartQuote);
-  const scopedItemDiscountDisplays = getScopedItemDiscountDisplays(pricingItems, cartQuote);
-  const discount = promotionDiscountLine?.amount ?? Math.max(0, toNumber(cartQuote?.discountAmount, 0));
-  const loyaltyDiscount = Math.max(0, toNumber(cartQuote?.loyaltyDiscountAmount, 0));
-  const walletAppliedAmount = Math.max(0, toNumber(cartQuote?.walletAppliedAmount, 0));
+  const scopedItemDiscountDisplays = getScopedItemDiscountDisplays(
+    pricingItems,
+    cartQuote,
+  );
+  const discount =
+    promotionDiscountLine?.amount ??
+    Math.max(0, toNumber(cartQuote?.discountAmount, 0));
+  const loyaltyDiscount = Math.max(
+    0,
+    toNumber(cartQuote?.loyaltyDiscountAmount, 0),
+  );
+  const walletAppliedAmount = Math.max(
+    0,
+    toNumber(cartQuote?.walletAppliedAmount, 0),
+  );
   const totalBeforeDiscount = getTotalBeforeDiscount({
     subtotal: displaySubtotal,
     deposit: depositTotal,
@@ -206,7 +249,7 @@ export function OrderCartSidebar({
     quoteAmount: quotePayableAmount,
     fallbackAmount: Math.max(
       0,
-      totalBeforeDiscount - discount - loyaltyDiscount - walletAppliedAmount
+      totalBeforeDiscount - discount - loyaltyDiscount - walletAppliedAmount,
     ),
     hasAppliedOffset:
       discount > 0 || loyaltyDiscount > 0 || walletAppliedAmount > 0,
@@ -223,7 +266,8 @@ export function OrderCartSidebar({
     if (!item || !customerId) return;
 
     const currentQty = Math.max(1, toNumber(item.quantity, 1));
-    const newQty = type === "inc" ? currentQty + 1 : Math.max(1, currentQty - 1);
+    const newQty =
+      type === "inc" ? currentQty + 1 : Math.max(1, currentQty - 1);
 
     if (newQty === currentQty) return;
 
@@ -231,14 +275,24 @@ export function OrderCartSidebar({
       setActionId(id);
       setCartItems((prev) =>
         prev.map((cartItem) =>
-          String(cartItem.id) === id ? recalculateCartItemQuantity(cartItem, newQty) : cartItem
-        )
+          String(cartItem.id) === id
+            ? recalculateCartItemQuantity(cartItem, newQty)
+            : cartItem,
+        ),
       );
 
       const isDealItem = isDealCartItem(item);
       const res = isDealItem
-        ? await updateCustomerCartDealQuantity({ customerId, dealTargetId: id, quantity: newQty })
-        : await updateCustomerCartItemQuantity({ customerId, cartItemId: id, quantity: newQty });
+        ? await updateCustomerCartDealQuantity({
+            customerId,
+            dealTargetId: id,
+            quantity: newQty,
+          })
+        : await updateCustomerCartItemQuantity({
+            customerId,
+            cartItemId: id,
+            quantity: newQty,
+          });
 
       if (!res || res.error) {
         toast.error(res?.error || cartT("failedUpdateQuantity"));
@@ -287,7 +341,7 @@ export function OrderCartSidebar({
         "border-l border-black/5 bg-white/95 px-4 py-5 backdrop-blur-sm sm:px-6 shadow-[-12px_0_32px_0_rgba(26,28,28,0.04)]",
         presentation === "embedded"
           ? "xl:sticky xl:top-0"
-          : "h-full overflow-y-auto rounded-[22px] border border-black/10 shadow-[0_24px_80px_rgba(15,23,42,0.18)]"
+          : "h-full overflow-y-auto rounded-[22px] border border-black/10 shadow-[0_24px_80px_rgba(15,23,42,0.18)]",
       )}
     >
       <div className="mx-auto flex h-full max-w-[320px] flex-col">
@@ -297,7 +351,9 @@ export function OrderCartSidebar({
               {t("cartSummary")}
             </h2>
             <p className="mt-1 text-xs capitalize text-gray-400">
-              {checkoutType === "pickup" ? t("pickupPricingApplied") : t("deliveryPricingApplied")}
+              {checkoutType === "pickup"
+                ? t("pickupPricingApplied")
+                : t("deliveryPricingApplied")}
             </p>
           </div>
 
@@ -312,8 +368,12 @@ export function OrderCartSidebar({
           </div>
         ) : cartItems.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50/70 p-5 text-center">
-            <p className="text-sm font-medium text-gray-700">{t("yourCartIsEmpty")}</p>
-            <p className="mt-1 text-xs text-gray-400">{t("emptyCartDescription")}</p>
+            <p className="text-sm font-medium text-gray-700">
+              {t("yourCartIsEmpty")}
+            </p>
+            <p className="mt-1 text-xs text-gray-400">
+              {t("emptyCartDescription")}
+            </p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -330,15 +390,22 @@ export function OrderCartSidebar({
                 selectedSections,
               } = pricing;
               const isDealItem = isDealCartItem(item);
-              const selectedVariationName = isDealItem ? "" : getSelectedVariationName(item);
+              const selectedVariationName = isDealItem
+                ? ""
+                : getSelectedVariationName(item);
               const splitPizzaDisplay = getSplitPizzaDisplay(
                 item,
                 selectedSections,
                 splitLabels,
-                checkoutType
+                checkoutType,
               );
-              const includedItems = Array.isArray(item.includedItems) ? item.includedItems : [];
-              const itemDiscountDisplay = scopedItemDiscountDisplays.get(String(item.id || item.menuItemId || ""));
+              const includedItems = Array.isArray(item.includedItems)
+                ? item.includedItems
+                : [];
+              const itemDiscountDisplay = scopedItemDiscountDisplays.get(
+                String(item.id || item.menuItemId || ""),
+              );
+              const itemImage = String(getItemImage(item) || "");
 
               return (
                 <div
@@ -346,15 +413,22 @@ export function OrderCartSidebar({
                   className="rounded-2xl border border-gray-100 bg-white p-3 shadow-sm"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="relative h-[66px] w-[66px] shrink-0 overflow-hidden rounded-[12px] bg-gray-100">
-                      <Image
-                        src={String(getItemImage(item) || "/placeholder.png")}
-                        alt={item.name}
-                        fill
-                        className="object-cover"
-                        unoptimized
-                      />
-                    </div>
+                    {itemImage ? (
+                      <div className="relative h-[66px] w-[66px] shrink-0 overflow-hidden rounded-[12px] bg-gray-100">
+                        <Image
+                          src={itemImage}
+                          alt={item.name}
+                          fill
+                          className="object-cover"
+                          unoptimized
+                          onError={(event) => {
+                            event.currentTarget.parentElement?.classList.add(
+                              "hidden",
+                            );
+                          }}
+                        />
+                      </div>
+                    ) : null}
 
                     <div className="min-w-0 flex-1 space-y-2">
                       <div className="flex items-start justify-between gap-2">
@@ -374,7 +448,6 @@ export function OrderCartSidebar({
                               {t("size")}: {String(selectedVariationName)}
                             </p>
                           ) : null}
-
                         </div>
 
                         <button
@@ -396,10 +469,18 @@ export function OrderCartSidebar({
                           <div className="mt-1.5 space-y-1">
                             {includedItems.map((includedItem, index) => {
                               const includedName =
-                                String(includedItem.menuItem?.name || includedItem.name || "").trim() ||
-                                t("includedItemFallback");
-                              const includedQuantity = Math.max(1, toNumber(includedItem.quantity, 1));
-                              const includedModifiers = Array.isArray(includedItem.selectedModifiers)
+                                String(
+                                  includedItem.menuItem?.name ||
+                                    includedItem.name ||
+                                    "",
+                                ).trim() || t("includedItemFallback");
+                              const includedQuantity = Math.max(
+                                1,
+                                toNumber(includedItem.quantity, 1),
+                              );
+                              const includedModifiers = Array.isArray(
+                                includedItem.selectedModifiers,
+                              )
                                 ? includedItem.selectedModifiers
                                 : [];
                               const includedKey =
@@ -413,40 +494,55 @@ export function OrderCartSidebar({
                                   className="space-y-1 text-xs"
                                 >
                                   <div className="flex items-center justify-between gap-3">
-                                    <span className="min-w-0 truncate text-gray-700">{includedName}</span>
-                                    <span className="shrink-0 font-medium text-primary">× {includedQuantity}</span>
+                                    <span className="min-w-0 truncate text-gray-700">
+                                      {includedName}
+                                    </span>
+                                    <span className="shrink-0 font-medium text-primary">
+                                      × {includedQuantity}
+                                    </span>
                                   </div>
 
                                   {includedModifiers.length > 0 ? (
                                     <div className="space-y-0.5 pl-2">
-                                      {includedModifiers.map((modifier, modifierIndex) => {
-                                        const modifierKey =
-                                          modifier.id ||
-                                          modifier.modifierId ||
-                                          `${includedKey}-modifier-${modifierIndex}`;
-                                        const modifierQuantity = Math.max(
-                                          1,
-                                          toNumber(modifier.quantity, 1)
-                                        );
-                                        const modifierTotal = toNumber(modifier.total, 0);
+                                      {includedModifiers.map(
+                                        (modifier, modifierIndex) => {
+                                          const modifierKey =
+                                            modifier.id ||
+                                            modifier.modifierId ||
+                                            `${includedKey}-modifier-${modifierIndex}`;
+                                          const modifierQuantity = Math.max(
+                                            1,
+                                            toNumber(modifier.quantity, 1),
+                                          );
+                                          const modifierTotal = toNumber(
+                                            modifier.total,
+                                            0,
+                                          );
 
-                                        return (
-                                          <div
-                                            key={String(modifierKey)}
-                                            className="flex items-center justify-between gap-3 text-[11px] text-gray-500"
-                                          >
-                                            <span className="min-w-0 truncate">
-                                              {modifier.name}
-                                              {modifierQuantity > 1 ? ` × ${modifierQuantity}` : ""}
-                                            </span>
-                                            {modifierTotal > 0 ? (
-                                              <span className="shrink-0 font-medium text-gray-600">
-                                                +{formatCurrency(modifierTotal, currency)}
+                                          return (
+                                            <div
+                                              key={String(modifierKey)}
+                                              className="flex items-center justify-between gap-3 text-[11px] text-gray-500"
+                                            >
+                                              <span className="min-w-0 truncate">
+                                                {modifier.name}
+                                                {modifierQuantity > 1
+                                                  ? ` × ${modifierQuantity}`
+                                                  : ""}
                                               </span>
-                                            ) : null}
-                                          </div>
-                                        );
-                                      })}
+                                              {modifierTotal > 0 ? (
+                                                <span className="shrink-0 font-medium text-gray-600">
+                                                  +
+                                                  {formatCurrency(
+                                                    modifierTotal,
+                                                    currency,
+                                                  )}
+                                                </span>
+                                              ) : null}
+                                            </div>
+                                          );
+                                        },
+                                      )}
                                     </div>
                                   ) : null}
                                 </div>
@@ -472,13 +568,18 @@ export function OrderCartSidebar({
                                 className="flex items-start justify-between gap-3 text-xs"
                               >
                                 <p className="min-w-0 truncate text-gray-700">
-                                  <span className="font-semibold">{section.label}:</span>{" "}
+                                  <span className="font-semibold">
+                                    {section.label}:
+                                  </span>{" "}
                                   {section.displayName}
                                 </p>
 
                                 {section.checkoutPrice > 0 ? (
                                   <p className="shrink-0 font-medium text-gray-800">
-                                    {formatCurrency(section.checkoutPrice, currency)}
+                                    {formatCurrency(
+                                      section.checkoutPrice,
+                                      currency,
+                                    )}
                                   </p>
                                 ) : null}
                               </div>
@@ -498,19 +599,29 @@ export function OrderCartSidebar({
                           </p>
                           <div className="space-y-1">
                             {selectedAddons.map((addon, index) => {
-                              const addonName = String(addon.name || "").trim() || t("addonFallback");
+                              const addonName =
+                                String(addon.name || "").trim() ||
+                                t("addonFallback");
                               const addonQty = getAddonQuantity(addon);
                               const addonTotal = getAddonTotal(addon);
-                              const addonKey = addon.modifierId || addon.id || `${item.id}-addon-${index}`;
+                              const addonKey =
+                                addon.modifierId ||
+                                addon.id ||
+                                `${item.id}-addon-${index}`;
 
                               return (
-                                <div key={addonKey} className="flex items-center justify-between gap-3 text-xs">
+                                <div
+                                  key={addonKey}
+                                  className="flex items-center justify-between gap-3 text-xs"
+                                >
                                   <span className="min-w-0 truncate text-gray-600">
                                     {addonName}
                                     {addonQty > 1 ? ` × ${addonQty}` : ""}
                                   </span>
                                   <span className="shrink-0 font-medium text-gray-700">
-                                    {addonTotal > 0 ? `+${formatCurrency(addonTotal, currency)}` : t("free")}
+                                    {addonTotal > 0
+                                      ? `+${formatCurrency(addonTotal, currency)}`
+                                      : t("free")}
                                   </span>
                                 </div>
                               );
@@ -546,7 +657,10 @@ export function OrderCartSidebar({
                                 {formatCurrency(lineTotal, currency)}
                               </span>
                               <span className="text-sm font-semibold text-primary">
-                                {formatCurrency(itemDiscountDisplay.discountedLineTotal, currency)}
+                                {formatCurrency(
+                                  itemDiscountDisplay.discountedLineTotal,
+                                  currency,
+                                )}
                               </span>
                             </div>
                           ) : (
@@ -557,7 +671,12 @@ export function OrderCartSidebar({
                           <div className="space-y-0.5">
                             {itemDepositTotal > 0 ? (
                               <p className="text-[11px] text-gray-400">
-                                {t("includesDeposit", { amount: formatCurrency(itemDepositTotal, currency) })}
+                                {t("includesDeposit", {
+                                  amount: formatCurrency(
+                                    itemDepositTotal,
+                                    currency,
+                                  ),
+                                })}
                               </p>
                             ) : null}
                           </div>
@@ -566,7 +685,9 @@ export function OrderCartSidebar({
                         <div className="flex h-8 items-center overflow-hidden rounded-full border border-black/5 bg-[#f7f7f7] px-1.5">
                           <button
                             type="button"
-                            onClick={() => void updateQuantity(String(item.id), "dec")}
+                            onClick={() =>
+                              void updateQuantity(String(item.id), "dec")
+                            }
                             disabled={actionId === String(item.id)}
                             className="flex h-6 w-6 items-center justify-center rounded-full text-[#666] transition hover:bg-white hover:text-[#222] disabled:opacity-50"
                             aria-label={`Decrease ${item.name} quantity`}
@@ -578,7 +699,9 @@ export function OrderCartSidebar({
                           </span>
                           <button
                             type="button"
-                            onClick={() => void updateQuantity(String(item.id), "inc")}
+                            onClick={() =>
+                              void updateQuantity(String(item.id), "inc")
+                            }
                             disabled={actionId === String(item.id)}
                             className="flex h-6 w-6 items-center justify-center rounded-full text-[#666] transition hover:bg-white hover:text-[#222] disabled:opacity-50"
                             aria-label={`Increase ${item.name} quantity`}
@@ -612,10 +735,29 @@ export function OrderCartSidebar({
             {selectedOrderFee > 0 ? (
               <div className="flex items-center justify-between">
                 <span>
-                  {checkoutType === "pickup" ? t("pickupPrice") : t("deliveryFee")}
+                  {checkoutType === "pickup"
+                    ? t("pickupPrice")
+                    : t("deliveryFee")}
                 </span>
                 <span>{formatCurrency(selectedOrderFee, currency)}</span>
               </div>
+            ) : null}
+
+            {checkoutType === "delivery" && deliveryPolicy ? (
+              <>
+                <div className="flex items-center justify-between">
+                  <span>{t("minimumOrderValue")}</span>
+                  <span>{formatCurrency(minimumOrderAmount, currency)}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>{t("freeDeliveryAmount")}</span>
+                  <span>
+                    {freeDeliveryThreshold > 0
+                      ? formatCurrency(freeDeliveryThreshold, currency)
+                      : t("notAvailable")}
+                  </span>
+                </div>
+              </>
             ) : null}
 
             {serviceChargeAmount > 0 ? (
@@ -641,7 +783,11 @@ export function OrderCartSidebar({
 
             {discount > 0 ? (
               <div className="flex items-center justify-between text-green-600">
-                <span>{hasAppliedPromotion ? t("appliedDealDiscount") : t("discount")}</span>
+                <span>
+                  {hasAppliedPromotion
+                    ? t("appliedDealDiscount")
+                    : t("discount")}
+                </span>
                 <span>- {formatCurrency(discount, currency)}</span>
               </div>
             ) : null}
@@ -667,7 +813,9 @@ export function OrderCartSidebar({
             ) : null}
 
             <div className="flex items-center justify-between pt-2 text-[22px] font-semibold tracking-[-0.02em] text-gray-900">
-              <span>{walletAppliedAmount > 0 ? t("payableTotal") : t("total")}</span>
+              <span>
+                {walletAppliedAmount > 0 ? t("payableTotal") : t("total")}
+              </span>
               <span>{formatCurrency(finalTotal, currency)}</span>
             </div>
           </div>
@@ -681,7 +829,6 @@ export function OrderCartSidebar({
             {cartT("proceedToCheckout")}
             <ArrowRight className="h-4 w-4" />
           </Button>
-
         </div>
       </div>
     </aside>

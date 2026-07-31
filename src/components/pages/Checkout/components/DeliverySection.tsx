@@ -1,14 +1,14 @@
-'use client';
-import { useEffect, useMemo } from 'react';
-import { Clock, PauseCircle } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+"use client";
+import { useEffect, useMemo } from "react";
+import { Clock, PauseCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
 
-import { DeliveryAddressSection } from '@/components/pages/Checkout/components/DeliveryAddressSection';
-import NotesSection from '@/components/pages/Checkout/components/NotesSection';
-import { CustomerDetailsForm } from '@/components/pages/Checkout/components/CustomerDetailsForm';
-import { PaymentMethodSection } from '@/components/pages/Checkout/components/PaymentMethodSection';
-import { ScheduleRail } from '@/components/pages/Checkout/components/ScheduleRail';
-import { Time24Picker } from '@/components/ui/time-24-picker';
+import { DeliveryAddressSection } from "@/components/pages/Checkout/components/DeliveryAddressSection";
+import NotesSection from "@/components/pages/Checkout/components/NotesSection";
+import { CustomerDetailsForm } from "@/components/pages/Checkout/components/CustomerDetailsForm";
+import { PaymentMethodSection } from "@/components/pages/Checkout/components/PaymentMethodSection";
+import { ScheduleRail } from "@/components/pages/Checkout/components/ScheduleRail";
+import { Time24Picker } from "@/components/ui/time-24-picker";
 import {
   buildScheduleBreakLabels,
   buildDeliveryTimeSlots,
@@ -18,10 +18,11 @@ import {
   getDateValue,
   isImmediateScheduleAvailable,
   isPastDateValue,
-} from '@/components/pages/Checkout/utils/pickup-schedule';
-import type { BranchRecord } from '@/types/branch-selector';
-import type { CheckoutAddressValues } from '@/validations/checkout';
-import type { CheckoutPaymentMethod } from '@/components/pages/Checkout/utils/payment-methods';
+} from "@/components/pages/Checkout/utils/pickup-schedule";
+import type { BranchRecord } from "@/types/branch-selector";
+import type { CheckoutAddressValues } from "@/validations/checkout";
+import type { CheckoutPaymentMethod } from "@/components/pages/Checkout/utils/payment-methods";
+import type { GuestContactErrors } from "@/components/pages/Checkout/utils/guest-contact";
 
 type DeliverySectionProps = {
   selectedAddress: string | null;
@@ -50,6 +51,8 @@ type DeliverySectionProps = {
   guestDeliveryAddress: CheckoutAddressValues;
   setGuestDeliveryAddress: (value: CheckoutAddressValues) => void;
   totalPreparationMinutes?: number;
+  contactErrors?: GuestContactErrors;
+  onContactFieldChange?: (field: "name" | "phone" | "email") => void;
 };
 
 const buildUpcomingDates = () => {
@@ -77,39 +80,49 @@ const disabledTileClass =
 
 export function DeliverySection(props: DeliverySectionProps) {
   const t = useTranslations("checkout");
-  const { deliveryScheduleMode, setDeliveryScheduleMode, setScheduledDeliveryValue } = props;
+  const {
+    deliveryScheduleMode,
+    setDeliveryScheduleMode,
+    setScheduledDeliveryValue,
+  } = props;
   const selectedDateValue = getScheduledDateValue(props.scheduledDeliveryValue);
   const dates = useMemo(() => buildUpcomingDates(), []);
   const immediateAvailable = useMemo(
-    () => isImmediateScheduleAvailable({
-      branch: props.selectedBranch,
-      scheduleType: "delivery",
-    }),
-    [props.selectedBranch]
+    () =>
+      isImmediateScheduleAvailable({
+        branch: props.selectedBranch,
+        scheduleType: "delivery",
+      }),
+    [props.selectedBranch],
   );
   const timeSlots = useMemo(
-    () => buildDeliveryTimeSlots({
-      branch: props.selectedBranch,
-      dateValue: selectedDateValue,
-    }),
-    [props.selectedBranch, selectedDateValue]
+    () =>
+      buildDeliveryTimeSlots({
+        branch: props.selectedBranch,
+        dateValue: selectedDateValue,
+      }),
+    [props.selectedBranch, selectedDateValue],
   );
   const scheduleState = useMemo(
-    () => getBranchScheduleForDate({
-      branch: props.selectedBranch,
-      dateValue: selectedDateValue,
-      scheduleType: "delivery",
-    }),
-    [props.selectedBranch, selectedDateValue]
+    () =>
+      getBranchScheduleForDate({
+        branch: props.selectedBranch,
+        dateValue: selectedDateValue,
+        scheduleType: "delivery",
+      }),
+    [props.selectedBranch, selectedDateValue],
   );
   const schedule = scheduleState.schedule;
-  const breakLabels = useMemo(() => buildScheduleBreakLabels(schedule), [schedule]);
+  const breakLabels = useMemo(
+    () => buildScheduleBreakLabels(schedule),
+    [schedule],
+  );
   const scheduleLabel = useMemo(() => {
     if (!selectedDateValue || !schedule) return "";
     if (schedule.isClosed) return t("closed");
 
     return `${formatPickupTimeLabel(schedule.openTime || "")} - ${formatPickupTimeLabel(
-      schedule.closeTime || ""
+      schedule.closeTime || "",
     )}`;
   }, [schedule, selectedDateValue, t]);
 
@@ -149,9 +162,13 @@ export function DeliverySection(props: DeliverySectionProps) {
                     : interactiveTileClass
               }`}
             >
-              <span className="block text-base font-semibold">{t("orderNow")}</span>
+              <span className="block text-base font-semibold">
+                {t("orderNow")}
+              </span>
               <span className="mt-1 block text-xs leading-5 text-gray-500">
-                {immediateAvailable ? t("orderNowDescription") : t("orderNowUnavailable")}
+                {immediateAvailable
+                  ? t("orderNowDescription")
+                  : t("orderNowUnavailable")}
               </span>
             </button>
             <button
@@ -163,7 +180,9 @@ export function DeliverySection(props: DeliverySectionProps) {
                   : interactiveTileClass
               }`}
             >
-              <span className="block text-base font-semibold">{t("scheduleOrder")}</span>
+              <span className="block text-base font-semibold">
+                {t("scheduleOrder")}
+              </span>
               <span className="mt-1 block text-xs leading-5 text-gray-500">
                 {t("scheduleOrderDescription")}
               </span>
@@ -197,7 +216,9 @@ export function DeliverySection(props: DeliverySectionProps) {
                     disabled={disabled}
                     onClick={() => {
                       const nextDate = getDateFromValue(nextDateValue);
-                      props.setScheduledDeliveryValue(nextDate ? `${nextDateValue}T` : "");
+                      props.setScheduledDeliveryValue(
+                        nextDate ? `${nextDateValue}T` : "",
+                      );
                     }}
                     className={`min-w-[92px] snap-start rounded-xl border px-3 py-3 text-left transition-all duration-200 ${
                       isSelected
@@ -222,20 +243,28 @@ export function DeliverySection(props: DeliverySectionProps) {
             </ScheduleRail>
           ) : null}
 
-          {props.deliveryScheduleMode === "schedule" && selectedDateValue && scheduleLabel ? (
+          {props.deliveryScheduleMode === "schedule" &&
+          selectedDateValue &&
+          scheduleLabel ? (
             <p className="mt-3 flex items-center gap-2 text-xs text-gray-500">
               <Clock size={14} />
               {t("deliveryHoursForDate", { hours: scheduleLabel })}
-              {scheduleState.source === "opening" ? ` ${t("usingOpeningHours")}` : ""}
+              {scheduleState.source === "opening"
+                ? ` ${t("usingOpeningHours")}`
+                : ""}
             </p>
-          ) : props.deliveryScheduleMode === "schedule" && selectedDateValue && !scheduleState.hasOpeningHours ? (
+          ) : props.deliveryScheduleMode === "schedule" &&
+            selectedDateValue &&
+            !scheduleState.hasOpeningHours ? (
             <p className="mt-3 flex items-center gap-2 text-xs text-gray-500">
               <Clock size={14} />
               {t("deliveryHoursNotConfigured")}
             </p>
           ) : null}
 
-          {props.deliveryScheduleMode === "schedule" && selectedDateValue && breakLabels.length > 0 ? (
+          {props.deliveryScheduleMode === "schedule" &&
+          selectedDateValue &&
+          breakLabels.length > 0 ? (
             <div className="mt-3 rounded-[18px] border border-orange-100 bg-orange-50/80 p-4">
               <div className="flex items-start gap-3">
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-white text-orange-600 shadow-sm">
@@ -273,10 +302,13 @@ export function DeliverySection(props: DeliverySectionProps) {
                       key={slot.value}
                       type="button"
                       onClick={() =>
-                        props.setScheduledDeliveryValue(`${selectedDateValue}T${slot.value}`)
+                        props.setScheduledDeliveryValue(
+                          `${selectedDateValue}T${slot.value}`,
+                        )
                       }
                       className={`h-[48px] min-w-[96px] snap-start rounded-[14px] border text-sm font-semibold transition-all duration-200 ${
-                        props.scheduledDeliveryValue === `${selectedDateValue}T${slot.value}`
+                        props.scheduledDeliveryValue ===
+                        `${selectedDateValue}T${slot.value}`
                           ? activeGradientClass
                           : interactiveTileClass
                       }`}
@@ -296,7 +328,9 @@ export function DeliverySection(props: DeliverySectionProps) {
                     value={props.scheduledDeliveryValue.split("T")[1] || ""}
                     onChange={(value) =>
                       props.setScheduledDeliveryValue(
-                        value ? `${selectedDateValue}T${value}` : `${selectedDateValue}T`
+                        value
+                          ? `${selectedDateValue}T${value}`
+                          : `${selectedDateValue}T`,
                       )
                     }
                     className="h-[48px] w-full rounded-[10px] border border-gray-200 bg-white px-4 text-sm font-medium text-gray-700 outline-none transition-all focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10"
@@ -314,10 +348,7 @@ export function DeliverySection(props: DeliverySectionProps) {
       </section>
       <NotesSection note={props.note} setNote={props.setNote} />
       <CustomerDetailsForm {...props} editable={props.isGuest} />
-      <PaymentMethodSection
-        {...props}
-        allowCardOnDelivery
-      />
+      <PaymentMethodSection {...props} allowCardOnDelivery />
     </div>
   );
 }

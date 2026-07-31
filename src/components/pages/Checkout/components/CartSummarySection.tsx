@@ -313,22 +313,18 @@ const getItemSlug = (item: CartItem) => {
 };
 
 export const getItemImage = (item: CartItem) => {
-  return (
-    item.img ||
-    item?.deal?.imageUrl ||
-    item?.menuItem?.imageUrl ||
-    "/placeholder.png"
-  );
+  return item.img || item?.deal?.imageUrl || item?.menuItem?.imageUrl || "";
 };
 
 const CartItemImage = ({ item }: { item: CartItem }) => {
-  const imageUrl = String(getItemImage(item) || "/placeholder.png");
+  const imageUrl = String(getItemImage(item) || "");
   const [failedImageUrl, setFailedImageUrl] = useState("");
-  const source = failedImageUrl === imageUrl ? "/placeholder.png" : imageUrl;
+
+  if (!imageUrl || failedImageUrl === imageUrl) return null;
 
   return (
     <Image
-      src={source}
+      src={imageUrl}
       alt={item.name}
       fill
       className="object-cover"
@@ -741,7 +737,9 @@ export const getCartBillTotals = (
     itemTotal,
     depositTotal,
     displaySubtotal:
-      pricingItems.length > 0 ? itemTotal : (normalizedQuoteSubtotal ?? itemTotal),
+      pricingItems.length > 0
+        ? itemTotal
+        : (normalizedQuoteSubtotal ?? itemTotal),
   };
 };
 

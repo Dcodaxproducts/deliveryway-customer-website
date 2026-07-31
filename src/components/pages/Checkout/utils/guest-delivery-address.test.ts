@@ -24,11 +24,14 @@ describe("guest delivery address", () => {
   it("requires derived administrative fields and coordinates", () => {
     expect(hasGuestDeliveryAddress(completeAddress)).toBe(true);
     expect(
-      hasGuestDeliveryAddress({ ...completeAddress, state: "" }),
+      hasGuestDeliveryAddress({ ...completeAddress, houseNumber: "" }),
     ).toBe(false);
-    expect(
-      hasGuestDeliveryAddress({ ...completeAddress, country: "" }),
-    ).toBe(false);
+    expect(hasGuestDeliveryAddress({ ...completeAddress, state: "" })).toBe(
+      false,
+    );
+    expect(hasGuestDeliveryAddress({ ...completeAddress, country: "" })).toBe(
+      false,
+    );
     expect(hasGuestDeliveryAddress({ ...completeAddress, lat: "" })).toBe(
       false,
     );

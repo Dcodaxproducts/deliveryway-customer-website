@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   getOrderProgressStep,
   getOrderProgressStepKeys,
+  getTerminalOrderState,
 } from "@/components/pages/Order/order-status-progress";
 
 describe("order status progress", () => {
@@ -32,5 +33,12 @@ describe("order status progress", () => {
   it("handles delivered/completed terminal statuses", () => {
     expect(getOrderProgressStep("DELIVERED", "DELIVERY")).toBe(5);
     expect(getOrderProgressStep("COMPLETED", "PICKUP")).toBe(5);
+  });
+
+  it("keeps rejection and cancellation out of delivered progress", () => {
+    expect(getTerminalOrderState("REJECTED")).toBe("rejected");
+    expect(getTerminalOrderState("CANCELLED")).toBe("cancelled");
+    expect(getTerminalOrderState("DELIVERED")).toBeNull();
+    expect(getOrderProgressStep("REJECTED", "DELIVERY")).toBe(1);
   });
 });

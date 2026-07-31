@@ -3,7 +3,15 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Check, Loader2, MapPin, MousePointer2, Navigation, PencilLine, X } from "lucide-react";
+import {
+  Check,
+  Loader2,
+  MapPin,
+  MousePointer2,
+  Navigation,
+  PencilLine,
+  X,
+} from "lucide-react";
 import { AddressLocationPicker } from "@/components/common/branch-selector/AddressLocationPicker";
 import {
   Dialog,
@@ -13,15 +21,27 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { INPUT_BASE_CLASS, LABEL_TEXT_CLASS } from "@/components/common/common-classes";
+import {
+  INPUT_BASE_CLASS,
+  LABEL_TEXT_CLASS,
+} from "@/components/common/common-classes";
 import { Button } from "@/components/ui/button";
 import { isReliableGeolocationAccuracy } from "@/lib/geolocation";
 import { toast } from "sonner";
 import { useCheckout } from "@/hooks/useCheckout";
-import { parseReverseGeocodeAddress, reverseGeocode } from "@/services/geocoding";
+import {
+  parseReverseGeocodeAddress,
+  reverseGeocode,
+} from "@/services/geocoding";
 import { useAuth } from "@/hooks/useAuth";
-import { createCheckoutAddressSchema, type CheckoutAddressValues } from "@/validations/checkout";
-import type { GoogleAddressDetails, GoogleLatLngLiteral } from "@/types/google-maps";
+import {
+  createCheckoutAddressSchema,
+  type CheckoutAddressValues,
+} from "@/validations/checkout";
+import type {
+  GoogleAddressDetails,
+  GoogleLatLngLiteral,
+} from "@/types/google-maps";
 import { useTranslations } from "next-intl";
 
 type AddressModalProps = {
@@ -47,7 +67,9 @@ const initialForm: CheckoutAddressValues = {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
-const getSavedAddress = (value: unknown): { id?: string | number } | undefined => {
+const getSavedAddress = (
+  value: unknown,
+): { id?: string | number } | undefined => {
   if (isRecord(value) && isRecord(value.data)) {
     return {
       id:
@@ -59,7 +81,10 @@ const getSavedAddress = (value: unknown): { id?: string | number } | undefined =
 
   if (isRecord(value)) {
     return {
-      id: typeof value.id === "string" || typeof value.id === "number" ? value.id : undefined,
+      id:
+        typeof value.id === "string" || typeof value.id === "number"
+          ? value.id
+          : undefined,
     };
   }
 
@@ -82,6 +107,7 @@ export function AddressModal({
     () =>
       createCheckoutAddressSchema({
         streetRequired: validationT("streetRequired"),
+        houseNumberRequired: validationT("houseNumberRequired"),
         postalCodeRequired: validationT("postalCodeRequired"),
         cityRequired: validationT("cityRequired"),
         stateRequired: validationT("stateRequired"),
@@ -89,13 +115,21 @@ export function AddressModal({
         latitudeRequired: validationT("latitudeRequired"),
         longitudeRequired: validationT("longitudeRequired"),
       }),
-    [validationT]
+    [validationT],
   );
 
   const [loading, setLoading] = useState(false);
   const [locating, setLocating] = useState(false);
   const [locationPickerOpen, setLocationPickerOpen] = useState(false);
-  const { register, reset, setValue, getValues, handleSubmit, watch, formState: { errors } } = useForm<CheckoutAddressValues>({
+  const {
+    register,
+    reset,
+    setValue,
+    getValues,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<CheckoutAddressValues>({
     resolver: zodResolver(checkoutAddressSchema),
     defaultValues: initialForm,
   });
@@ -139,11 +173,15 @@ export function AddressModal({
         shouldValidate: true,
       });
     },
-    [setValue]
+    [setValue],
   );
 
   const handleLocationSelect = useCallback(
-    (coordinates: GoogleLatLngLiteral, label?: string, details?: GoogleAddressDetails) => {
+    (
+      coordinates: GoogleLatLngLiteral,
+      label?: string,
+      details?: GoogleAddressDetails,
+    ) => {
       setAddressValue("lat", String(coordinates.lat));
       setAddressValue("lng", String(coordinates.lng));
 
@@ -179,7 +217,7 @@ export function AddressModal({
 
       setLocationPickerOpen(false);
     },
-    [setAddressValue]
+    [setAddressValue],
   );
 
   const handleGetCurrentLocation = async () => {
@@ -191,13 +229,15 @@ export function AddressModal({
     try {
       setLocating(true);
 
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0,
-        });
-      });
+      const position = await new Promise<GeolocationPosition>(
+        (resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0,
+          });
+        },
+      );
 
       if (!isReliableGeolocationAccuracy(position.coords.accuracy)) {
         toast.error(t("unableDetectLocation"));
@@ -212,7 +252,10 @@ export function AddressModal({
 
       // Reverse geocoding using OpenStreetMap Nominatim
       // Good for quick integration, but for production use your own geocoding provider/keyed API.
-      const data = await reverseGeocode(position.coords.latitude, position.coords.longitude);
+      const data = await reverseGeocode(
+        position.coords.latitude,
+        position.coords.longitude,
+      );
 
       if (!data.ok) {
         toast.success(t("locationFetchedManual"));
@@ -221,31 +264,40 @@ export function AddressModal({
 
       const parsedAddress = parseReverseGeocodeAddress(
         data.address || {},
-        data.displayName
+        data.displayName,
       );
 
       const currentValues = getValues();
-      setAddressValue("street", parsedAddress.street || currentValues.street || "");
+      setAddressValue(
+        "street",
+        parsedAddress.street || currentValues.street || "",
+      );
       setAddressValue(
         "area",
-        parsedAddress.houseNumber || parsedAddress.area || ""
+        parsedAddress.houseNumber || parsedAddress.area || "",
       );
       setAddressValue("houseNumber", parsedAddress.houseNumber || "");
+      setAddressValue("city", parsedAddress.city || currentValues.city || "");
       setAddressValue(
-        "city",
-        parsedAddress.city || currentValues.city || ""
+        "state",
+        parsedAddress.state || currentValues.state || "",
       );
-      setAddressValue("state", parsedAddress.state || currentValues.state || "");
-      setAddressValue("postalCode", parsedAddress.postalCode || currentValues.postalCode || "");
-      setAddressValue("country", parsedAddress.country || currentValues.country || "");
+      setAddressValue(
+        "postalCode",
+        parsedAddress.postalCode || currentValues.postalCode || "",
+      );
+      setAddressValue(
+        "country",
+        parsedAddress.country || currentValues.country || "",
+      );
       setAddressValue("lat", lat);
       setAddressValue("lng", lng);
       setLocationPickerOpen(false);
 
       toast.success(t("locationFetched"));
     } catch (error) {
-
-      const geolocationError = error instanceof GeolocationPositionError ? error : null;
+      const geolocationError =
+        error instanceof GeolocationPositionError ? error : null;
 
       if (geolocationError?.code === 1) {
         toast.error(t("locationPermissionDenied"));
@@ -262,7 +314,6 @@ export function AddressModal({
   };
 
   const submitAddress = async (form: CheckoutAddressValues) => {
-
     try {
       setLoading(true);
 
@@ -292,7 +343,9 @@ export function AddressModal({
       onSuccess?.(getSavedAddress(res));
       onOpenChange(false);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : errorT("somethingWentWrong"));
+      toast.error(
+        err instanceof Error ? err.message : errorT("somethingWentWrong"),
+      );
     } finally {
       setLoading(false);
     }
@@ -338,65 +391,77 @@ export function AddressModal({
 
         <form noValidate className="flex min-h-0 flex-1 flex-col">
           <div className="min-h-0 flex-1 overflow-y-auto bg-[#F8FAFC] px-5 py-5 sm:px-6">
-            <div className={`grid gap-5 ${locationPickerOpen ? "xl:grid-cols-[minmax(0,1fr)_460px]" : ""}`}>
+            <div
+              className={`grid gap-5 ${locationPickerOpen ? "xl:grid-cols-[minmax(0,1fr)_460px]" : ""}`}
+            >
               <div className="space-y-5">
                 <div className="rounded-[22px] border border-gray-100 bg-white p-2 shadow-sm">
                   <div className="grid gap-2 md:grid-cols-3">
-                  <button
-                    type="button"
-                    onClick={() => setLocationPickerOpen(true)}
-                    className={`flex min-h-[58px] items-center gap-3 rounded-[16px] px-3 py-2.5 text-left transition ${
-                      locationPickerOpen
-                        ? "bg-primary text-white shadow-lg shadow-primary/20"
-                        : "bg-transparent text-gray-700 hover:bg-gray-50"
-                    }`}
-                  >
-                    <span
-                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-[13px] ${
-                        locationPickerOpen ? "bg-white/15 text-white" : "bg-primary/10 text-primary"
+                    <button
+                      type="button"
+                      onClick={() => setLocationPickerOpen(true)}
+                      className={`flex min-h-[58px] items-center gap-3 rounded-[16px] px-3 py-2.5 text-left transition ${
+                        locationPickerOpen
+                          ? "bg-primary text-white shadow-lg shadow-primary/20"
+                          : "bg-transparent text-gray-700 hover:bg-gray-50"
                       }`}
                     >
-                      <MousePointer2 className="h-4 w-4" />
-                    </span>
-                    <span className="min-w-0 text-sm font-semibold">
-                      {t("pickFromMap")}
-                    </span>
-                  </button>
+                      <span
+                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-[13px] ${
+                          locationPickerOpen
+                            ? "bg-white/15 text-white"
+                            : "bg-primary/10 text-primary"
+                        }`}
+                      >
+                        <MousePointer2 className="h-4 w-4" />
+                      </span>
+                      <span className="min-w-0 text-sm font-semibold">
+                        {t("pickFromMap")}
+                      </span>
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={handleGetCurrentLocation}
-                    disabled={locating}
-                    className="flex min-h-[58px] items-center gap-3 rounded-[16px] px-3 py-2.5 text-left text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-70"
-                  >
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[13px] bg-primary/10 text-primary">
-                      {locating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Navigation className="h-4 w-4" />}
-                    </span>
-                    <span className="min-w-0 text-sm font-semibold">
-                      {locating ? t("gettingLocation") : t("getCurrentLocation")}
-                    </span>
-                  </button>
+                    <button
+                      type="button"
+                      onClick={handleGetCurrentLocation}
+                      disabled={locating}
+                      className="flex min-h-[58px] items-center gap-3 rounded-[16px] px-3 py-2.5 text-left text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-70"
+                    >
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[13px] bg-primary/10 text-primary">
+                        {locating ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Navigation className="h-4 w-4" />
+                        )}
+                      </span>
+                      <span className="min-w-0 text-sm font-semibold">
+                        {locating
+                          ? t("gettingLocation")
+                          : t("getCurrentLocation")}
+                      </span>
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={() => setLocationPickerOpen(false)}
-                    className={`flex min-h-[58px] items-center gap-3 rounded-[16px] px-3 py-2.5 text-left transition ${
-                      !locationPickerOpen
-                        ? "bg-primary text-white shadow-lg shadow-primary/20"
-                        : "bg-transparent text-gray-700 hover:bg-gray-50"
-                    }`}
-                  >
-                    <span
-                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-[13px] ${
-                        !locationPickerOpen ? "bg-white/15 text-white" : "bg-primary/10 text-primary"
+                    <button
+                      type="button"
+                      onClick={() => setLocationPickerOpen(false)}
+                      className={`flex min-h-[58px] items-center gap-3 rounded-[16px] px-3 py-2.5 text-left transition ${
+                        !locationPickerOpen
+                          ? "bg-primary text-white shadow-lg shadow-primary/20"
+                          : "bg-transparent text-gray-700 hover:bg-gray-50"
                       }`}
                     >
-                      <PencilLine className="h-4 w-4" />
-                    </span>
-                    <span className="min-w-0 text-sm font-semibold">
-                      {t("typeManually")}
-                    </span>
-                  </button>
+                      <span
+                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-[13px] ${
+                          !locationPickerOpen
+                            ? "bg-white/15 text-white"
+                            : "bg-primary/10 text-primary"
+                        }`}
+                      >
+                        <PencilLine className="h-4 w-4" />
+                      </span>
+                      <span className="min-w-0 text-sm font-semibold">
+                        {t("typeManually")}
+                      </span>
+                    </button>
                   </div>
                 </div>
 
@@ -457,7 +522,9 @@ export function AddressModal({
                           />
                         </div>
                         {errors.street?.message ? (
-                          <p className="text-xs font-medium text-primary">{errors.street.message}</p>
+                          <p className="text-xs font-medium text-primary">
+                            {errors.street.message}
+                          </p>
                         ) : null}
                       </div>
 
@@ -484,37 +551,39 @@ export function AddressModal({
                           className={INPUT_BASE_CLASS}
                         />
                         {errors.postalCode?.message ? (
-                          <p className="text-xs font-medium text-primary">{errors.postalCode.message}</p>
+                          <p className="text-xs font-medium text-primary">
+                            {errors.postalCode.message}
+                          </p>
                         ) : null}
                       </div>
 
                       <div className="space-y-2">
-                        <label className={LABEL_TEXT_CLASS}>
-                          {t("city")}
-                        </label>
+                        <label className={LABEL_TEXT_CLASS}>{t("city")}</label>
                         <Input
                           placeholder={t("cityPlaceholder")}
                           {...register("city")}
                           className={INPUT_BASE_CLASS}
                         />
                         {errors.city?.message ? (
-                          <p className="text-xs font-medium text-primary">{errors.city.message}</p>
+                          <p className="text-xs font-medium text-primary">
+                            {errors.city.message}
+                          </p>
                         ) : null}
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       <div className="space-y-2">
-                        <label className={LABEL_TEXT_CLASS}>
-                          {t("state")}
-                        </label>
+                        <label className={LABEL_TEXT_CLASS}>{t("state")}</label>
                         <Input
                           placeholder={t("statePlaceholder")}
                           {...register("state")}
                           className={INPUT_BASE_CLASS}
                         />
                         {errors.state?.message ? (
-                          <p className="text-xs font-medium text-primary">{errors.state.message}</p>
+                          <p className="text-xs font-medium text-primary">
+                            {errors.state.message}
+                          </p>
                         ) : null}
                       </div>
 
@@ -528,7 +597,9 @@ export function AddressModal({
                           className={INPUT_BASE_CLASS}
                         />
                         {errors.country?.message ? (
-                          <p className="text-xs font-medium text-primary">{errors.country.message}</p>
+                          <p className="text-xs font-medium text-primary">
+                            {errors.country.message}
+                          </p>
                         ) : null}
                       </div>
                     </div>
@@ -545,7 +616,9 @@ export function AddressModal({
                       <MapPin className="h-4 w-4" />
                     </span>
                     <div className="min-w-0">
-                      <p className="font-semibold text-gray-950">{t("mapLocation")}</p>
+                      <p className="font-semibold text-gray-950">
+                        {t("mapLocation")}
+                      </p>
                       <p className="mt-1 text-xs leading-5 text-gray-500">
                         {selectedCoordinates
                           ? t("mapLocationSelected", {
@@ -571,8 +644,12 @@ export function AddressModal({
                       <MousePointer2 className="h-4 w-4" />
                     </span>
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-gray-950">{t("pickFromMap")}</p>
-                      <p className="mt-1 text-xs leading-5 text-gray-500">{t("mapPickerDescription")}</p>
+                      <p className="text-sm font-semibold text-gray-950">
+                        {t("pickFromMap")}
+                      </p>
+                      <p className="mt-1 text-xs leading-5 text-gray-500">
+                        {t("mapPickerDescription")}
+                      </p>
                     </div>
                   </div>
 

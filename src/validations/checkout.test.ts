@@ -24,18 +24,44 @@ const validAddress = {
 
 describe("checkout validation", () => {
   it("validates checkout address requirements", () => {
-    expect(checkoutAddressSchema.safeParse({ ...validAddress, street: "" }).success).toBe(false);
-    expect(checkoutAddressSchema.safeParse({ ...validAddress, isDefault: true }).success).toBe(true);
-    expect(checkoutAddressSchema.safeParse({ ...validAddress, postalCode: "" }).success).toBe(false);
-    expect(checkoutAddressSchema.safeParse({ ...validAddress, state: "" }).success).toBe(false);
-    expect(checkoutAddressSchema.safeParse({ ...validAddress, lat: "" }).success).toBe(false);
-    expect(checkoutAddressSchema.safeParse({ ...validAddress, lng: "" }).success).toBe(false);
-    expect(checkoutAddressSchema.safeParse({ ...validAddress, isDefault: undefined }).success).toBe(false);
+    expect(
+      checkoutAddressSchema.safeParse({ ...validAddress, street: "" }).success,
+    ).toBe(false);
+    expect(
+      checkoutAddressSchema.safeParse({ ...validAddress, houseNumber: "" })
+        .success,
+    ).toBe(false);
+    expect(
+      checkoutAddressSchema.safeParse({ ...validAddress, isDefault: true })
+        .success,
+    ).toBe(true);
+    expect(
+      checkoutAddressSchema.safeParse({ ...validAddress, postalCode: "" })
+        .success,
+    ).toBe(false);
+    expect(
+      checkoutAddressSchema.safeParse({ ...validAddress, state: "" }).success,
+    ).toBe(false);
+    expect(
+      checkoutAddressSchema.safeParse({ ...validAddress, lat: "" }).success,
+    ).toBe(false);
+    expect(
+      checkoutAddressSchema.safeParse({ ...validAddress, lng: "" }).success,
+    ).toBe(false);
+    expect(
+      checkoutAddressSchema.safeParse({ ...validAddress, isDefault: undefined })
+        .success,
+    ).toBe(false);
   });
 
   it("validates customer and notes shapes", () => {
-    expect(checkoutCustomerSchema.safeParse({ name: "A", phone: "1", email: "" }).success).toBe(true);
-    expect(checkoutNotesSchema.parse({ note: "Leave at door" })).toEqual({ note: "Leave at door" });
+    expect(
+      checkoutCustomerSchema.safeParse({ name: "A", phone: "1", email: "" })
+        .success,
+    ).toBe(true);
+    expect(checkoutNotesSchema.parse({ note: "Leave at door" })).toEqual({
+      note: "Leave at door",
+    });
   });
 
   it("allows optional non-negative tip amounts", () => {
@@ -57,6 +83,7 @@ describe("checkout validation", () => {
   it("uses translated checkout address messages from schema factories", () => {
     const schema = createCheckoutAddressSchema({
       streetRequired: "Street translated",
+      houseNumberRequired: "House number translated",
       postalCodeRequired: "Postal translated",
       cityRequired: "City translated",
       stateRequired: "State translated",
@@ -81,13 +108,30 @@ describe("checkout validation", () => {
     expect(result.success).toBe(false);
 
     if (!result.success) {
-      expect(result.error.flatten().fieldErrors.street).toContain("Street translated");
-      expect(result.error.flatten().fieldErrors.postalCode).toContain("Postal translated");
-      expect(result.error.flatten().fieldErrors.city).toContain("City translated");
-      expect(result.error.flatten().fieldErrors.state).toContain("State translated");
-      expect(result.error.flatten().fieldErrors.country).toContain("Country translated");
-      expect(result.error.flatten().fieldErrors.lat).toContain("Latitude translated");
-      expect(result.error.flatten().fieldErrors.lng).toContain("Longitude translated");
+      expect(result.error.flatten().fieldErrors.street).toContain(
+        "Street translated",
+      );
+      expect(result.error.flatten().fieldErrors.houseNumber).toContain(
+        "House number translated",
+      );
+      expect(result.error.flatten().fieldErrors.postalCode).toContain(
+        "Postal translated",
+      );
+      expect(result.error.flatten().fieldErrors.city).toContain(
+        "City translated",
+      );
+      expect(result.error.flatten().fieldErrors.state).toContain(
+        "State translated",
+      );
+      expect(result.error.flatten().fieldErrors.country).toContain(
+        "Country translated",
+      );
+      expect(result.error.flatten().fieldErrors.lat).toContain(
+        "Latitude translated",
+      );
+      expect(result.error.flatten().fieldErrors.lng).toContain(
+        "Longitude translated",
+      );
     }
   });
 });

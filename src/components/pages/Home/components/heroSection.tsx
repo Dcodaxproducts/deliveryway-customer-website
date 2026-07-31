@@ -1,7 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { BadgePercent, Clock3, MapPinned, ShoppingBag, Store, Truck } from "lucide-react";
+import {
+  BadgePercent,
+  Clock3,
+  MapPinned,
+  ShoppingBag,
+  Store,
+  Truck,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -24,7 +31,6 @@ import {
   branchSupportsDelivery,
   branchSupportsPickup,
   formatBranchAddress,
-  formatBranchDistance,
   getSelectedOrderType,
   isBranchCurrentlyAvailable,
   nearbyBranchToBranchRecord,
@@ -44,7 +50,10 @@ import {
   resolvePreferredSavedDeliveryAddressId,
   setStoredSelectedDeliveryAddressId,
 } from "@/lib/delivery-location";
-import { isRemoteHttpsImageUrl, resolveHttpsImageUrl } from "@/lib/image-fallback";
+import {
+  isRemoteHttpsImageUrl,
+  resolveHttpsImageUrl,
+} from "@/lib/image-fallback";
 import { fetchAddresses } from "@/services/profile";
 import type { AuthBranch } from "@/types/auth";
 import type { BranchOrderType, NearbyBranch } from "@/types/branches";
@@ -84,7 +93,8 @@ export const HeroSection = ({
   const deliveryAddressPromptedRef = useRef(false);
   const [mode, setMode] = useState<BranchSearchMode>("pickup");
   const [showResults, setShowResults] = useState(false);
-  const [isCheckingDeliveryAddresses, setIsCheckingDeliveryAddresses] = useState(false);
+  const [isCheckingDeliveryAddresses, setIsCheckingDeliveryAddresses] =
+    useState(false);
   const [addressModalOpen, setAddressModalOpen] = useState(false);
   const [deliveryLocationDialogOpen, setDeliveryLocationDialogOpen] =
     useState(false);
@@ -105,15 +115,19 @@ export const HeroSection = ({
           limit: 20,
         }
       : null,
-    { enabled: showResults }
+    { enabled: showResults },
   );
 
-  const selectedBranch = useMemo(() => normalizeBranch(branch ?? user?.branch), [branch, user?.branch]);
+  const selectedBranch = useMemo(
+    () => normalizeBranch(branch ?? user?.branch),
+    [branch, user?.branch],
+  );
   const isSingleBranchRestaurant = Boolean(selectedBranch?.isOnlyBranch);
   const showBranchLocationControls = shouldShowBranchLocationControls(
-    selectedBranch?.isOnlyBranch
+    selectedBranch?.isOnlyBranch,
   );
-  const selectedOrderType = getSelectedOrderType(user) ?? selectedBranch?.selectedOrderType ?? null;
+  const selectedOrderType =
+    getSelectedOrderType(user) ?? selectedBranch?.selectedOrderType ?? null;
   const selectedOrderLabel =
     selectedOrderType === "TAKEAWAY"
       ? t("pickupPanelTitle")
@@ -121,36 +135,47 @@ export const HeroSection = ({
         ? t("deliveryPanelTitle")
         : "";
   const hasAddressBookSession = Boolean(token && user && !isGuestUser(user));
-  const isSelectedBranchAvailable = selectedBranch ? isBranchCurrentlyAvailable(selectedBranch) : true;
-  const orderPanelTitle = mode === "delivery"
-    ? isSelectedBranchAvailable
-      ? t("deliveryPanelTitle")
-      : t("scheduleDeliveryPanelTitle")
-    : mode === "pickup"
-    ? isSelectedBranchAvailable
-      ? t("pickupPanelTitle")
-      : t("schedulePickupPanelTitle")
-    : t("orderPanelTitle");
+  const isSelectedBranchAvailable = selectedBranch
+    ? isBranchCurrentlyAvailable(selectedBranch)
+    : true;
+  const orderPanelTitle =
+    mode === "delivery"
+      ? isSelectedBranchAvailable
+        ? t("deliveryPanelTitle")
+        : t("scheduleDeliveryPanelTitle")
+      : mode === "pickup"
+        ? isSelectedBranchAvailable
+          ? t("pickupPanelTitle")
+          : t("schedulePickupPanelTitle")
+        : t("orderPanelTitle");
   const singleBranchPanelTitle = isSelectedBranchAvailable
     ? t("singleBranchPanelTitle")
     : t("singleBranchSchedulePanelTitle");
-  const hasOrderTypeRules = Boolean(selectedBranch?.settings?.allowedOrderTypes?.length);
-  const showDeliveryOption = !hasOrderTypeRules || (selectedBranch ? branchSupportsDelivery(selectedBranch) : false);
-  const showPickupOption = !hasOrderTypeRules || (selectedBranch ? branchSupportsPickup(selectedBranch) : false);
+  const hasOrderTypeRules = Boolean(
+    selectedBranch?.settings?.allowedOrderTypes?.length,
+  );
+  const showDeliveryOption =
+    !hasOrderTypeRules ||
+    (selectedBranch ? branchSupportsDelivery(selectedBranch) : false);
+  const showPickupOption =
+    !hasOrderTypeRules ||
+    (selectedBranch ? branchSupportsPickup(selectedBranch) : false);
   const availableModes = useMemo(
     () => [
       ...(showDeliveryOption ? ["delivery" as const] : []),
       ...(showPickupOption ? ["pickup" as const] : []),
     ],
-    [showDeliveryOption, showPickupOption]
+    [showDeliveryOption, showPickupOption],
   );
 
   const filteredBranches = useMemo(
     () =>
       nearbyQuery.branches.filter((branch) =>
-        mode === "pickup" ? branchSupportsPickup(branch) : branchSupportsDelivery(branch)
+        mode === "pickup"
+          ? branchSupportsPickup(branch)
+          : branchSupportsDelivery(branch),
       ),
-    [mode, nearbyQuery.branches]
+    [mode, nearbyQuery.branches],
   );
 
   useEffect(() => {
@@ -386,11 +411,7 @@ export const HeroSection = ({
     label?: string,
     details?: GoogleAddressDetails,
   ) => {
-    acceptCoordinates(
-      nextCoordinates,
-      label || t("selectedAddress"),
-      details,
-    );
+    acceptCoordinates(nextCoordinates, label || t("selectedAddress"), details);
     setShowResults(true);
   };
 
@@ -443,15 +464,21 @@ export const HeroSection = ({
                 <Clock3 size={16} />
               </div>
               <p className="text-sm font-bold text-white">{t("freshTitle")}</p>
-              <p className="mt-1 line-clamp-2 text-xs leading-5 text-white/72">{t("freshDescription")}</p>
+              <p className="mt-1 line-clamp-2 text-xs leading-5 text-white/72">
+                {t("freshDescription")}
+              </p>
             </div>
 
             <div className="rounded-[18px] bg-white/13 p-3 ring-1 ring-white/18 backdrop-blur">
               <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-white text-primary">
                 <MapPinned size={16} />
               </div>
-              <p className="text-sm font-bold text-white">{t("trackingTitle")}</p>
-              <p className="mt-1 line-clamp-2 text-xs leading-5 text-white/72">{t("trackingDescription")}</p>
+              <p className="text-sm font-bold text-white">
+                {t("trackingTitle")}
+              </p>
+              <p className="mt-1 line-clamp-2 text-xs leading-5 text-white/72">
+                {t("trackingDescription")}
+              </p>
             </div>
 
             <div className="rounded-[18px] bg-white/13 p-3 ring-1 ring-white/18 backdrop-blur">
@@ -459,7 +486,9 @@ export const HeroSection = ({
                 <BadgePercent size={16} />
               </div>
               <p className="text-sm font-bold text-white">{t("offersTitle")}</p>
-              <p className="mt-1 line-clamp-2 text-xs leading-5 text-white/72">{t("offersDescription")}</p>
+              <p className="mt-1 line-clamp-2 text-xs leading-5 text-white/72">
+                {t("offersDescription")}
+              </p>
             </div>
           </div>
         </div>
@@ -467,7 +496,9 @@ export const HeroSection = ({
         <div className="w-full rounded-[30px] bg-white p-5 shadow-[0_24px_80px_rgba(17,24,39,0.22)] ring-1 ring-black/5 md:p-7">
           <div className="mb-5">
             <h2 className="text-2xl font-black tracking-normal text-[#171717]">
-              {isSingleBranchRestaurant ? singleBranchPanelTitle : orderPanelTitle}
+              {isSingleBranchRestaurant
+                ? singleBranchPanelTitle
+                : orderPanelTitle}
             </h2>
           </div>
 
@@ -478,14 +509,20 @@ export const HeroSection = ({
                   key={nextMode}
                   type="button"
                   onClick={() => void handleModeChange(nextMode)}
-                  disabled={isCheckingDeliveryAddresses && nextMode === "delivery"}
+                  disabled={
+                    isCheckingDeliveryAddresses && nextMode === "delivery"
+                  }
                   className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition-all disabled:cursor-not-allowed disabled:opacity-70 ${
                     mode === nextMode
                       ? "bg-primary text-white shadow-sm"
                       : "text-[#757575] hover:bg-white"
                   }`}
                 >
-                  {nextMode === "delivery" ? <Truck size={17} /> : <ShoppingBag size={17} />}
+                  {nextMode === "delivery" ? (
+                    <Truck size={17} />
+                  ) : (
+                    <ShoppingBag size={17} />
+                  )}
                   {nextMode === "delivery"
                     ? t("deliveryPanelTitle")
                     : t("pickupPanelTitle")}
@@ -505,14 +542,7 @@ export const HeroSection = ({
                     {selectedBranch.name}
                   </p>
                   <p className="mt-1 text-xs text-[#6B7280]">
-                    {[
-                      formatBranchDistance(selectedBranch.distanceKm)
-                        ? `${formatBranchDistance(selectedBranch.distanceKm)} ${t("away")}`
-                        : "",
-                      selectedOrderLabel,
-                    ]
-                      .filter(Boolean)
-                      .join(" - ") || t("selectedBranch")}
+                    {selectedOrderLabel || t("selectedBranch")}
                   </p>
                 </div>
               </div>
@@ -533,10 +563,7 @@ export const HeroSection = ({
             onOpenChange={setAddressModalOpen}
             onSuccess={(address) => {
               if (userId && address?.id) {
-                setStoredSelectedDeliveryAddressId(
-                  userId,
-                  String(address.id),
-                );
+                setStoredSelectedDeliveryAddressId(userId, String(address.id));
               }
               setAddressModalOpen(false);
               applyModeChange("delivery");
@@ -574,88 +601,81 @@ export const HeroSection = ({
 
           {showBranchLocationControls ? (
             <div ref={branchSearchRef} className="relative">
-            <AddressLocationPicker
-              coordinates={coordinates}
-              locationLabel={locationLabel}
-              onSelectLocation={handleSelectSearchLocation}
-              onUseCurrentLocation={handleUseCurrentLocation}
-              isLocating={permissionState === "requesting"}
-              showSelectedLabel={false}
-              actionsBelow
-              trailingAction={
-                <button
-                  type="button"
-                  onClick={() => void handleFindFood()}
-                  className="inline-flex h-[49px] min-w-0 items-center justify-center whitespace-nowrap rounded-xl border border-primary/20 bg-white px-2.5 text-xs font-semibold text-primary transition hover:bg-primary/5 sm:px-4 sm:text-sm"
-                >
-                  {t("findFood")}
-                </button>
-              }
-            />
+              <AddressLocationPicker
+                coordinates={coordinates}
+                locationLabel={locationLabel}
+                onSelectLocation={handleSelectSearchLocation}
+                onUseCurrentLocation={handleUseCurrentLocation}
+                isLocating={permissionState === "requesting"}
+                showSelectedLabel={false}
+                actionsBelow
+                trailingAction={
+                  <button
+                    type="button"
+                    onClick={() => void handleFindFood()}
+                    className="inline-flex h-[49px] min-w-0 items-center justify-center whitespace-nowrap rounded-xl border border-primary/20 bg-white px-2.5 text-xs font-semibold text-primary transition hover:bg-primary/5 sm:px-4 sm:text-sm"
+                  >
+                    {t("findFood")}
+                  </button>
+                }
+              />
 
-            {showResults ? (
-              <div className="mt-4 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_18px_45px_rgba(0,0,0,0.14)]">
-                {errorMessage ? (
-                  <div className="px-5 py-6 text-sm text-gray-600">
-                    {errorMessage || t("locationUnavailable")}
-                  </div>
-                ) : nearbyQuery.isFetching ? (
-                  <div className="flex items-center justify-center gap-2 px-5 py-8 text-sm text-gray-500">
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
-                    {t("findingNearbyBranches")}
-                  </div>
-                ) : filteredBranches.length === 0 && coordinates ? (
-                  <div className="px-5 py-8 text-center text-sm text-gray-500">
-                    {t("noNearbyBranches", {
-                      mode:
-                        mode === "pickup"
-                          ? t("pickupPanelTitle")
-                          : t("deliveryPanelTitle"),
-                    })}
-                  </div>
-                ) : (
-                  <div className="max-h-[min(320px,36vh)] divide-y divide-gray-100 overflow-y-auto">
-                    {filteredBranches.map((branch) => {
-                      const available = isBranchCurrentlyAvailable(branch);
+              {showResults ? (
+                <div className="mt-4 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_18px_45px_rgba(0,0,0,0.14)]">
+                  {errorMessage ? (
+                    <div className="px-5 py-6 text-sm text-gray-600">
+                      {errorMessage || t("locationUnavailable")}
+                    </div>
+                  ) : nearbyQuery.isFetching ? (
+                    <div className="flex items-center justify-center gap-2 px-5 py-8 text-sm text-gray-500">
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
+                      {t("findingNearbyBranches")}
+                    </div>
+                  ) : filteredBranches.length === 0 && coordinates ? (
+                    <div className="px-5 py-8 text-center text-sm text-gray-500">
+                      {t("noNearbyBranches", {
+                        mode:
+                          mode === "pickup"
+                            ? t("pickupPanelTitle")
+                            : t("deliveryPanelTitle"),
+                      })}
+                    </div>
+                  ) : (
+                    <div className="max-h-[min(320px,36vh)] divide-y divide-gray-100 overflow-y-auto">
+                      {filteredBranches.map((branch) => {
+                        const available = isBranchCurrentlyAvailable(branch);
 
-                      return (
-                        <button
-                          key={branch.id}
-                          type="button"
-                          onClick={() => handleSelectBranch(branch)}
-                          className="flex w-full items-start justify-between gap-4 px-5 py-4 text-left transition hover:bg-orange-50/50"
-                        >
-                          <div className="min-w-0">
-                            <h4 className="truncate text-sm font-semibold text-gray-900">
-                              {branch.name}
-                            </h4>
-                            <p className="mt-1 line-clamp-2 text-xs leading-5 text-gray-500">
-                              {formatBranchAddress(branch)}
-                            </p>
-                            <p className="mt-2 text-xs font-semibold text-primary">
-                              {[
-                                formatBranchDistance(branch.distanceKm)
-                                  ? `${formatBranchDistance(branch.distanceKm)} ${t("away")}`
-                                  : "",
-                                available
+                        return (
+                          <button
+                            key={branch.id}
+                            type="button"
+                            onClick={() => handleSelectBranch(branch)}
+                            className="flex w-full items-start justify-between gap-4 px-5 py-4 text-left transition hover:bg-orange-50/50"
+                          >
+                            <div className="min-w-0">
+                              <h4 className="truncate text-sm font-semibold text-gray-900">
+                                {branch.name}
+                              </h4>
+                              <p className="mt-1 line-clamp-2 text-xs leading-5 text-gray-500">
+                                {formatBranchAddress(branch)}
+                              </p>
+                              <p className="mt-2 text-xs font-semibold text-primary">
+                                {available
                                   ? t("available")
                                   : branch.availability?.reason ||
-                                    t("availabilityLimited"),
-                              ]
-                                .filter(Boolean)
-                                .join(" - ")}
-                            </p>
-                          </div>
-                          <span className="shrink-0 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                            {t("selectBranch")}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            ) : null}
+                                    t("availabilityLimited")}
+                              </p>
+                            </div>
+                            <span className="shrink-0 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                              {t("selectBranch")}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              ) : null}
             </div>
           ) : null}
         </div>
