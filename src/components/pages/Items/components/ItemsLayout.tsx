@@ -25,13 +25,14 @@ import { useAppLocale } from "@/hooks/useAppLocale";
 import { useCustomerDeals } from "@/hooks/useCustomerDeals";
 import { useDomainContext } from "@/hooks/useDomainContext";
 import { useHome } from "@/hooks/useHome";
-import {
-  resolveHomeBranchId,
-  resolveHomeRestaurantId,
-} from "@/lib/home";
+import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
 import { resolveCustomerCurrency } from "@/lib/money";
 import { setItemsMenuViewMode } from "@/lib/view-preferences";
-import type { ApiMeta, ItemsCategory, MenuItem } from "@/components/pages/Items/types";
+import type {
+  ApiMeta,
+  ItemsCategory,
+  MenuItem,
+} from "@/components/pages/Items/types";
 import { resolveHasNext } from "@/components/pages/Items/utils/restaurant-card-utils";
 import type { CustomerDeal } from "@/types/customer-deals";
 
@@ -104,7 +105,8 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
     Record<string, number>
   >({});
 
-  const [contentSource, setContentSource] = useState<ItemsContentSource>("category");
+  const [contentSource, setContentSource] =
+    useState<ItemsContentSource>("category");
   const [activeOnePageCategoryId, setActiveOnePageCategoryId] = useState("");
   const [activeOnePageMenuId, setActiveOnePageMenuId] = useState("");
   const [activeMenuId, setActiveMenuId] = useState("");
@@ -120,11 +122,7 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
   const requestInFlightRef = useRef(false);
 
   const restaurantId = useMemo(() => {
-    return resolveHomeRestaurantId(
-      user,
-      authRestaurantId,
-      domainContext,
-    );
+    return resolveHomeRestaurantId(user, authRestaurantId, domainContext);
   }, [authRestaurantId, domainContext, user]);
   const branchId = useMemo(
     () => resolveHomeBranchId(user, domainContext),
@@ -133,7 +131,7 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
   const homeQuery = useHome(
     restaurantId,
     branchId,
-    Boolean(restaurantId && branchId)
+    Boolean(restaurantId && branchId),
   );
   const currency = resolveCustomerCurrency({
     configCurrency: homeQuery.data?.data.config?.currency,
@@ -151,7 +149,7 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
     (deal: CustomerDeal, selectedMenuItemIds?: string[]) => {
       addDealMutation.mutate({ deal, selectedMenuItemIds });
     },
-    [addDealMutation]
+    [addDealMutation],
   );
 
   useEffect(() => {
@@ -218,7 +216,9 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
     if (!term) return normalizedMenus;
 
     return normalizedMenus.filter((menu) => {
-      return String(menu?.name || "").toLowerCase().includes(term);
+      return String(menu?.name || "")
+        .toLowerCase()
+        .includes(term);
     });
   }, [normalizedMenus, debouncedSearch]);
 
@@ -231,18 +231,22 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
       items: undefined,
     }));
   }, [contentSource, filteredMenus, categories]);
-  const loadingSections = contentSource === "menu" ? loadingMenus : loadingCategories;
-  const loadingMoreSections = contentSource === "menu" ? false : loadingMoreCategories;
+  const loadingSections =
+    contentSource === "menu" ? loadingMenus : loadingCategories;
+  const loadingMoreSections =
+    contentSource === "menu" ? false : loadingMoreCategories;
   const hasMoreSections = contentSource === "menu" ? false : hasMoreCategories;
 
   const fetchCategories = async ({
     page = 1,
     searchValue = "",
     append = false,
+    background = false,
   }: {
     page?: number;
     searchValue?: string;
     append?: boolean;
+    background?: boolean;
   }) => {
     if (!restaurantId) return;
     if (requestInFlightRef.current) return;
@@ -250,18 +254,21 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
     try {
       requestInFlightRef.current = true;
 
-      if (append) {
-        setLoadingMoreCategories(true);
-      } else {
-        setLoadingCategories(true);
+      if (!background) {
+        if (append) {
+          setLoadingMoreCategories(true);
+        } else {
+          setLoadingCategories(true);
+        }
       }
 
-      const { categories: fetchedCategories, meta } = await fetchMenuCategoriesPage({
-        restaurantId: String(restaurantId),
-        page,
-        limit: CATEGORY_PAGE_LIMIT,
-        search: searchValue,
-      });
+      const { categories: fetchedCategories, meta } =
+        await fetchMenuCategoriesPage({
+          restaurantId: String(restaurantId),
+          page,
+          limit: CATEGORY_PAGE_LIMIT,
+          search: searchValue,
+        });
 
       setCategories((prev) => {
         if (!append) return fetchedCategories;
@@ -287,10 +294,9 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
           limit: CATEGORY_PAGE_LIMIT,
           receivedCount: fetchedCategories.length,
           totalLoaded: nextTotalLoaded,
-        })
+        }),
       );
     } catch (err) {
-
       if (!append) {
         setCategories([]);
       }
@@ -299,7 +305,7 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
     } finally {
       requestInFlightRef.current = false;
       setLoadingCategories(false);
-      setLoadingMoreCategories(false);
+      if (!background) setLoadingMoreCategories(false);
     }
   };
 
@@ -332,6 +338,21 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
   }, [restaurantId, debouncedSearch]);
 
   useEffect(() => {
+    if (!hasMoreCategories || requestInFlightRef.current) return;
+
+    const timer = window.setTimeout(() => {
+      void fetchCategories({
+        page: currentPage + 1,
+        searchValue: debouncedSearch,
+        append: true,
+        background: true,
+      });
+    }, 120);
+
+    return () => window.clearTimeout(timer);
+  }, [currentPage, debouncedSearch, hasMoreCategories]);
+
+  useEffect(() => {
     if (!token || !restaurantId) return;
 
     fetchMenus();
@@ -344,7 +365,7 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
     }
 
     const activeStillExists = categories.some(
-      (category) => String(category.id) === String(activeOnePageCategoryId)
+      (category) => String(category.id) === String(activeOnePageCategoryId),
     );
 
     if (!activeOnePageCategoryId || !activeStillExists) {
@@ -361,10 +382,10 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
 
     const firstMenuId = String(filteredMenus[0].id || "");
     const activeMenuStillExists = filteredMenus.some(
-      (menu) => String(menu.id) === String(activeMenuId)
+      (menu) => String(menu.id) === String(activeMenuId),
     );
     const activeOnePageStillExists = filteredMenus.some(
-      (menu) => String(menu.id) === String(activeOnePageMenuId)
+      (menu) => String(menu.id) === String(activeOnePageMenuId),
     );
 
     if (!activeMenuId || !activeMenuStillExists) {
@@ -404,7 +425,8 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
     return activeMenuId || String(filteredMenus?.[0]?.id || "");
   }, [viewMode, activeOnePageMenuId, activeMenuId, filteredMenus]);
 
-  const activeSectionId = contentSource === "menu" ? activeMenuSectionId : activeCategoryId;
+  const activeSectionId =
+    contentSource === "menu" ? activeMenuSectionId : activeCategoryId;
 
   const handleViewModeChange = (nextMode: MenuViewMode) => {
     setViewMode(nextMode);
@@ -413,7 +435,7 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
       const id = String(
         contentSource === "menu"
           ? activeMenuSectionId || filteredMenus?.[0]?.id || ""
-          : activeCategoryId || categories?.[0]?.id || ""
+          : activeCategoryId || categories?.[0]?.id || "",
       );
 
       if (id) {
@@ -541,7 +563,11 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
           <CustomerDealsSection
             deals={dealsQuery.deals}
             isLoading={dealsQuery.isLoading}
-            addingDealId={addDealMutation.isPending ? addDealMutation.variables?.deal.id ?? null : null}
+            addingDealId={
+              addDealMutation.isPending
+                ? (addDealMutation.variables?.deal.id ?? null)
+                : null
+            }
             branchId={branchId}
             onAddDeal={handleAddDeal}
             compact
@@ -556,7 +582,9 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
           viewMode={viewMode}
           scrollTarget={scrollTarget}
           onActiveCategoryChange={
-            contentSource === "menu" ? setActiveOnePageMenuId : setActiveOnePageCategoryId
+            contentSource === "menu"
+              ? setActiveOnePageMenuId
+              : setActiveOnePageCategoryId
           }
           currency={currency}
         />

@@ -273,6 +273,7 @@
       "happyHour": "Happy Hour",
       "dailyWindow": "Täglich {time}",
       "specialPromotion": "Sonderaktion",
+      "registerToUnlock": "Registrieren oder anmelden, um diese Aktion zu nutzen",
       "allBranches": "Alle Filialen",
       "now": "Jetzt",
       "minOrder": "Mindestbestellung {amount}",

@@ -29,13 +29,16 @@ export function SiteFloatingCart() {
   const { user, token, loading, restaurantId } = useAuth();
   const { context: domainContext } = useDomainContext();
   const [cartRefreshKey, setCartRefreshKey] = useState(0);
+  const [cartSnapshot, setCartSnapshot] = useState<unknown>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [hasCartItems, setHasCartItems] = useState(false);
   const pendingCartMutationsRef = useRef(0);
   const [storedCheckoutType, setStoredCheckoutType] =
     useState<CheckoutTypePreference | null>(null);
 
-  const isHiddenRoute = HIDDEN_CART_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+  const isHiddenRoute = HIDDEN_CART_PATHS.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`),
+  );
   const hideOnMobileHome = pathname === "/";
   const customerId = user?.id;
   const homeRestaurantId = resolveHomeRestaurantId(
@@ -47,16 +50,18 @@ export function SiteFloatingCart() {
   const homeQuery = useHome(
     homeRestaurantId,
     branchId,
-    Boolean(!loading && homeRestaurantId && branchId)
+    Boolean(!loading && homeRestaurantId && branchId),
   );
   const currency = resolveCustomerCurrency({
     configCurrency: homeQuery.data?.data.config?.currency,
     restaurant: homeQuery.data?.data.restaurant,
   });
-  const userCheckoutType = getSelectedOrderType(user) === "TAKEAWAY" ? "pickup" : "delivery";
+  const userCheckoutType =
+    getSelectedOrderType(user) === "TAKEAWAY" ? "pickup" : "delivery";
   const checkoutType = storedCheckoutType ?? userCheckoutType;
 
   const refreshCart = useCallback(() => {
+    setCartSnapshot(null);
     setCartRefreshKey((current) => current + 1);
   }, []);
 
@@ -92,7 +97,7 @@ export function SiteFloatingCart() {
         setIsOpen(false);
       }
     },
-    [customerId, loading, token]
+    [customerId, loading, token],
   );
 
   useEffect(() => {
@@ -103,9 +108,10 @@ export function SiteFloatingCart() {
     setStoredCheckoutType(getStoredCheckoutTypePreference());
 
     const handleCartChanged = (event: Event) => {
-      const detail = event instanceof CustomEvent
-        ? (event.detail as CartChangedDetail | undefined)
-        : undefined;
+      const detail =
+        event instanceof CustomEvent
+          ? (event.detail as CartChangedDetail | undefined)
+          : undefined;
 
       if (detail?.mutationStatus === "pending") {
         pendingCartMutationsRef.current += 1;
@@ -128,6 +134,10 @@ export function SiteFloatingCart() {
       }
 
       setStoredCheckoutType(getStoredCheckoutTypePreference());
+
+      if (detail?.cartData !== undefined) {
+        setCartSnapshot(detail.cartData);
+      }
 
       if (typeof detail?.itemCount === "number") {
         const nextHasCartItems = detail.itemCount > 0;
@@ -159,7 +169,7 @@ export function SiteFloatingCart() {
     <div
       className={cn(
         "fixed bottom-5 right-4 z-40 flex items-end justify-end sm:bottom-6 sm:right-6 lg:bottom-8 lg:right-8",
-        hideOnMobileHome && "hidden md:flex"
+        hideOnMobileHome && "hidden md:flex",
       )}
     >
       {isOpen ? (
@@ -177,6 +187,7 @@ export function SiteFloatingCart() {
           <OrderCartSidebar
             customerId={customerId}
             cartRefreshKey={cartRefreshKey}
+            cartSnapshot={cartSnapshot}
             onCartRefresh={refreshCart}
             presentation="floating"
             checkoutType={checkoutType}
@@ -193,7 +204,9 @@ export function SiteFloatingCart() {
           <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 sm:h-8 sm:w-8">
             <ShoppingBag className="h-4 w-4 text-primary" />
           </span>
-          <span className="text-[13px] font-semibold sm:text-sm">{t("yourOrder")}</span>
+          <span className="text-[13px] font-semibold sm:text-sm">
+            {t("yourOrder")}
+          </span>
         </Button>
       )}
     </div>

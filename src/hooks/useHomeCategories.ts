@@ -4,7 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 
 import { DEFAULT_LOCALE, type AppLocale } from "@/config/i18n";
 import { queryKeys } from "@/config/query-keys";
-import { getHomeCategories, getHomePromotions, getPromotionalItems } from "@/services/home";
+import {
+  getHomeCategories,
+  getHomePromotions,
+  getPromotionalItems,
+} from "@/services/home";
 
 export const useHomeCategories = (
   restaurantId?: string | null,
@@ -20,11 +24,15 @@ export const useHomeCategories = (
 export const useHomePromotions = (
   restaurantId?: string | null,
   branchId?: string | null,
-  enabled = true
+  enabled = true,
+  token?: string | null,
 ) =>
   useQuery({
-    queryKey: queryKeys.home.promotions(restaurantId, branchId),
-    queryFn: () => getHomePromotions(restaurantId ?? "", branchId),
+    queryKey: [
+      ...queryKeys.home.promotions(restaurantId, branchId),
+      Boolean(token),
+    ],
+    queryFn: () => getHomePromotions(restaurantId ?? "", branchId, token),
     enabled: enabled && Boolean(restaurantId),
     refetchInterval: 30_000,
   });

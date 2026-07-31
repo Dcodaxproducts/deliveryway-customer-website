@@ -28,10 +28,16 @@ import { useAppLocale } from "@/hooks/useAppLocale";
 import { useAuth } from "@/hooks/useAuth";
 import { useDomainContext } from "@/hooks/useDomainContext";
 import { useHome } from "@/hooks/useHome";
-import { useHomePromotionalItems, useHomePromotions } from "@/hooks/useHomeCategories";
+import {
+  useHomePromotionalItems,
+  useHomePromotions,
+} from "@/hooks/useHomeCategories";
 import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
 import { formatMoney, resolveCustomerCurrency } from "@/lib/money";
-import { getItemImageUrl, toNumber } from "@/components/pages/Items/utils/restaurant-card-utils";
+import {
+  getItemImageUrl,
+  toNumber,
+} from "@/components/pages/Items/utils/restaurant-card-utils";
 import type { MenuItem, PromotionInfo } from "@/components/pages/Items/types";
 import type { PromotionCampaign } from "@/types/home";
 
@@ -108,7 +114,8 @@ const getPromotionImage = (promotion: PromotionCampaign, items: MenuItem[]) => {
     promotion.thumbnailUrl,
     items.find((item) => hasText(item.imageUrl))?.imageUrl,
     promotion.scopeMenuItems?.find((item) => hasText(item.imageUrl))?.imageUrl,
-    promotion.scopeCategories?.find((category) => hasText(category.imageUrl))?.imageUrl,
+    promotion.scopeCategories?.find((category) => hasText(category.imageUrl))
+      ?.imageUrl,
     promotion.restaurant?.coverImage,
   ];
 
@@ -155,7 +162,10 @@ const getCategoryName = (item: MenuItem) => {
   return "";
 };
 
-const getCategoryOptions = (promotion: PromotionCampaign, items: MenuItem[]) => {
+const getCategoryOptions = (
+  promotion: PromotionCampaign,
+  items: MenuItem[],
+) => {
   const map = new Map<string, { id: string; label: string; count: number }>();
 
   for (const category of promotion.scopeCategories ?? []) {
@@ -216,14 +226,19 @@ const getFinalPrice = (item: MenuItem) => {
     discountAmount = Math.min(discountAmount, maxDiscountAmount);
   }
 
-  return Math.max(0, basePrice - Math.min(Math.max(discountAmount, 0), basePrice));
+  return Math.max(
+    0,
+    basePrice - Math.min(Math.max(discountAmount, 0), basePrice),
+  );
 };
 
 const getItemHref = (item: MenuItem) => {
   const itemId = String(item.id ?? "");
   const slug = item.slug ? `&slug=${encodeURIComponent(item.slug)}` : "";
 
-  return itemId ? `/items/details?itemId=${encodeURIComponent(itemId)}${slug}` : "/items";
+  return itemId
+    ? `/items/details?itemId=${encodeURIComponent(itemId)}${slug}`
+    : "/items";
 };
 
 const getDiscountBadge = (
@@ -403,7 +418,12 @@ function PromotionItemsPageContent() {
   const searchParams = useSearchParams();
   const promotionId = searchParams.get("promotionId") || "";
   const { locale } = useAppLocale();
-  const { token, user, restaurantId: authRestaurantId, loading: authLoading } = useAuth();
+  const {
+    token,
+    user,
+    restaurantId: authRestaurantId,
+    loading: authLoading,
+  } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState(ALL_ITEMS_FILTER);
   const [sortKey, setSortKey] = useState<SortKey>("popular");
   const [copiedCode, setCopiedCode] = useState("");
@@ -418,7 +438,12 @@ function PromotionItemsPageContent() {
     [domainContext, user],
   );
 
-  const promotionsQuery = useHomePromotions(restaurantId, branchId, Boolean(token && promotionId));
+  const promotionsQuery = useHomePromotions(
+    restaurantId,
+    branchId,
+    Boolean(token && promotionId),
+    token,
+  );
   const promotionalItemsQuery = useHomePromotionalItems({
     restaurantId,
     branchId,
@@ -426,7 +451,11 @@ function PromotionItemsPageContent() {
     limit: 25,
     enabled: Boolean(token && promotionId),
   });
-  const homeQuery = useHome(restaurantId, branchId, Boolean(token && restaurantId && branchId));
+  const homeQuery = useHome(
+    restaurantId,
+    branchId,
+    Boolean(token && restaurantId && branchId),
+  );
 
   const promotion = useMemo(
     () => promotionsQuery.data?.find((entry) => entry.id === promotionId),
@@ -458,7 +487,9 @@ function PromotionItemsPageContent() {
       selectedCategory === ALL_ITEMS_FILTER
         ? items
         : items.filter((item) => {
-            const id = String(item.categoryId || getCategoryName(item) || "").trim();
+            const id = String(
+              item.categoryId || getCategoryName(item) || "",
+            ).trim();
             return id === selectedCategory;
           });
 
@@ -469,8 +500,8 @@ function PromotionItemsPageContent() {
     });
   }, [items, selectedCategory, sortKey]);
 
-  const isLoading = promotionsQuery.isLoading || promotionalItemsQuery.isLoading;
-
+  const isLoading =
+    promotionsQuery.isLoading || promotionalItemsQuery.isLoading;
 
   useEffect(() => {
     if (!promotionId) {
@@ -483,7 +514,9 @@ function PromotionItemsPageContent() {
 
     if (items.length === 0) {
       const firstCategoryId = promotion.scopeCategories?.[0]?.id;
-      router.replace(firstCategoryId ? `/items?categoryId=${firstCategoryId}` : "/items");
+      router.replace(
+        firstCategoryId ? `/items?categoryId=${firstCategoryId}` : "/items",
+      );
     }
   }, [isLoading, items.length, promotion, router]);
 
@@ -519,7 +552,10 @@ function PromotionItemsPageContent() {
         <p className="mx-auto mt-2 max-w-md text-sm text-gray-500">
           {t("promotionItemsUnavailableDescription")}
         </p>
-        <Button asChild className="mt-6 rounded-full bg-primary px-6 text-white hover:bg-primary/90">
+        <Button
+          asChild
+          className="mt-6 rounded-full bg-primary px-6 text-white hover:bg-primary/90"
+        >
           <Link href="/items">{t("exploreMenu")}</Link>
         </Button>
       </div>
@@ -528,17 +564,28 @@ function PromotionItemsPageContent() {
 
   const promotionImage = getPromotionImage(promotion, items);
   const discountLabel = formatDiscount(promotion, t("specialOffer"), currency);
-  const dateRange = formatDateRange(promotion.startsAt, promotion.expiresAt, locale);
+  const dateRange = formatDateRange(
+    promotion.startsAt,
+    promotion.expiresAt,
+    locale,
+  );
   const couponCode = getPromotionCode(promotion);
   const minOrder = toNumber(promotion.minOrderAmount, 0);
   const maxDiscount = toNumber(promotion.maxDiscountAmount, 0);
   const featuredItem = visibleItems[0];
-  const compactItems = visibleItems.slice(featuredItem ? 1 : 0, featuredItem ? 5 : 4);
+  const compactItems = visibleItems.slice(
+    featuredItem ? 1 : 0,
+    featuredItem ? 5 : 4,
+  );
   const remainingItems = visibleItems.slice(featuredItem ? 5 : 4);
 
   return (
     <main className="mx-auto max-w-[1440px] px-5 py-5 lg:px-8 2xl:px-10">
-      <Button asChild variant="link" className="mb-5 h-auto p-0 text-sm font-semibold text-primary">
+      <Button
+        asChild
+        variant="link"
+        className="mb-5 h-auto p-0 text-sm font-semibold text-primary"
+      >
         <Link href="/">
           <ArrowLeft className="h-4 w-4" />
           {t("backToOffers")}
@@ -574,7 +621,9 @@ function PromotionItemsPageContent() {
             {maxDiscount > 0 ? (
               <span className="inline-flex items-center gap-2 rounded-full border border-primary/10 bg-white/80 px-4 py-2 text-sm font-semibold text-gray-800 shadow-sm">
                 <BadgePercent className="h-4 w-4 text-primary" />
-                {t("maxDiscount", { amount: formatMoney(maxDiscount, currency) })}
+                {t("maxDiscount", {
+                  amount: formatMoney(maxDiscount, currency),
+                })}
               </span>
             ) : null}
             <span className="inline-flex items-center gap-2 rounded-full border border-primary/10 bg-white/80 px-4 py-2 text-sm font-semibold text-gray-800 shadow-sm">
@@ -606,7 +655,9 @@ function PromotionItemsPageContent() {
                   <p className="text-[11px] font-black uppercase tracking-[0.14em] text-primary">
                     {t("couponCode")}
                   </p>
-                  <p className="text-base font-black text-primary">{couponCode}</p>
+                  <p className="text-base font-black text-primary">
+                    {couponCode}
+                  </p>
                 </div>
               </div>
 
@@ -615,7 +666,11 @@ function PromotionItemsPageContent() {
                 onClick={() => void handleCopyCode(couponCode)}
                 className="h-10 rounded-full bg-primary px-7 text-xs font-black uppercase text-white hover:bg-primary/90"
               >
-                {copiedCode === couponCode ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                {copiedCode === couponCode ? (
+                  <Check className="h-4 w-4" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
                 {copiedCode === couponCode ? t("copied") : t("copyCode")}
               </Button>
             </div>
@@ -636,8 +691,12 @@ function PromotionItemsPageContent() {
             <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-primary text-white shadow-[0_12px_20px_rgba(205,0,11,0.24)]">
               <Clock3 className="h-5 w-5" />
             </div>
-            <p className="text-[26px] font-black leading-none text-primary">{discountLabel}</p>
-            <p className="mt-4 text-xs font-black text-primary">{t("limitedTimeOffer")}</p>
+            <p className="text-[26px] font-black leading-none text-primary">
+              {discountLabel}
+            </p>
+            <p className="mt-4 text-xs font-black text-primary">
+              {t("limitedTimeOffer")}
+            </p>
             <p className="mt-1 text-xs text-gray-500">{t("dontMissOut")}</p>
           </div>
         </div>
@@ -668,7 +727,10 @@ function PromotionItemsPageContent() {
                     : "border border-gray-100 bg-white text-gray-600 hover:border-primary/25 hover:text-primary"
                 }`}
               >
-                {category.label} <span className="ml-1 text-xs opacity-70">{category.count}</span>
+                {category.label}{" "}
+                <span className="ml-1 text-xs opacity-70">
+                  {category.count}
+                </span>
               </button>
             ))}
           </div>
@@ -699,7 +761,9 @@ function PromotionItemsPageContent() {
 
         {visibleItems.length === 0 ? (
           <div className="rounded-[20px] bg-gray-50 px-5 py-12 text-center">
-            <p className="text-sm font-semibold text-gray-700">{t("noFilteredItems")}</p>
+            <p className="text-sm font-semibold text-gray-700">
+              {t("noFilteredItems")}
+            </p>
           </div>
         ) : (
           <div className="grid gap-5 lg:grid-cols-[1fr_1.04fr]">

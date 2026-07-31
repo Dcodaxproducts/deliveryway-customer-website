@@ -2,15 +2,22 @@ import { readAuthSession } from "./auth";
 import type { DomainContext } from "./domain-context";
 import { getArrayData } from "./response";
 import type { AuthUser } from "../types/auth";
-import type { HomeBranch, HomeCategory, LandingPopup, PromotionCampaign } from "../types/home";
+import type {
+  HomeBranch,
+  HomeCategory,
+  LandingPopup,
+  PromotionCampaign,
+} from "../types/home";
 import type { HappyHourInfo } from "@/components/pages/Items/types";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
-const getString = (value: unknown) => (typeof value === "string" ? value : undefined);
+const getString = (value: unknown) =>
+  typeof value === "string" ? value : undefined;
 
-const getBoolean = (value: unknown) => (typeof value === "boolean" ? value : undefined);
+const getBoolean = (value: unknown) =>
+  typeof value === "boolean" ? value : undefined;
 
 const getNumberOrString = (value: unknown) => {
   if (typeof value === "number" || typeof value === "string") {
@@ -80,7 +87,13 @@ export const resolveHomeBranchId = (
     return matchingUser?.branchId ?? matchingUser?.branch?.id ?? "";
   }
 
-  return storedUser?.branchId ?? storedUser?.branch?.id ?? user?.branchId ?? user?.branch?.id ?? "";
+  return (
+    storedUser?.branchId ??
+    storedUser?.branch?.id ??
+    user?.branchId ??
+    user?.branch?.id ??
+    ""
+  );
 };
 
 export const normalizeHomeCategories = (response: unknown): HomeCategory[] =>
@@ -89,7 +102,9 @@ export const normalizeHomeCategories = (response: unknown): HomeCategory[] =>
       id: getString(item.id) ?? "",
       name: getString(item.name) ?? "",
       imageUrl: getString(item.imageUrl) ?? null,
-      happyHour: isRecord(item.happyHour) ? item.happyHour as HappyHourInfo : null,
+      happyHour: isRecord(item.happyHour)
+        ? (item.happyHour as HappyHourInfo)
+        : null,
     }))
     .filter((item) => item.id);
 
@@ -98,6 +113,9 @@ export const normalizePromotions = (response: unknown): PromotionCampaign[] =>
     .map((promotion) => ({
       id: getString(promotion.id) ?? "",
       kind: getString(promotion.kind),
+      audience: getString(promotion.audience),
+      isEligible: getBoolean(promotion.isEligible),
+      requiresRegistration: getBoolean(promotion.requiresRegistration),
       title: getString(promotion.title),
       description: getString(promotion.description),
       code: getString(promotion.code),
@@ -136,13 +154,15 @@ export const normalizePromotions = (response: unknown): PromotionCampaign[] =>
     }))
     .filter((promotion) => promotion.id);
 
-export const isLandingPopup = (value: unknown): value is LandingPopup => isRecord(value);
+export const isLandingPopup = (value: unknown): value is LandingPopup =>
+  isRecord(value);
 
-export const isHomeBranch = (value: unknown): value is HomeBranch => isRecord(value);
+export const isHomeBranch = (value: unknown): value is HomeBranch =>
+  isRecord(value);
 
 export const resolveTableReservationsEnabled = (
   homeBranch?: HomeBranch | null,
-  sessionBranch?: AuthUser["branch"] | null
+  sessionBranch?: AuthUser["branch"] | null,
 ) => {
   const homeFlag =
     getBoolean(homeBranch?.tableReservationsEnabled) ??

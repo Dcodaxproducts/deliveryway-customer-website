@@ -44,7 +44,10 @@ import {
 import type { ApiResult } from "@/services/http";
 import type { CartItemRecord } from "@/components/pages/Items/components/signature-selection/types";
 import type { ApiRecord } from "@/components/pages/Items/types";
-import type { CustomerDeal, CustomerDealMenuItem } from "@/types/customer-deals";
+import type {
+  CustomerDeal,
+  CustomerDealMenuItem,
+} from "@/types/customer-deals";
 import type { AddCartItemPayload, CartQuote } from "@/types/cart";
 
 type CartMutationPayload = AddCartItemPayload | Record<string, unknown>;
@@ -73,7 +76,13 @@ const getOptimisticCartQuantity = (payload: CartMutationPayload) => {
 
 export type CartApi = DomainApiHook & {
   ensureCustomerSession: () => Promise<{ customerId: string; token: string }>;
-  fetchCustomerCart: (args: { customerId: string }) => Promise<{ response: ApiResult; items: CartItemRecord[]; quote: CartQuote | null }>;
+  fetchCustomerCart: (args: {
+    customerId: string;
+  }) => Promise<{
+    response: ApiResult;
+    items: CartItemRecord[];
+    quote: CartQuote | null;
+  }>;
   fetchCustomerCartForOrderType: (args: {
     customerId: string;
     orderType: "DELIVERY" | "TAKEAWAY";
@@ -82,25 +91,66 @@ export type CartApi = DomainApiHook & {
     items: CartItemRecord[];
     quote: CartQuote | null;
   }>;
-  fetchCustomerCartItem: (args: { customerId: string; cartItemId: string }) => Promise<ApiRecord | null>;
-  addCustomerCartItem: (args: { customerId: string; payload: CartMutationPayload }) => Promise<ApiResult>;
-  quoteCustomerCart: (args: { customerId: string; payload?: Record<string, unknown> }) => Promise<ApiResult>;
-  updateCustomerCart: (args: { customerId: string; payload: CartUpdatePayload }) => Promise<ApiResult>;
-  updateCustomerCartOrderType: (args: { customerId: string; orderType: "DELIVERY" | "TAKEAWAY" }) => Promise<ApiResult>;
-  updateCustomerCartItem: (args: { cartItemId: string; payload: CartMutationPayload }) => Promise<ApiResult>;
+  fetchCustomerCartItem: (args: {
+    customerId: string;
+    cartItemId: string;
+  }) => Promise<ApiRecord | null>;
+  addCustomerCartItem: (args: {
+    customerId: string;
+    payload: CartMutationPayload;
+  }) => Promise<ApiResult>;
+  quoteCustomerCart: (args: {
+    customerId: string;
+    payload?: Record<string, unknown>;
+  }) => Promise<ApiResult>;
+  updateCustomerCart: (args: {
+    customerId: string;
+    payload: CartUpdatePayload;
+  }) => Promise<ApiResult>;
+  updateCustomerCartOrderType: (args: {
+    customerId: string;
+    orderType: "DELIVERY" | "TAKEAWAY";
+  }) => Promise<ApiResult>;
+  updateCustomerCartItem: (args: {
+    cartItemId: string;
+    payload: CartMutationPayload;
+  }) => Promise<ApiResult>;
   clearCustomerCart: (args: { customerId: string }) => Promise<ApiResult>;
-  updateCustomerCartItemQuantity: (args: { customerId: string; cartItemId: string; quantity: number }) => Promise<ApiResult>;
-  updateCustomerCartDealQuantity: (args: { customerId: string; dealTargetId: string; quantity: number }) => Promise<ApiResult>;
-  deleteCustomerCartItem: (args: { customerId: string; cartItemId: string }) => Promise<ApiResult>;
-  deleteCustomerCartDeal: (args: { customerId: string; dealTargetId: string }) => Promise<ApiResult>;
-  fetchGroupOrders: () => Promise<{ response: ApiResult; groupOrders: ApiRecord[] }>;
-  addGroupOrderItem: (args: { groupOrderId: string; payload: CartMutationPayload }) => Promise<ApiResult>;
+  updateCustomerCartItemQuantity: (args: {
+    customerId: string;
+    cartItemId: string;
+    quantity: number;
+  }) => Promise<ApiResult>;
+  updateCustomerCartDealQuantity: (args: {
+    customerId: string;
+    dealTargetId: string;
+    quantity: number;
+  }) => Promise<ApiResult>;
+  deleteCustomerCartItem: (args: {
+    customerId: string;
+    cartItemId: string;
+  }) => Promise<ApiResult>;
+  deleteCustomerCartDeal: (args: {
+    customerId: string;
+    dealTargetId: string;
+  }) => Promise<ApiResult>;
+  fetchGroupOrders: () => Promise<{
+    response: ApiResult;
+    groupOrders: ApiRecord[];
+  }>;
+  addGroupOrderItem: (args: {
+    groupOrderId: string;
+    payload: CartMutationPayload;
+  }) => Promise<ApiResult>;
 };
 
 export const useCart = (token: string | null): CartApi => {
   const { user, ensureGuestSession, renewGuestSession } = useAuthContext();
   const { context: domainContext } = useDomainContext();
-  const api = useDomainApi(token, { service, requestKey: queryKeys.cart.request });
+  const api = useDomainApi(token, {
+    service,
+    requestKey: queryKeys.cart.request,
+  });
   const resolveRestaurantId = useCallback(() => {
     const restaurantId = user?.restaurantId ?? domainContext?.restaurantId;
 
@@ -124,12 +174,7 @@ export const useCart = (token: string | null): CartApi => {
         isGuest: session.user.isGuest === true,
       };
     },
-    [
-      ensureGuestSession,
-      resolveRestaurantId,
-      token,
-      user?.isGuest,
-    ],
+    [ensureGuestSession, resolveRestaurantId, token, user?.isGuest],
   );
   const ensureCustomerSession = useCallback(
     () => resolveCustomerSession(user?.id),
@@ -137,8 +182,9 @@ export const useCart = (token: string | null): CartApi => {
   );
 
   const fetchCart = useCallback(
-    ({ customerId }: { customerId: string }) => fetchCustomerCart({ customerId, token }),
-    [token]
+    ({ customerId }: { customerId: string }) =>
+      fetchCustomerCart({ customerId, token }),
+    [token],
   );
   const fetchCartForOrderType = useCallback(
     ({
@@ -159,11 +205,17 @@ export const useCart = (token: string | null): CartApi => {
   const fetchCartItem = useCallback(
     ({ customerId, cartItemId }: { customerId: string; cartItemId: string }) =>
       fetchCustomerCartItem({ customerId, cartItemId, token }),
-    [token]
+    [token],
   );
 
   const addCartItem = useCallback(
-    async ({ customerId, payload }: { customerId: string; payload: CartMutationPayload }) => {
+    async ({
+      customerId,
+      payload,
+    }: {
+      customerId: string;
+      payload: CartMutationPayload;
+    }) => {
       const optimisticQuantity = getOptimisticCartQuantity(payload);
       dispatchCartChanged({
         itemCountDelta: optimisticQuantity,
@@ -181,7 +233,9 @@ export const useCart = (token: string | null): CartApi => {
               token: activeSession.token,
             }),
           renewSession: async () => {
-            const renewedSession = await renewGuestSession(resolveRestaurantId());
+            const renewedSession = await renewGuestSession(
+              resolveRestaurantId(),
+            );
 
             return {
               customerId: renewedSession.user.id,
@@ -195,7 +249,8 @@ export const useCart = (token: string | null): CartApi => {
           dispatchCartChanged({
             itemCount: getCustomerCartItemCount(response.data),
             mutationStatus: "committed",
-            refreshCart: true,
+            refreshCart: false,
+            cartData: response.data,
           });
         } else {
           dispatchCartChanged({
@@ -213,11 +268,17 @@ export const useCart = (token: string | null): CartApi => {
         throw error;
       }
     },
-    [renewGuestSession, resolveCustomerSession, resolveRestaurantId]
+    [renewGuestSession, resolveCustomerSession, resolveRestaurantId],
   );
 
   const refreshCartQuote = useCallback(
-    async ({ customerId, payload }: { customerId: string; payload?: Record<string, unknown> }) => {
+    async ({
+      customerId,
+      payload,
+    }: {
+      customerId: string;
+      payload?: Record<string, unknown>;
+    }) => {
       const session = await resolveCustomerSession(customerId);
       return quoteCustomerCart({
         customerId: session.customerId,
@@ -225,24 +286,44 @@ export const useCart = (token: string | null): CartApi => {
         token: session.token,
       });
     },
-    [resolveCustomerSession]
+    [resolveCustomerSession],
   );
 
   const updateCart = useCallback(
-    ({ customerId, payload }: { customerId: string; payload: CartUpdatePayload }) =>
-      updateCustomerCart({ customerId, payload, token }),
-    [token]
+    ({
+      customerId,
+      payload,
+    }: {
+      customerId: string;
+      payload: CartUpdatePayload;
+    }) => updateCustomerCart({ customerId, payload, token }),
+    [token],
   );
 
   const updateCartOrderType = useCallback(
-    ({ customerId, orderType }: { customerId: string; orderType: "DELIVERY" | "TAKEAWAY" }) =>
-      updateCustomerCartOrderType({ customerId, orderType, token }),
-    [token]
+    ({
+      customerId,
+      orderType,
+    }: {
+      customerId: string;
+      orderType: "DELIVERY" | "TAKEAWAY";
+    }) => updateCustomerCartOrderType({ customerId, orderType, token }),
+    [token],
   );
 
   const updateCartItem = useCallback(
-    async ({ cartItemId, payload }: { cartItemId: string; payload: CartMutationPayload }) => {
-      const response = await updateCustomerCartItem({ cartItemId, payload, token });
+    async ({
+      cartItemId,
+      payload,
+    }: {
+      cartItemId: string;
+      payload: CartMutationPayload;
+    }) => {
+      const response = await updateCustomerCartItem({
+        cartItemId,
+        payload,
+        token,
+      });
 
       if (response && !response.error && response.success !== false) {
         dispatchCartChanged({
@@ -253,7 +334,7 @@ export const useCart = (token: string | null): CartApi => {
 
       return response;
     },
-    [token]
+    [token],
   );
 
   const clearCart = useCallback(
@@ -270,12 +351,25 @@ export const useCart = (token: string | null): CartApi => {
 
       return response;
     },
-    [resolveCustomerSession]
+    [resolveCustomerSession],
   );
 
   const updateCartItemQuantity = useCallback(
-    async ({ customerId, cartItemId, quantity }: { customerId: string; cartItemId: string; quantity: number }) => {
-      const response = await updateCustomerCartItemQuantity({ customerId, cartItemId, quantity, token });
+    async ({
+      customerId,
+      cartItemId,
+      quantity,
+    }: {
+      customerId: string;
+      cartItemId: string;
+      quantity: number;
+    }) => {
+      const response = await updateCustomerCartItemQuantity({
+        customerId,
+        cartItemId,
+        quantity,
+        token,
+      });
 
       if (response && !response.error && response.success !== false) {
         dispatchCartChanged({
@@ -285,12 +379,25 @@ export const useCart = (token: string | null): CartApi => {
 
       return response;
     },
-    [token]
+    [token],
   );
 
   const updateCartDealQuantity = useCallback(
-    async ({ customerId, dealTargetId, quantity }: { customerId: string; dealTargetId: string; quantity: number }) => {
-      const response = await updateCustomerCartDealQuantity({ customerId, dealTargetId, quantity, token });
+    async ({
+      customerId,
+      dealTargetId,
+      quantity,
+    }: {
+      customerId: string;
+      dealTargetId: string;
+      quantity: number;
+    }) => {
+      const response = await updateCustomerCartDealQuantity({
+        customerId,
+        dealTargetId,
+        quantity,
+        token,
+      });
 
       if (response && !response.error && response.success !== false) {
         dispatchCartChanged({
@@ -300,12 +407,22 @@ export const useCart = (token: string | null): CartApi => {
 
       return response;
     },
-    [token]
+    [token],
   );
 
   const deleteCartItem = useCallback(
-    async ({ customerId, cartItemId }: { customerId: string; cartItemId: string }) => {
-      const response = await deleteCustomerCartItem({ customerId, cartItemId, token });
+    async ({
+      customerId,
+      cartItemId,
+    }: {
+      customerId: string;
+      cartItemId: string;
+    }) => {
+      const response = await deleteCustomerCartItem({
+        customerId,
+        cartItemId,
+        token,
+      });
 
       if (response && !response.error && response.success !== false) {
         dispatchCartChanged({
@@ -315,12 +432,22 @@ export const useCart = (token: string | null): CartApi => {
 
       return response;
     },
-    [token]
+    [token],
   );
 
   const deleteCartDeal = useCallback(
-    async ({ customerId, dealTargetId }: { customerId: string; dealTargetId: string }) => {
-      const response = await deleteCustomerCartDeal({ customerId, dealTargetId, token });
+    async ({
+      customerId,
+      dealTargetId,
+    }: {
+      customerId: string;
+      dealTargetId: string;
+    }) => {
+      const response = await deleteCustomerCartDeal({
+        customerId,
+        dealTargetId,
+        token,
+      });
 
       if (response && !response.error && response.success !== false) {
         dispatchCartChanged({
@@ -330,7 +457,7 @@ export const useCart = (token: string | null): CartApi => {
 
       return response;
     },
-    [token]
+    [token],
   );
 
   const fetchGroups = useCallback(async () => {
@@ -339,7 +466,13 @@ export const useCart = (token: string | null): CartApi => {
   }, [resolveCustomerSession, user?.id]);
 
   const addGroupItem = useCallback(
-    async ({ groupOrderId, payload }: { groupOrderId: string; payload: CartMutationPayload }) => {
+    async ({
+      groupOrderId,
+      payload,
+    }: {
+      groupOrderId: string;
+      payload: CartMutationPayload;
+    }) => {
       const session = await resolveCustomerSession(user?.id);
       return addGroupOrderItem({
         groupOrderId,
@@ -347,7 +480,7 @@ export const useCart = (token: string | null): CartApi => {
         token: session.token,
       });
     },
-    [resolveCustomerSession, user?.id]
+    [resolveCustomerSession, user?.id],
   );
 
   return useMemo(
@@ -370,7 +503,25 @@ export const useCart = (token: string | null): CartApi => {
       fetchGroupOrders: fetchGroups,
       addGroupOrderItem: addGroupItem,
     }),
-    [addCartItem, addGroupItem, api, clearCart, deleteCartDeal, deleteCartItem, ensureCustomerSession, fetchCart, fetchCartForOrderType, fetchCartItem, fetchGroups, refreshCartQuote, updateCart, updateCartDealQuantity, updateCartItem, updateCartItemQuantity, updateCartOrderType]
+    [
+      addCartItem,
+      addGroupItem,
+      api,
+      clearCart,
+      deleteCartDeal,
+      deleteCartItem,
+      ensureCustomerSession,
+      fetchCart,
+      fetchCartForOrderType,
+      fetchCartItem,
+      fetchGroups,
+      refreshCartQuote,
+      updateCart,
+      updateCartDealQuantity,
+      updateCartItem,
+      updateCartItemQuantity,
+      updateCartOrderType,
+    ],
   );
 };
 
@@ -378,13 +529,16 @@ export const useAddDealToCart = (branchId?: string | null) => {
   const t = useTranslations("cart");
   const { token, user } = useAuthContext();
   const queryClient = useQueryClient();
-  const {
-    ensureCustomerSession,
-  } = useCart(token);
+  const { ensureCustomerSession } = useCart(token);
   const customerId = user?.id ?? "";
 
   return useMutation({
-    mutationFn: async ({ deal, selectedMenuItemIds = [], eligibleMenuItems, cartItemPayloads }: AddDealToCartInput) => {
+    mutationFn: async ({
+      deal,
+      selectedMenuItemIds = [],
+      eligibleMenuItems,
+      cartItemPayloads,
+    }: AddDealToCartInput) => {
       const session = customerId
         ? { customerId, token }
         : await ensureCustomerSession();
@@ -397,25 +551,39 @@ export const useAddDealToCart = (branchId?: string | null) => {
         throw new Error(t("dealNoItems"));
       }
 
-      if (!cartItemPayloads?.length && deal.dealSelectionMode === "FLEXIBLE_ITEMS" && selectedMenuItemIds.length < 1) {
+      if (
+        !cartItemPayloads?.length &&
+        deal.dealSelectionMode === "FLEXIBLE_ITEMS" &&
+        selectedMenuItemIds.length < 1
+      ) {
         throw new Error(t("dealNoItems"));
       }
 
       const payloads = cartItemPayloads?.length
         ? cartItemPayloads
         : deal.dealSelectionMode === "FLEXIBLE_ITEMS"
-          ? buildSelectedFlexibleDealCartItemsInput(deal, branchId, selectedMenuItemIds, eligibleMenuItems)
+          ? buildSelectedFlexibleDealCartItemsInput(
+              deal,
+              branchId,
+              selectedMenuItemIds,
+              eligibleMenuItems,
+            )
           : buildFixedDealCartItemsInput(deal, branchId);
       const requiredQuantity = Number(deal.dealRequiredQuantity);
-      const minimumEligibleItems = Number.isFinite(requiredQuantity) && requiredQuantity > 0
-        ? Math.floor(requiredQuantity)
-        : 1;
+      const minimumEligibleItems =
+        Number.isFinite(requiredQuantity) && requiredQuantity > 0
+          ? Math.floor(requiredQuantity)
+          : 1;
 
       if (payloads.length < 1) {
         throw new Error(t("dealNoItems"));
       }
 
-      if (!cartItemPayloads?.length && deal.dealSelectionMode === "FLEXIBLE_ITEMS" && payloads.length < minimumEligibleItems) {
+      if (
+        !cartItemPayloads?.length &&
+        deal.dealSelectionMode === "FLEXIBLE_ITEMS" &&
+        payloads.length < minimumEligibleItems
+      ) {
         throw new Error(t("dealNoItems"));
       }
 
@@ -440,7 +608,8 @@ export const useAddDealToCart = (branchId?: string | null) => {
         queryClient.invalidateQueries({ queryKey: queryKeys.cart.current }),
         queryClient.invalidateQueries({ queryKey: queryKeys.checkout.all }),
         queryClient.invalidateQueries({
-          predicate: ({ queryKey }) => queryKey[0] === "cart" || queryKey[0] === "checkout",
+          predicate: ({ queryKey }) =>
+            queryKey[0] === "cart" || queryKey[0] === "checkout",
         }),
       ]);
       toast.success(t("dealItemsAdded"));

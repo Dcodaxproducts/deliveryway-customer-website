@@ -223,6 +223,7 @@ function PromotionBannerCard({
   const minOrder = formatAmount(promotion.minOrderAmount, currency);
   const maxDiscount = formatAmount(promotion.maxDiscountAmount, currency);
   const isHappyHour = promotion.kind === "HAPPY_HOUR";
+  const requiresRegistration = promotion.requiresRegistration === true;
   const dailyWindow =
     isHappyHour && promotion.dailyStartTime && promotion.dailyEndTime
       ? `${promotion.dailyStartTime}–${promotion.dailyEndTime}`
@@ -237,6 +238,11 @@ function PromotionBannerCard({
   const gradientClass = gradients[index % gradients.length];
 
   const handleOpenPromotion = () => {
+    if (requiresRegistration) {
+      router.push("/auth/signup");
+      return;
+    }
+
     const firstCategoryId = promotion.scopeCategories?.[0]?.id;
 
     if (promotion.id) {
@@ -258,7 +264,8 @@ function PromotionBannerCard({
     <button
       type="button"
       onClick={handleOpenPromotion}
-      className={`group relative min-h-[250px] overflow-hidden rounded-[24px] bg-gradient-to-br ${gradientClass} p-5 text-left text-white shadow-xl shadow-primary/10 transition hover:-translate-y-1 hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-primary/40`}
+      aria-disabled={requiresRegistration}
+      className={`group relative min-h-[250px] overflow-hidden rounded-[24px] bg-gradient-to-br ${gradientClass} p-5 text-left text-white shadow-xl shadow-primary/10 transition hover:-translate-y-1 hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-primary/40 ${requiresRegistration ? "opacity-75" : ""}`}
     >
       <div className="absolute inset-0 opacity-20">
         <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-white" />
@@ -300,6 +307,12 @@ function PromotionBannerCard({
         {promotion.description ? (
           <p className="mt-2 line-clamp-2 text-sm leading-5 text-white/80">
             {promotion.description}
+          </p>
+        ) : null}
+
+        {requiresRegistration ? (
+          <p className="mt-3 rounded-xl bg-white/20 px-3 py-2 text-xs font-semibold ring-1 ring-white/25">
+            {t("registerToUnlock")}
           </p>
         ) : null}
 
@@ -348,7 +361,7 @@ export function FoodCategorySection() {
   const tCategories = useTranslations("home.categories");
   const tPromotions = useTranslations("home.promotions");
   const router = useRouter();
-  const { user, restaurantId: authRestaurantId } = useAuth();
+  const { user, token, restaurantId: authRestaurantId } = useAuth();
   const { context: domainContext } = useDomainContext();
   const { locale } = useAppLocale();
   const restaurantId = resolveHomeRestaurantId(
@@ -367,6 +380,7 @@ export function FoodCategorySection() {
     restaurantId,
     branchId,
     hasRestaurantContext,
+    token,
   );
   const homeQuery = useHome(
     restaurantId,

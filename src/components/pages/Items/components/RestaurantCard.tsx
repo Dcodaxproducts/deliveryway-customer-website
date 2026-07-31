@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { Plus, Info, Loader2, Eye, Minus, Download, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import useItems from "@/hooks/useItems";
@@ -73,6 +73,32 @@ const isCartBranchConflictResponse = (res: ApiRecord | null | undefined) => {
 };
 
 const ADDONS_GROUP_ID = "__item_addons__";
+const MAX_BACKGROUND_DETAIL_REQUESTS = 2;
+let activeBackgroundDetailRequests = 0;
+const backgroundDetailQueue: Array<() => Promise<void>> = [];
+
+const runNextBackgroundDetailRequest = () => {
+  if (
+    activeBackgroundDetailRequests >= MAX_BACKGROUND_DETAIL_REQUESTS ||
+    backgroundDetailQueue.length === 0
+  ) {
+    return;
+  }
+
+  const task = backgroundDetailQueue.shift();
+  if (!task) return;
+
+  activeBackgroundDetailRequests += 1;
+  void task().finally(() => {
+    activeBackgroundDetailRequests -= 1;
+    runNextBackgroundDetailRequest();
+  });
+};
+
+const scheduleBackgroundDetailRequest = (task: () => Promise<void>) => {
+  backgroundDetailQueue.push(task);
+  runNextBackgroundDetailRequest();
+};
 
 const sortBySortOrder = <T extends { sortOrder?: number }>(items: T[]) => {
   return [...items].sort(
@@ -2226,10 +2252,7 @@ export function RestaurantCard({
             inviteCode: groupOrder.inviteCode as string | number | null,
           });
           clearStoredGroupOrderCode();
-          res = await addCartItemWithBranchRetry(
-            basePayload,
-            activeCustomerId,
-          );
+          res = await addCartItemWithBranchRetry(basePayload, activeCustomerId);
         } else {
           res = await addGroupOrderItem({
             groupOrderId: String(groupOrder.id),
@@ -2238,10 +2261,7 @@ export function RestaurantCard({
           addedToGroupOrder = true;
         }
       } else {
-        res = await addCartItemWithBranchRetry(
-          basePayload,
-          activeCustomerId,
-        );
+        res = await addCartItemWithBranchRetry(basePayload, activeCustomerId);
       }
 
       if (isApiErrorResponse(res)) {
@@ -2268,10 +2288,12 @@ export function RestaurantCard({
     }
   }
 
-  const loadDetailedItem = async () => {
+  const loadDetailedItem = async ({
+    silent = false,
+  }: { silent?: boolean } = {}) => {
     if (hasLoadedDetails || !restaurantId || !item.id) return item;
 
-    setLoadingDetails(true);
+    if (!silent) setLoadingDetails(true);
 
     try {
       const { response, item: detailedItem } = await fetchMenuItemDetails({
@@ -2281,9 +2303,11 @@ export function RestaurantCard({
       });
 
       if (isApiErrorResponse(response) || !detailedItem) {
-        toast.error(
-          getApiErrorMessage(response, tErrors("somethingWentWrong")),
-        );
+        if (!silent) {
+          toast.error(
+            getApiErrorMessage(response, tErrors("somethingWentWrong")),
+          );
+        }
         return null;
       }
 
@@ -2291,12 +2315,34 @@ export function RestaurantCard({
       setHasLoadedDetails(true);
       return detailedItem;
     } catch {
-      toast.error(tErrors("somethingWentWrong"));
+      if (!silent) toast.error(tErrors("somethingWentWrong"));
       return null;
     } finally {
-      setLoadingDetails(false);
+      if (!silent) setLoadingDetails(false);
     }
   };
+
+  const cardRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const card = cardRef.current;
+    if (!card || hasLoadedDetails || !restaurantId || !item.id) return;
+    if (!("IntersectionObserver" in window)) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        observer.disconnect();
+        scheduleBackgroundDetailRequest(async () => {
+          await loadDetailedItem({ silent: true });
+        });
+      },
+      { rootMargin: "180px 0px", threshold: 0.01 },
+    );
+
+    observer.observe(card);
+    return () => observer.disconnect();
+  }, [hasLoadedDetails, item.id, restaurantId]);
 
   const handlePlusClick = async (event?: React.MouseEvent<HTMLElement>) => {
     event?.stopPropagation();
@@ -2340,7 +2386,9 @@ export function RestaurantCard({
     setOpen(true);
   };
 
-  const handleInfoClick = async (event: React.MouseEvent<HTMLButtonElement>) => {
+  const handleInfoClick = async (
+    event: React.MouseEvent<HTMLButtonElement>,
+  ) => {
     event.stopPropagation();
 
     if (loadingDetails) return;
@@ -2383,10 +2431,13 @@ export function RestaurantCard({
   return (
     <>
       <div
+        ref={cardRef}
         role="button"
         tabIndex={0}
         onClick={handlePlusClick}
         onKeyDown={handleCardKeyDown}
+        onPointerEnter={() => void loadDetailedItem({ silent: true })}
+        onFocus={() => void loadDetailedItem({ silent: true })}
         className="group relative cursor-pointer rounded-2xl border border-gray-200 bg-white p-3 shadow-sm transition hover:border-primary/40 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary/30 md:p-4"
       >
         <div className="flex justify-between gap-3 md:gap-4">
@@ -2451,50 +2502,47 @@ export function RestaurantCard({
 
           {item?.imageUrl ? (
             <div className="relative order-1 h-[118px] w-[112px] shrink-0 overflow-hidden rounded-xl md:order-2 md:h-[110px] md:w-[120px]">
-            {cardPromotionPricing.hasPromotion ? (
-              <div className="absolute left-2 top-2 z-10">
-                <PromotionBadge
-                  promotion={cardPromotionPricing.promotion}
-                  compact
-                  currency={currency}
-                />
-              </div>
-            ) : null}
+              {cardPromotionPricing.hasPromotion ? (
+                <div className="absolute left-2 top-2 z-10">
+                  <PromotionBadge
+                    promotion={cardPromotionPricing.promotion}
+                    compact
+                    currency={currency}
+                  />
+                </div>
+              ) : null}
 
-            <Image
-              src={item.imageUrl}
-              alt={item?.name || "item"}
-              fill
-              className="object-cover"
-              unoptimized
-            />
+              <Image
+                src={item.imageUrl}
+                alt={item?.name || "item"}
+                fill
+                className="object-cover"
+                unoptimized
+              />
 
-            <FavoriteHeartButton
-              menuItemId={item?.id}
-              className="absolute right-2 top-2 z-10 h-9 w-9"
-            />
+              <FavoriteHeartButton
+                menuItemId={item?.id}
+                className="absolute right-2 top-2 z-10 h-9 w-9"
+              />
 
-            <button
-              type="button"
-              onClick={(event) => {
-                handlePlusClick(event);
-              }}
-              disabled={loading}
-              className="absolute bottom-2 right-2 rounded-full bg-primary p-2 text-white shadow-sm transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              {loading ? (
-                <Loader2 size={14} className="animate-spin" />
-              ) : (
-                <Plus size={14} />
-              )}
-            </button>
+              <button
+                type="button"
+                onClick={(event) => {
+                  handlePlusClick(event);
+                }}
+                disabled={loading}
+                className="absolute bottom-2 right-2 rounded-full bg-primary p-2 text-white shadow-sm transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {loading ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <Plus size={14} />
+                )}
+              </button>
             </div>
           ) : (
             <div className="order-1 flex shrink-0 flex-col gap-2 md:order-2">
-              <FavoriteHeartButton
-                menuItemId={item?.id}
-                className="h-9 w-9"
-              />
+              <FavoriteHeartButton menuItemId={item?.id} className="h-9 w-9" />
               <button
                 type="button"
                 onClick={(event) => {

@@ -216,6 +216,7 @@ export const getHomeCategories = async (restaurantId: string) => {
 export const getHomePromotions = async (
   restaurantId: string,
   branchId?: string | null,
+  token?: string | null,
 ) => {
   const params = new URLSearchParams();
   params.set("restaurantId", restaurantId);
@@ -225,7 +226,7 @@ export const getHomePromotions = async (
   }
 
   return normalizePromotions(
-    await getRequest(`/customer-app/promotions?${params.toString()}`),
+    await getRequest(`/customer-app/promotions?${params.toString()}`, token),
   );
 };
 

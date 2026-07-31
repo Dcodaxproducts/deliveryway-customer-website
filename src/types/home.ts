@@ -1,5 +1,8 @@
 import type { Branding } from "@/types/branding";
-import type { BranchScheduleTimings, BranchTemporaryClosure } from "@/types/branches";
+import type {
+  BranchScheduleTimings,
+  BranchTemporaryClosure,
+} from "@/types/branches";
 import type { HomeGiftCards } from "@/types/gift-cards";
 import type { HappyHourInfo, MenuItem } from "@/components/pages/Items/types";
 
@@ -105,6 +108,9 @@ export type HomeCategory = {
 export type PromotionCampaign = {
   id: string;
   kind?: "PROMOTION" | "HAPPY_HOUR" | string;
+  audience?: "GUEST" | "REGISTERED" | "BOTH" | string;
+  isEligible?: boolean;
+  requiresRegistration?: boolean;
   title?: string;
   description?: string;
   code?: string;

@@ -169,6 +169,35 @@ describe("getHomePromotions", () => {
       isCurrentlyActive: true,
     });
   });
+
+  it("passes auth and preserves registered-only promotion eligibility", async () => {
+    getRequestMock.mockResolvedValue({
+      data: [
+        {
+          id: "members-1",
+          audience: "REGISTERED",
+          isEligible: false,
+          requiresRegistration: true,
+        },
+      ],
+    });
+
+    const promotions = await getHomePromotions(
+      "restaurant-1",
+      "branch-1",
+      "token-1",
+    );
+
+    expect(getRequestMock).toHaveBeenCalledWith(
+      "/customer-app/promotions?restaurantId=restaurant-1&branchId=branch-1",
+      "token-1",
+    );
+    expect(promotions[0]).toMatchObject({
+      audience: "REGISTERED",
+      isEligible: false,
+      requiresRegistration: true,
+    });
+  });
 });
 
 describe("getPromotionalItems", () => {

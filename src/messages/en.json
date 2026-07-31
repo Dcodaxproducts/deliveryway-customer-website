@@ -273,6 +273,7 @@
       "happyHour": "Happy Hour",
       "dailyWindow": "Daily {time}",
       "specialPromotion": "Special promotion",
+      "registerToUnlock": "Register or sign in to unlock this promotion",
       "allBranches": "All Branches",
       "now": "Now",
       "minOrder": "Min order {amount}",

@@ -5,14 +5,14 @@ import { RestaurantCard } from "./RestaurantCard";
 import useItems from "@/hooks/useItems";
 import { useAuth } from "@/hooks/useAuth";
 import { useDomainContext } from "@/hooks/useDomainContext";
-import {
-  resolveHomeBranchId,
-  resolveHomeRestaurantId,
-} from "@/lib/home";
+import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
 import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { ItemsCategory, MenuItem } from "@/components/pages/Items/types";
-import { mergeUniqueById, resolveHasNext } from "@/components/pages/Items/utils/restaurant-card-utils";
+import {
+  mergeUniqueById,
+  resolveHasNext,
+} from "@/components/pages/Items/utils/restaurant-card-utils";
 
 type MenuViewMode = "multiple" | "onePage";
 type ItemsContentSource = "category" | "menu";
@@ -101,13 +101,10 @@ export function ItemsListing({
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const inFlightRequestsRef = useRef<Set<string>>(new Set());
+  const handledScrollNonceRef = useRef<number | null>(null);
 
   const restaurantId = useMemo(() => {
-    return resolveHomeRestaurantId(
-      user,
-      authRestaurantId,
-      domainContext,
-    );
+    return resolveHomeRestaurantId(user, authRestaurantId, domainContext);
   }, [authRestaurantId, domainContext, user]);
 
   const branchId = useMemo(() => {
@@ -124,7 +121,8 @@ export function ItemsListing({
 
   const activeCategory = useMemo(() => {
     return (
-      sections.find(({ id }) => String(id || "") === activeCategoryId) || sections?.[0]
+      sections.find(({ id }) => String(id || "") === activeCategoryId) ||
+      sections?.[0]
     );
   }, [sections, activeCategoryId]);
 
@@ -132,10 +130,12 @@ export function ItemsListing({
     categoryId,
     page = 1,
     append = false,
+    silent = false,
   }: {
     categoryId: string;
     page?: number;
     append?: boolean;
+    silent?: boolean;
   }) => {
     if (!categoryId || !restaurantId) return;
 
@@ -146,21 +146,22 @@ export function ItemsListing({
     try {
       inFlightRequestsRef.current.add(requestKey);
 
-      queueMicrotask(() => {
-        setCategoryItemsMap((prev) => {
-          const existing = prev[categoryId] || createEmptyCategoryState();
+      if (!silent)
+        queueMicrotask(() => {
+          setCategoryItemsMap((prev) => {
+            const existing = prev[categoryId] || createEmptyCategoryState();
 
-          return {
-            ...prev,
-            [categoryId]: {
-              ...existing,
-              loading: !append,
-              loadingMore: append,
-              loadedOnce: append ? existing.loadedOnce : false,
-            },
-          };
+            return {
+              ...prev,
+              [categoryId]: {
+                ...existing,
+                loading: !append,
+                loadingMore: append,
+                loadedOnce: append ? existing.loadedOnce : false,
+              },
+            };
+          });
         });
-      });
 
       const { items: fetchedItems, meta } = await fetchMenuItemsPage({
         restaurantId: String(restaurantId),
@@ -204,7 +205,6 @@ export function ItemsListing({
         });
       });
     } catch (err) {
-
       queueMicrotask(() => {
         setCategoryItemsMap((prev) => {
           const existing = prev[categoryId] || createEmptyCategoryState();
@@ -245,6 +245,38 @@ export function ItemsListing({
       });
     });
   }, [contentSource, viewMode, activeCategoryId, restaurantId, branchId]);
+
+  /* Preload category content progressively so scrolling never blocks on a card grid. */
+  useEffect(() => {
+    if (contentSource !== "category" || viewMode !== "onePage") return;
+    if (!restaurantId) return;
+
+    const nextCategory = sections.find((section) => {
+      const id = String(section.id || "");
+      const state = categoryItemsMap[id];
+      return id && !state?.loadedOnce && !state?.loading;
+    });
+    const categoryId = String(nextCategory?.id || "");
+    if (!categoryId) return;
+
+    const timer = window.setTimeout(() => {
+      void fetchCategoryItems({
+        categoryId,
+        page: 1,
+        append: false,
+        silent: true,
+      });
+    }, 80);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    branchId,
+    categoryItemsMap,
+    contentSource,
+    restaurantId,
+    sections,
+    viewMode,
+  ]);
 
   const activeCategoryState = categoryItemsMap[activeCategoryId];
 
@@ -311,6 +343,13 @@ export function ItemsListing({
   useEffect(() => {
     if (viewMode !== "onePage") return;
     if (!scrollTarget?.id) return;
+    if (handledScrollNonceRef.current === scrollTarget.nonce) return;
+    if (
+      contentSource === "category" &&
+      !categoryItemsMap[String(scrollTarget.id)]?.loadedOnce
+    ) {
+      return;
+    }
 
     let frameId = 0;
     let attempts = 0;
@@ -330,6 +369,7 @@ export function ItemsListing({
         behavior: "smooth",
         block: "start",
       });
+      handledScrollNonceRef.current = scrollTarget.nonce;
     };
 
     frameId = window.requestAnimationFrame(scrollWhenReady);
@@ -341,6 +381,8 @@ export function ItemsListing({
     viewMode,
     scrollTarget?.id,
     scrollTarget?.nonce,
+    contentSource,
+    categoryItemsMap,
   ]);
 
   /* ================= ONE PAGE ACTIVE CATEGORY TRACKING ================= */
@@ -396,7 +438,7 @@ export function ItemsListing({
             document.body.scrollHeight,
             document.documentElement.scrollHeight,
             document.body.offsetHeight,
-            document.documentElement.offsetHeight
+            document.documentElement.offsetHeight,
           );
 
           if (scrollTop + viewportHeight >= documentHeight - 140) {
@@ -442,10 +484,7 @@ export function ItemsListing({
        * be short, image heights can change after load, and some layouts scroll
        * inside an overflow container instead of the window.
        */
-      const activationY = Math.min(
-        260,
-        Math.max(120, viewportHeight * 0.28)
-      );
+      const activationY = Math.min(260, Math.max(120, viewportHeight * 0.28));
 
       let nextActiveId = availableIds[0];
 
@@ -490,7 +529,7 @@ export function ItemsListing({
           root: null,
           rootMargin: "-96px 0px -60% 0px",
           threshold: [0, 0.01, 0.1, 0.25, 0.5, 0.75, 1],
-        }
+        },
       );
 
       for (const id of categoryIds) {
@@ -594,7 +633,10 @@ export function ItemsListing({
     );
   };
 
-  const renderMenuItemsGrid = (items: MenuItem[], emptyLabel = t("noItems")) => {
+  const renderMenuItemsGrid = (
+    items: MenuItem[],
+    emptyLabel = t("noItems"),
+  ) => {
     if (!items.length) {
       return (
         <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-400">
@@ -616,9 +658,13 @@ export function ItemsListing({
     return (
       <div className="min-w-0 space-y-10">
         <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-          <h2 className="text-xl font-semibold text-gray-900">{t("fullMenu")}</h2>
+          <h2 className="text-xl font-semibold text-gray-900">
+            {t("fullMenu")}
+          </h2>
           <p className="mt-1 text-sm text-gray-500">
-            {contentSource === "menu" ? t("menusDescription") : t("menuDescription")}
+            {contentSource === "menu"
+              ? t("menusDescription")
+              : t("menuDescription")}
           </p>
         </div>
 
@@ -630,7 +676,8 @@ export function ItemsListing({
           sections.map((category) => {
             const id = String(category?.id || "");
             const state = categoryItemsMap[id] || createEmptyCategoryState();
-            const menuItems = contentSource === "menu" ? getMenuSectionItems(category) : [];
+            const menuItems =
+              contentSource === "menu" ? getMenuSectionItems(category) : [];
 
             if (!id) return null;
 
@@ -658,7 +705,10 @@ export function ItemsListing({
 
                   <span className="w-fit rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-500">
                     {t("itemCount", {
-                      count: contentSource === "menu" ? menuItems.length : state.items.length,
+                      count:
+                        contentSource === "menu"
+                          ? menuItems.length
+                          : state.items.length,
                     })}
                   </span>
                 </div>
@@ -698,7 +748,10 @@ export function ItemsListing({
           {contentSource === "menu" ? t("selectMenu") : t("selectCategory")}
         </div>
       ) : contentSource === "menu" ? (
-        renderMenuItemsGrid(getMenuSectionItems(activeCategory), t("noItemsInMenu"))
+        renderMenuItemsGrid(
+          getMenuSectionItems(activeCategory),
+          t("noItemsInMenu"),
+        )
       ) : (
         renderItemsGrid({
           categoryId: activeCategoryId,

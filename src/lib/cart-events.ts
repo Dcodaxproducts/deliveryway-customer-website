@@ -7,6 +7,7 @@ export type CartChangedDetail = {
   itemCountDelta?: number;
   mutationStatus?: "pending" | "committed" | "rolled-back";
   refreshCart?: boolean;
+  cartData?: unknown;
 };
 
 export const dispatchCartChanged = (detail?: CartChangedDetail) => {

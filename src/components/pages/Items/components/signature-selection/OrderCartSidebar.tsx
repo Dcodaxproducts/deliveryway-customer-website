@@ -54,6 +54,7 @@ import { cn } from "@/lib/utils";
 type OrderCartSidebarProps = {
   customerId?: string;
   cartRefreshKey: number;
+  cartSnapshot?: unknown;
   onCartRefresh?: () => void;
   presentation?: "embedded" | "floating";
   checkoutType?: CheckoutType;
@@ -63,6 +64,7 @@ type OrderCartSidebarProps = {
 export function OrderCartSidebar({
   customerId,
   cartRefreshKey,
+  cartSnapshot,
   presentation = "embedded",
   checkoutType = "delivery",
   currency,
@@ -122,8 +124,13 @@ export function OrderCartSidebar({
   };
 
   useEffect(() => {
+    if (cartSnapshot !== undefined && cartSnapshot !== null) {
+      syncCartFromMutationResponse(cartSnapshot);
+      return;
+    }
+
     void fetchCart();
-  }, [customerId, cartRefreshKey, checkoutType]);
+  }, [customerId, cartRefreshKey, checkoutType, cartSnapshot]);
 
   const splitLabels = useMemo(
     () => ({
