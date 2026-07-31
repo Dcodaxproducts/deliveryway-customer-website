@@ -10,6 +10,7 @@ import {
   Sparkles,
   Store,
   Tag,
+  Clock3,
   Utensils,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -108,6 +109,12 @@ const getScopeText = (
 };
 
 const getPromotionImage = (promotion: PromotionCampaign) => {
+  const campaignImage = String(
+    promotion.imageUrl || promotion.thumbnailUrl || "",
+  );
+
+  if (campaignImage.startsWith("http")) return campaignImage;
+
   const categoryImage = promotion.scopeCategories?.find((entry) =>
     String(entry?.imageUrl || "").startsWith("http"),
   )?.imageUrl;
@@ -215,6 +222,11 @@ function PromotionBannerCard({
   const expiresAt = formatDate(promotion.expiresAt);
   const minOrder = formatAmount(promotion.minOrderAmount, currency);
   const maxDiscount = formatAmount(promotion.maxDiscountAmount, currency);
+  const isHappyHour = promotion.kind === "HAPPY_HOUR";
+  const dailyWindow =
+    isHappyHour && promotion.dailyStartTime && promotion.dailyEndTime
+      ? `${promotion.dailyStartTime}–${promotion.dailyEndTime}`
+      : "";
 
   const gradients = [
     "from-primary via-primary/90 to-[#111827]",
@@ -272,7 +284,7 @@ function PromotionBannerCard({
       <div className="relative z-10 flex min-h-[210px] max-w-[74%] flex-col">
         <div className="mb-4 flex w-fit items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide ring-1 ring-white/20">
           <Sparkles size={13} />
-          {t("activeDeal")}
+          {isHappyHour ? t("happyHour") : t("activeDeal")}
         </div>
 
         <div className="mb-3 w-fit rounded-[18px] bg-white px-4 py-2 text-primary shadow-lg">
@@ -310,6 +322,13 @@ function PromotionBannerCard({
               {startsAt || t("now")} {expiresAt ? `- ${expiresAt}` : ""}
             </span>
           )}
+
+          {dailyWindow ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-medium ring-1 ring-white/15">
+              <Clock3 size={12} />
+              {t("dailyWindow", { time: dailyWindow })}
+            </span>
+          ) : null}
 
           <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-white/75">
             {minOrder ? (

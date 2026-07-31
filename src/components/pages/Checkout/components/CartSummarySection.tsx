@@ -321,6 +321,23 @@ export const getItemImage = (item: CartItem) => {
   );
 };
 
+const CartItemImage = ({ item }: { item: CartItem }) => {
+  const imageUrl = String(getItemImage(item) || "/placeholder.png");
+  const [failedImageUrl, setFailedImageUrl] = useState("");
+  const source = failedImageUrl === imageUrl ? "/placeholder.png" : imageUrl;
+
+  return (
+    <Image
+      src={source}
+      alt={item.name}
+      fill
+      className="object-cover"
+      unoptimized
+      onError={() => setFailedImageUrl(imageUrl)}
+    />
+  );
+};
+
 export const isDealCartItem = (item: CartItem) =>
   String(item.type || "").toUpperCase() === "DEAL" ||
   Boolean(item.dealId) ||
@@ -1365,13 +1382,7 @@ export function CartSummarySection({
 
                   <div className="flex items-start gap-4">
                     <div className="relative h-[76px] w-[76px] shrink-0 overflow-hidden rounded-[12px]">
-                      <Image
-                        src={String(getItemImage(item) || "/placeholder.png")}
-                        alt={item.name}
-                        fill
-                        className="object-cover"
-                        unoptimized
-                      />
+                      <CartItemImage item={item} />
                     </div>
 
                     <div className="min-w-0 flex-1 space-y-[8px] pr-10">

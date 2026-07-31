@@ -104,6 +104,7 @@ export type HomeCategory = {
 
 export type PromotionCampaign = {
   id: string;
+  kind?: "PROMOTION" | "HAPPY_HOUR" | string;
   title?: string;
   description?: string;
   code?: string;
@@ -118,6 +119,10 @@ export type PromotionCampaign = {
   maxUsesPerCustomer?: number | string;
   startsAt?: string;
   expiresAt?: string;
+  activeDays?: number[];
+  dailyStartTime?: string | null;
+  dailyEndTime?: string | null;
+  isCurrentlyActive?: boolean;
   branch?: {
     id?: string;
     name?: string;

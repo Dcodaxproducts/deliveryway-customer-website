@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { getHome, getHomeCategories, getPromotionalItems } from "./home";
+import {
+  getHome,
+  getHomeCategories,
+  getHomePromotions,
+  getPromotionalItems,
+} from "./home";
 
 const getRequestMock = vi.hoisted(() => vi.fn());
 
@@ -131,6 +136,38 @@ describe("getHomeCategories", () => {
 
     expect(categories).toHaveLength(1);
     expect(categories[0].id).toBe("c1");
+  });
+});
+
+describe("getHomePromotions", () => {
+  beforeEach(() => {
+    getRequestMock.mockReset();
+  });
+
+  it("preserves happy-hour identity and daily schedule", async () => {
+    getRequestMock.mockResolvedValue({
+      data: [
+        {
+          id: "happy-1",
+          kind: "HAPPY_HOUR",
+          title: "Lunch happy hour",
+          activeDays: [1, 2, 3, 4, 5],
+          dailyStartTime: "12:00",
+          dailyEndTime: "14:00",
+          isCurrentlyActive: true,
+        },
+      ],
+    });
+
+    const promotions = await getHomePromotions("restaurant-1", "branch-1");
+
+    expect(promotions[0]).toMatchObject({
+      kind: "HAPPY_HOUR",
+      activeDays: [1, 2, 3, 4, 5],
+      dailyStartTime: "12:00",
+      dailyEndTime: "14:00",
+      isCurrentlyActive: true,
+    });
   });
 });
 

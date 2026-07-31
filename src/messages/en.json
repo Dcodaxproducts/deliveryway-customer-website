@@ -270,6 +270,8 @@
     "promotions": {
       "specialOffer": "Special offer",
       "activeDeal": "Active Deal",
+      "happyHour": "Happy Hour",
+      "dailyWindow": "Daily {time}",
       "specialPromotion": "Special promotion",
       "allBranches": "All Branches",
       "now": "Now",

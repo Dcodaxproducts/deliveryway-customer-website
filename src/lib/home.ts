@@ -20,6 +20,11 @@ const getNumberOrString = (value: unknown) => {
   return undefined;
 };
 
+const getNumberArray = (value: unknown) =>
+  Array.isArray(value)
+    ? value.filter((entry): entry is number => typeof entry === "number")
+    : undefined;
+
 const normalizePromotionScope = (value: unknown) => {
   if (!Array.isArray(value)) {
     return [];
@@ -92,6 +97,7 @@ export const normalizePromotions = (response: unknown): PromotionCampaign[] =>
   getArrayData<Record<string, unknown>>(response)
     .map((promotion) => ({
       id: getString(promotion.id) ?? "",
+      kind: getString(promotion.kind),
       title: getString(promotion.title),
       description: getString(promotion.description),
       code: getString(promotion.code),
@@ -106,6 +112,10 @@ export const normalizePromotions = (response: unknown): PromotionCampaign[] =>
       maxUsesPerCustomer: getNumberOrString(promotion.maxUsesPerCustomer),
       startsAt: getString(promotion.startsAt),
       expiresAt: getString(promotion.expiresAt),
+      activeDays: getNumberArray(promotion.activeDays),
+      dailyStartTime: getString(promotion.dailyStartTime) ?? null,
+      dailyEndTime: getString(promotion.dailyEndTime) ?? null,
+      isCurrentlyActive: getBoolean(promotion.isCurrentlyActive),
       branch: isRecord(promotion.branch)
         ? {
             id: getString(promotion.branch.id),

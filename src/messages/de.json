@@ -270,6 +270,8 @@
     "promotions": {
       "specialOffer": "Sonderangebot",
       "activeDeal": "Aktives Angebot",
+      "happyHour": "Happy Hour",
+      "dailyWindow": "Täglich {time}",
       "specialPromotion": "Sonderaktion",
       "allBranches": "Alle Filialen",
       "now": "Jetzt",
