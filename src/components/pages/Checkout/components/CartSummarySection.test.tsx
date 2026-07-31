@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  CART_ITEM_FALLBACK_IMAGE,
   getCartBillTotals,
+  getItemImage,
   getItemPricing,
   getScopedItemDiscountDisplays,
   getServiceChargeAmountFromQuote,
@@ -75,6 +77,31 @@ describe("isDealCartItem", () => {
     expect(isDealCartItem({ id: "included-row", dealId: "deal-1", name: "Included", price: 10, quantity: 1 })).toBe(true);
     expect(isDealCartItem({ id: "parent-row", name: "Parent", price: 10, quantity: 1, includedItems: [{ name: "Included", quantity: 1, selectedModifiers: [] }] })).toBe(true);
     expect(isDealCartItem({ id: "item-row", name: "Regular", price: 10, quantity: 1 })).toBe(false);
+  });
+});
+
+describe("getItemImage", () => {
+  it("uses the standard item fallback when the cart item has no image", () => {
+    expect(
+      getItemImage({
+        id: "cart-item-1",
+        name: "Item without media",
+        price: 10,
+        quantity: 1,
+      }),
+    ).toBe(CART_ITEM_FALLBACK_IMAGE);
+  });
+
+  it("keeps an uploaded cart item image", () => {
+    expect(
+      getItemImage({
+        id: "cart-item-1",
+        name: "Item with media",
+        price: 10,
+        quantity: 1,
+        menuItem: { imageUrl: "https://example.com/item.jpg" },
+      }),
+    ).toBe("https://example.com/item.jpg");
   });
 });
 

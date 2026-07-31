@@ -312,24 +312,36 @@ const getItemSlug = (item: CartItem) => {
   return item?.slug || item?.menuItem?.slug || slugify(item?.name || "");
 };
 
+export const CART_ITEM_FALLBACK_IMAGE = "/menu-item.jpg";
+
 export const getItemImage = (item: CartItem) => {
-  return item.img || item?.deal?.imageUrl || item?.menuItem?.imageUrl || "";
+  return (
+    item.img ||
+    item?.deal?.imageUrl ||
+    item?.menuItem?.imageUrl ||
+    CART_ITEM_FALLBACK_IMAGE
+  );
 };
 
 const CartItemImage = ({ item }: { item: CartItem }) => {
   const imageUrl = String(getItemImage(item) || "");
   const [failedImageUrl, setFailedImageUrl] = useState("");
 
-  if (!imageUrl || failedImageUrl === imageUrl) return null;
+  const resolvedImageUrl =
+    failedImageUrl === imageUrl ? CART_ITEM_FALLBACK_IMAGE : imageUrl;
 
   return (
     <Image
-      src={imageUrl}
+      src={resolvedImageUrl}
       alt={item.name}
       fill
       className="object-cover"
       unoptimized
-      onError={() => setFailedImageUrl(imageUrl)}
+      onError={() => {
+        if (imageUrl !== CART_ITEM_FALLBACK_IMAGE) {
+          setFailedImageUrl(imageUrl);
+        }
+      }}
     />
   );
 };
