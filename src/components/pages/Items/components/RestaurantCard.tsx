@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { Plus, Info, Loader2, Eye, Minus, Download, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import useItems from "@/hooks/useItems";
@@ -73,32 +73,6 @@ const isCartBranchConflictResponse = (res: ApiRecord | null | undefined) => {
 };
 
 const ADDONS_GROUP_ID = "__item_addons__";
-const MAX_BACKGROUND_DETAIL_REQUESTS = 2;
-let activeBackgroundDetailRequests = 0;
-const backgroundDetailQueue: Array<() => Promise<void>> = [];
-
-const runNextBackgroundDetailRequest = () => {
-  if (
-    activeBackgroundDetailRequests >= MAX_BACKGROUND_DETAIL_REQUESTS ||
-    backgroundDetailQueue.length === 0
-  ) {
-    return;
-  }
-
-  const task = backgroundDetailQueue.shift();
-  if (!task) return;
-
-  activeBackgroundDetailRequests += 1;
-  void task().finally(() => {
-    activeBackgroundDetailRequests -= 1;
-    runNextBackgroundDetailRequest();
-  });
-};
-
-const scheduleBackgroundDetailRequest = (task: () => Promise<void>) => {
-  backgroundDetailQueue.push(task);
-  runNextBackgroundDetailRequest();
-};
 
 const sortBySortOrder = <T extends { sortOrder?: number }>(items: T[]) => {
   return [...items].sort(
@@ -487,16 +461,6 @@ const getAllergenAdditives = (item: MenuItem | null) => {
       seen.add(key);
       return true;
     });
-};
-
-const hasProductInfoContent = (item: MenuItem | null) => {
-  return Boolean(
-    hasText(item?.ingredients) ||
-    hasText(item?.nutritionalInformation) ||
-    getProductLabels(item).length > 0 ||
-    getAllergenAdditives(item).length > 0 ||
-    hasText(item?.allergenPdfUrl),
-  );
 };
 
 function ProductInfoContent({ item }: { item: MenuItem | null }) {
@@ -2288,12 +2252,10 @@ export function RestaurantCard({
     }
   }
 
-  const loadDetailedItem = async ({
-    silent = false,
-  }: { silent?: boolean } = {}) => {
+  const loadDetailedItem = async () => {
     if (hasLoadedDetails || !restaurantId || !item.id) return item;
 
-    if (!silent) setLoadingDetails(true);
+    setLoadingDetails(true);
 
     try {
       const { response, item: detailedItem } = await fetchMenuItemDetails({
@@ -2303,11 +2265,9 @@ export function RestaurantCard({
       });
 
       if (isApiErrorResponse(response) || !detailedItem) {
-        if (!silent) {
-          toast.error(
-            getApiErrorMessage(response, tErrors("somethingWentWrong")),
-          );
-        }
+        toast.error(
+          getApiErrorMessage(response, tErrors("somethingWentWrong")),
+        );
         return null;
       }
 
@@ -2315,34 +2275,12 @@ export function RestaurantCard({
       setHasLoadedDetails(true);
       return detailedItem;
     } catch {
-      if (!silent) toast.error(tErrors("somethingWentWrong"));
+      toast.error(tErrors("somethingWentWrong"));
       return null;
     } finally {
-      if (!silent) setLoadingDetails(false);
+      setLoadingDetails(false);
     }
   };
-
-  const cardRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    const card = cardRef.current;
-    if (!card || hasLoadedDetails || !restaurantId || !item.id) return;
-    if (!("IntersectionObserver" in window)) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (!entries.some((entry) => entry.isIntersecting)) return;
-        observer.disconnect();
-        scheduleBackgroundDetailRequest(async () => {
-          await loadDetailedItem({ silent: true });
-        });
-      },
-      { rootMargin: "180px 0px", threshold: 0.01 },
-    );
-
-    observer.observe(card);
-    return () => observer.disconnect();
-  }, [hasLoadedDetails, item.id, restaurantId]);
 
   const handlePlusClick = async (event?: React.MouseEvent<HTMLElement>) => {
     event?.stopPropagation();
@@ -2415,8 +2353,6 @@ export function RestaurantCard({
       ? `${String(item.description).slice(0, 90)}...`
       : item?.description || "";
 
-  const hasInfoBoxContent = hasProductInfoContent(item);
-
   const checkoutType =
     orderTypeToCheckoutType(
       user?.selectedOrderType ?? user?.branch?.selectedOrderType,
@@ -2431,13 +2367,10 @@ export function RestaurantCard({
   return (
     <>
       <div
-        ref={cardRef}
         role="button"
         tabIndex={0}
         onClick={handlePlusClick}
         onKeyDown={handleCardKeyDown}
-        onPointerEnter={() => void loadDetailedItem({ silent: true })}
-        onFocus={() => void loadDetailedItem({ silent: true })}
         className="group relative cursor-pointer rounded-2xl border border-gray-200 bg-white p-3 shadow-sm transition hover:border-primary/40 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary/30 md:p-4"
       >
         <div className="flex justify-between gap-3 md:gap-4">
@@ -2447,17 +2380,19 @@ export function RestaurantCard({
                 {item?.name}
               </h3>
 
-              {hasInfoBoxContent ? (
-                <button
-                  type="button"
-                  onClick={handleInfoClick}
-                  disabled={loadingDetails}
-                  className="rounded-full border border-gray-200 bg-gray-50 p-1.5 text-gray-500 transition hover:text-primary"
-                  title={t("viewIngredients")}
-                >
+              <button
+                type="button"
+                onClick={handleInfoClick}
+                disabled={loadingDetails}
+                className="rounded-full border border-gray-200 bg-gray-50 p-1.5 text-gray-500 transition hover:text-primary disabled:cursor-wait disabled:opacity-60"
+                title={t("viewIngredients")}
+              >
+                {loadingDetails ? (
+                  <Loader2 size={15} className="animate-spin" />
+                ) : (
                   <Eye size={15} />
-                </button>
-              ) : null}
+                )}
+              </button>
             </div>
 
             {truncatedDesc ? (

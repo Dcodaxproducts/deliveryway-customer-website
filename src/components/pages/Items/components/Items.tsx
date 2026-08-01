@@ -130,12 +130,10 @@ export function ItemsListing({
     categoryId,
     page = 1,
     append = false,
-    silent = false,
   }: {
     categoryId: string;
     page?: number;
     append?: boolean;
-    silent?: boolean;
   }) => {
     if (!categoryId || !restaurantId) return;
 
@@ -146,22 +144,21 @@ export function ItemsListing({
     try {
       inFlightRequestsRef.current.add(requestKey);
 
-      if (!silent)
-        queueMicrotask(() => {
-          setCategoryItemsMap((prev) => {
-            const existing = prev[categoryId] || createEmptyCategoryState();
+      queueMicrotask(() => {
+        setCategoryItemsMap((prev) => {
+          const existing = prev[categoryId] || createEmptyCategoryState();
 
-            return {
-              ...prev,
-              [categoryId]: {
-                ...existing,
-                loading: !append,
-                loadingMore: append,
-                loadedOnce: append ? existing.loadedOnce : false,
-              },
-            };
-          });
+          return {
+            ...prev,
+            [categoryId]: {
+              ...existing,
+              loading: !append,
+              loadingMore: append,
+              loadedOnce: append ? existing.loadedOnce : false,
+            },
+          };
         });
+      });
 
       const { items: fetchedItems, meta } = await fetchMenuItemsPage({
         restaurantId: String(restaurantId),
@@ -245,38 +242,6 @@ export function ItemsListing({
       });
     });
   }, [contentSource, viewMode, activeCategoryId, restaurantId, branchId]);
-
-  /* Preload category content progressively so scrolling never blocks on a card grid. */
-  useEffect(() => {
-    if (contentSource !== "category" || viewMode !== "onePage") return;
-    if (!restaurantId) return;
-
-    const nextCategory = sections.find((section) => {
-      const id = String(section.id || "");
-      const state = categoryItemsMap[id];
-      return id && !state?.loadedOnce && !state?.loading;
-    });
-    const categoryId = String(nextCategory?.id || "");
-    if (!categoryId) return;
-
-    const timer = window.setTimeout(() => {
-      void fetchCategoryItems({
-        categoryId,
-        page: 1,
-        append: false,
-        silent: true,
-      });
-    }, 80);
-
-    return () => window.clearTimeout(timer);
-  }, [
-    branchId,
-    categoryItemsMap,
-    contentSource,
-    restaurantId,
-    sections,
-    viewMode,
-  ]);
 
   const activeCategoryState = categoryItemsMap[activeCategoryId];
 
