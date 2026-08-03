@@ -16,6 +16,7 @@ import {
 } from "@/services/orders";
 import { useCustomerReviews } from "@/hooks/useCustomerReviews";
 import { useLocale, useTranslations } from "next-intl";
+import { formatMoney } from "@/lib/money";
 
 export function OrdersHistoryPage() {
   const t = useTranslations("ordersHistory");
@@ -215,7 +216,11 @@ const router = useRouter();
                         </div>
 
                         <p className="text-[14px] sm:text-[15px] font-semibold text-gray-900">
-                          Rs {order.totalAmount}
+                          {formatMoney(
+                            order.totalAmount,
+                            order.pricing?.currency ??
+                              order.transactions?.[0]?.currency,
+                          )}
                         </p>
                       </div>
 

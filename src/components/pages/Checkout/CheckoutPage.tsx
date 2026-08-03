@@ -1467,11 +1467,14 @@ function CheckoutPageContent() {
 
       clearBackendError();
 
-      if (checkoutPaymentMethod === "STRIPE") {
+      if (
+        checkoutPaymentMethod === "STRIPE" ||
+        checkoutPaymentMethod === "PAYPAL"
+      ) {
         const attemptRes = await post(
           `/v1/payments/orders/${orderId}/attempts`,
           {
-            paymentMethod: "STRIPE",
+            paymentMethod: checkoutPaymentMethod,
             currency,
             note: "Order payment",
           },
@@ -1483,6 +1486,26 @@ function CheckoutPageContent() {
             attemptRes,
             t("toast.failedInitiatePayment"),
           );
+          return;
+        }
+
+        if (checkoutPaymentMethod === "PAYPAL") {
+          const paymentSession = asRecord(attemptRes?.paymentSession);
+          const approvalUrl =
+            typeof paymentSession.approvalUrl === "string"
+              ? paymentSession.approvalUrl
+              : "";
+
+          if (!approvalUrl) {
+            reportBackendError(
+              t("toast.failedInitiatePayment"),
+              attemptRes,
+              t("toast.failedInitiatePayment"),
+            );
+            return;
+          }
+
+          window.location.assign(approvalUrl);
           return;
         }
 

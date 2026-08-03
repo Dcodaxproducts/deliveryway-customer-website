@@ -15,6 +15,7 @@ import { canReviewOrder, type Order } from "@/services/orders";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "@/lib/errors";
+import { formatMoney } from "@/lib/money";
 
 export default function WriteReview() {
   const t = useTranslations("orders");
@@ -240,8 +241,11 @@ export default function WriteReview() {
             </h2>
 
             <p className="text-xs text-gray-400">
-              {formatDate(order.createdAt || "")} · Rs{" "}
-              {order.totalAmount}
+              {formatDate(order.createdAt || "")} ·{" "}
+              {formatMoney(
+                order.totalAmount,
+                order.pricing?.currency ?? order.transactions?.[0]?.currency,
+              )}
             </p>
           </div>
         </div>
