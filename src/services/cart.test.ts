@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   addGroupOrderItem,
   addCustomerCartItem,
+  addCustomerCartItemsBatch,
   cleanAddCartItemPayload,
   deleteCustomerCartDeal,
   fetchCustomerCart,
@@ -56,6 +57,64 @@ describe("cart service", () => {
         quantity: 1,
       },
       undefined
+    );
+  });
+
+  it("adds deal items through one cleaned batch request", async () => {
+    postCartMock.mockResolvedValue({ success: true });
+
+    await addCustomerCartItemsBatch({
+      customerId: "customer-1",
+      payloads: [
+        {
+          branchId: "branch-1",
+          menuItemId: "deal-item-1",
+          dealId: "deal-1",
+          quantity: 1,
+          modifiers: [{ modifierId: "legacy-modifier", quantity: 1 }],
+        },
+        {
+          branchId: "branch-1",
+          menuItemId: "deal-item-2",
+          dealId: "deal-1",
+          quantity: 2,
+          modifierSelections: [
+            {
+              modifierGroupId: "group-1",
+              modifiers: [{ modifierId: "modifier-1", quantity: 1 }],
+            },
+          ],
+        },
+      ],
+      token: "customer-token",
+    });
+
+    expect(postCartMock).toHaveBeenCalledTimes(1);
+    expect(postCartMock).toHaveBeenCalledWith(
+      "/v1/cart/items/batch?customerId=customer-1",
+      {
+        items: [
+          {
+            branchId: "branch-1",
+            menuItemId: "deal-item-1",
+            dealId: "deal-1",
+            quantity: 1,
+          },
+          {
+            branchId: "branch-1",
+            menuItemId: "deal-item-2",
+            dealId: "deal-1",
+            quantity: 2,
+            modifierSelections: [
+              {
+                modifierGroupId: "group-1",
+                modifiers: [{ modifierId: "modifier-1", quantity: 1 }],
+              },
+            ],
+          },
+        ],
+      },
+      "customer-token"
     );
   });
 
@@ -458,11 +517,7 @@ describe("cart service", () => {
 
     const response = await quoteCustomerCart({ customerId: "customer-1" });
 
-    expect(postCartMock).toHaveBeenCalledWith(
-      "/v1/cart/quote?customerId=customer-1",
-      {},
-      undefined
-    );
+    expect(postCartMock).toHaveBeenCalledWith("/v1/cart/quote?customerId=customer-1", {}, undefined);
     expect(response).toMatchObject({
       data: {
         appliedPromotion: {
@@ -521,11 +576,7 @@ describe("cart service", () => {
       },
     });
 
-    expect(postCartMock).toHaveBeenCalledWith(
-      "/v1/cart/quote?customerId=customer-1",
-      { tipAmount: 2 },
-      undefined
-    );
+    expect(postCartMock).toHaveBeenCalledWith("/v1/cart/quote?customerId=customer-1", { tipAmount: 2 }, undefined);
   });
 
   it("sends deliveryAddressId in cart quote payload", async () => {
@@ -554,11 +605,7 @@ describe("cart service", () => {
       orderType: "TAKEAWAY",
     });
 
-    expect(patchCartMock).toHaveBeenCalledWith(
-      "/v1/cart?customerId=customer-1",
-      { orderType: "TAKEAWAY" },
-      undefined
-    );
+    expect(patchCartMock).toHaveBeenCalledWith("/v1/cart?customerId=customer-1", { orderType: "TAKEAWAY" }, undefined);
   });
 
   it("normalizes customer cart quote from GET cart response", async () => {
@@ -638,8 +685,22 @@ describe("cart service", () => {
         totalAmount: 999,
         payableAmount: 1400,
         chargeBreakdown: {
-          taxes: [{ code: "STANDARD", label: "Standard tax", percentage: 19, amount: 190 }],
-          serviceCharges: [{ code: "SERVICE", label: "Service charge", percentage: 10, amount: 100 }],
+          taxes: [
+            {
+              code: "STANDARD",
+              label: "Standard tax",
+              percentage: 19,
+              amount: 190,
+            },
+          ],
+          serviceCharges: [
+            {
+              code: "SERVICE",
+              label: "Service charge",
+              percentage: 10,
+              amount: 100,
+            },
+          ],
           totalTaxAmount: 190,
           totalServiceChargeAmount: 100,
         },
@@ -664,8 +725,22 @@ describe("cart service", () => {
       totalAmount: 999,
       payableAmount: 1400,
       chargeBreakdown: {
-        taxes: [{ code: "STANDARD", label: "Standard tax", percentage: 19, amount: 190 }],
-        serviceCharges: [{ code: "SERVICE", label: "Service charge", percentage: 10, amount: 100 }],
+        taxes: [
+          {
+            code: "STANDARD",
+            label: "Standard tax",
+            percentage: 19,
+            amount: 190,
+          },
+        ],
+        serviceCharges: [
+          {
+            code: "SERVICE",
+            label: "Service charge",
+            percentage: 10,
+            amount: 100,
+          },
+        ],
         totalTaxAmount: 190,
         totalServiceChargeAmount: 100,
       },

@@ -22,7 +22,7 @@ export const patchCart = cartService.patch;
 export const deleteCart = cartService.del;
 
 const getRecord = (value: unknown): ApiRecord | null =>
-  typeof value === "object" && value !== null && !Array.isArray(value) ? value as ApiRecord : null;
+  typeof value === "object" && value !== null && !Array.isArray(value) ? (value as ApiRecord) : null;
 
 const toNumber = (value: unknown, fallback = 0) => {
   const parsed = Number(value);
@@ -31,11 +31,9 @@ const toNumber = (value: unknown, fallback = 0) => {
 
 const getString = (value: unknown) => (typeof value === "string" ? value : "");
 
-const getServiceChargeType = (value: unknown) =>
-  typeof value === "string" && value.trim() ? value : null;
+const getServiceChargeType = (value: unknown) => (typeof value === "string" && value.trim() ? value : null);
 
-const getCurrentPathname = () =>
-  typeof window === "undefined" ? "" : window.location.pathname;
+const getCurrentPathname = () => (typeof window === "undefined" ? "" : window.location.pathname);
 
 const shouldSendRestaurantMenuId = (pathname: string) => pathname === "/menu";
 
@@ -83,9 +81,7 @@ const normalizeChargeLine = (value: unknown): CartChargeLine | null => {
 };
 
 const normalizeChargeLines = (value: unknown) =>
-  Array.isArray(value)
-    ? value.map(normalizeChargeLine).filter((line): line is CartChargeLine => Boolean(line))
-    : [];
+  Array.isArray(value) ? value.map(normalizeChargeLine).filter((line): line is CartChargeLine => Boolean(line)) : [];
 
 const normalizeCartChargeBreakdown = (value: unknown): CartChargeBreakdown | undefined => {
   const breakdown = getRecord(value);
@@ -142,9 +138,10 @@ export const normalizeCartQuote = (value: unknown): CartQuote | null => {
     taxAmount: toNumber(quote.taxAmount, 0),
     deliveryFee: toNumber(quote.deliveryFee, 0),
     serviceChargeType: getServiceChargeType(quote.serviceChargeType),
-    serviceChargeValue: quote.serviceChargeValue === null || quote.serviceChargeValue === undefined
-      ? null
-      : toNumber(quote.serviceChargeValue, 0),
+    serviceChargeValue:
+      quote.serviceChargeValue === null || quote.serviceChargeValue === undefined
+        ? null
+        : toNumber(quote.serviceChargeValue, 0),
     serviceChargeAmount: toNumber(quote.serviceChargeAmount, 0),
     tipAmount: toNumber(quote.tipAmount, 0),
     discountAmount: toNumber(quote.discountAmount, 0),
@@ -203,17 +200,15 @@ const resolveCartRecord = (responseData: unknown) => {
         : resData;
 };
 
-export const fetchCustomerCart = async ({
-  customerId,
-  token,
-}: {
-  customerId: string;
-  token?: string | null;
-}) => {
+export const fetchCustomerCart = async ({ customerId, token }: { customerId: string; token?: string | null }) => {
   const response = await getCart(`/v1/cart?customerId=${customerId}`, token);
 
   if (!response || response.error) {
-    return { response, items: [] as CartItemRecord[], quote: null as CartQuote | null };
+    return {
+      response,
+      items: [] as CartItemRecord[],
+      quote: null as CartQuote | null,
+    };
   }
 
   const cart = resolveCartRecord(response.data);
@@ -250,6 +245,21 @@ export const addCustomerCartItem = ({
   payload: CartMutationPayload;
   token?: string | null;
 }) => postCart(`/v1/cart/items?customerId=${customerId}`, cleanAddCartItemPayload(payload), token);
+
+export const addCustomerCartItemsBatch = ({
+  customerId,
+  payloads,
+  token,
+}: {
+  customerId: string;
+  payloads: CartMutationPayload[];
+  token?: string | null;
+}) =>
+  postCart(
+    `/v1/cart/items/batch?customerId=${customerId}`,
+    { items: payloads.map((payload) => cleanAddCartItemPayload(payload)) },
+    token
+  );
 
 export const cleanAddCartItemPayload = (
   payload: CartMutationPayload,
@@ -452,7 +462,8 @@ export const fetchGroupOrders = async (token?: string | null) => {
   });
 
   return {
-    response: openResponse?.error && lockedResponse?.error ? openResponse : openResponse?.error ? lockedResponse : openResponse,
+    response:
+      openResponse?.error && lockedResponse?.error ? openResponse : openResponse?.error ? lockedResponse : openResponse,
     groupOrders,
   };
 };
