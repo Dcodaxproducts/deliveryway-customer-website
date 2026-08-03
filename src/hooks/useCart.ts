@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 
@@ -76,9 +76,7 @@ const getOptimisticCartQuantity = (payload: CartMutationPayload) => {
 
 export type CartApi = DomainApiHook & {
   ensureCustomerSession: () => Promise<{ customerId: string; token: string }>;
-  fetchCustomerCart: (args: {
-    customerId: string;
-  }) => Promise<{
+  fetchCustomerCart: (args: { customerId: string }) => Promise<{
     response: ApiResult;
     items: CartItemRecord[];
     quote: CartQuote | null;
@@ -528,7 +526,6 @@ export const useCart = (token: string | null): CartApi => {
 export const useAddDealToCart = (branchId?: string | null) => {
   const t = useTranslations("cart");
   const { token, user } = useAuthContext();
-  const queryClient = useQueryClient();
   const { ensureCustomerSession } = useCart(token);
   const customerId = user?.id ?? "";
 
@@ -599,19 +596,12 @@ export const useAddDealToCart = (branchId?: string | null) => {
 
       return response;
     },
-    onSuccess: async (response) => {
+    onSuccess: (response) => {
       dispatchCartChanged({
         itemCount: getCustomerCartItemCount(response.data),
-        refreshCart: true,
+        refreshCart: false,
+        cartData: response.data,
       });
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: queryKeys.cart.current }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.checkout.all }),
-        queryClient.invalidateQueries({
-          predicate: ({ queryKey }) =>
-            queryKey[0] === "cart" || queryKey[0] === "checkout",
-        }),
-      ]);
       toast.success(t("dealItemsAdded"));
     },
     onError: (error) => {

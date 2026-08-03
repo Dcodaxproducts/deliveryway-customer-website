@@ -59,7 +59,7 @@ describe("cart service", () => {
         menuItemId: "burger-id",
         quantity: 1,
       },
-      undefined
+      undefined,
     );
   });
 
@@ -70,18 +70,38 @@ describe("cart service", () => {
       customerId: "customer-1",
       token: "token-1",
       payloads: [
-        { branchId: "branch-1", menuItemId: "pizza-1", dealId: "deal-1", quantity: 1 },
-        { branchId: "branch-1", menuItemId: "drink-1", dealId: "deal-1", quantity: 1 },
+        {
+          branchId: "branch-1",
+          menuItemId: "pizza-1",
+          dealId: "deal-1",
+          quantity: 1,
+        },
+        {
+          branchId: "branch-1",
+          menuItemId: "drink-1",
+          dealId: "deal-1",
+          quantity: 1,
+        },
       ],
     });
 
     expect(postCartMock).toHaveBeenCalledTimes(1);
     expect(postCartMock).toHaveBeenCalledWith(
-      "/v1/cart/deals?customerId=customer-1",
+      "/v1/cart/items/batch?customerId=customer-1",
       {
         items: [
-          { branchId: "branch-1", menuItemId: "pizza-1", dealId: "deal-1", quantity: 1 },
-          { branchId: "branch-1", menuItemId: "drink-1", dealId: "deal-1", quantity: 1 },
+          {
+            branchId: "branch-1",
+            menuItemId: "pizza-1",
+            dealId: "deal-1",
+            quantity: 1,
+          },
+          {
+            branchId: "branch-1",
+            menuItemId: "drink-1",
+            dealId: "deal-1",
+            quantity: 1,
+          },
         ],
       },
       "token-1",
@@ -117,8 +137,8 @@ describe("cart service", () => {
           restaurantMenuId: "menu-1",
           quantity: 1,
         },
-        "/menu"
-      )
+        "/menu",
+      ),
     ).toEqual({
       branchId: "branch-1",
       menuItemId: "burger-id",
@@ -158,7 +178,7 @@ describe("cart service", () => {
           },
         ],
       },
-      undefined
+      undefined,
     );
     expect(postCartMock.mock.calls[0][1]).not.toHaveProperty("modifiers");
   });
@@ -194,9 +214,11 @@ describe("cart service", () => {
           { modifierId: "modifier-chili", quantity: 2 },
         ],
       },
-      "customer-token"
+      "customer-token",
     );
-    expect(postCartMock.mock.calls[0][1]).not.toHaveProperty("modifierSelections");
+    expect(postCartMock.mock.calls[0][1]).not.toHaveProperty(
+      "modifierSelections",
+    );
   });
 
   it("cleans ready-made deal cart payloads before posting", async () => {
@@ -288,7 +310,7 @@ describe("cart service", () => {
           },
         ],
       },
-      undefined
+      undefined,
     );
     expect(patchCartMock.mock.calls[0][1]).not.toHaveProperty("modifiers");
   });
@@ -321,9 +343,11 @@ describe("cart service", () => {
           },
         ],
       },
-      undefined
+      undefined,
     );
-    expect(patchCartMock.mock.calls[0][1]).not.toHaveProperty("restaurantMenuId");
+    expect(patchCartMock.mock.calls[0][1]).not.toHaveProperty(
+      "restaurantMenuId",
+    );
   });
 
   it("updates grouped deal quantity with the encoded rendered row id", async () => {
@@ -338,7 +362,7 @@ describe("cart service", () => {
     expect(patchCartMock).toHaveBeenCalledWith(
       "/v1/cart/deals/deal%3Adeal-1%3A0%3A1?customerId=customer-1",
       { quantity: 2 },
-      undefined
+      undefined,
     );
   });
 
@@ -352,7 +376,7 @@ describe("cart service", () => {
 
     expect(deleteCartMock).toHaveBeenCalledWith(
       "/v1/cart/deals/deal%3Adeal-1%3A0%3A1?customerId=customer-1",
-      undefined
+      undefined,
     );
   });
 
@@ -371,7 +395,7 @@ describe("cart service", () => {
       {
         orderTime: "2026-06-10T19:30:00.000Z",
       },
-      undefined
+      undefined,
     );
     expect(patchCartMock.mock.calls[0][0]).not.toContain("/api/v1");
   });
@@ -391,7 +415,7 @@ describe("cart service", () => {
       {
         tipAmount: 150,
       },
-      undefined
+      undefined,
     );
     expect(patchCartMock.mock.calls[0][0]).not.toContain("/api/v1");
   });
@@ -411,7 +435,7 @@ describe("cart service", () => {
       {
         tipAmount: 0,
       },
-      undefined
+      undefined,
     );
   });
 
@@ -430,9 +454,11 @@ describe("cart service", () => {
       {
         orderTime: "2026-06-10T19:30:00.000Z",
       },
-      undefined
+      undefined,
     );
-    expect(patchCartMock.mock.calls[0][1]).not.toHaveProperty("scheduledDeliveryAt");
+    expect(patchCartMock.mock.calls[0][1]).not.toHaveProperty(
+      "scheduledDeliveryAt",
+    );
   });
 
   it("strips restaurantMenuId from cart schedule updates", async () => {
@@ -451,7 +477,7 @@ describe("cart service", () => {
       {
         orderTime: null,
       },
-      undefined
+      undefined,
     );
   });
 
@@ -470,7 +496,7 @@ describe("cart service", () => {
       {
         orderTime: null,
       },
-      undefined
+      undefined,
     );
   });
 
@@ -490,7 +516,7 @@ describe("cart service", () => {
     expect(postCartMock).toHaveBeenCalledWith(
       "/v1/cart/quote?customerId=customer-1",
       {},
-      undefined
+      undefined,
     );
     expect(response).toMatchObject({
       data: {
@@ -535,7 +561,7 @@ describe("cart service", () => {
           lng: "74.3587",
         },
       },
-      undefined
+      undefined,
     );
   });
 
@@ -553,7 +579,7 @@ describe("cart service", () => {
     expect(postCartMock).toHaveBeenCalledWith(
       "/v1/cart/quote?customerId=customer-1",
       { tipAmount: 2 },
-      undefined
+      undefined,
     );
   });
 
@@ -571,7 +597,7 @@ describe("cart service", () => {
     expect(postCartMock).toHaveBeenCalledWith(
       "/v1/cart/quote?customerId=customer-1",
       { deliveryAddressId: "address-1", tipAmount: 2 },
-      undefined
+      undefined,
     );
   });
 
@@ -586,7 +612,7 @@ describe("cart service", () => {
     expect(patchCartMock).toHaveBeenCalledWith(
       "/v1/cart?customerId=customer-1",
       { orderType: "TAKEAWAY" },
-      undefined
+      undefined,
     );
   });
 
@@ -683,7 +709,10 @@ describe("cart service", () => {
 
     const cart = await fetchCustomerCart({ customerId: "customer-1" });
 
-    expect(getCartMock).toHaveBeenCalledWith("/v1/cart?customerId=customer-1", undefined);
+    expect(getCartMock).toHaveBeenCalledWith(
+      "/v1/cart?customerId=customer-1",
+      undefined,
+    );
     expect(cart.items).toEqual([{ id: "cart-item-1" }]);
     expect(cart.quote).toEqual({
       subtotal: 1300,
@@ -728,8 +757,22 @@ describe("cart service", () => {
         totalAmount: 999,
         payableAmount: 1400,
         chargeBreakdown: {
-          taxes: [{ code: "STANDARD", label: "Standard tax", percentage: 19, amount: 190 }],
-          serviceCharges: [{ code: "SERVICE", label: "Service charge", percentage: 10, amount: 100 }],
+          taxes: [
+            {
+              code: "STANDARD",
+              label: "Standard tax",
+              percentage: 19,
+              amount: 190,
+            },
+          ],
+          serviceCharges: [
+            {
+              code: "SERVICE",
+              label: "Service charge",
+              percentage: 10,
+              amount: 100,
+            },
+          ],
           totalTaxAmount: 190,
           totalServiceChargeAmount: 100,
         },
@@ -738,7 +781,7 @@ describe("cart service", () => {
           title: "Any 2 Burgers",
           discountAmount: 301,
         },
-      })
+      }),
     ).toMatchObject({
       subtotal: 1300,
       taxAmount: 0,
@@ -754,8 +797,22 @@ describe("cart service", () => {
       totalAmount: 999,
       payableAmount: 1400,
       chargeBreakdown: {
-        taxes: [{ code: "STANDARD", label: "Standard tax", percentage: 19, amount: 190 }],
-        serviceCharges: [{ code: "SERVICE", label: "Service charge", percentage: 10, amount: 100 }],
+        taxes: [
+          {
+            code: "STANDARD",
+            label: "Standard tax",
+            percentage: 19,
+            amount: 190,
+          },
+        ],
+        serviceCharges: [
+          {
+            code: "SERVICE",
+            label: "Service charge",
+            percentage: 10,
+            amount: 100,
+          },
+        ],
         totalTaxAmount: 190,
         totalServiceChargeAmount: 100,
       },
@@ -844,7 +901,10 @@ describe("cart service", () => {
 
     const cart = await fetchCustomerCart({ customerId: "customer-1" });
 
-    expect(getCartMock).toHaveBeenCalledWith("/v1/cart?customerId=customer-1", undefined);
+    expect(getCartMock).toHaveBeenCalledWith(
+      "/v1/cart?customerId=customer-1",
+      undefined,
+    );
     expect(cart.quote).toMatchObject({
       subtotal: 24.5,
       taxAmount: 0.53,

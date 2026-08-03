@@ -1,8 +1,16 @@
 import { createDomainApiService } from "@/services/domain-api";
-import { normalizeApiList, normalizeArray } from "@/components/pages/Items/utils/product-normalizers";
+import {
+  normalizeApiList,
+  normalizeArray,
+} from "@/components/pages/Items/utils/product-normalizers";
 import type { ApiRecord } from "@/components/pages/Items/types";
 import type { CartItemRecord } from "@/components/pages/Items/components/signature-selection/types";
-import type { CartAppliedPromotion, CartChargeBreakdown, CartChargeLine, CartQuote } from "@/types/cart";
+import type {
+  CartAppliedPromotion,
+  CartChargeBreakdown,
+  CartChargeLine,
+  CartQuote,
+} from "@/types/cart";
 
 type CartMutationPayload = Record<string, unknown>;
 type CartQuotePayload = Record<string, unknown>;
@@ -22,7 +30,9 @@ export const patchCart = cartService.patch;
 export const deleteCart = cartService.del;
 
 const getRecord = (value: unknown): ApiRecord | null =>
-  typeof value === "object" && value !== null && !Array.isArray(value) ? value as ApiRecord : null;
+  typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as ApiRecord)
+    : null;
 
 const toNumber = (value: unknown, fallback = 0) => {
   const parsed = Number(value);
@@ -39,7 +49,9 @@ const getCurrentPathname = () =>
 
 const shouldSendRestaurantMenuId = (pathname: string) => pathname === "/menu";
 
-export const normalizeCartAppliedPromotion = (value: unknown): CartAppliedPromotion | null => {
+export const normalizeCartAppliedPromotion = (
+  value: unknown,
+): CartAppliedPromotion | null => {
   const promotion = getRecord(value);
 
   if (!promotion) {
@@ -57,7 +69,10 @@ export const normalizeCartAppliedPromotion = (value: unknown): CartAppliedPromot
     id,
     title,
     applyMode: getString(promotion.applyMode) || undefined,
-    autoApply: typeof promotion.autoApply === "boolean" ? promotion.autoApply : undefined,
+    autoApply:
+      typeof promotion.autoApply === "boolean"
+        ? promotion.autoApply
+        : undefined,
     discountType: getString(promotion.discountType) || undefined,
     discountValue: toNumber(promotion.discountValue, 0),
     discountAmount: toNumber(promotion.discountAmount, 0),
@@ -84,10 +99,14 @@ const normalizeChargeLine = (value: unknown): CartChargeLine | null => {
 
 const normalizeChargeLines = (value: unknown) =>
   Array.isArray(value)
-    ? value.map(normalizeChargeLine).filter((line): line is CartChargeLine => Boolean(line))
+    ? value
+        .map(normalizeChargeLine)
+        .filter((line): line is CartChargeLine => Boolean(line))
     : [];
 
-const normalizeCartChargeBreakdown = (value: unknown): CartChargeBreakdown | undefined => {
+const normalizeCartChargeBreakdown = (
+  value: unknown,
+): CartChargeBreakdown | undefined => {
   const breakdown = getRecord(value);
 
   if (!breakdown) {
@@ -112,11 +131,19 @@ const normalizeCartChargeBreakdown = (value: unknown): CartChargeBreakdown | und
             ...(code ? { code } : {}),
             ...(label ? { label } : {}),
             percentage: toNumber(record.percentage, 0),
-            isActive: typeof record.isActive === "boolean" ? record.isActive : undefined,
-            isDefault: typeof record.isDefault === "boolean" ? record.isDefault : undefined,
+            isActive:
+              typeof record.isActive === "boolean"
+                ? record.isActive
+                : undefined,
+            isDefault:
+              typeof record.isDefault === "boolean"
+                ? record.isDefault
+                : undefined,
           };
         })
-        .filter((taxType): taxType is NonNullable<typeof taxType> => Boolean(taxType))
+        .filter((taxType): taxType is NonNullable<typeof taxType> =>
+          Boolean(taxType),
+        )
     : [];
 
   return {
@@ -142,9 +169,11 @@ export const normalizeCartQuote = (value: unknown): CartQuote | null => {
     taxAmount: toNumber(quote.taxAmount, 0),
     deliveryFee: toNumber(quote.deliveryFee, 0),
     serviceChargeType: getServiceChargeType(quote.serviceChargeType),
-    serviceChargeValue: quote.serviceChargeValue === null || quote.serviceChargeValue === undefined
-      ? null
-      : toNumber(quote.serviceChargeValue, 0),
+    serviceChargeValue:
+      quote.serviceChargeValue === null ||
+      quote.serviceChargeValue === undefined
+        ? null
+        : toNumber(quote.serviceChargeValue, 0),
     serviceChargeAmount: toNumber(quote.serviceChargeAmount, 0),
     tipAmount: toNumber(quote.tipAmount, 0),
     discountAmount: toNumber(quote.discountAmount, 0),
@@ -153,7 +182,10 @@ export const normalizeCartQuote = (value: unknown): CartQuote | null => {
     loyaltyPointsRedeemed: toNumber(quote.loyaltyPointsRedeemed, 0),
     walletAppliedAmount: toNumber(quote.walletAppliedAmount, 0),
     totalAmount: toNumber(quote.totalAmount, 0),
-    payableAmount: toNumber(quote.payableAmount, toNumber(quote.totalAmount, 0)),
+    payableAmount: toNumber(
+      quote.payableAmount,
+      toNumber(quote.totalAmount, 0),
+    ),
     appliedPromotion: normalizeCartAppliedPromotion(quote.appliedPromotion),
     chargeBreakdown: normalizeCartChargeBreakdown(quote.chargeBreakdown),
   };
@@ -180,8 +212,10 @@ const getCartQuoteSource = (cart: ApiRecord | null) => {
     serviceChargeAmount: quote.serviceChargeAmount ?? cart.serviceChargeAmount,
     tipAmount: quote.tipAmount ?? cart.tipAmount,
     discountAmount: quote.discountAmount ?? cart.discountAmount,
-    loyaltyDiscountAmount: quote.loyaltyDiscountAmount ?? cart.loyaltyDiscountAmount,
-    loyaltyPointsRedeemed: quote.loyaltyPointsRedeemed ?? cart.loyaltyPointsRedeemed,
+    loyaltyDiscountAmount:
+      quote.loyaltyDiscountAmount ?? cart.loyaltyDiscountAmount,
+    loyaltyPointsRedeemed:
+      quote.loyaltyPointsRedeemed ?? cart.loyaltyPointsRedeemed,
     walletAppliedAmount: quote.walletAppliedAmount ?? cart.walletAppliedAmount,
     totalAmount: quote.totalAmount ?? cart.totalAmount,
     payableAmount: quote.payableAmount ?? cart.payableAmount,
@@ -215,7 +249,10 @@ export const normalizeCustomerCartData = (responseData: unknown) => {
 export const getCustomerCartItemCount = (responseData: unknown) =>
   normalizeCustomerCartData(responseData).items.reduce((total, item) => {
     const quantity = Number(item.quantity);
-    return total + (Number.isFinite(quantity) ? Math.max(0, Math.floor(quantity)) : 0);
+    return (
+      total +
+      (Number.isFinite(quantity) ? Math.max(0, Math.floor(quantity)) : 0)
+    );
   }, 0);
 
 export const fetchCustomerCart = async ({
@@ -228,7 +265,11 @@ export const fetchCustomerCart = async ({
   const response = await getCart(`/v1/cart?customerId=${customerId}`, token);
 
   if (!response || response.error) {
-    return { response, items: [] as CartItemRecord[], quote: null as CartQuote | null };
+    return {
+      response,
+      items: [] as CartItemRecord[],
+      quote: null as CartQuote | null,
+    };
   }
 
   const cart = normalizeCustomerCartData(response.data);
@@ -252,7 +293,9 @@ export const fetchCustomerCartItem = async ({
   const cart = resolveCartRecord(response.data);
   const items = normalizeArray<ApiRecord>(cart?.items);
 
-  return items.find(({ id }) => String(id || "") === String(cartItemId)) ?? null;
+  return (
+    items.find(({ id }) => String(id || "") === String(cartItemId)) ?? null
+  );
 };
 
 export const addCustomerCartItem = ({
@@ -263,7 +306,12 @@ export const addCustomerCartItem = ({
   customerId: string;
   payload: CartMutationPayload;
   token?: string | null;
-}) => postCart(`/v1/cart/items?customerId=${customerId}`, cleanAddCartItemPayload(payload), token);
+}) =>
+  postCart(
+    `/v1/cart/items?customerId=${customerId}`,
+    cleanAddCartItemPayload(payload),
+    token,
+  );
 
 export const addCustomerCartDealItems = ({
   customerId,
@@ -275,14 +323,14 @@ export const addCustomerCartDealItems = ({
   token?: string | null;
 }) =>
   postCart(
-    `/v1/cart/deals?customerId=${customerId}`,
+    `/v1/cart/items/batch?customerId=${customerId}`,
     { items: payloads.map((payload) => cleanAddCartItemPayload(payload)) },
     token,
   );
 
 export const cleanAddCartItemPayload = (
   payload: CartMutationPayload,
-  pathname = getCurrentPathname()
+  pathname = getCurrentPathname(),
 ): CartMutationPayload => {
   const cleanedPayload: CartMutationPayload = { ...payload };
 
@@ -311,9 +359,13 @@ export const cleanAddCartItemPayload = (
   return cleanedPayload;
 };
 
-export const normalizeGroupOrderItemPayload = (payload: CartMutationPayload): CartMutationPayload => {
+export const normalizeGroupOrderItemPayload = (
+  payload: CartMutationPayload,
+): CartMutationPayload => {
   const normalizedPayload: CartMutationPayload = { ...payload };
-  const modifierSelections = normalizeArray<ApiRecord>(payload.modifierSelections);
+  const modifierSelections = normalizeArray<ApiRecord>(
+    payload.modifierSelections,
+  );
 
   if (modifierSelections.length > 0) {
     const groupedModifiers = modifierSelections.flatMap((selection) =>
@@ -322,7 +374,7 @@ export const normalizeGroupOrderItemPayload = (payload: CartMutationPayload): Ca
           modifierId: getString(modifier.modifierId),
           quantity: toNumber(modifier.quantity, 1),
         }))
-        .filter((modifier) => modifier.modifierId)
+        .filter((modifier) => modifier.modifierId),
     );
 
     if (groupedModifiers.length > 0) {
@@ -335,7 +387,9 @@ export const normalizeGroupOrderItemPayload = (payload: CartMutationPayload): Ca
   return normalizedPayload;
 };
 
-export const normalizeCartUpdatePayload = (payload: CartUpdatePayload): CartMutationPayload => {
+export const normalizeCartUpdatePayload = (
+  payload: CartUpdatePayload,
+): CartMutationPayload => {
   const { orderTime, scheduledDeliveryAt, tipAmount, ...rest } = payload;
   const normalizedPayload: CartMutationPayload = { ...rest };
   delete normalizedPayload.restaurantMenuId;
@@ -367,7 +421,9 @@ export const normalizeCartUpdatePayload = (payload: CartUpdatePayload): CartMuta
   return normalizedPayload;
 };
 
-export const normalizeCartQuotePayload = (payload: CartQuotePayload): CartMutationPayload => {
+export const normalizeCartQuotePayload = (
+  payload: CartQuotePayload,
+): CartMutationPayload => {
   const allowedPayload: CartMutationPayload = { ...payload };
   delete allowedPayload.orderType;
 
@@ -382,7 +438,12 @@ export const updateCustomerCart = ({
   customerId: string;
   payload: CartUpdatePayload;
   token?: string | null;
-}) => patchCart(`/v1/cart?customerId=${customerId}`, normalizeCartUpdatePayload(payload), token);
+}) =>
+  patchCart(
+    `/v1/cart?customerId=${customerId}`,
+    normalizeCartUpdatePayload(payload),
+    token,
+  );
 
 export const updateCustomerCartOrderType = ({
   customerId,
@@ -431,9 +492,16 @@ export const quoteCustomerCart = ({
   customerId: string;
   payload?: CartQuotePayload;
   token?: string | null;
-}) => postCart(`/v1/cart/quote?customerId=${customerId}`, normalizeCartQuotePayload(payload), token);
+}) =>
+  postCart(
+    `/v1/cart/quote?customerId=${customerId}`,
+    normalizeCartQuotePayload(payload),
+    token,
+  );
 
-export const cleanUpdateCartItemPayload = (payload: CartMutationPayload): CartMutationPayload => {
+export const cleanUpdateCartItemPayload = (
+  payload: CartMutationPayload,
+): CartMutationPayload => {
   const cleanedPayload: CartMutationPayload = { ...payload };
 
   delete cleanedPayload.restaurantMenuId;
@@ -449,10 +517,20 @@ export const updateCustomerCartItem = ({
   cartItemId: string;
   payload: CartMutationPayload;
   token?: string | null;
-}) => patchCart(`/v1/cart/items/${cartItemId}`, cleanUpdateCartItemPayload(payload), token);
+}) =>
+  patchCart(
+    `/v1/cart/items/${cartItemId}`,
+    cleanUpdateCartItemPayload(payload),
+    token,
+  );
 
-export const clearCustomerCart = ({ customerId, token }: { customerId: string; token?: string | null }) =>
-  deleteCart(`/v1/cart?customerId=${customerId}`, token);
+export const clearCustomerCart = ({
+  customerId,
+  token,
+}: {
+  customerId: string;
+  token?: string | null;
+}) => deleteCart(`/v1/cart?customerId=${customerId}`, token);
 
 export const updateCustomerCartItemQuantity = ({
   customerId,
@@ -464,7 +542,12 @@ export const updateCustomerCartItemQuantity = ({
   cartItemId: string;
   quantity: number;
   token?: string | null;
-}) => patchCart(`/v1/cart/items/${cartItemId}?customerId=${customerId}`, { quantity }, token);
+}) =>
+  patchCart(
+    `/v1/cart/items/${cartItemId}?customerId=${customerId}`,
+    { quantity },
+    token,
+  );
 
 export const updateCustomerCartDealQuantity = ({
   customerId,
@@ -476,7 +559,12 @@ export const updateCustomerCartDealQuantity = ({
   dealTargetId: string;
   quantity: number;
   token?: string | null;
-}) => patchCart(`/v1/cart/deals/${encodeURIComponent(dealTargetId)}?customerId=${customerId}`, { quantity }, token);
+}) =>
+  patchCart(
+    `/v1/cart/deals/${encodeURIComponent(dealTargetId)}?customerId=${customerId}`,
+    { quantity },
+    token,
+  );
 
 export const deleteCustomerCartItem = ({
   customerId,
@@ -486,7 +574,8 @@ export const deleteCustomerCartItem = ({
   customerId: string;
   cartItemId: string;
   token?: string | null;
-}) => deleteCart(`/v1/cart/items/${cartItemId}?customerId=${customerId}`, token);
+}) =>
+  deleteCart(`/v1/cart/items/${cartItemId}?customerId=${customerId}`, token);
 
 export const deleteCustomerCartDeal = ({
   customerId,
@@ -496,7 +585,11 @@ export const deleteCustomerCartDeal = ({
   customerId: string;
   dealTargetId: string;
   token?: string | null;
-}) => deleteCart(`/v1/cart/deals/${encodeURIComponent(dealTargetId)}?customerId=${customerId}`, token);
+}) =>
+  deleteCart(
+    `/v1/cart/deals/${encodeURIComponent(dealTargetId)}?customerId=${customerId}`,
+    token,
+  );
 
 export const fetchGroupOrders = async (token?: string | null) => {
   const openResponse = await getCart("/v1/group-orders?status=OPEN", token);
@@ -506,11 +599,18 @@ export const fetchGroupOrders = async (token?: string | null) => {
     ...normalizeApiList<ApiRecord>(lockedResponse),
   ].filter((order, index, orders) => {
     const id = String(order?.id || "");
-    return id && orders.findIndex((item) => String(item?.id || "") === id) === index;
+    return (
+      id && orders.findIndex((item) => String(item?.id || "") === id) === index
+    );
   });
 
   return {
-    response: openResponse?.error && lockedResponse?.error ? openResponse : openResponse?.error ? lockedResponse : openResponse,
+    response:
+      openResponse?.error && lockedResponse?.error
+        ? openResponse
+        : openResponse?.error
+          ? lockedResponse
+          : openResponse,
     groupOrders,
   };
 };
@@ -523,4 +623,9 @@ export const addGroupOrderItem = ({
   groupOrderId: string;
   payload: CartMutationPayload;
   token?: string | null;
-}) => postCart(`/v1/group-orders/${groupOrderId}/items`, normalizeGroupOrderItemPayload(payload), token);
+}) =>
+  postCart(
+    `/v1/group-orders/${groupOrderId}/items`,
+    normalizeGroupOrderItemPayload(payload),
+    token,
+  );
