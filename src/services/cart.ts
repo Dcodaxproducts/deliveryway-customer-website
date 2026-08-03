@@ -200,6 +200,18 @@ const resolveCartRecord = (responseData: unknown) => {
         : resData;
 };
 
+export const getCartItemCountFromResponse = (responseData: unknown) => {
+  const cart = resolveCartRecord(responseData);
+  if (!cart || !Array.isArray(cart.items)) {
+    return null;
+  }
+
+  return normalizeArray<ApiRecord>(cart.items).reduce((total, item) => {
+    const quantity = Math.max(0, Math.floor(toNumber(item.quantity, 0)));
+    return total + quantity;
+  }, 0);
+};
+
 export const fetchCustomerCart = async ({ customerId, token }: { customerId: string; token?: string | null }) => {
   const response = await getCart(`/v1/cart?customerId=${customerId}`, token);
 

@@ -7,6 +7,7 @@ import {
   cleanAddCartItemPayload,
   deleteCustomerCartDeal,
   fetchCustomerCart,
+  getCartItemCountFromResponse,
   normalizeCartQuote,
   quoteCustomerCart,
   updateCustomerCart,
@@ -35,6 +36,18 @@ describe("cart service", () => {
     postCartMock.mockReset();
     patchCartMock.mockReset();
     deleteCartMock.mockReset();
+  });
+
+  it("reads the exact item count from a cart mutation response", () => {
+    expect(
+      getCartItemCountFromResponse({
+        id: "cart-1",
+        items: [
+          { id: "item-1", quantity: 2 },
+          { id: "item-2", quantity: 1 },
+        ],
+      })
+    ).toBe(3);
   });
 
   it("adds customer cart item with the normal cart item endpoint", async () => {

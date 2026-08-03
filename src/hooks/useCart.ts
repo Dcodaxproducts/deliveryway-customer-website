@@ -29,6 +29,7 @@ import {
   fetchCustomerCartItem,
   fetchGroupOrders,
   getCart,
+  getCartItemCountFromResponse,
   patchCart,
   postCart,
   quoteCustomerCart,
@@ -176,7 +177,11 @@ export const useCart = (token: string | null): CartApi => {
         });
 
         if (response && !response.error && response.success !== false) {
-          dispatchCartChanged({ mutationStatus: "committed" });
+          const itemCount = getCartItemCountFromResponse(response.data);
+          dispatchCartChanged({
+            mutationStatus: "committed",
+            ...(itemCount !== null ? { itemCount } : {}),
+          });
         } else {
           dispatchCartChanged({
             itemCountDelta: -optimisticQuantity,
@@ -238,7 +243,11 @@ export const useCart = (token: string | null): CartApi => {
         });
 
         if (response && !response.error && response.success !== false) {
-          dispatchCartChanged({ mutationStatus: "committed" });
+          const itemCount = getCartItemCountFromResponse(response.data);
+          dispatchCartChanged({
+            mutationStatus: "committed",
+            ...(itemCount !== null ? { itemCount } : {}),
+          });
         } else {
           dispatchCartChanged({
             itemCountDelta: -optimisticQuantity,
