@@ -28,19 +28,8 @@ import {
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useDomainContext } from "@/hooks/useDomainContext";
-import {
-  resolveHomeBranchId,
-  resolveHomeRestaurantId,
-} from "@/lib/home";
-import {
-  Download,
-  Eye,
-  ImageOff,
-  Loader2,
-  Minus,
-  Plus,
-  X,
-} from "lucide-react";
+import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
+import { Download, Eye, ImageOff, Loader2, Minus, Plus, X } from "lucide-react";
 import { AsyncSelect } from "@/components/ui/AsyncSelect";
 import { FavoriteHeartButton } from "@/components/common/favorites/FavoriteHeartButton";
 import type {
@@ -69,7 +58,10 @@ import {
   getModifierGroupSelectedQuantity,
   validateModifierSelections,
 } from "@/components/pages/Items/utils/modifier-selections";
-import { getModifierPriceForVariation } from "@/components/pages/Items/utils/modifier-pricing";
+import {
+  getChargedModifierQuantities,
+  getModifierPriceForVariation,
+} from "@/components/pages/Items/utils/modifier-pricing";
 import {
   getDepositAmount,
   getProductDetailsQuantityLimits,
@@ -1319,6 +1311,7 @@ function ProductDetailsPageContent() {
       selectionType,
       minSelect,
       maxSelect,
+      includedSelect: Math.max(0, toNumber(group?.includedSelect, 0)),
       isRequired:
         typeof group?.isRequired === "boolean"
           ? group.isRequired
@@ -1666,17 +1659,34 @@ function ProductDetailsPageContent() {
     menuItem: MenuItem | null,
     variation?: MenuVariation | null,
   ) => {
-    return Object.values(selectionMap)
-      .flat()
-      .reduce((acc, modifier) => {
-        const price = getModifierEffectivePrice(modifier, menuItem, variation);
-        const modifierQuantity = Math.max(
-          1,
-          Math.floor(toNumber(modifier.selectedQuantity, 1)),
+    return Object.entries(selectionMap).reduce(
+      (total, [groupId, modifiers]) => {
+        const includedSelect = Math.max(
+          0,
+          toNumber(
+            filteredModifierGroups.find((group) => String(group.id) === groupId)
+              ?.includedSelect,
+            0,
+          ),
+        );
+        const chargedQuantities = getChargedModifierQuantities(
+          modifiers.map((modifier) => toNumber(modifier.selectedQuantity, 1)),
+          includedSelect,
         );
 
-        return acc + price * modifierQuantity;
-      }, 0);
+        return (
+          total +
+          modifiers.reduce(
+            (groupTotal, modifier, index) =>
+              groupTotal +
+              getModifierEffectivePrice(modifier, menuItem, variation) *
+                chargedQuantities[index],
+            0,
+          )
+        );
+      },
+      0,
+    );
   };
 
   const modifiersTotal = getModifiersTotal(
@@ -1729,11 +1739,13 @@ function ProductDetailsPageContent() {
       try {
         setPageLoading(true);
 
-        const { response: res, item: matchedItem } = await fetchMenuItemDetails({
-          restaurantId: browsingRestaurantId,
-          branchId,
-          identifier: searchValue,
-        });
+        const { response: res, item: matchedItem } = await fetchMenuItemDetails(
+          {
+            restaurantId: browsingRestaurantId,
+            branchId,
+            identifier: searchValue,
+          },
+        );
 
         if (!isMounted) return;
 
@@ -2228,6 +2240,10 @@ function ProductDetailsPageContent() {
         getModifierGroupSelectedQuantity(selectedInGroup);
       const { maxSelect, isRequired, selectionType } =
         getGroupValidation(group);
+      const includedSelect = Math.max(
+        0,
+        Math.floor(toNumber(group?.includedSelect, 0)),
+      );
 
       const groupModifiers = Array.isArray(group?.modifiers)
         ? group.modifiers.filter((modifier) => modifier?.isActive !== false)
@@ -2266,6 +2282,12 @@ function ProductDetailsPageContent() {
                 </span>
               ) : null}
 
+              {includedSelect > 0 ? (
+                <span className="mt-2 ml-2 inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-100">
+                  {t("includedSelections", { count: includedSelect })}
+                </span>
+              ) : null}
+
               {modifierErrors[groupId] ? (
                 <p className="mt-2 text-xs font-medium text-red-600">
                   {modifierErrors[groupId]}
@@ -2296,6 +2318,17 @@ function ProductDetailsPageContent() {
                 menuItem,
                 variation,
               );
+              const selectedModifierIndex = selectedInGroup.findIndex(
+                (selected) => selected.id === modifier.id,
+              );
+              const chargedModifierQuantity = checked
+                ? (getChargedModifierQuantities(
+                    selectedInGroup.map((selected) =>
+                      toNumber(selected.selectedQuantity, 1),
+                    ),
+                    includedSelect,
+                  )[selectedModifierIndex] ?? selectedModifierQuantity)
+                : selectedModifierQuantity;
 
               const inputType =
                 selectionType === "SINGLE" || maxSelect === 1
@@ -2360,11 +2393,11 @@ function ProductDetailsPageContent() {
                       </span>
                     </label>
 
-                    {effectivePrice !== 0 ? (
+                    {effectivePrice !== 0 && chargedModifierQuantity > 0 ? (
                       <span className="shrink-0 text-right font-medium text-primary">
                         {formatModifierSelectionPrice(
                           effectivePrice,
-                          selectedModifierQuantity,
+                          chargedModifierQuantity,
                           currency,
                         )}
                       </span>

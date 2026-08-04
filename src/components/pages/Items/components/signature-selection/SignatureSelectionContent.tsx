@@ -71,7 +71,10 @@ import {
   getModifierGroupSelectedQuantity,
   validateModifierSelections,
 } from "@/components/pages/Items/utils/modifier-selections";
-import { getModifierPriceForVariation } from "@/components/pages/Items/utils/modifier-pricing";
+import {
+  getChargedModifierQuantities,
+  getModifierPriceForVariation,
+} from "@/components/pages/Items/utils/modifier-pricing";
 
 type SignatureSelectionContentProps = {
   restaurantId?: string | null;
@@ -1126,6 +1129,7 @@ export function SignatureSelectionContent({
       selectionType,
       minSelect,
       maxSelect,
+      includedSelect: Math.max(0, toNumber(group?.includedSelect, 0)),
       isRequired:
         typeof group?.isRequired === "boolean"
           ? group.isRequired
@@ -1658,22 +1662,33 @@ export function SignatureSelectionContent({
     variation?: MenuVariation | null,
     modifiersMap?: SelectedModifiersMap,
   ) => {
-    return Object.values(modifiersMap || {})
-      .flat()
-      .reduce((acc, modifier) => {
-        const modifierPrice = getModifierEffectivePrice(
-          modifier,
-          item,
-          variation,
+    const groupsById = new Map(
+      getVisibleModifierLinks(item, variation).map((link) => [
+        String(link.modifierGroup.id),
+        link.modifierGroup,
+      ]),
+    );
+
+    return Object.entries(modifiersMap || {}).reduce(
+      (total, [groupId, modifiers]) => {
+        const chargedQuantities = getChargedModifierQuantities(
+          modifiers.map((modifier) => toNumber(modifier.selectedQuantity, 1)),
+          toNumber(groupsById.get(groupId)?.includedSelect, 0),
         );
 
-        const modifierQuantity = Math.max(
-          1,
-          Math.floor(toNumber(modifier.selectedQuantity, 1)),
+        return (
+          total +
+          modifiers.reduce(
+            (groupTotal, modifier, index) =>
+              groupTotal +
+              getModifierEffectivePrice(modifier, item, variation) *
+                chargedQuantities[index],
+            0,
+          )
         );
-
-        return acc + modifierPrice * modifierQuantity;
-      }, 0);
+      },
+      0,
+    );
   };
 
   const getMenuItemBasePrice = (item?: MenuItem | null) => {

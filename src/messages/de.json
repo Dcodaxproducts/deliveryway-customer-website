@@ -832,6 +832,7 @@
     "modifierFallback": "Modifikator",
     "addons": "Extras",
     "quantityShort": "Anz.",
+    "includedSelections": "{count, plural, one {# Auswahl inklusive} other {# Auswahlen inklusive}}",
     "addonsDescription": "Wählen Sie die gewünschten Extras für diesen Artikel.",
     "optionFallback": "Option",
     "requiredAddon": "1 erforderliches Add-on auswählen",

@@ -121,6 +121,7 @@ export type ModifierGroup = {
   selectionType?: "SINGLE" | "MULTIPLE";
   minSelect?: number;
   maxSelect?: number;
+  includedSelect?: number;
   isRequired?: boolean;
   sortOrder?: number;
   isActive?: boolean;
@@ -264,7 +265,10 @@ export type CartItemRecord = ApiRecord & {
   promotionDiscountAmount?: string | number | null;
   discountedUnitPrice?: string | number | null;
   discountedLineTotal?: string | number | null;
-  modifiers?: Array<{ modifierId?: string | number; quantity?: string | number }>;
+  modifiers?: Array<{
+    modifierId?: string | number;
+    quantity?: string | number;
+  }>;
   menuItem?: MenuItem & {
     selectedVariation?: MenuVariation;
     modifierGroups?: ModifierGroup[];

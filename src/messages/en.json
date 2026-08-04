@@ -832,6 +832,7 @@
     "modifierFallback": "Modifier",
     "addons": "Add-ons",
     "quantityShort": "Qty",
+    "includedSelections": "{count, plural, one {# selection included} other {# selections included}}",
     "addonsDescription": "Choose the add-ons you want with this item.",
     "optionFallback": "Option",
     "requiredAddon": "Select 1 required add-on",

@@ -21,7 +21,6 @@ export type PromotionInfo = {
 
 export type HappyHourInfo = PromotionInfo;
 
-
 export type PromotionPricing = {
   promotion: PromotionInfo | null;
   originalPrice: number;
@@ -160,6 +159,7 @@ export type ModifierGroup = {
   selectionType?: "SINGLE" | "MULTIPLE";
   minSelect?: number;
   maxSelect?: number;
+  includedSelect?: number;
   isRequired?: boolean;
   sortOrder?: number;
   isActive?: boolean;
@@ -191,7 +191,14 @@ export type MenuItem = {
   pricingMode?: "SINGLE" | "MULTIPLE" | string | null;
   imageUrl?: string | null;
   categoryId?: string | null;
-  category?: Record<string, unknown> & { name?: string | null; variations?: MenuVariation[]; variationLinks?: Array<{ variation?: MenuVariation | null }>; modifierLinks?: ModifierLink[]; modifierGroups?: ModifierGroup[]; categoryModifierGroups?: ModifierGroup[] };
+  category?: Record<string, unknown> & {
+    name?: string | null;
+    variations?: MenuVariation[];
+    variationLinks?: Array<{ variation?: MenuVariation | null }>;
+    modifierLinks?: ModifierLink[];
+    modifierGroups?: ModifierGroup[];
+    categoryModifierGroups?: ModifierGroup[];
+  };
   variations?: MenuVariation[];
   variationPriceOverrides?: VariationPriceOverride[];
   modifierPriceOverrides?: VariationPriceOverride[];
@@ -215,11 +222,15 @@ export type MenuItem = {
   happyHourDiscountedBasePrice?: string | number | null;
   discountedBasePrice?: string | number | null;
   settings?: ApiRecord;
-  restaurant?: (Record<string, unknown> & { id?: string | number | null });
+  restaurant?: Record<string, unknown> & { id?: string | number | null };
   restaurantId?: string | number | null;
   restaurantMenuId?: string | number | null;
   restaurantMenu?: { id?: string | number | null } | null;
-  menuLinks?: Array<{ restaurantMenuId?: string | number | null; restaurantMenu?: { id?: string | number | null } | null; menuId?: string | number | null }>;
+  menuLinks?: Array<{
+    restaurantMenuId?: string | number | null;
+    restaurantMenu?: { id?: string | number | null } | null;
+    menuId?: string | number | null;
+  }>;
   prepTimeMinutes?: string | number | null;
   unitPrice?: string | number | null;
   takeawayPriceAdjustment?: string | number | null;
@@ -334,13 +345,13 @@ export type AuthRestaurantUser = {
   profile?: {
     restaurantName?: string | null;
     restaurant?: RestaurantInfo | null;
-  restaurantId?: string | number | null;
+    restaurantId?: string | number | null;
     branch?: RestaurantBranch | null;
     address?: string | AddressRecord | null;
   } | null;
   tenant?: {
     restaurant?: RestaurantInfo | null;
-  restaurantId?: string | number | null;
+    restaurantId?: string | number | null;
   } | null;
 };
 

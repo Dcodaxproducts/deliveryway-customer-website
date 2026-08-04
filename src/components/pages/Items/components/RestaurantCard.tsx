@@ -50,7 +50,10 @@ import {
   getSplitPizzaPricingVariation,
   toNumber,
 } from "@/components/pages/Items/utils/restaurant-card-utils";
-import { getModifierPriceForVariation } from "@/components/pages/Items/utils/modifier-pricing";
+import {
+  getChargedModifierQuantities,
+  getModifierPriceForVariation,
+} from "@/components/pages/Items/utils/modifier-pricing";
 import {
   getLowestPricedVariation,
   getMenuItemCardPrice,
@@ -782,6 +785,7 @@ export function RestaurantCard({
       selectionType,
       minSelect,
       maxSelect,
+      includedSelect: Math.max(0, toNumber(group?.includedSelect, 0)),
       isRequired:
         typeof group?.isRequired === "boolean"
           ? group.isRequired
@@ -1608,21 +1612,37 @@ export function RestaurantCard({
     menuItem: MenuItem | null,
     variation?: MenuVariation | null,
   ) => {
-    return Object.values(selectionMap)
-      .flat()
-      .reduce((acc: number, modifier: SelectedModifier) => {
-        const modifierPrice = getModifierEffectivePrice(
-          modifier as Modifier,
-          menuItem,
-          variation,
+    const groupsById = new Map(
+      getVisibleModifierLinks(menuItem, variation).map((link) => [
+        String(link.modifierGroup.id),
+        link.modifierGroup,
+      ]),
+    );
+
+    return Object.entries(selectionMap).reduce(
+      (total, [groupId, modifiers]) => {
+        const chargedQuantities = getChargedModifierQuantities(
+          modifiers.map((modifier) => toNumber(modifier.selectedQuantity, 1)),
+          toNumber(groupsById.get(groupId)?.includedSelect, 0),
         );
 
         return (
-          acc +
-          modifierPrice *
-            Math.max(1, Math.floor(toNumber(modifier.selectedQuantity, 1)))
+          total +
+          modifiers.reduce(
+            (groupTotal, modifier, index) =>
+              groupTotal +
+              getModifierEffectivePrice(
+                modifier as Modifier,
+                menuItem,
+                variation,
+              ) *
+                chargedQuantities[index],
+            0,
+          )
         );
-      }, 0);
+      },
+      0,
+    );
   };
 
   const getMenuItemBasePrice = (menuItem: MenuItem | null) => {
