@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   formatModifierPriceDelta,
+  getChargedModifierQuantities,
   getModifierPriceForVariation,
 } from "./modifier-pricing";
 import type { MenuItem } from "../types";
@@ -22,6 +23,12 @@ describe("modifier pricing", () => {
     ],
   };
 
+  it("charges only quantities above the group included allowance", () => {
+    expect(getChargedModifierQuantities([1, 2], 1)).toEqual([0, 2]);
+    expect(getChargedModifierQuantities([2, 1], 1)).toEqual([1, 1]);
+    expect(getChargedModifierQuantities([2], 0)).toEqual([2]);
+  });
+
   it("returns variation-specific modifier price when available", () => {
     expect(
       getModifierPriceForVariation({
@@ -39,7 +46,7 @@ describe("modifier pricing", () => {
         },
         selectedVariationId: "small",
         modifierId: "modifier-1",
-      })
+      }),
     ).toBe(100);
   });
 
@@ -59,7 +66,7 @@ describe("modifier pricing", () => {
         },
         selectedVariationId: "small",
         modifierId: "modifier-1",
-      })
+      }),
     ).toBe(0);
   });
 
@@ -74,7 +81,7 @@ describe("modifier pricing", () => {
         },
         selectedVariationId: "small",
         modifierId: "modifier-1",
-      })
+      }),
     ).toBe(75);
   });
 
@@ -104,7 +111,7 @@ describe("modifier pricing", () => {
         },
         selectedVariationId: "small",
         modifierId: "modifier-1",
-      })
+      }),
     ).toBe(2);
   });
 
@@ -127,7 +134,7 @@ describe("modifier pricing", () => {
         },
         selectedVariationId: "small",
         modifierId: "modifier-1",
-      })
+      }),
     ).toBe(3);
   });
 
@@ -150,7 +157,7 @@ describe("modifier pricing", () => {
         },
         selectedVariationId: null,
         modifierId: "modifier-1",
-      })
+      }),
     ).toBe(1.55);
   });
 
@@ -171,7 +178,7 @@ describe("modifier pricing", () => {
         },
         selectedVariationId: "small",
         modifierId: "modifier-1",
-      })
+      }),
     ).toBe(1);
   });
 
@@ -194,7 +201,7 @@ describe("modifier pricing", () => {
         },
         selectedVariationId: "large",
         modifierId: "modifier-1",
-      })
+      }),
     ).toBe(1.25);
   });
 
@@ -225,7 +232,7 @@ describe("modifier pricing", () => {
         },
         selectedVariationId: "large",
         modifierId: "modifier-1",
-      })
+      }),
     ).toBe(1.5);
   });
 
@@ -251,7 +258,7 @@ describe("modifier pricing", () => {
         },
         selectedVariationId: "small",
         modifierId: "modifier-1",
-      })
+      }),
     ).toBe(1);
   });
 
@@ -261,7 +268,7 @@ describe("modifier pricing", () => {
         item: baseItem,
         selectedVariationId: "small",
         modifierId: "modifier-2",
-      })
+      }),
     ).toBe(25);
   });
 
@@ -271,7 +278,7 @@ describe("modifier pricing", () => {
         item: { id: "item-1", name: "Pizza" },
         selectedVariationId: "small",
         modifierId: "missing",
-      })
+      }),
     ).toBe(0);
   });
 
@@ -305,21 +312,21 @@ describe("modifier pricing", () => {
         item,
         selectedVariationId: "by-variation-id",
         modifierId: "modifier-1",
-      })
+      }),
     ).toBe(10);
     expect(
       getModifierPriceForVariation({
         item,
         selectedVariationId: "by-id",
         modifierId: "modifier-1",
-      })
+      }),
     ).toBe(20);
     expect(
       getModifierPriceForVariation({
         item,
         selectedVariationId: "by-nested-id",
         modifierId: "modifier-1",
-      })
+      }),
     ).toBe(30);
   });
 
@@ -335,9 +342,7 @@ describe("modifier pricing", () => {
           ],
         },
       ],
-      modifiers: [
-        { id: "by-id", name: "Default", priceDelta: 30 },
-      ],
+      modifiers: [{ id: "by-id", name: "Default", priceDelta: 30 }],
     };
 
     expect(
@@ -345,21 +350,21 @@ describe("modifier pricing", () => {
         item,
         selectedVariationId: "small",
         modifierId: "by-modifier-id",
-      })
+      }),
     ).toBe(10);
     expect(
       getModifierPriceForVariation({
         item,
         selectedVariationId: "small",
         modifierId: "by-nested-id",
-      })
+      }),
     ).toBe(20);
     expect(
       getModifierPriceForVariation({
         item,
         selectedVariationId: "small",
         modifierId: "by-id",
-      })
+      }),
     ).toBe(30);
   });
 
@@ -379,7 +384,7 @@ describe("modifier pricing", () => {
         },
         selectedVariationId: null,
         modifierId: "modifier-1",
-      })
+      }),
     ).toBe(50);
   });
 
