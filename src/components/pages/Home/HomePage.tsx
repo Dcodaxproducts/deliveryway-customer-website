@@ -278,7 +278,7 @@ const HomePage = () => {
         <CuisineSection />
 
         <WhyChooseUs />
-        <AppPromo />
+        {branding.showAppPromotion ? <AppPromo /> : null}
         <Stats />
       </div>
 
@@ -330,7 +330,7 @@ const HomePage = () => {
         />
 
         <WhyChooseUs />
-        <AppPromo />
+        {branding.showAppPromotion ? <AppPromo /> : null}
         <Stats />
       </div>
 

@@ -14,6 +14,7 @@ import {
   AlertTriangle,
   Loader2,
   Coins,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
@@ -1822,9 +1823,11 @@ export function CartSummarySection({
                   type="button"
                   onClick={handleRemoveTip}
                   disabled={applyingTip}
-                  className="h-[42px] bg-gray-200 text-gray-700 hover:bg-gray-200"
+                  aria-label={t("tip.remove")}
+                  title={t("tip.remove")}
+                  className="size-[42px] shrink-0 bg-gray-200 p-0 text-gray-700 hover:bg-gray-300"
                 >
-                  {t("tip.remove")}
+                  <X className="size-4" aria-hidden="true" />
                 </Button>
               ) : null}
             </div>

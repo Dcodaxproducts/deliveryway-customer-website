@@ -22,6 +22,7 @@ describe("branding normalization", () => {
           app: {
             tagline: "Fresh food",
             showCategories: false,
+            showAppPromotion: false,
           },
           logo: {
             light: "/light.png",
@@ -46,6 +47,11 @@ describe("branding normalization", () => {
     expect(branding.restaurantName).toBe("Demo Restaurant");
     expect(branding.tagline).toBe("Fresh food");
     expect(branding.showCategories).toBe(false);
+    expect(branding.showAppPromotion).toBe(false);
+  });
+
+  it("shows the app promotion by default for existing branding", () => {
+    expect(normalizeBrandingApiResponse({}).showAppPromotion).toBe(true);
   });
 
   it("normalizes customer-app home envelope restaurant and config branding", () => {

@@ -27,4 +27,5 @@ export const DEFAULT_BRANDING: Branding = {
   showCategories: true,
   showPopularItems: true,
   showHeroBanner: true,
+  showAppPromotion: true,
 };

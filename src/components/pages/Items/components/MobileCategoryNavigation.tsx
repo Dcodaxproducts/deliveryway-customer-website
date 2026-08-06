@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { ArrowLeft, Loader2, UtensilsCrossed } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useEffect, useRef } from "react";
 
 import type { ItemsCategory } from "@/components/pages/Items/types";
 import { getImageUrl } from "@/components/pages/Items/utils/restaurant-card-utils";
@@ -167,6 +168,15 @@ export function MobileCategoryTabs({
   onCategorySelect,
 }: MobileCategoryTabsProps) {
   const t = useTranslations("items.common");
+  const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+
+  useEffect(() => {
+    tabRefs.current[activeCategoryId]?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "center",
+    });
+  }, [activeCategoryId]);
 
   return (
     <nav
@@ -183,6 +193,9 @@ export function MobileCategoryTabs({
           return (
             <button
               key={id}
+              ref={(element) => {
+                tabRefs.current[id] = element;
+              }}
               type="button"
               aria-pressed={isActive}
               onClick={() => onCategorySelect(id)}

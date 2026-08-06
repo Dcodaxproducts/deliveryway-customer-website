@@ -24,6 +24,36 @@ export type SavedDeliveryAddressCandidate = {
   isDefault?: boolean;
 };
 
+export const hasRequiredDeliveryAddress = (
+  location: StoredDeliveryLocation | null,
+) =>
+  Boolean(
+    location?.address?.street?.trim() &&
+      location.address.houseNumber?.trim() &&
+      location.address.city?.trim(),
+  );
+
+export const formatStoredDeliveryAddress = (
+  location: StoredDeliveryLocation | null,
+) => {
+  if (!location?.address) return location?.label?.trim() ?? "";
+
+  const streetLine = [
+    location.address.street?.trim(),
+    location.address.houseNumber?.trim(),
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const cityLine = [
+    location.address.postalCode?.trim(),
+    location.address.city?.trim(),
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  return [streetLine, cityLine].filter(Boolean).join(", ");
+};
+
 export const requiresDeliveryAddressCapture = ({
   usesSavedAddresses,
   savedAddressCount = 0,

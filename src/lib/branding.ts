@@ -180,6 +180,7 @@ export const normalizeBrandingApiResponse = (homeData: unknown): Branding => {
     showCategories: getBoolean(DEFAULT_BRANDING.showCategories, app.showCategories, branding.showCategories),
     showPopularItems: getBoolean(DEFAULT_BRANDING.showPopularItems, app.showPopularItems, branding.showPopularItems),
     showHeroBanner: getBoolean(DEFAULT_BRANDING.showHeroBanner, app.showHeroBanner, branding.showHeroBanner),
+    showAppPromotion: getBoolean(DEFAULT_BRANDING.showAppPromotion, app.showAppPromotion, branding.showAppPromotion),
   };
 };
 

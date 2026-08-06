@@ -223,6 +223,7 @@
       "addDeliveryAddressFirst": "Please add your delivery address first so we can calculate the correct delivery fee.",
       "addressCheckFailed": "We could not check your saved addresses. Please try again.",
       "selectDeliveryMapFirst": "Please select your delivery location from the map first.",
+      "completeDeliveryAddress": "Enter a street, city, and house number before continuing.",
       "selectDeliveryLocationFirst": "Please select your delivery location first.",
       "deliveryAddressSaved": "Delivery address saved. You can continue with delivery.",
       "branchSelected": "{branch} selected for {mode}.",

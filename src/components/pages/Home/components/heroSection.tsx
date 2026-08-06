@@ -44,8 +44,10 @@ import {
   setStoredCheckoutTypePreference,
 } from "@/lib/checkout-type-preference";
 import {
+  formatStoredDeliveryAddress,
   getStoredDeliveryLocation,
   getStoredSelectedDeliveryAddressId,
+  hasRequiredDeliveryAddress,
   requiresDeliveryAddressCapture,
   resolvePreferredSavedDeliveryAddressId,
   setStoredSelectedDeliveryAddressId,
@@ -134,6 +136,15 @@ export const HeroSection = ({
       : selectedOrderType === "DELIVERY"
         ? t("deliveryPanelTitle")
         : "";
+  const storedDeliveryLocation = coordinates
+    ? getStoredDeliveryLocation()
+    : null;
+  const selectedDeliveryAddress = formatStoredDeliveryAddress(
+    storedDeliveryLocation,
+  );
+  const hasCompleteGuestDeliveryAddress = hasRequiredDeliveryAddress(
+    storedDeliveryLocation,
+  );
   const hasAddressBookSession = Boolean(token && user && !isGuestUser(user));
   const isSelectedBranchAvailable = selectedBranch
     ? isBranchCurrentlyAvailable(selectedBranch)
@@ -266,7 +277,7 @@ export const HeroSection = ({
       if (
         requiresDeliveryAddressCapture({
           usesSavedAddresses: false,
-          hasGuestLocation: Boolean(coordinates),
+          hasGuestLocation: hasCompleteGuestDeliveryAddress,
         })
       ) {
         setDeliveryLocationDialogOpen(true);
@@ -300,16 +311,27 @@ export const HeroSection = ({
     hasAddressBookSession,
     mode,
     rememberSelectedDeliveryAddress,
-    coordinates,
+    hasCompleteGuestDeliveryAddress,
     t,
   ]);
 
   useEffect(() => {
     if (!deliveryLocationDialogOpen || !coordinates) return;
 
+    if (!hasCompleteGuestDeliveryAddress) {
+      toast.error(t("completeDeliveryAddress"));
+      return;
+    }
+
     setDeliveryLocationDialogOpen(false);
     applyModeChange("delivery");
-  }, [applyModeChange, coordinates, deliveryLocationDialogOpen]);
+  }, [
+    applyModeChange,
+    coordinates,
+    deliveryLocationDialogOpen,
+    hasCompleteGuestDeliveryAddress,
+    t,
+  ]);
 
   const handleModeChange = async (nextMode: BranchSearchMode) => {
     if (nextMode !== "delivery") {
@@ -342,7 +364,7 @@ export const HeroSection = ({
     } else if (
       requiresDeliveryAddressCapture({
         usesSavedAddresses: false,
-        hasGuestLocation: Boolean(coordinates),
+        hasGuestLocation: hasCompleteGuestDeliveryAddress,
       })
     ) {
       setDeliveryLocationDialogOpen(true);
@@ -391,7 +413,7 @@ export const HeroSection = ({
     } else if (
       requiresDeliveryAddressCapture({
         usesSavedAddresses: false,
-        hasGuestLocation: Boolean(coordinates),
+        hasGuestLocation: hasCompleteGuestDeliveryAddress,
       })
     ) {
       setDeliveryLocationDialogOpen(true);
@@ -411,7 +433,21 @@ export const HeroSection = ({
     label?: string,
     details?: GoogleAddressDetails,
   ) => {
+    if (
+      (mode === "delivery" || deliveryLocationDialogOpen) &&
+      (!details?.street?.trim() ||
+        !details.houseNumber?.trim() ||
+        !details.city?.trim())
+    ) {
+      toast.error(t("completeDeliveryAddress"));
+      return;
+    }
+
     acceptCoordinates(nextCoordinates, label || t("selectedAddress"), details);
+    if (deliveryLocationDialogOpen) {
+      setDeliveryLocationDialogOpen(false);
+      applyModeChange("delivery");
+    }
     setShowResults(true);
   };
 
@@ -544,6 +580,11 @@ export const HeroSection = ({
                   <p className="mt-1 text-xs text-[#6B7280]">
                     {selectedOrderLabel || t("selectedBranch")}
                   </p>
+                  {mode === "delivery" && selectedDeliveryAddress ? (
+                    <p className="mt-1 text-xs font-medium text-primary">
+                      {selectedDeliveryAddress}
+                    </p>
+                  ) : null}
                 </div>
               </div>
               {showBranchLocationControls ? (

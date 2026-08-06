@@ -4,6 +4,8 @@ import {
   clearStoredDeliveryLocation,
   getStoredDeliveryLocation,
   getStoredSelectedDeliveryAddressId,
+  formatStoredDeliveryAddress,
+  hasRequiredDeliveryAddress,
   requiresDeliveryAddressCapture,
   resolvePreferredSavedDeliveryAddressId,
   setStoredSelectedDeliveryAddressId,
@@ -67,6 +69,31 @@ describe("delivery location storage", () => {
 
     clearStoredDeliveryLocation();
     expect(getStoredDeliveryLocation()).toBeNull();
+  });
+
+  it("requires street, city, and house number before delivery selection", () => {
+    const complete = {
+      lat: 51.432,
+      lng: 6.88,
+      label: "Heidestraße 8, 45476 Mülheim an der Ruhr",
+      address: {
+        street: "Heidestraße",
+        houseNumber: "8",
+        postalCode: "45476",
+        city: "Mülheim an der Ruhr",
+      },
+    };
+
+    expect(hasRequiredDeliveryAddress(complete)).toBe(true);
+    expect(
+      hasRequiredDeliveryAddress({
+        ...complete,
+        address: { ...complete.address, houseNumber: "" },
+      }),
+    ).toBe(false);
+    expect(formatStoredDeliveryAddress(complete)).toBe(
+      "Heidestraße 8, 45476 Mülheim an der Ruhr",
+    );
   });
 
   it("keeps a selected saved address scoped to the authenticated customer", () => {

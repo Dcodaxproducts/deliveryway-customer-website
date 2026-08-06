@@ -31,6 +31,7 @@ export type Branding = {
   showCategories: boolean;
   showPopularItems: boolean;
   showHeroBanner: boolean;
+  showAppPromotion: boolean;
 };
 
 export type BrandingContextValue = {
