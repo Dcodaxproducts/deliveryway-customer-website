@@ -9,6 +9,7 @@ import {
   canSendDealIdWithModifierSelections,
   getApiErrorMessage,
   hasMenuItemCustomization,
+  isRequiredModifierSelectionError,
   isCartBranchConflict,
   isDealMenuItemCustomizable,
   isDealMenuItemReadyMade,
@@ -386,5 +387,16 @@ describe("product cart helpers", () => {
     expect(getApiErrorMessage({ data: { error: { message: "Nested" } } })).toBe("Nested");
     expect(getApiErrorMessage({ error: { message: "1. Basic Pizza Copy requires at least 1 modifier selection(s)" } })).toBe("1. Basic Pizza Copy requires at least 1 modifier selection(s)");
     expect(isCartBranchConflict({ error: "Cart already contains items from another branch" })).toBe(true);
+  });
+
+  it("detects required modifier validation responses", () => {
+    expect(
+      isRequiredModifierSelectionError({
+        error: {
+          message: "Wraps Dips requires at least 1 modifier selection(s)",
+        },
+      }),
+    ).toBe(true);
+    expect(isRequiredModifierSelectionError("Menu item is unavailable")).toBe(false);
   });
 });

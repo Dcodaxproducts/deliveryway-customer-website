@@ -13,6 +13,10 @@ import {
   mergeUniqueById,
   resolveHasNext,
 } from "@/components/pages/Items/utils/restaurant-card-utils";
+import {
+  getCategoryIdsThroughTarget,
+  isProgrammaticCategoryTargetReached,
+} from "@/components/pages/Items/utils/category-scroll";
 
 type MenuViewMode = "multiple" | "onePage";
 type ItemsContentSource = "category" | "menu";
@@ -102,6 +106,7 @@ export function ItemsListing({
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const inFlightRequestsRef = useRef<Set<string>>(new Set());
   const handledScrollNonceRef = useRef<number | null>(null);
+  const programmaticScrollTargetRef = useRef<string | null>(null);
 
   const restaurantId = useMemo(() => {
     return resolveHomeRestaurantId(user, authRestaurantId, domainContext);
@@ -230,10 +235,6 @@ export function ItemsListing({
     if (viewMode !== "multiple") return;
     if (!activeCategoryId || !restaurantId) return;
 
-    const state = categoryItemsMap[activeCategoryId];
-
-    if (state?.loadedOnce || state?.loading) return;
-
     queueMicrotask(() => {
       fetchCategoryItems({
         categoryId: activeCategoryId,
@@ -241,7 +242,13 @@ export function ItemsListing({
         append: false,
       });
     });
-  }, [contentSource, viewMode, activeCategoryId, restaurantId, branchId]);
+  }, [
+    contentSource,
+    viewMode,
+    activeCategoryId,
+    restaurantId,
+    branchId,
+  ]);
 
   const activeCategoryState = categoryItemsMap[activeCategoryId];
 
@@ -267,18 +274,32 @@ export function ItemsListing({
     if (viewMode !== "onePage") return;
     if (!activeCategoryId || !restaurantId) return;
 
-    const state = categoryItemsMap[activeCategoryId];
-
-    if (state?.loadedOnce || state?.loading) return;
+    const categoryIdsToLoad = scrollTarget?.id
+      ? getCategoryIdsThroughTarget(sections, String(scrollTarget.id))
+      : [activeCategoryId];
 
     queueMicrotask(() => {
-      fetchCategoryItems({
-        categoryId: activeCategoryId,
-        page: 1,
-        append: false,
+      categoryIdsToLoad.forEach((categoryId) => {
+        const state = categoryItemsMap[categoryId];
+
+        if (state?.loadedOnce || state?.loading) return;
+
+        void fetchCategoryItems({
+          categoryId,
+          page: 1,
+          append: false,
+        });
       });
     });
-  }, [contentSource, viewMode, activeCategoryId, restaurantId, branchId]);
+  }, [
+    contentSource,
+    viewMode,
+    activeCategoryId,
+    restaurantId,
+    branchId,
+    categoryIdsKey,
+    scrollTarget?.id,
+  ]);
 
   /* ================= PRUNE OLD CATEGORY STATES AFTER SEARCH ================= */
 
@@ -309,18 +330,24 @@ export function ItemsListing({
     if (viewMode !== "onePage") return;
     if (!scrollTarget?.id) return;
     if (handledScrollNonceRef.current === scrollTarget.nonce) return;
-    if (
-      contentSource === "category" &&
-      !categoryItemsMap[String(scrollTarget.id)]?.loadedOnce
-    ) {
-      return;
+
+    const targetId = String(scrollTarget.id);
+    programmaticScrollTargetRef.current = targetId;
+
+    if (contentSource === "category") {
+      const categoryIdsToLoad = getCategoryIdsThroughTarget(sections, targetId);
+      const targetPositionIsStable = categoryIdsToLoad.every(
+        (categoryId) => categoryItemsMap[categoryId]?.loadedOnce,
+      );
+
+      if (!targetPositionIsStable) return;
     }
 
     let frameId = 0;
     let attempts = 0;
 
     const scrollWhenReady = () => {
-      const el = sectionRefs.current[String(scrollTarget.id)];
+      const el = sectionRefs.current[targetId];
 
       if (!el) {
         attempts += 1;
@@ -434,8 +461,26 @@ export function ItemsListing({
       if (!availableIds.length) return;
 
       const lastCategoryId = availableIds[availableIds.length - 1];
+      const atBottom = getScrollableBottomState();
+      const programmaticTargetId = programmaticScrollTargetRef.current;
 
-      if (getScrollableBottomState()) {
+      if (programmaticTargetId) {
+        const targetSection = sectionRefs.current[programmaticTargetId];
+        const targetReached = targetSection
+          ? isProgrammaticCategoryTargetReached({
+              targetTop: targetSection.getBoundingClientRect().top,
+              atBottom: atBottom && programmaticTargetId === lastCategoryId,
+            })
+          : false;
+
+        if (!targetReached) return;
+
+        programmaticScrollTargetRef.current = null;
+        onActiveCategoryChange?.(programmaticTargetId);
+        return;
+      }
+
+      if (atBottom) {
         onActiveCategoryChange?.(lastCategoryId);
         return;
       }

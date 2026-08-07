@@ -76,6 +76,17 @@ export const hasMenuItemCustomization = (item: MenuItem | null) =>
   hasOptions(item?.category?.modifierGroups) ||
   hasOptions(item?.category?.categoryModifierGroups);
 
+export const isRequiredModifierSelectionError = (value: unknown) => {
+  const message =
+    typeof value === "string"
+      ? value
+      : value && typeof value === "object"
+        ? JSON.stringify(value)
+        : "";
+
+  return /requires? at least \d+ modifier selection/i.test(message);
+};
+
 const supportsDealIdCartPayload = (item: MenuItem | null) =>
   item?.supportsDealIdCartPayload === true ||
   item?.supportsDealCartPayload === true ||

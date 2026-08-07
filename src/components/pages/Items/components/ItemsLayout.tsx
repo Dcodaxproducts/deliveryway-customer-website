@@ -8,14 +8,9 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { useRouter } from "next/navigation";
 import { CategorySidebar } from "./CategorySidebar";
 import { ItemsListing } from "./Items";
-import {
-  MobileCategoryBrowser,
-  MobileCategoryHero,
-  MobileCategoryTabs,
-} from "./MobileCategoryNavigation";
+import { MobileCategoryTabs } from "./MobileCategoryNavigation";
 import { CustomerDealsSection } from "@/components/pages/Home/components/CustomerDealsSection";
 import useItems from "@/hooks/useItems";
 import useMenu from "@/hooks/useMenu";
@@ -78,7 +73,6 @@ const getMobileItemsViewportSnapshot = () =>
 const getMobileItemsViewportServerSnapshot = () => false;
 
 export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
-  const router = useRouter();
   const isMobileItemsViewport = useSyncExternalStore(
     subscribeToMobileItemsViewport,
     getMobileItemsViewportSnapshot,
@@ -101,10 +95,6 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMoreCategories, setHasMoreCategories] = useState(false);
-  const [categoryItemCounts, setCategoryItemCounts] = useState<
-    Record<string, number>
-  >({});
-
   const [contentSource, setContentSource] =
     useState<ItemsContentSource>("category");
   const [activeOnePageCategoryId, setActiveOnePageCategoryId] = useState("");
@@ -157,6 +147,21 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
   }, [viewMode]);
 
   useEffect(() => {
+    if (isMobileItemsViewport) {
+      setContentSource("category");
+      setViewMode("onePage");
+
+      if (categoryId) {
+        setActiveOnePageCategoryId(String(categoryId));
+        setScrollTarget({
+          id: String(categoryId),
+          nonce: Date.now(),
+        });
+      }
+
+      return;
+    }
+
     if (!categoryId) {
       setViewMode("onePage");
       return;
@@ -165,23 +170,7 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
     setContentSource("category");
     setViewMode("multiple");
     setScrollTarget(null);
-  }, [categoryId]);
-
-  const handleCategoryItemCountChange = useCallback(
-    (loadedCategoryId: string, count: number) => {
-      if (loadedCategoryId !== String(categoryId || "")) return;
-
-      setCategoryItemCounts((currentCounts) => {
-        if (currentCounts[loadedCategoryId] === count) return currentCounts;
-
-        return {
-          ...currentCounts,
-          [loadedCategoryId]: count,
-        };
-      });
-    },
-    [categoryId],
-  );
+  }, [categoryId, isMobileItemsViewport]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -485,49 +474,29 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
   };
 
   if (isMobileItemsViewport) {
-    const selectedCategory = categories.find(
-      (category) => String(category.id || "") === String(categoryId || ""),
-    );
-
-    if (!categoryId) {
-      return (
-        <MobileCategoryBrowser
-          categories={categories}
-          loading={loadingCategories}
-          loadingMore={loadingMoreCategories}
-          hasMore={hasMoreCategories}
-          onCategorySelect={(id) => {
-            router.push(`/items?categoryId=${encodeURIComponent(id)}`);
-          }}
-          onLoadMore={handleLoadMoreCategories}
-        />
-      );
-    }
-
     return (
       <div className="pb-[max(2.5rem,env(safe-area-inset-bottom))]">
-        <MobileCategoryHero
-          category={selectedCategory}
-          itemCount={categoryItemCounts[String(categoryId)]}
-          onBack={() => router.push("/items")}
-        />
         <MobileCategoryTabs
           categories={categories}
-          activeCategoryId={String(categoryId)}
+          activeCategoryId={activeCategoryId}
           onCategorySelect={(id) => {
-            if (id === String(categoryId)) return;
+            if (id === activeCategoryId) return;
 
-            router.push(`/items?categoryId=${encodeURIComponent(id)}`);
+            setActiveOnePageCategoryId(String(id));
+            setScrollTarget({
+              id: String(id),
+              nonce: Date.now(),
+            });
           }}
         />
-        <main className="px-4">
+        <main className="px-4 pt-5">
           <ItemsListing
-            activeSectionId={String(categoryId)}
+            activeSectionId={activeCategoryId}
             sections={listingSections}
             contentSource="category"
-            viewMode="multiple"
-            hideSectionHeading
-            onCategoryItemCountChange={handleCategoryItemCountChange}
+            viewMode="onePage"
+            scrollTarget={scrollTarget}
+            onActiveCategoryChange={setActiveOnePageCategoryId}
             currency={currency}
           />
         </main>

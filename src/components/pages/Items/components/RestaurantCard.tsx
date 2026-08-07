@@ -61,7 +61,10 @@ import {
   getModifierGroupSelectedQuantity,
   validateModifierSelections,
 } from "@/components/pages/Items/utils/modifier-selections";
-import { hasMenuItemCustomization } from "@/components/pages/Items/utils/product-cart";
+import {
+  hasMenuItemCustomization,
+  isRequiredModifierSelectionError,
+} from "@/components/pages/Items/utils/product-cart";
 
 const isApiErrorResponse = (res: ApiRecord | null | undefined) => {
   return !res || res?.success === false || Boolean(res?.error);
@@ -2229,6 +2232,18 @@ export function RestaurantCard({
       }
 
       if (isApiErrorResponse(res)) {
+        if (
+          !hasLoadedDetails &&
+          isRequiredModifierSelectionError(res)
+        ) {
+          const detailedItem = await loadDetailedItem();
+
+          if (detailedItem && hasMenuItemCustomization(detailedItem)) {
+            setOpen(true);
+            return;
+          }
+        }
+
         toast.error(getApiErrorMessage(res, t("failedAddToCart")));
         return;
       }
