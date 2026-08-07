@@ -60,6 +60,7 @@ import { fetchAddresses } from "@/services/profile";
 import type { AuthBranch } from "@/types/auth";
 import type { BranchOrderType, NearbyBranch } from "@/types/branches";
 import type { GoogleAddressDetails } from "@/types/google-maps";
+import type { GoogleLatLngLiteral } from "@/types/google-maps";
 import type { HomeBranch } from "@/types/home";
 
 type HeroSectionProps = {
@@ -72,6 +73,12 @@ type HeroSectionProps = {
 };
 
 type BranchSearchMode = "delivery" | "pickup";
+
+type DeliveryLocationDraft = {
+  coordinates: GoogleLatLngLiteral;
+  label: string;
+  address: GoogleAddressDetails;
+};
 
 const getOrderType = (mode: BranchSearchMode): BranchOrderType =>
   mode === "pickup" ? "TAKEAWAY" : "DELIVERY";
@@ -100,6 +107,8 @@ export const HeroSection = ({
   const [addressModalOpen, setAddressModalOpen] = useState(false);
   const [deliveryLocationDialogOpen, setDeliveryLocationDialogOpen] =
     useState(false);
+  const [deliveryLocationDraft, setDeliveryLocationDraft] =
+    useState<DeliveryLocationDraft | null>(null);
   const {
     coordinates,
     locationLabel,
@@ -223,6 +232,25 @@ export const HeroSection = ({
   }, [availableModes, mode]);
 
   useEffect(() => {
+    if (!deliveryLocationDialogOpen || !coordinates || deliveryLocationDraft) {
+      return;
+    }
+
+    const storedLocation = getStoredDeliveryLocation();
+    setDeliveryLocationDraft({
+      coordinates,
+      label: storedLocation?.label || locationLabel || t("selectedAddress"),
+      address: storedLocation?.address ?? {},
+    });
+  }, [
+    coordinates,
+    deliveryLocationDialogOpen,
+    deliveryLocationDraft,
+    locationLabel,
+    t,
+  ]);
+
+  useEffect(() => {
     const preferredMode = resolveHomeCheckoutType(availableModes);
 
     if (preferredMode) {
@@ -311,24 +339,6 @@ export const HeroSection = ({
     hasAddressBookSession,
     mode,
     rememberSelectedDeliveryAddress,
-    hasCompleteGuestDeliveryAddress,
-    t,
-  ]);
-
-  useEffect(() => {
-    if (!deliveryLocationDialogOpen || !coordinates) return;
-
-    if (!hasCompleteGuestDeliveryAddress) {
-      toast.error(t("completeDeliveryAddress"));
-      return;
-    }
-
-    setDeliveryLocationDialogOpen(false);
-    applyModeChange("delivery");
-  }, [
-    applyModeChange,
-    coordinates,
-    deliveryLocationDialogOpen,
     hasCompleteGuestDeliveryAddress,
     t,
   ]);
@@ -448,6 +458,60 @@ export const HeroSection = ({
       setDeliveryLocationDialogOpen(false);
       applyModeChange("delivery");
     }
+    setShowResults(true);
+  };
+
+  const handleSelectDeliveryLocation = (
+    nextCoordinates: GoogleLatLngLiteral,
+    label?: string,
+    details?: GoogleAddressDetails,
+  ) => {
+    setDeliveryLocationDraft({
+      coordinates: nextCoordinates,
+      label: label || t("selectedAddress"),
+      address: {
+        street: details?.street || "",
+        houseNumber: details?.houseNumber || "",
+        postalCode: details?.postalCode || "",
+        city: details?.city || "",
+        state: details?.state || "",
+        country: details?.country || "",
+      },
+    });
+  };
+
+  const updateDeliveryLocationDraft = (
+    field: keyof GoogleAddressDetails,
+    value: string,
+  ) => {
+    setDeliveryLocationDraft((current) =>
+      current
+        ? {
+            ...current,
+            address: { ...current.address, [field]: value },
+          }
+        : current,
+    );
+  };
+
+  const confirmDeliveryLocation = () => {
+    if (
+      !deliveryLocationDraft ||
+      !deliveryLocationDraft.address.street?.trim() ||
+      !deliveryLocationDraft.address.houseNumber?.trim() ||
+      !deliveryLocationDraft.address.city?.trim()
+    ) {
+      toast.error(t("completeDeliveryAddress"));
+      return;
+    }
+
+    acceptCoordinates(
+      deliveryLocationDraft.coordinates,
+      deliveryLocationDraft.label,
+      deliveryLocationDraft.address,
+    );
+    setDeliveryLocationDialogOpen(false);
+    applyModeChange("delivery");
     setShowResults(true);
   };
 
@@ -624,14 +688,74 @@ export const HeroSection = ({
                 </DialogDescription>
               </DialogHeader>
               <AddressLocationPicker
-                coordinates={coordinates}
-                locationLabel={locationLabel}
-                onSelectLocation={handleSelectSearchLocation}
+                coordinates={deliveryLocationDraft?.coordinates ?? coordinates}
+                locationLabel={deliveryLocationDraft?.label ?? locationLabel}
+                onSelectLocation={handleSelectDeliveryLocation}
                 onUseCurrentLocation={requestLocation}
                 isLocating={permissionState === "requesting"}
                 mapOpen
                 showMapToggle={false}
               />
+              {deliveryLocationDraft ? (
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <label className="space-y-1 text-sm font-medium text-gray-700">
+                    <span>{t("street")}</span>
+                    <input
+                      value={deliveryLocationDraft.address.street ?? ""}
+                      onChange={(event) =>
+                        updateDeliveryLocationDraft(
+                          "street",
+                          event.target.value,
+                        )
+                      }
+                      className="h-11 w-full rounded-xl border border-gray-200 px-3 outline-none focus:border-primary"
+                    />
+                  </label>
+                  <label className="space-y-1 text-sm font-medium text-gray-700">
+                    <span>{t("houseNumber")}</span>
+                    <input
+                      value={deliveryLocationDraft.address.houseNumber ?? ""}
+                      onChange={(event) =>
+                        updateDeliveryLocationDraft(
+                          "houseNumber",
+                          event.target.value,
+                        )
+                      }
+                      className="h-11 w-full rounded-xl border border-gray-200 px-3 outline-none focus:border-primary"
+                    />
+                  </label>
+                  <label className="space-y-1 text-sm font-medium text-gray-700">
+                    <span>{t("postalCode")}</span>
+                    <input
+                      value={deliveryLocationDraft.address.postalCode ?? ""}
+                      onChange={(event) =>
+                        updateDeliveryLocationDraft(
+                          "postalCode",
+                          event.target.value,
+                        )
+                      }
+                      className="h-11 w-full rounded-xl border border-gray-200 px-3 outline-none focus:border-primary"
+                    />
+                  </label>
+                  <label className="space-y-1 text-sm font-medium text-gray-700">
+                    <span>{t("city")}</span>
+                    <input
+                      value={deliveryLocationDraft.address.city ?? ""}
+                      onChange={(event) =>
+                        updateDeliveryLocationDraft("city", event.target.value)
+                      }
+                      className="h-11 w-full rounded-xl border border-gray-200 px-3 outline-none focus:border-primary"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={confirmDeliveryLocation}
+                    className="h-11 rounded-xl bg-primary px-5 font-semibold text-white sm:col-span-2"
+                  >
+                    {t("confirmDeliveryAddress")}
+                  </button>
+                </div>
+              ) : null}
               {errorMessage ? (
                 <p className="rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-600">
                   {errorMessage}
