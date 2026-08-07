@@ -14,6 +14,7 @@ import {
   AlertTriangle,
   Loader2,
   Coins,
+  Check,
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -1837,19 +1838,28 @@ export function CartSummarySection({
                 value={tipInput}
                 onChange={(event) => setTipInput(event.target.value)}
                 placeholder="0"
-                className="h-[42px] flex-1 rounded-md border border-gray-200 px-3 py-2 text-sm outline-none transition-colors focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
+                className="h-[42px] min-w-0 flex-1 rounded-md border border-gray-200 px-3 py-2 text-sm outline-none transition-colors focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
               />
               <Button
                 type="button"
                 onClick={handleApplyTip}
                 disabled={applyingTip}
-                className="h-[42px] text-white"
+                aria-label={tipAmount > 0 ? t("tip.update") : t("tip.apply")}
+                title={tipAmount > 0 ? t("tip.update") : t("tip.apply")}
+                className="size-[42px] shrink-0 p-0 text-white sm:w-auto sm:px-4"
               >
-                {applyingTip
-                  ? t("applying")
-                  : tipAmount > 0
-                    ? t("tip.update")
-                    : t("tip.apply")}
+                {applyingTip ? (
+                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                ) : (
+                  <Check className="size-4" aria-hidden="true" />
+                )}
+                <span className="hidden sm:inline">
+                  {applyingTip
+                    ? t("applying")
+                    : tipAmount > 0
+                      ? t("tip.update")
+                      : t("tip.apply")}
+                </span>
               </Button>
               {tipAmount > 0 ? (
                 <Button

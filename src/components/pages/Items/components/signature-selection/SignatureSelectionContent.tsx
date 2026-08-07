@@ -2014,6 +2014,7 @@ export function SignatureSelectionContent({
           return addCustomerCartItem({
             customerId: activeCustomerId,
             payload,
+            compact: true,
           });
         }
 
@@ -2068,6 +2069,7 @@ export function SignatureSelectionContent({
           return addCustomerCartItem({
             customerId: activeCustomerId,
             payload,
+            compact: true,
           });
         }
 

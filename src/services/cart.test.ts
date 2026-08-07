@@ -63,6 +63,22 @@ describe("cart service", () => {
     );
   });
 
+  it("requests compact confirmation for direct add-to-cart flows", async () => {
+    postCartMock.mockResolvedValue({ success: true });
+
+    await addCustomerCartItem({
+      customerId: "customer-1",
+      payload: { branchId: "branch-1", menuItemId: "wrap-id", quantity: 1 },
+      compact: true,
+    });
+
+    expect(postCartMock).toHaveBeenCalledWith(
+      "/v1/cart/items?customerId=customer-1&compact=true",
+      { branchId: "branch-1", menuItemId: "wrap-id", quantity: 1 },
+      undefined,
+    );
+  });
+
   it("adds an N-item deal with one batched cart request", async () => {
     postCartMock.mockResolvedValue({ success: true });
 

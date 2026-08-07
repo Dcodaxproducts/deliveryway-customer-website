@@ -2065,6 +2065,7 @@ export function RestaurantCard({
     const firstRes = await addCustomerCartItem({
       customerId: activeCustomerId,
       payload: cartPayload,
+      compact: true,
     });
 
     if (!isCartBranchConflictResponse(firstRes)) {
@@ -2087,6 +2088,7 @@ export function RestaurantCard({
     return addCustomerCartItem({
       customerId: activeCustomerId,
       payload: cartPayload,
+      compact: true,
     });
   };
 
@@ -2232,10 +2234,7 @@ export function RestaurantCard({
       }
 
       if (isApiErrorResponse(res)) {
-        if (
-          !hasLoadedDetails &&
-          isRequiredModifierSelectionError(res)
-        ) {
+        if (!hasLoadedDetails && isRequiredModifierSelectionError(res)) {
           const detailedItem = await loadDetailedItem();
 
           if (detailedItem && hasMenuItemCustomization(detailedItem)) {
@@ -2556,316 +2555,320 @@ export function RestaurantCard({
       ) : null}
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[95vh] max-w-md overflow-auto rounded-2xl p-6">
-          <div className="mb-4 pr-10 sm:pr-8">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    {item?.name}
-                  </h2>
+        <DialogContent className="flex max-h-[calc(100dvh-1rem)] max-w-md flex-col overflow-hidden rounded-2xl p-0 sm:max-h-[90dvh]">
+          <div className="min-h-0 flex-1 overflow-y-auto p-4 pb-3 sm:p-5">
+            <div className="mb-3 pr-10 sm:pr-8">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h2 className="text-lg font-semibold text-gray-900">
+                      {item?.name}
+                    </h2>
 
-                  {selectedItemPromotionPricing.hasPromotion ? (
-                    <PromotionBadge
-                      promotion={selectedItemPromotionPricing.promotion}
-                      currency={currency}
-                    />
-                  ) : null}
-                </div>
-              </div>
-
-              <FavoriteHeartButton
-                menuItemId={item?.id}
-                className="h-9 w-9 shrink-0 border border-gray-100"
-              />
-            </div>
-
-            {selectedItemPromotionPricing.hasPromotion ? (
-              <div className="mt-2 rounded-xl bg-green-50 px-3 py-2">
-                <p className="text-xs font-semibold text-green-700">
-                  {getPromotionTitle(selectedItemPromotionPricing.promotion)}
-                </p>
-
-                {selectedItemPromotionPricing.promotion?.description ? (
-                  <p className="mt-0.5 line-clamp-2 text-xs text-green-700/80">
-                    {selectedItemPromotionPricing.promotion.description}
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
-
-          {itemVariations.length > 0 ? (
-            <div className="mb-5">
-              <p className="mb-2 font-medium text-gray-900">{t("size")}</p>
-
-              <div className="grid grid-cols-1 gap-3">
-                {itemVariations.map((variation) => {
-                  const variationPrice = toNumber(variation.price, 0);
-                  const variationPromotionPricing = getPromotionPricing({
-                    source: getPromotionSourceForPrice(item, variation),
-                    originalPrice: variationPrice,
-                  });
-
-                  return (
-                    <label
-                      key={variation.id}
-                      className={`cursor-pointer rounded-xl border px-4 py-3 transition ${
-                        selectedVariation?.id === variation.id
-                          ? "border-primary bg-primary/5"
-                          : "border-gray-200 bg-white"
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-start gap-3">
-                          <input
-                            type="radio"
-                            name={`size-${item?.id}`}
-                            checked={selectedVariation?.id === variation.id}
-                            onChange={() => setSelectedVariation(variation)}
-                            className="mt-1 accent-[var(--primary)]"
-                          />
-
-                          <div>
-                            <p className="text-sm font-medium text-gray-800">
-                              {variation.displayText || variation.name}
-                            </p>
-
-                            {variation.description ? (
-                              <p className="mt-1 text-xs leading-relaxed text-gray-500">
-                                {variation.description}
-                              </p>
-                            ) : null}
-
-                            {variationPromotionPricing.hasPromotion ? (
-                              <div className="mt-2 flex flex-wrap items-center gap-2">
-                                <PromotionBadge
-                                  promotion={
-                                    variationPromotionPricing.promotion
-                                  }
-                                  compact
-                                  currency={currency}
-                                />
-
-                                {variationPromotionPricing.hasDiscount ? (
-                                  <span className="text-xs font-medium text-green-700">
-                                    Save{" "}
-                                    {formatMoney(
-                                      variationPromotionPricing.discountAmount,
-                                      currency,
-                                    )}
-                                  </span>
-                                ) : null}
-                              </div>
-                            ) : null}
-                          </div>
-                        </div>
-
-                        {variationPrice > 0 ? (
-                          <div className="shrink-0 text-right text-sm font-semibold text-primary">
-                            <PromotionPrice
-                              pricing={variationPromotionPricing}
-                              currency={currency}
-                            />
-                          </div>
-                        ) : null}
-                      </div>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-          ) : null}
-
-          {itemSupportsSplitPizza ? (
-            <div className="mb-5 rounded-2xl border border-gray-100 bg-gray-50 p-4 transition">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="font-medium text-gray-900">
-                    Enable split pizza
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Choose another split-pizza item for the second half.
-                  </p>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => handleSplitPizzaToggle(!splitPizzaEnabled)}
-                  className={`relative h-7 w-12 rounded-full transition ${
-                    splitPizzaEnabled ? "bg-primary" : "bg-gray-300"
-                  }`}
-                >
-                  <span
-                    className={`absolute top-1 h-5 w-5 rounded-full bg-white transition ${
-                      splitPizzaEnabled ? "left-6" : "left-1"
-                    }`}
-                  />
-                </button>
-              </div>
-
-              {splitPizzaEnabled ? (
-                <div className="mt-4 space-y-4">
-                  <div>
-                    <p className="mb-2 text-sm font-medium text-gray-900">
-                      Select other pizza half
-                    </p>
-
-                    <AsyncSelect
-                      value={splitPizzaItem}
-                      onChange={handleSplitPizzaItemChange}
-                      placeholder={t("selectSplitPizzaItem")}
-                      fetchOptions={fetchPizzaItems}
-                      labelKey="name"
-                      valueKey="id"
-                    />
+                    {selectedItemPromotionPricing.hasPromotion ? (
+                      <PromotionBadge
+                        promotion={selectedItemPromotionPricing.promotion}
+                        currency={currency}
+                      />
+                    ) : null}
                   </div>
+                </div>
 
-                  {splitPizzaItem ? (
-                    <div className="rounded-xl bg-white p-3">
-                      <p className="text-sm font-semibold text-gray-900">
-                        Selected second half
-                      </p>
+                <FavoriteHeartButton
+                  menuItemId={item?.id}
+                  className="h-9 w-9 shrink-0 border border-gray-100"
+                />
+              </div>
 
-                      <div className="mt-2 flex items-start justify-between gap-3 rounded-lg bg-gray-50 px-3 py-2 text-sm">
-                        <div className="min-w-0">
-                          <p className="truncate font-medium text-gray-900">
-                            {splitPizzaItem?.name}
-                          </p>
+              {selectedItemPromotionPricing.hasPromotion ? (
+                <div className="mt-2 rounded-xl bg-green-50 px-3 py-2">
+                  <p className="text-xs font-semibold text-green-700">
+                    {getPromotionTitle(selectedItemPromotionPricing.promotion)}
+                  </p>
 
-                          {splitPizzaItem?.description ? (
-                            <p className="mt-0.5 line-clamp-2 text-xs text-gray-500">
-                              {splitPizzaItem.description}
-                            </p>
-                          ) : null}
-                        </div>
-
-                        {splitPizzaResolvedItemPrice > 0 ? (
-                          <div className="shrink-0 text-right font-medium text-primary">
-                            <PromotionPrice
-                              pricing={splitPizzaPromotionPricing}
-                              currency={currency}
-                            />
-
-                            {splitPizzaPromotionPricing.hasPromotion ? (
-                              <div className="mt-1 flex justify-end">
-                                <PromotionBadge
-                                  promotion={
-                                    splitPizzaPromotionPricing.promotion
-                                  }
-                                  compact
-                                  currency={currency}
-                                />
-                              </div>
-                            ) : null}
-                          </div>
-                        ) : null}
-                      </div>
-                    </div>
+                  {selectedItemPromotionPricing.promotion?.description ? (
+                    <p className="mt-0.5 line-clamp-2 text-xs text-green-700/80">
+                      {selectedItemPromotionPricing.promotion.description}
+                    </p>
                   ) : null}
                 </div>
               ) : null}
             </div>
-          ) : null}
 
-          {renderModifierGroupSections()}
+            {itemVariations.length > 0 ? (
+              <div className="mb-5">
+                <p className="mb-2 font-medium text-gray-900">{t("size")}</p>
 
-          {renderAddonSection()}
+                <div className="grid grid-cols-1 gap-3">
+                  {itemVariations.map((variation) => {
+                    const variationPrice = toNumber(variation.price, 0);
+                    const variationPromotionPricing = getPromotionPricing({
+                      source: getPromotionSourceForPrice(item, variation),
+                      originalPrice: variationPrice,
+                    });
 
-          <div className="mb-5">
-            <p className="mb-2 font-medium text-gray-900">
-              {t("specialInstructions")}
-            </p>
+                    return (
+                      <label
+                        key={variation.id}
+                        className={`cursor-pointer rounded-xl border px-4 py-3 transition ${
+                          selectedVariation?.id === variation.id
+                            ? "border-primary bg-primary/5"
+                            : "border-gray-200 bg-white"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start gap-3">
+                            <input
+                              type="radio"
+                              name={`size-${item?.id}`}
+                              checked={selectedVariation?.id === variation.id}
+                              onChange={() => setSelectedVariation(variation)}
+                              className="mt-1 accent-[var(--primary)]"
+                            />
 
-            <textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder={t("notesPlaceholder")}
-              className="h-24 w-full rounded-xl bg-gray-100 p-3 text-sm outline-none"
-            />
+                            <div>
+                              <p className="text-sm font-medium text-gray-800">
+                                {variation.displayText || variation.name}
+                              </p>
+
+                              {variation.description ? (
+                                <p className="mt-1 text-xs leading-relaxed text-gray-500">
+                                  {variation.description}
+                                </p>
+                              ) : null}
+
+                              {variationPromotionPricing.hasPromotion ? (
+                                <div className="mt-2 flex flex-wrap items-center gap-2">
+                                  <PromotionBadge
+                                    promotion={
+                                      variationPromotionPricing.promotion
+                                    }
+                                    compact
+                                    currency={currency}
+                                  />
+
+                                  {variationPromotionPricing.hasDiscount ? (
+                                    <span className="text-xs font-medium text-green-700">
+                                      Save{" "}
+                                      {formatMoney(
+                                        variationPromotionPricing.discountAmount,
+                                        currency,
+                                      )}
+                                    </span>
+                                  ) : null}
+                                </div>
+                              ) : null}
+                            </div>
+                          </div>
+
+                          {variationPrice > 0 ? (
+                            <div className="shrink-0 text-right text-sm font-semibold text-primary">
+                              <PromotionPrice
+                                pricing={variationPromotionPricing}
+                                currency={currency}
+                              />
+                            </div>
+                          ) : null}
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
+
+            {itemSupportsSplitPizza ? (
+              <div className="mb-5 rounded-2xl border border-gray-100 bg-gray-50 p-4 transition">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="font-medium text-gray-900">
+                      Enable split pizza
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Choose another split-pizza item for the second half.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleSplitPizzaToggle(!splitPizzaEnabled)}
+                    className={`relative h-7 w-12 rounded-full transition ${
+                      splitPizzaEnabled ? "bg-primary" : "bg-gray-300"
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-1 h-5 w-5 rounded-full bg-white transition ${
+                        splitPizzaEnabled ? "left-6" : "left-1"
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {splitPizzaEnabled ? (
+                  <div className="mt-4 space-y-4">
+                    <div>
+                      <p className="mb-2 text-sm font-medium text-gray-900">
+                        Select other pizza half
+                      </p>
+
+                      <AsyncSelect
+                        value={splitPizzaItem}
+                        onChange={handleSplitPizzaItemChange}
+                        placeholder={t("selectSplitPizzaItem")}
+                        fetchOptions={fetchPizzaItems}
+                        labelKey="name"
+                        valueKey="id"
+                      />
+                    </div>
+
+                    {splitPizzaItem ? (
+                      <div className="rounded-xl bg-white p-3">
+                        <p className="text-sm font-semibold text-gray-900">
+                          Selected second half
+                        </p>
+
+                        <div className="mt-2 flex items-start justify-between gap-3 rounded-lg bg-gray-50 px-3 py-2 text-sm">
+                          <div className="min-w-0">
+                            <p className="truncate font-medium text-gray-900">
+                              {splitPizzaItem?.name}
+                            </p>
+
+                            {splitPizzaItem?.description ? (
+                              <p className="mt-0.5 line-clamp-2 text-xs text-gray-500">
+                                {splitPizzaItem.description}
+                              </p>
+                            ) : null}
+                          </div>
+
+                          {splitPizzaResolvedItemPrice > 0 ? (
+                            <div className="shrink-0 text-right font-medium text-primary">
+                              <PromotionPrice
+                                pricing={splitPizzaPromotionPricing}
+                                currency={currency}
+                              />
+
+                              {splitPizzaPromotionPricing.hasPromotion ? (
+                                <div className="mt-1 flex justify-end">
+                                  <PromotionBadge
+                                    promotion={
+                                      splitPizzaPromotionPricing.promotion
+                                    }
+                                    compact
+                                    currency={currency}
+                                  />
+                                </div>
+                              ) : null}
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
+            {renderModifierGroupSections()}
+
+            {renderAddonSection()}
+
+            <div className="mb-5">
+              <p className="mb-2 font-medium text-gray-900">
+                {t("specialInstructions")}
+              </p>
+
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder={t("notesPlaceholder")}
+                className="h-24 w-full rounded-xl bg-gray-100 p-3 text-sm outline-none"
+              />
+            </div>
           </div>
 
-          <div className="mb-5 flex items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center rounded-full bg-gray-100 px-3 py-1.5">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setQty((prev) =>
-                      Math.max(itemQuantityRules.minQuantity, prev - 1),
-                    )
-                  }
-                  className="px-2 text-lg text-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
-                  disabled={loading || qty <= itemQuantityRules.minQuantity}
-                >
-                  <Minus size={16} />
-                </button>
+          <div className="shrink-0 border-t border-gray-100 bg-white p-4 shadow-[0_-8px_24px_rgba(15,23,42,0.08)]">
+            <div className="mb-3 flex items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center rounded-full bg-gray-100 px-3 py-1.5">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setQty((prev) =>
+                        Math.max(itemQuantityRules.minQuantity, prev - 1),
+                      )
+                    }
+                    className="px-2 text-lg text-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
+                    disabled={loading || qty <= itemQuantityRules.minQuantity}
+                  >
+                    <Minus size={16} />
+                  </button>
 
-                <span className="px-4 text-sm font-semibold text-gray-900">
-                  {qty}
-                </span>
+                  <span className="px-4 text-sm font-semibold text-gray-900">
+                    {qty}
+                  </span>
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    setQty((prev) =>
-                      itemQuantityRules.maxQuantity
-                        ? Math.min(itemQuantityRules.maxQuantity, prev + 1)
-                        : prev + 1,
-                    )
-                  }
-                  className="px-2 text-lg text-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
-                  disabled={
-                    loading ||
-                    Boolean(
-                      itemQuantityRules.maxQuantity &&
-                      qty >= itemQuantityRules.maxQuantity,
-                    )
-                  }
-                >
-                  <Plus size={16} />
-                </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setQty((prev) =>
+                        itemQuantityRules.maxQuantity
+                          ? Math.min(itemQuantityRules.maxQuantity, prev + 1)
+                          : prev + 1,
+                      )
+                    }
+                    className="px-2 text-lg text-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
+                    disabled={
+                      loading ||
+                      Boolean(
+                        itemQuantityRules.maxQuantity &&
+                        qty >= itemQuantityRules.maxQuantity,
+                      )
+                    }
+                  >
+                    <Plus size={16} />
+                  </button>
+                </div>
+
+                <p className="mt-1 text-center text-[11px] font-medium text-gray-500">
+                  {quantityLabel}
+                </p>
               </div>
 
-              <p className="mt-1 text-center text-[11px] font-medium text-gray-500">
-                {quantityLabel}
-              </p>
+              <div className="text-right text-lg font-semibold text-primary">
+                {hasTotalPromotionDiscount ? (
+                  <div className="flex flex-col items-end">
+                    <PromotionPrice
+                      pricing={{
+                        promotion: activeVisiblePromotion,
+                        originalPrice: totalPrice,
+                        finalPrice: displayTotalPrice,
+                        discountAmount: totalPromotionDiscount,
+                        hasPromotion: true,
+                        hasDiscount: true,
+                      }}
+                      originalClassName="text-sm font-medium"
+                      currency={currency}
+                    />
+                    <span className="mt-0.5 text-xs font-medium text-green-700">
+                      Save {formatMoney(totalPromotionDiscount, currency)}
+                    </span>
+                  </div>
+                ) : (
+                  formatMoney(totalPrice, currency)
+                )}
+              </div>
             </div>
 
-            <div className="text-right text-lg font-semibold text-primary">
-              {hasTotalPromotionDiscount ? (
-                <div className="flex flex-col items-end">
-                  <PromotionPrice
-                    pricing={{
-                      promotion: activeVisiblePromotion,
-                      originalPrice: totalPrice,
-                      finalPrice: displayTotalPrice,
-                      discountAmount: totalPromotionDiscount,
-                      hasPromotion: true,
-                      hasDiscount: true,
-                    }}
-                    originalClassName="text-sm font-medium"
-                    currency={currency}
-                  />
-                  <span className="mt-0.5 text-xs font-medium text-green-700">
-                    Save {formatMoney(totalPromotionDiscount, currency)}
-                  </span>
-                </div>
-              ) : (
-                formatMoney(totalPrice, currency)
-              )}
-            </div>
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              disabled={loading}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-white transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {loading ? <Loader2 size={16} className="animate-spin" /> : null}
+              {loading ? t("processing") : t("addToCart")}
+            </button>
           </div>
-
-          <button
-            type="button"
-            onClick={handleAddToCart}
-            disabled={loading}
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-primary py-3 text-white transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            {loading ? <Loader2 size={16} className="animate-spin" /> : null}
-            {loading ? t("processing") : t("addToCart")}
-          </button>
         </DialogContent>
       </Dialog>
     </>

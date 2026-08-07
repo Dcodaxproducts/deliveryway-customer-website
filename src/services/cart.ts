@@ -325,13 +325,15 @@ export const addCustomerCartItem = ({
   customerId,
   payload,
   token,
+  compact = false,
 }: {
   customerId: string;
   payload: CartMutationPayload;
   token?: string | null;
+  compact?: boolean;
 }) =>
   postCart(
-    `/v1/cart/items?customerId=${customerId}`,
+    `/v1/cart/items?customerId=${customerId}${compact ? "&compact=true" : ""}`,
     cleanAddCartItemPayload(payload),
     token,
   );

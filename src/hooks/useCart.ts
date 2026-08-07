@@ -96,6 +96,7 @@ export type CartApi = DomainApiHook & {
   addCustomerCartItem: (args: {
     customerId: string;
     payload: CartMutationPayload;
+    compact?: boolean;
   }) => Promise<ApiResult>;
   quoteCustomerCart: (args: {
     customerId: string;
@@ -210,9 +211,11 @@ export const useCart = (token: string | null): CartApi => {
     async ({
       customerId,
       payload,
+      compact,
     }: {
       customerId: string;
       payload: CartMutationPayload;
+      compact?: boolean;
     }) => {
       const optimisticQuantity = getOptimisticCartQuantity(payload);
       dispatchCartChanged({
@@ -229,6 +232,7 @@ export const useCart = (token: string | null): CartApi => {
               customerId: activeSession.customerId,
               payload,
               token: activeSession.token,
+              compact,
             }),
           renewSession: async () => {
             const renewedSession = await renewGuestSession(

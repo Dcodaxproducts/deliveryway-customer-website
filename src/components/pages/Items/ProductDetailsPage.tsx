@@ -28,19 +28,8 @@ import {
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useDomainContext } from "@/hooks/useDomainContext";
-import {
-  resolveHomeBranchId,
-  resolveHomeRestaurantId,
-} from "@/lib/home";
-import {
-  Download,
-  Eye,
-  ImageOff,
-  Loader2,
-  Minus,
-  Plus,
-  X,
-} from "lucide-react";
+import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
+import { Download, Eye, ImageOff, Loader2, Minus, Plus, X } from "lucide-react";
 import { AsyncSelect } from "@/components/ui/AsyncSelect";
 import { FavoriteHeartButton } from "@/components/common/favorites/FavoriteHeartButton";
 import type {
@@ -1729,11 +1718,13 @@ function ProductDetailsPageContent() {
       try {
         setPageLoading(true);
 
-        const { response: res, item: matchedItem } = await fetchMenuItemDetails({
-          restaurantId: browsingRestaurantId,
-          branchId,
-          identifier: searchValue,
-        });
+        const { response: res, item: matchedItem } = await fetchMenuItemDetails(
+          {
+            restaurantId: browsingRestaurantId,
+            branchId,
+            identifier: searchValue,
+          },
+        );
 
         if (!isMounted) return;
 
@@ -2486,6 +2477,7 @@ function ProductDetailsPageContent() {
     return addCustomerCartItem({
       customerId: activeCustomerId,
       payload: buildCreateCartPayload(),
+      compact: true,
     });
   };
 
@@ -2591,6 +2583,7 @@ function ProductDetailsPageContent() {
             res = await addCustomerCartItem({
               customerId: activeCustomerId,
               payload: buildCreateCartPayload(),
+              compact: true,
             });
           }
         } else {
@@ -2618,6 +2611,7 @@ function ProductDetailsPageContent() {
           res = await addCustomerCartItem({
             customerId: activeCustomerId,
             payload: buildCreateCartPayload(),
+            compact: true,
           });
         }
       }
