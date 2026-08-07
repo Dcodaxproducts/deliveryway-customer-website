@@ -66,7 +66,7 @@ export function SiteFloatingCart() {
   }, []);
 
   const refreshCartPresence = useCallback(
-    async ({ openWhenPresent = false }: { openWhenPresent?: boolean } = {}) => {
+    async () => {
       if (pendingCartMutationsRef.current > 0) {
         setHasCartItems(true);
         return;
@@ -84,12 +84,7 @@ export function SiteFloatingCart() {
 
         setHasCartItems(nextHasCartItems);
 
-        if (nextHasCartItems) {
-          if (openWhenPresent) {
-            setIsOpen(true);
-          }
-          return;
-        }
+        if (nextHasCartItems) return;
 
         setIsOpen(false);
       } catch {
@@ -143,7 +138,6 @@ export function SiteFloatingCart() {
         const nextHasCartItems = detail.itemCount > 0;
 
         setHasCartItems(nextHasCartItems);
-        setIsOpen(nextHasCartItems);
         if (detail.refreshCart) {
           refreshCart();
         }
@@ -151,7 +145,7 @@ export function SiteFloatingCart() {
       }
 
       refreshCart();
-      void refreshCartPresence({ openWhenPresent: true });
+      void refreshCartPresence();
     };
 
     window.addEventListener(CART_CHANGED_EVENT, handleCartChanged);

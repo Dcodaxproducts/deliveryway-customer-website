@@ -81,6 +81,11 @@ export type CartChargeBreakdown = {
   totalServiceChargeAmount?: number;
 };
 
+export type CartDeliveryPolicy = {
+  minOrderAmount?: number;
+  freeDeliveryThreshold?: number;
+};
+
 export type CartQuote = {
   subtotal: number;
   taxAmount?: number;
@@ -100,6 +105,7 @@ export type CartQuote = {
   payableAmount?: number;
   appliedPromotion?: CartAppliedPromotion | null;
   chargeBreakdown?: CartChargeBreakdown;
+  deliveryPolicy?: CartDeliveryPolicy | null;
 };
 
 export type CartModifierSelectionInput = {

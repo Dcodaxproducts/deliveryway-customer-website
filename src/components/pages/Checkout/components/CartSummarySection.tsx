@@ -184,6 +184,10 @@ interface CartQuote {
   totalAmount?: number | string;
   payableAmount?: number | string;
   chargeBreakdown?: CartChargeBreakdown;
+  deliveryPolicy?: {
+    minOrderAmount?: number | string;
+    freeDeliveryThreshold?: number | string;
+  } | null;
   appliedPromotion?: {
     id?: string;
     title?: string;
@@ -1024,6 +1028,14 @@ export function CartSummarySection({
     quoteSubtotal,
   );
   const quoteDeliveryFee = toNullableNumber(resolvedQuote?.deliveryFee);
+  const minimumOrderAmount = Math.max(
+    0,
+    toNumber(resolvedQuote?.deliveryPolicy?.minOrderAmount, 0),
+  );
+  const freeDeliveryThreshold = Math.max(
+    0,
+    toNumber(resolvedQuote?.deliveryPolicy?.freeDeliveryThreshold, 0),
+  );
   const quoteTipAmount =
     toNullableNumber(resolvedQuote?.tipAmount) ??
     Math.max(0, toNumber(appliedTipAmount, 0));
@@ -1758,7 +1770,7 @@ export function CartSummarySection({
             </div>
           ) : null}
 
-          {selectedOrderFee > 0 ? (
+          {checkoutType === "delivery" || selectedOrderFee > 0 ? (
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1">
                 <span>
@@ -1768,8 +1780,29 @@ export function CartSummarySection({
                 </span>
                 <Info size={16} />
               </div>
-              <span>{formatCurrency(selectedOrderFee, currency)}</span>
+              <span>
+                {checkoutType === "delivery" && selectedOrderFee <= 0
+                  ? t("free")
+                  : formatCurrency(selectedOrderFee, currency)}
+              </span>
             </div>
+          ) : null}
+
+          {checkoutType === "delivery" && resolvedQuote?.deliveryPolicy ? (
+            <>
+              <div className="flex items-center justify-between">
+                <span>{t("minimumOrderValue")}</span>
+                <span>{formatCurrency(minimumOrderAmount, currency)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>{t("freeDeliveryAmount")}</span>
+                <span>
+                  {freeDeliveryThreshold > 0
+                    ? formatCurrency(freeDeliveryThreshold, currency)
+                    : t("notAvailable")}
+                </span>
+              </div>
+            </>
           ) : null}
 
           {shouldShowPositiveAmountLine(serviceChargeAmount) ? (

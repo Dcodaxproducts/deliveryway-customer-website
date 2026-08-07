@@ -9,6 +9,7 @@ import type {
   CartAppliedPromotion,
   CartChargeBreakdown,
   CartChargeLine,
+  CartDeliveryPolicy,
   CartQuote,
 } from "@/types/cart";
 
@@ -155,6 +156,24 @@ const normalizeCartChargeBreakdown = (
   };
 };
 
+const normalizeCartDeliveryPolicy = (
+  value: unknown,
+): CartDeliveryPolicy | null => {
+  const policy = getRecord(value);
+
+  if (!policy) {
+    return null;
+  }
+
+  return {
+    minOrderAmount: Math.max(0, toNumber(policy.minOrderAmount, 0)),
+    freeDeliveryThreshold: Math.max(
+      0,
+      toNumber(policy.freeDeliveryThreshold, 0),
+    ),
+  };
+};
+
 export const normalizeCartQuote = (value: unknown): CartQuote | null => {
   const quote = getRecord(value);
 
@@ -163,6 +182,8 @@ export const normalizeCartQuote = (value: unknown): CartQuote | null => {
   }
 
   const couponCode = getString(quote.couponCode);
+  const chargeBreakdown = normalizeCartChargeBreakdown(quote.chargeBreakdown);
+  const deliveryPolicy = normalizeCartDeliveryPolicy(quote.deliveryPolicy);
 
   return {
     subtotal: toNumber(quote.subtotal, 0),
@@ -187,7 +208,8 @@ export const normalizeCartQuote = (value: unknown): CartQuote | null => {
       toNumber(quote.totalAmount, 0),
     ),
     appliedPromotion: normalizeCartAppliedPromotion(quote.appliedPromotion),
-    chargeBreakdown: normalizeCartChargeBreakdown(quote.chargeBreakdown),
+    ...(chargeBreakdown ? { chargeBreakdown } : {}),
+    ...(deliveryPolicy ? { deliveryPolicy } : {}),
   };
 };
 
@@ -221,6 +243,7 @@ const getCartQuoteSource = (cart: ApiRecord | null) => {
     payableAmount: quote.payableAmount ?? cart.payableAmount,
     appliedPromotion: quote.appliedPromotion ?? cart.appliedPromotion,
     chargeBreakdown: quote.chargeBreakdown ?? cart.chargeBreakdown,
+    deliveryPolicy: quote.deliveryPolicy ?? cart.deliveryPolicy,
   };
 };
 

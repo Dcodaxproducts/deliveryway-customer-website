@@ -2995,7 +2995,7 @@ export function SignatureSelectionContent({
         <DialogContent className="max-h-[95vh] max-w-md overflow-auto rounded-2xl p-6">
           {selectedItem ? (
             <>
-              <div className="mb-4 flex items-center justify-between gap-3">
+              <div className="mb-4 flex items-center justify-between gap-3 pr-10 sm:pr-8">
                 <div className="min-w-0">
                   <h2 className="truncate text-lg font-semibold text-gray-900">
                     {selectedItem.name}

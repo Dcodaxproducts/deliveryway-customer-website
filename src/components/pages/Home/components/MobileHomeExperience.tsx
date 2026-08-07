@@ -2,19 +2,29 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Bell, ChevronRight, MapPin, Search } from "lucide-react";
+import {
+  Bell,
+  ChevronRight,
+  MapPin,
+  Search,
+  ShoppingBag,
+  Truck,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
 
 import { getDealImage } from "@/components/pages/Home/utils/customer-deal-cart";
 import { isDealActive } from "@/components/pages/Home/utils/customer-deals-formatters";
 import { PromotionalItemsSection } from "@/components/pages/Home/components/PromotionalItemsSection";
+import { CustomerDealsSection } from "@/components/pages/Home/components/CustomerDealsSection";
 import { Button } from "@/components/ui/button";
 import { resolveHttpsImageUrl } from "@/lib/image-fallback";
 import type { Branding } from "@/types/branding";
 import type { HomeCategory } from "@/types/home";
 import type { CustomerDeal } from "@/types/customer-deals";
 import type { CheckoutType, MenuItem } from "@/components/pages/Items/types";
+import type { CheckoutTypePreference } from "@/lib/checkout-type-preference";
 
 type MobileHomeExperienceProps = {
   restaurantName: string;
@@ -27,8 +37,14 @@ type MobileHomeExperienceProps = {
   promotionalItems: MenuItem[];
   promotionalItemsLoading: boolean;
   deals: CustomerDeal[];
+  dealsLoading?: boolean;
+  addingDealId?: string | null;
+  branchId?: string | null;
+  onAddDeal?: (deal: CustomerDeal, selectedMenuItemIds?: string[]) => void;
   currency?: string | null;
   checkoutType?: CheckoutType;
+  availableCheckoutTypes?: CheckoutTypePreference[];
+  onCheckoutTypeChange?: (checkoutType: CheckoutTypePreference) => void;
 };
 
 const getCategoryImage = (category: HomeCategory) =>
@@ -50,11 +66,24 @@ export function MobileHomeExperience({
   promotionalItems,
   promotionalItemsLoading,
   deals,
+  dealsLoading = false,
+  addingDealId = null,
+  branchId = null,
+  onAddDeal,
   currency,
   checkoutType = "delivery",
+  availableCheckoutTypes = ["delivery", "pickup"],
+  onCheckoutTypeChange,
 }: MobileHomeExperienceProps) {
   const router = useRouter();
   const t = useTranslations("home.mobile");
+  const heroT = useTranslations("home.hero");
+  const [selectedCheckoutType, setSelectedCheckoutType] =
+    useState<CheckoutTypePreference>(checkoutType);
+
+  useEffect(() => {
+    setSelectedCheckoutType(checkoutType);
+  }, [checkoutType]);
   const activeDeals = deals.filter(isDealActive).slice(0, 8);
   const featuredDeal = getFeaturedDeal(deals);
   const featuredImage = featuredDeal ? getDealImage(featuredDeal) : null;
@@ -124,6 +153,43 @@ export function MobileHomeExperience({
           <Search className="h-5 w-5 text-primary" />
           <span className="truncate">{t("searchPlaceholder")}</span>
         </button>
+
+        {availableCheckoutTypes.length > 0 ? (
+          <div
+            className="relative z-10 mt-4 grid gap-2 rounded-2xl bg-black/10 p-1.5"
+            style={{
+              gridTemplateColumns: `repeat(${availableCheckoutTypes.length}, minmax(0, 1fr))`,
+            }}
+            aria-label={heroT("orderPanelTitle")}
+          >
+            {availableCheckoutTypes.map((option) => {
+              const isSelected = selectedCheckoutType === option;
+              const Icon = option === "delivery" ? Truck : ShoppingBag;
+
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  aria-pressed={isSelected}
+                  onClick={() => {
+                    setSelectedCheckoutType(option);
+                    onCheckoutTypeChange?.(option);
+                  }}
+                  className={`flex h-11 items-center justify-center gap-2 rounded-xl text-sm font-bold transition ${
+                    isSelected
+                      ? "bg-white text-primary shadow-sm"
+                      : "text-white/85 hover:bg-white/10"
+                  }`}
+                >
+                  <Icon className="h-4 w-4" aria-hidden="true" />
+                  {option === "delivery"
+                    ? heroT("deliveryPanelTitle")
+                    : heroT("pickupPanelTitle")}
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
       </section>
 
       <main className="-mt-3 space-y-8 px-4">
@@ -224,7 +290,17 @@ export function MobileHomeExperience({
           isLoading={promotionalItemsLoading}
           currency={currency}
           compact
-          checkoutType={checkoutType}
+          checkoutType={selectedCheckoutType}
+        />
+
+        <CustomerDealsSection
+          deals={deals}
+          isLoading={dealsLoading}
+          addingDealId={addingDealId}
+          branchId={branchId}
+          onAddDeal={onAddDeal}
+          compact
+          currency={currency}
         />
 
         {activeDeals.length === 0 &&

@@ -225,6 +225,7 @@ export type MenuItem = {
   takeawayPriceAdjustment?: string | number | null;
   deliveryPriceAdjustment?: string | number | null;
   supportsSplitPizza?: boolean | null;
+  hasCustomizations?: boolean | null;
   tenant?: Record<string, unknown>;
   labels?: unknown[];
   dietaryFlags?: unknown[];

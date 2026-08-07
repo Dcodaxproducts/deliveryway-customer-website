@@ -776,6 +776,10 @@ describe("cart service", () => {
           totalTaxAmount: 190,
           totalServiceChargeAmount: 100,
         },
+        deliveryPolicy: {
+          minOrderAmount: 20,
+          freeDeliveryThreshold: 45,
+        },
         appliedPromotion: {
           id: "deal-1",
           title: "Any 2 Burgers",
@@ -815,6 +819,10 @@ describe("cart service", () => {
         ],
         totalTaxAmount: 190,
         totalServiceChargeAmount: 100,
+      },
+      deliveryPolicy: {
+        minOrderAmount: 20,
+        freeDeliveryThreshold: 45,
       },
       appliedPromotion: {
         id: "deal-1",

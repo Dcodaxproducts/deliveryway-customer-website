@@ -181,7 +181,7 @@ export function MobileCategoryTabs({
   return (
     <nav
       aria-label={t("browseCategories")}
-      className="overflow-x-auto px-4 pb-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="sticky top-0 z-30 overflow-x-auto border-b border-gray-100 bg-white/95 px-4 py-3 shadow-sm backdrop-blur [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
       <div className="flex w-max min-w-full gap-2">
         {categories.map((category) => {

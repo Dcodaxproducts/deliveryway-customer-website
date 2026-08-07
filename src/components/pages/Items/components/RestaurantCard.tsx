@@ -2304,7 +2304,12 @@ export function RestaurantCard({
 
     let itemHasOptions = hasOptions;
 
-    if (!hasLoadedDetails && restaurantId && item.id) {
+    if (
+      !hasLoadedDetails &&
+      item.hasCustomizations !== false &&
+      restaurantId &&
+      item.id
+    ) {
       const detailedItem = await loadDetailedItem();
       if (!detailedItem) return;
 
@@ -2537,7 +2542,7 @@ export function RestaurantCard({
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[95vh] max-w-md overflow-auto rounded-2xl p-6">
-          <div className="mb-4">
+          <div className="mb-4 pr-10 sm:pr-8">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">

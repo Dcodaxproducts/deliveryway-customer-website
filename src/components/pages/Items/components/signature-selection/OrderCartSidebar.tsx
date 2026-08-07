@@ -739,14 +739,18 @@ export function OrderCartSidebar({
               </div>
             ) : null}
 
-            {selectedOrderFee > 0 ? (
+            {checkoutType === "delivery" || selectedOrderFee > 0 ? (
               <div className="flex items-center justify-between">
                 <span>
                   {checkoutType === "pickup"
                     ? t("pickupPrice")
                     : t("deliveryFee")}
                 </span>
-                <span>{formatCurrency(selectedOrderFee, currency)}</span>
+                <span>
+                  {checkoutType === "delivery" && selectedOrderFee <= 0
+                    ? t("free")
+                    : formatCurrency(selectedOrderFee, currency)}
+                </span>
               </div>
             ) : null}
 

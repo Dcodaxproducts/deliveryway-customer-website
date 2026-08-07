@@ -29,13 +29,24 @@ import {
   useHomePromotionalItems,
 } from "@/hooks/useHomeCategories";
 import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
-import { shouldRequireBranchSelection } from "@/lib/branch-selector";
+import {
+  branchSupportsDelivery,
+  branchSupportsPickup,
+  normalizeBranch,
+  persistSelectedBranch,
+  shouldRequireBranchSelection,
+} from "@/lib/branch-selector";
 import { resolveCustomerCurrency } from "@/lib/money";
 import type { CustomerDeal } from "@/types/customer-deals";
 import type { AuthBranch } from "@/types/auth";
 import type { BranchScheduleTimings, BranchSettings } from "@/types/branches";
 import type { HomeBranch, HomeRestaurant } from "@/types/home";
-import { orderTypeToCheckoutType } from "@/lib/checkout-type-preference";
+import {
+  checkoutTypeToOrderType,
+  orderTypeToCheckoutType,
+  setStoredCheckoutTypePreference,
+  type CheckoutTypePreference,
+} from "@/lib/checkout-type-preference";
 
 const getRestaurantHeroImage = (restaurant?: HomeRestaurant | null) =>
   restaurant?.coverImage ||
@@ -159,6 +170,7 @@ const HomePage = () => {
     token,
     restaurantId: authRestaurantId,
     loading: authLoading,
+    setUser,
   } = useAuth();
   const { context: domainContext, loading: domainLoading } = useDomainContext();
   const { locale } = useAppLocale();
@@ -213,6 +225,43 @@ const HomePage = () => {
     orderTypeToCheckoutType(
       user?.selectedOrderType ?? user?.branch?.selectedOrderType,
     ) ?? "delivery";
+  const normalizedBranch = useMemo(
+    () => normalizeBranch(resolvedBranch),
+    [resolvedBranch],
+  );
+  const availableCheckoutTypes = useMemo(
+    () => {
+      const hasOrderTypeRules = Boolean(
+        normalizedBranch?.settings?.allowedOrderTypes?.length,
+      );
+      const supportsDelivery =
+        !hasOrderTypeRules ||
+        Boolean(normalizedBranch && branchSupportsDelivery(normalizedBranch));
+      const supportsPickup =
+        !hasOrderTypeRules ||
+        Boolean(normalizedBranch && branchSupportsPickup(normalizedBranch));
+
+      return [
+        ...(normalizedBranch && supportsDelivery
+          ? (["delivery"] as const)
+          : []),
+        ...(normalizedBranch && supportsPickup ? (["pickup"] as const) : []),
+      ];
+    },
+    [normalizedBranch],
+  );
+  const handleMobileCheckoutTypeChange = useCallback(
+    (nextCheckoutType: CheckoutTypePreference) => {
+      setStoredCheckoutTypePreference(nextCheckoutType);
+
+      if (!normalizedBranch) return;
+
+      persistSelectedBranch(normalizedBranch, setUser, {
+        orderType: checkoutTypeToOrderType(nextCheckoutType),
+      });
+    },
+    [normalizedBranch, setUser],
+  );
   const landingPopup = homeData?.landingPopup ?? null;
   const heroTitle =
     homeData?.restaurant?.name ?? branding.restaurantName ?? t("defaultTitle");
@@ -263,8 +312,18 @@ const HomePage = () => {
         promotionalItems={promotionalItemsQuery.data ?? []}
         promotionalItemsLoading={promotionalItemsQuery.isLoading}
         deals={dealsQuery.deals}
+        dealsLoading={dealsQuery.isLoading}
+        addingDealId={
+          addDealMutation.isPending
+            ? (addDealMutation.variables?.deal.id ?? null)
+            : null
+        }
+        branchId={branchId}
+        onAddDeal={handleAddDeal}
         currency={currency}
         checkoutType={checkoutType}
+        availableCheckoutTypes={availableCheckoutTypes}
+        onCheckoutTypeChange={handleMobileCheckoutTypeChange}
       />
 
       <div className="md:hidden">
