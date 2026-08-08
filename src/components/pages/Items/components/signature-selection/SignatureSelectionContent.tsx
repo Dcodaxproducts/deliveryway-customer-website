@@ -72,6 +72,7 @@ import {
   validateModifierSelections,
 } from "@/components/pages/Items/utils/modifier-selections";
 import { getModifierPriceForVariation } from "@/components/pages/Items/utils/modifier-pricing";
+import { runOptimisticMutation } from "@/lib/optimistic-mutation";
 
 type SignatureSelectionContentProps = {
   restaurantId?: string | null;
@@ -646,6 +647,7 @@ export function SignatureSelectionContent({
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const menuSectionRefs = useRef<Record<string, HTMLElement | null>>({});
+  const pendingCartItemIdsRef = useRef(new Set<string>());
 
   const [addingId, setAddingId] = useState<string | null>(null);
 
@@ -1916,6 +1918,8 @@ export function SignatureSelectionContent({
     variation?: MenuVariation | null,
     modifiersMap?: SelectedModifiersMap,
   ) => {
+    if (pendingCartItemIdsRef.current.has(String(item.id))) return;
+
     if (!branchId) {
       toast.error(tProduct("selectBranchFirst"));
       return;
@@ -1958,8 +1962,7 @@ export function SignatureSelectionContent({
 
     try {
       setAddingId(item.id);
-      const activeCustomerId =
-        customerId || (await ensureCustomerSession()).customerId;
+      const activeCustomerId = customerId || "";
 
       const splitSections =
         splitPizzaEnabled && splitPizzaItem?.id
@@ -2005,18 +2008,66 @@ export function SignatureSelectionContent({
         inviteCode: groupCode,
       });
 
-      const addCartItem = async () => {
+      if (storedGroupOrderCompleted || (!groupCode && !groupOrderId)) {
         if (storedGroupOrderCompleted) {
           clearStoredGroupOrderCode();
         }
 
-        if (storedGroupOrderCompleted || (!groupCode && !groupOrderId)) {
-          return addCustomerCartItem({
-            customerId: activeCustomerId,
-            payload,
-          });
-        }
+        const itemId = String(item.id);
+        pendingCartItemIdsRef.current.add(itemId);
 
+        runOptimisticMutation({
+          mutation: async () => {
+            let response = await addCustomerCartItem({
+              customerId: activeCustomerId,
+              payload,
+            });
+
+            if (!isBranchCartConflictResponse(response)) {
+              return response;
+            }
+
+            const clearCartResponse = await clearCustomerCart({
+              customerId: activeCustomerId,
+            });
+
+            if (!clearCartResponse || clearCartResponse.error) {
+              return clearCartResponse;
+            }
+
+            toast.info(tSignature("cartBranchConflict"));
+            response = await addCustomerCartItem({
+              customerId: activeCustomerId,
+              payload,
+            });
+
+            return response;
+          },
+          isFailure: (response) => !response || Boolean(response.error),
+          onOptimistic: () => {
+            toast.success(tProduct("addedToCart"));
+            setModalOpen(false);
+          },
+          onCommitted: () => {
+            pendingCartItemIdsRef.current.delete(itemId);
+            onCartRefresh?.();
+          },
+          onRolledBack: (response) => {
+            pendingCartItemIdsRef.current.delete(itemId);
+            toast.error(
+              response
+                ? getApiErrorMessage(response, tProduct("failedAddToCart"))
+                : tErrors("somethingWentWrong"),
+            );
+          },
+        });
+        return;
+      }
+
+      const groupCustomerId =
+        activeCustomerId || (await ensureCustomerSession()).customerId;
+
+      const addCartItem = async () => {
         let groupOrder: ApiRecord | null = null;
 
         if (groupOrderId) {
@@ -2056,7 +2107,7 @@ export function SignatureSelectionContent({
 
         const currentParticipant = findCurrentGroupOrderParticipant({
           order: groupOrder,
-          userId: activeCustomerId,
+          userId: groupCustomerId,
         });
 
         if (isGroupOrderParticipantCompleted(currentParticipant)) {
@@ -2066,7 +2117,7 @@ export function SignatureSelectionContent({
           });
           clearStoredGroupOrderCode();
           return addCustomerCartItem({
-            customerId: activeCustomerId,
+            customerId: groupCustomerId,
             payload,
           });
         }
@@ -2086,7 +2137,7 @@ export function SignatureSelectionContent({
         toast.info(tSignature("cartBranchConflict"));
 
         const clearCartRes = await clearCustomerCart({
-          customerId: activeCustomerId,
+          customerId: groupCustomerId,
         });
 
         if (!clearCartRes || clearCartRes.error) {

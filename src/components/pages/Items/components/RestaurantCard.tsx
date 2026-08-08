@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { Plus, Info, Loader2, Eye, Minus, Download, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import useItems from "@/hooks/useItems";
@@ -65,6 +65,7 @@ import {
   hasMenuItemCustomization,
   isRequiredModifierSelectionError,
 } from "@/components/pages/Items/utils/product-cart";
+import { runOptimisticMutation } from "@/lib/optimistic-mutation";
 
 const isApiErrorResponse = (res: ApiRecord | null | undefined) => {
   return !res || res?.success === false || Boolean(res?.error);
@@ -616,6 +617,7 @@ export function RestaurantCard({
   const [splitPizzaItem, setSplitPizzaItem] = useState<MenuItem | null>(null);
 
   const [animateCart, setAnimateCart] = useState(false);
+  const cartMutationPendingRef = useRef(false);
   const compactItemIdentity = String(compactItem.id || compactItem.slug || "");
   const activeItemIdentity = String(item.id || item.slug || "");
 
@@ -2091,6 +2093,8 @@ export function RestaurantCard({
   };
 
   async function handleAddToCart() {
+    if (cartMutationPendingRef.current) return;
+
     try {
       setLoading(true);
 
@@ -2134,8 +2138,7 @@ export function RestaurantCard({
         toast.error(t("selectBranch"));
         return;
       }
-      const activeCustomerId =
-        customerId || (await ensureCustomerSession()).customerId;
+      const activeCustomerId = customerId || "";
 
       const splitSections =
         splitPizzaEnabled && splitPizzaItem?.id
@@ -2177,7 +2180,51 @@ export function RestaurantCard({
         clearStoredGroupOrderCode();
       }
 
-      if (!storedGroupOrderCompleted && (groupCode || groupOrderId)) {
+      if (storedGroupOrderCompleted || (!groupCode && !groupOrderId)) {
+        cartMutationPendingRef.current = true;
+
+        runOptimisticMutation({
+          mutation: () =>
+            addCartItemWithBranchRetry(basePayload, activeCustomerId),
+          isFailure: isApiErrorResponse,
+          onOptimistic: () => {
+            toast.success(t("addedToCart"));
+            setAnimateCart(true);
+            setTimeout(() => setAnimateCart(false), 700);
+            setOpen(false);
+          },
+          onCommitted: () => {
+            cartMutationPendingRef.current = false;
+          },
+          onRolledBack: async (response) => {
+            cartMutationPendingRef.current = false;
+
+            if (
+              !hasLoadedDetails &&
+              isRequiredModifierSelectionError(response)
+            ) {
+              const detailedItem = await loadDetailedItem();
+
+              if (detailedItem && hasMenuItemCustomization(detailedItem)) {
+                setOpen(true);
+                return;
+              }
+            }
+
+            toast.error(
+              response
+                ? getApiErrorMessage(response, t("failedAddToCart"))
+                : tErrors("somethingWentWrong"),
+            );
+          },
+        });
+        return;
+      }
+
+      const groupCustomerId =
+        activeCustomerId || (await ensureCustomerSession()).customerId;
+
+      if (groupCode || groupOrderId) {
         let groupOrder: ApiRecord | null = null;
 
         if (groupOrderId) {
@@ -2210,7 +2257,7 @@ export function RestaurantCard({
 
         const currentParticipant = findCurrentGroupOrderParticipant({
           order: groupOrder,
-          userId: activeCustomerId,
+          userId: groupCustomerId,
         });
 
         if (isGroupOrderParticipantCompleted(currentParticipant)) {
@@ -2219,7 +2266,7 @@ export function RestaurantCard({
             inviteCode: groupOrder.inviteCode as string | number | null,
           });
           clearStoredGroupOrderCode();
-          res = await addCartItemWithBranchRetry(basePayload, activeCustomerId);
+          res = await addCartItemWithBranchRetry(basePayload, groupCustomerId);
         } else {
           res = await addGroupOrderItem({
             groupOrderId: String(groupOrder.id),

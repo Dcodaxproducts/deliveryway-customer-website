@@ -70,6 +70,7 @@ import {
   validateModifierSelections,
 } from "@/components/pages/Items/utils/modifier-selections";
 import { getModifierPriceForVariation } from "@/components/pages/Items/utils/modifier-pricing";
+import { runOptimisticMutation } from "@/lib/optimistic-mutation";
 import {
   getDepositAmount,
   getProductDetailsQuantityLimits,
@@ -994,6 +995,7 @@ function ProductDetailsPageContent() {
   const [splitPizzaItem, setSplitPizzaItem] = useState<MenuItem | null>(null);
 
   const editPrefilledRef = useRef(false);
+  const cartMutationPendingRef = useRef(false);
 
   const { user, restaurantId: authRestaurantId } = useAuth();
   const { context: domainContext } = useDomainContext();
@@ -2490,6 +2492,8 @@ function ProductDetailsPageContent() {
   };
 
   const handleAddToCart = async () => {
+    if (cartMutationPendingRef.current) return;
+
     try {
       setLoading(true);
 
@@ -2511,8 +2515,7 @@ function ProductDetailsPageContent() {
         toast.error(t("selectOtherPizzaHalf"));
         return;
       }
-      const activeCustomerId =
-        customerId || (await ensureCustomerSession()).customerId;
+      const activeCustomerId = customerId || "";
 
       const groupCode = getStoredGroupOrderCode();
       const groupOrderId = getStoredGroupOrderId();
@@ -2527,6 +2530,53 @@ function ProductDetailsPageContent() {
       if (storedGroupOrderCompleted) {
         clearStoredGroupOrderCode();
       }
+
+      if (
+        !isEditingCartItem &&
+        (storedGroupOrderCompleted || (!groupCode && !groupOrderId))
+      ) {
+        if (!branchId) {
+          toast.error(t("selectBranchFirst"));
+          return;
+        }
+
+        cartMutationPendingRef.current = true;
+
+        runOptimisticMutation({
+          mutation: async () => {
+            let response = await addCustomerCartItem({
+              customerId: activeCustomerId,
+              payload: buildCreateCartPayload(),
+            });
+
+            if (!isCartBranchConflict(response)) {
+              return response;
+            }
+
+            toast.info(t("clearingPreviousBranchCart"));
+            return clearCartAndRetryAdd(activeCustomerId);
+          },
+          isFailure: (response) => !response || Boolean(response.error),
+          onOptimistic: () => {
+            toast.success(t("addedToCart"));
+          },
+          onCommitted: () => {
+            cartMutationPendingRef.current = false;
+          },
+          onRolledBack: (response) => {
+            cartMutationPendingRef.current = false;
+            toast.error(
+              response
+                ? getApiErrorMessage(response, t("failedSaveItem"))
+                : tErrors("somethingWentWrong"),
+            );
+          },
+        });
+        return;
+      }
+
+      const groupCustomerId =
+        activeCustomerId || (await ensureCustomerSession()).customerId;
 
       if (!storedGroupOrderCompleted && (groupCode || groupOrderId)) {
         let groupOrder: ApiRecord | null = null;
@@ -2567,7 +2617,7 @@ function ProductDetailsPageContent() {
 
         const currentParticipant = findCurrentGroupOrderParticipant({
           order: groupOrder,
-          userId: activeCustomerId,
+          userId: groupCustomerId,
         });
 
         if (isGroupOrderParticipantCompleted(currentParticipant)) {
@@ -2589,7 +2639,7 @@ function ProductDetailsPageContent() {
             });
           } else {
             res = await addCustomerCartItem({
-              customerId: activeCustomerId,
+              customerId: groupCustomerId,
               payload: buildCreateCartPayload(),
             });
           }
@@ -2616,7 +2666,7 @@ function ProductDetailsPageContent() {
           });
         } else {
           res = await addCustomerCartItem({
-            customerId: activeCustomerId,
+            customerId: groupCustomerId,
             payload: buildCreateCartPayload(),
           });
         }
@@ -2628,7 +2678,7 @@ function ProductDetailsPageContent() {
         isCartBranchConflict(res)
       ) {
         toast.info(t("clearingPreviousBranchCart"));
-        res = await clearCartAndRetryAdd(activeCustomerId);
+        res = await clearCartAndRetryAdd(groupCustomerId);
       }
 
       if (!res || res?.error) {
