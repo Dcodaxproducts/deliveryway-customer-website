@@ -2,6 +2,13 @@ type CategorySection = {
   id?: string | number | null;
 };
 
+export const resolveCategoryNavigation = (
+  categoryId?: string | null,
+) => ({
+  activeCategoryId: String(categoryId || ""),
+  viewMode: "onePage" as const,
+});
+
 export const getCategoryIdsThroughTarget = (
   sections: CategorySection[],
   targetId: string,

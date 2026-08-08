@@ -5,9 +5,17 @@ import {
   getCategoryIdsThroughTarget,
   isProgrammaticCategoryTargetReached,
   loadCategoryIdsInBatches,
+  resolveCategoryNavigation,
 } from "./category-scroll";
 
 describe("category scrolling", () => {
+  it("keeps category deep links in the continuous one-page menu", () => {
+    expect(resolveCategoryNavigation("vegan-pizza")).toEqual({
+      activeCategoryId: "vegan-pizza",
+      viewMode: "onePage",
+    });
+  });
+
   it("loads every preceding category before scrolling to a lower target", () => {
     expect(
       getCategoryIdsThroughTarget(

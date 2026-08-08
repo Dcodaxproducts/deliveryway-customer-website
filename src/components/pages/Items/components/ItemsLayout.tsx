@@ -29,6 +29,7 @@ import type {
   MenuItem,
 } from "@/components/pages/Items/types";
 import { resolveHasNext } from "@/components/pages/Items/utils/restaurant-card-utils";
+import { resolveCategoryNavigation } from "@/components/pages/Items/utils/category-scroll";
 import type { CustomerDeal } from "@/types/customer-deals";
 
 type MenuViewMode = "multiple" | "onePage";
@@ -112,7 +113,7 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
   } | null>(null);
 
   const [viewMode, setViewMode] = useState<MenuViewMode>(() => {
-    return categoryId ? "multiple" : "onePage";
+    return resolveCategoryNavigation(categoryId).viewMode;
   });
 
   const requestInFlightRef = useRef(false);
@@ -154,29 +155,24 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
   }, [viewMode]);
 
   useEffect(() => {
+    const categoryNavigation = resolveCategoryNavigation(categoryId);
+
     if (isMobileItemsViewport) {
       setContentSource("category");
       setViewMode("onePage");
-
-      if (categoryId) {
-        setActiveOnePageCategoryId(String(categoryId));
-        setScrollTarget({
-          id: String(categoryId),
-          nonce: Date.now(),
-        });
-      }
-
-      return;
     }
 
-    if (!categoryId) {
-      setViewMode("onePage");
+    if (!categoryNavigation.activeCategoryId) {
       return;
     }
 
     setContentSource("category");
-    setViewMode("multiple");
-    setScrollTarget(null);
+    setViewMode(categoryNavigation.viewMode);
+    setActiveOnePageCategoryId(categoryNavigation.activeCategoryId);
+    setScrollTarget({
+      id: categoryNavigation.activeCategoryId,
+      nonce: Date.now(),
+    });
   }, [categoryId, isMobileItemsViewport]);
 
   useEffect(() => {
