@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  getCategoryLoadOrder,
   getCategoryIdsThroughTarget,
   isProgrammaticCategoryTargetReached,
+  loadCategoryIdsInBatches,
 } from "./category-scroll";
 
 describe("category scrolling", () => {
@@ -37,5 +39,46 @@ describe("category scrolling", () => {
         atBottom: true,
       }),
     ).toBe(true);
+  });
+
+  it("loads every category on the initial one-page render", () => {
+    expect(
+      getCategoryLoadOrder(
+        [{ id: "pizza" }, { id: "wraps" }, { id: "desserts" }],
+      ),
+    ).toEqual(["pizza", "wraps", "desserts"]);
+  });
+
+  it("prioritizes a selected category without dropping the other categories", () => {
+    expect(
+      getCategoryLoadOrder(
+        [{ id: "pizza" }, { id: "wraps" }, { id: "desserts" }],
+        "desserts",
+      ),
+    ).toEqual(["desserts", "pizza", "wraps"]);
+  });
+
+  it("bounds progressive category request concurrency", async () => {
+    let activeRequests = 0;
+    let maximumActiveRequests = 0;
+    const loadedIds: string[] = [];
+
+    await loadCategoryIdsInBatches({
+      categoryIds: ["pizza", "wraps", "desserts", "drinks"],
+      batchSize: 2,
+      load: async (categoryId) => {
+        activeRequests += 1;
+        maximumActiveRequests = Math.max(
+          maximumActiveRequests,
+          activeRequests,
+        );
+        await Promise.resolve();
+        loadedIds.push(categoryId);
+        activeRequests -= 1;
+      },
+    });
+
+    expect(loadedIds).toEqual(["pizza", "wraps", "desserts", "drinks"]);
+    expect(maximumActiveRequests).toBe(2);
   });
 });

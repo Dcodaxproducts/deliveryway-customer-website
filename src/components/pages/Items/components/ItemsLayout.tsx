@@ -52,6 +52,7 @@ type ItemsSectionForListing = Omit<ItemsCategory, "items"> & {
 };
 
 const CATEGORY_PAGE_LIMIT = 20;
+const PUBLIC_CATEGORIES_REQUEST_ATTEMPTS = 3;
 const MOBILE_ITEMS_QUERY = "(max-width: 1023px)";
 
 type ItemsLayoutProps = {
@@ -71,6 +72,11 @@ const getMobileItemsViewportSnapshot = () =>
   window.matchMedia(MOBILE_ITEMS_QUERY).matches;
 
 const getMobileItemsViewportServerSnapshot = () => false;
+
+const isFailedPublicCategoriesResponse = (response: {
+  success?: boolean;
+  error?: unknown;
+}) => response.success === false || Boolean(response.error);
 
 export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
   const isMobileItemsViewport = useSyncExternalStore(
@@ -110,6 +116,7 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
   });
 
   const requestInFlightRef = useRef(false);
+  const latestCategoryRequestRef = useRef(0);
 
   const restaurantId = useMemo(() => {
     return resolveHomeRestaurantId(user, authRestaurantId, domainContext);
@@ -238,7 +245,10 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
     background?: boolean;
   }) => {
     if (!restaurantId) return;
-    if (requestInFlightRef.current) return;
+    if (append && requestInFlightRef.current) return;
+
+    const requestId = latestCategoryRequestRef.current + 1;
+    latestCategoryRequestRef.current = requestId;
 
     try {
       requestInFlightRef.current = true;
@@ -251,13 +261,41 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
         }
       }
 
-      const { categories: fetchedCategories, meta } =
-        await fetchMenuCategoriesPage({
+      let pageResult: Awaited<
+        ReturnType<typeof fetchMenuCategoriesPage>
+      > | null = null;
+
+      for (
+        let attempt = 1;
+        attempt <= PUBLIC_CATEGORIES_REQUEST_ATTEMPTS;
+        attempt += 1
+      ) {
+        pageResult = await fetchMenuCategoriesPage({
           restaurantId: String(restaurantId),
           page,
           limit: CATEGORY_PAGE_LIMIT,
           search: searchValue,
         });
+
+        if (!isFailedPublicCategoriesResponse(pageResult.response)) break;
+
+        if (attempt < PUBLIC_CATEGORIES_REQUEST_ATTEMPTS) {
+          await new Promise((resolve) => {
+            window.setTimeout(resolve, attempt * 250);
+          });
+        }
+      }
+
+      if (
+        !pageResult ||
+        isFailedPublicCategoriesResponse(pageResult.response)
+      ) {
+        throw new Error("Public menu categories request failed");
+      }
+
+      if (requestId !== latestCategoryRequestRef.current) return;
+
+      const { categories: fetchedCategories, meta } = pageResult;
 
       setCategories((prev) => {
         if (!append) return fetchedCategories;
@@ -286,15 +324,19 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
         }),
       );
     } catch (err) {
+      if (requestId !== latestCategoryRequestRef.current) return;
+
       if (!append) {
         setCategories([]);
       }
 
       setHasMoreCategories(false);
     } finally {
-      requestInFlightRef.current = false;
-      setLoadingCategories(false);
-      if (!background) setLoadingMoreCategories(false);
+      if (requestId === latestCategoryRequestRef.current) {
+        requestInFlightRef.current = false;
+        setLoadingCategories(false);
+        if (!background) setLoadingMoreCategories(false);
+      }
     }
   };
 

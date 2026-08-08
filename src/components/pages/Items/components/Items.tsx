@@ -14,8 +14,10 @@ import {
   resolveHasNext,
 } from "@/components/pages/Items/utils/restaurant-card-utils";
 import {
+  getCategoryLoadOrder,
   getCategoryIdsThroughTarget,
   isProgrammaticCategoryTargetReached,
+  loadCategoryIdsInBatches,
 } from "@/components/pages/Items/utils/category-scroll";
 
 type MenuViewMode = "multiple" | "onePage";
@@ -56,7 +58,9 @@ type CategoryItemsState = {
   totalCount: number | null;
 };
 
-const ITEMS_PAGE_LIMIT = 12;
+const ITEMS_PAGE_LIMIT = 50;
+const CATEGORY_LOAD_BATCH_SIZE = 2;
+const PUBLIC_ITEMS_REQUEST_ATTEMPTS = 3;
 
 const createEmptyCategoryState = (): CategoryItemsState => ({
   items: [],
@@ -82,6 +86,11 @@ const getMenuSectionItems = (section?: ItemsSection | null): MenuItem[] => {
     .map((entry) => entry.menuItem)
     .filter((item): item is MenuItem => Boolean(item?.id));
 };
+
+const isFailedPublicItemsResponse = (response: {
+  success?: boolean;
+  error?: unknown;
+}) => response.success === false || Boolean(response.error);
 
 export function ItemsListing({
   activeSectionId = "",
@@ -165,13 +174,39 @@ export function ItemsListing({
         });
       });
 
-      const { items: fetchedItems, meta } = await fetchMenuItemsPage({
-        restaurantId: String(restaurantId),
-        branchId,
-        categoryId: String(categoryId),
-        page,
-        limit: ITEMS_PAGE_LIMIT,
-      });
+      let pageResult: Awaited<ReturnType<typeof fetchMenuItemsPage>> | null =
+        null;
+
+      for (
+        let attempt = 1;
+        attempt <= PUBLIC_ITEMS_REQUEST_ATTEMPTS;
+        attempt += 1
+      ) {
+        pageResult = await fetchMenuItemsPage({
+          restaurantId: String(restaurantId),
+          branchId,
+          categoryId: String(categoryId),
+          page,
+          limit: ITEMS_PAGE_LIMIT,
+        });
+
+        if (!isFailedPublicItemsResponse(pageResult.response)) break;
+
+        if (attempt < PUBLIC_ITEMS_REQUEST_ATTEMPTS) {
+          await new Promise((resolve) => {
+            window.setTimeout(resolve, attempt * 250);
+          });
+        }
+      }
+
+      if (
+        !pageResult ||
+        isFailedPublicItemsResponse(pageResult.response)
+      ) {
+        throw new Error("Public menu items request failed");
+      }
+
+      const { items: fetchedItems, meta } = pageResult;
 
       queueMicrotask(() => {
         setCategoryItemsMap((prev) => {
@@ -217,8 +252,7 @@ export function ItemsListing({
               ...existing,
               loading: false,
               loadingMore: false,
-              loadedOnce: true,
-              hasMore: false,
+              loadedOnce: existing.loadedOnce,
             },
           };
         });
@@ -272,29 +306,41 @@ export function ItemsListing({
   useEffect(() => {
     if (contentSource !== "category") return;
     if (viewMode !== "onePage") return;
-    if (!activeCategoryId || !restaurantId) return;
+    if (!restaurantId || !sections.length) return;
 
-    const categoryIdsToLoad = scrollTarget?.id
-      ? getCategoryIdsThroughTarget(sections, String(scrollTarget.id))
-      : [activeCategoryId];
+    const categoryIdsToLoad = getCategoryLoadOrder(
+      sections,
+      scrollTarget?.id,
+    );
+    let cancelled = false;
 
     queueMicrotask(() => {
-      categoryIdsToLoad.forEach((categoryId) => {
-        const state = categoryItemsMap[categoryId];
+      void loadCategoryIdsInBatches({
+        categoryIds: categoryIdsToLoad,
+        batchSize: CATEGORY_LOAD_BATCH_SIZE,
+        shouldContinue: () => !cancelled,
+        load: async (categoryId) => {
+          if (cancelled) return;
 
-        if (state?.loadedOnce || state?.loading) return;
+          const state = categoryItemsMap[categoryId];
 
-        void fetchCategoryItems({
-          categoryId,
-          page: 1,
-          append: false,
-        });
+          if (state?.loadedOnce || state?.loading) return;
+
+          await fetchCategoryItems({
+            categoryId,
+            page: 1,
+            append: false,
+          });
+        },
       });
     });
+
+    return () => {
+      cancelled = true;
+    };
   }, [
     contentSource,
     viewMode,
-    activeCategoryId,
     restaurantId,
     branchId,
     categoryIdsKey,
@@ -595,7 +641,7 @@ export function ItemsListing({
   }) => {
     const state = categoryItemsMap[categoryId] || createEmptyCategoryState();
 
-    if (state.loading && !state.items.length) {
+    if (!state.loadedOnce && !state.items.length) {
       return (
         <div className="flex min-h-[180px] items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white text-sm text-gray-500">
           <Loader2 size={18} className="mr-2 animate-spin text-primary" />
