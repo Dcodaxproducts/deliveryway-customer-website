@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { getSelectedOrderType } from "@/lib/branch-selector";
 import {
   getStoredCheckoutTypePreference,
+  resolveSelectedCheckoutType,
   type CheckoutTypePreference,
 } from "@/lib/checkout-type-preference";
 
@@ -17,8 +18,10 @@ function MenuPageContent() {
   const [cartRefreshKey, setCartRefreshKey] = useState(0);
   const [storedCheckoutType, setStoredCheckoutType] =
     useState<CheckoutTypePreference | null>(null);
-  const userCheckoutType = getSelectedOrderType(user) === "TAKEAWAY" ? "pickup" : "delivery";
-  const checkoutType = storedCheckoutType ?? userCheckoutType;
+  const checkoutType = resolveSelectedCheckoutType(
+    getSelectedOrderType(user),
+    storedCheckoutType,
+  );
 
   useEffect(() => {
     setStoredCheckoutType(getStoredCheckoutTypePreference());

@@ -14,6 +14,7 @@ import { getSelectedOrderType } from "@/lib/branch-selector";
 import { CART_CHANGED_EVENT, type CartChangedDetail } from "@/lib/cart-events";
 import {
   getStoredCheckoutTypePreference,
+  resolveSelectedCheckoutType,
   type CheckoutTypePreference,
 } from "@/lib/checkout-type-preference";
 import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
@@ -56,9 +57,10 @@ export function SiteFloatingCart() {
     configCurrency: homeQuery.data?.data.config?.currency,
     restaurant: homeQuery.data?.data.restaurant,
   });
-  const userCheckoutType =
-    getSelectedOrderType(user) === "TAKEAWAY" ? "pickup" : "delivery";
-  const checkoutType = storedCheckoutType ?? userCheckoutType;
+  const checkoutType = resolveSelectedCheckoutType(
+    getSelectedOrderType(user),
+    storedCheckoutType,
+  );
 
   const refreshCart = useCallback(() => {
     setCartSnapshot(null);

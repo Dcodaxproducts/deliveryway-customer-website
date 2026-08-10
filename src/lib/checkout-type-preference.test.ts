@@ -5,6 +5,7 @@ import {
   getStoredCheckoutTypePreference,
   orderTypeToCheckoutType,
   resolveHomeCheckoutType,
+  resolveSelectedCheckoutType,
   setStoredCheckoutTypePreference,
 } from "@/lib/checkout-type-preference";
 
@@ -53,6 +54,16 @@ describe("checkout type preference", () => {
     expect(orderTypeToCheckoutType("TAKEAWAY")).toBe("pickup");
     expect(orderTypeToCheckoutType("DELIVERY")).toBe("delivery");
     expect(orderTypeToCheckoutType("DINE_IN")).toBeNull();
+  });
+
+  it("uses the current branch selection before a stale stored preference", () => {
+    expect(resolveSelectedCheckoutType("DELIVERY", "pickup")).toBe("delivery");
+    expect(resolveSelectedCheckoutType("TAKEAWAY", "delivery")).toBe("pickup");
+  });
+
+  it("falls back to the stored preference when no current selection exists", () => {
+    expect(resolveSelectedCheckoutType(undefined, "pickup")).toBe("pickup");
+    expect(resolveSelectedCheckoutType(undefined, null)).toBe("delivery");
   });
 
   it("defaults Home ordering to pickup even when delivery was previously stored", () => {
