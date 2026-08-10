@@ -22,7 +22,7 @@ import { formatDisplayAddress } from "@/lib/address-display";
 import { formatMoney, resolveCustomerCurrency } from "@/lib/money";
 import { canReviewOrder, type Order, type OrderDisplayItem, type OrderItem, type OrderPricingBreakdownLine } from "@/services/orders";
 import { useTranslations } from "next-intl";
-import { isPaymentPendingStripeOrder } from "@/components/pages/Order/payment-state";
+import { isPaymentPendingOnlineOrder } from "@/components/pages/Order/payment-state";
 
 const getAmountNumber = (value: unknown) => {
   const parsed = Number(value);
@@ -148,7 +148,7 @@ export default function OrderSummary({
   const showDeliveryOtp = Boolean(order?.fulfillment?.showDeliveryOtp && order?.fulfillment?.deliveryOtp);
   const canContinuePayment =
     Boolean(onContinuePayment && order?.id) &&
-    paymentMethod === "STRIPE" &&
+    (paymentMethod === "STRIPE" || paymentMethod === "PAYPAL") &&
     (paymentStatus === "PENDING" || paymentStatus === "FAILED");
   const fallbackPaymentMethods = ["COD", "WALLET", "STRIPE", "PAYPAL", "CARD_ON_DELIVERY"];
   const paymentSwitchOptions = (order?.payment?.availableMethods?.length
@@ -161,7 +161,7 @@ export default function OrderSummary({
     .filter((method, index, methods) => method && methods.indexOf(method) === index && method !== paymentMethod);
   const showPaymentSwitcher = Boolean(canSwitchPaymentMethod && onChangePaymentMethod && paymentSwitchOptions.length > 0);
   const deliveryAddress = formatDisplayAddress(order?.deliveryAddress);
-  const paymentPendingStripeOrder = isPaymentPendingStripeOrder(order);
+  const paymentPendingOnlineOrder = isPaymentPendingOnlineOrder(order);
   const couponCode = order?.coupon?.code?.trim() || "";
   const couponTitle = order?.coupon?.title?.trim() || "";
   const isDealCoupon = /^DEAL-/i.test(couponCode);
@@ -399,7 +399,7 @@ export default function OrderSummary({
                   {orderDisplayId}
                 </h2>
                 <p className="mt-1 text-sm leading-6 text-gray-600">
-                  {paymentPendingStripeOrder
+                  {paymentPendingOnlineOrder
                     ? t("paymentPendingOverviewDescription")
                     : order.statusDescription || t("orderOverviewDescription")}
                 </p>
@@ -448,7 +448,7 @@ export default function OrderSummary({
               </div>
             </div>
 
-            {!paymentPendingStripeOrder && scheduledOrOrderTime ? (
+            {!paymentPendingOnlineOrder && scheduledOrOrderTime ? (
               <div className="rounded-2xl bg-gray-50 p-3">
                 <div className="flex gap-3">
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-primary shadow-sm">
@@ -466,7 +466,7 @@ export default function OrderSummary({
               </div>
             ) : null}
 
-            {!paymentPendingStripeOrder && showDeliveryOtp ? (
+            {!paymentPendingOnlineOrder && showDeliveryOtp ? (
               <div className="rounded-2xl bg-gray-50 p-3">
                 <div className="flex gap-3">
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-primary shadow-sm">
@@ -484,7 +484,7 @@ export default function OrderSummary({
               </div>
             ) : null}
 
-            {!paymentPendingStripeOrder && (estimatedReadyAt || estimatedDeliveredAt) ? (
+            {!paymentPendingOnlineOrder && (estimatedReadyAt || estimatedDeliveredAt) ? (
               <div className="rounded-2xl bg-gray-50 p-3 sm:col-span-2">
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {estimatedReadyAt ? (
@@ -688,8 +688,8 @@ export default function OrderSummary({
                 {t("paymentDetails")}
               </h2>
               <p className="mt-1 text-xs leading-5 text-gray-500">
-                {paymentPendingStripeOrder
-                  ? t("stripePaymentPendingDescription")
+                {paymentPendingOnlineOrder
+                  ? t("onlinePaymentPendingDescription")
                   : paymentStatus === "PENDING"
                     ? t("paymentPendingDescription")
                     : t("paymentDescription")}
@@ -806,7 +806,7 @@ export default function OrderSummary({
         </section>
       ) : null}
 
-      {order?.id && !paymentPendingStripeOrder ? (
+      {order?.id && !paymentPendingOnlineOrder ? (
         <section className="space-y-3">
           <Link
             href={`/contact/chat?orderId=${order.id}`}

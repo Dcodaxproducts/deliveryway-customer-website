@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createOrderPaymentAttempt } from "./payments";
+import { capturePaypalOrder, createOrderPaymentAttempt } from "./payments";
 
 const postPaymentsMock = vi.hoisted(() => vi.fn());
 
@@ -80,5 +80,74 @@ describe("payments service", () => {
 
     expect(result.clientSecret).toBe("provider-secret");
     expect(result.publishableKey).toBe("provider-key");
+  });
+
+  it("returns the PayPal approval URL from the payment session", async () => {
+    postPaymentsMock.mockResolvedValue({
+      success: true,
+      data: {
+        id: "payment-2",
+        providerData: {
+          approvalUrl: "https://www.paypal.com/provider-approval",
+        },
+      },
+      paymentSession: {
+        approvalUrl: "https://www.paypal.com/session-approval",
+      },
+    });
+
+    const result = await createOrderPaymentAttempt({
+      orderId: "order-2",
+      payload: {
+        paymentMethod: "PAYPAL",
+        currency: "EUR",
+      },
+    });
+
+    expect(result.approvalUrl).toBe(
+      "https://www.paypal.com/session-approval",
+    );
+  });
+
+  it("falls back to the PayPal approval URL in provider data", async () => {
+    postPaymentsMock.mockResolvedValue({
+      success: true,
+      data: {
+        id: "payment-3",
+        providerData: {
+          approvalUrl: "https://www.paypal.com/provider-approval",
+        },
+      },
+    });
+
+    const result = await createOrderPaymentAttempt({
+      orderId: "order-3",
+      payload: {
+        paymentMethod: "PAYPAL",
+      },
+    });
+
+    expect(result.approvalUrl).toBe(
+      "https://www.paypal.com/provider-approval",
+    );
+  });
+
+  it("captures a returned PayPal order", async () => {
+    postPaymentsMock.mockResolvedValue({
+      success: true,
+      data: { id: "payment-4", status: "PAID" },
+    });
+
+    await capturePaypalOrder({
+      orderId: "order-4",
+      paypalOrderId: "paypal-order-4",
+      token: "token-4",
+    });
+
+    expect(postPaymentsMock).toHaveBeenCalledWith(
+      "/v1/payments/orders/order-4/paypal/capture",
+      { paypalOrderId: "paypal-order-4" },
+      "token-4",
+    );
   });
 });

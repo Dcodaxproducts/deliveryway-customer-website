@@ -5,6 +5,7 @@ import { useCallback, useMemo } from "react";
 import { queryKeys } from "@/config/query-keys";
 import { useDomainApi } from "@/hooks/useDomainApi";
 import {
+  capturePaypalOrder,
   deletePayments,
   createOrderPaymentAttempt,
   fetchPaymentsPage,
@@ -38,14 +39,21 @@ export const usePayments = (token: string | null) => {
     [token]
   );
 
+  const completePaypalOrder = useCallback(
+    (args: Parameters<typeof capturePaypalOrder>[0]) =>
+      capturePaypalOrder({ ...args, token }),
+    [token]
+  );
+
   return useMemo(
     () => ({
       ...api,
       fetchPaymentsPage: getPaymentsPage,
       fetchWallet: getWallet,
       createOrderPaymentAttempt: startOrderPaymentAttempt,
+      capturePaypalOrder: completePaypalOrder,
     }),
-    [api, getPaymentsPage, getWallet, startOrderPaymentAttempt]
+    [api, completePaypalOrder, getPaymentsPage, getWallet, startOrderPaymentAttempt]
   );
 };
 

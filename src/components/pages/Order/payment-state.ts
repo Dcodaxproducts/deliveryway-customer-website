@@ -5,6 +5,10 @@ const normalize = (value?: string | null) => String(value || "").toUpperCase();
 export const isStripeOrder = (order?: Pick<Order, "paymentMethod"> | null) =>
   normalize(order?.paymentMethod) === "STRIPE";
 
+export const isOnlinePaymentOrder = (
+  order?: Pick<Order, "paymentMethod"> | null,
+) => ["STRIPE", "PAYPAL"].includes(normalize(order?.paymentMethod));
+
 export const isPendingOnlinePaymentOrder = (
   order?: Pick<Order, "paymentStatus" | "status"> | null,
 ) => normalize(order?.status) === "PAYMENT_PENDING" && normalize(order?.paymentStatus) === "PENDING";
@@ -12,6 +16,10 @@ export const isPendingOnlinePaymentOrder = (
 export const isPaymentPendingStripeOrder = (
   order?: Pick<Order, "paymentMethod" | "paymentStatus" | "status"> | null,
 ) => isStripeOrder(order) && isPendingOnlinePaymentOrder(order);
+
+export const isPaymentPendingOnlineOrder = (
+  order?: Pick<Order, "paymentMethod" | "paymentStatus" | "status"> | null,
+) => isOnlinePaymentOrder(order) && isPendingOnlinePaymentOrder(order);
 
 export const isPlacedPaidOrder = (
   order?: Pick<Order, "paymentMethod" | "paymentStatus" | "status"> | null,

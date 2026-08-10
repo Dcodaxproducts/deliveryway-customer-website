@@ -27,7 +27,7 @@ import {
 } from "@/components/pages/Order/order-status-progress";
 import { resolveCustomerCurrency } from "@/lib/money";
 import {
-  isPaymentPendingStripeOrder,
+  isPaymentPendingOnlineOrder,
   isPendingOnlinePaymentOrder,
   isPlacedPaidOrder,
 } from "@/components/pages/Order/payment-state";
@@ -192,6 +192,19 @@ function OrderStatusContent() {
         return;
       }
 
+      if (normalizedPaymentMethod === "PAYPAL") {
+        if (!attempt.approvalUrl) {
+          toast.error(
+            attempt.response?.message ||
+              checkoutT("toast.failedInitiatePayment"),
+          );
+          return;
+        }
+
+        window.location.assign(attempt.approvalUrl);
+        return;
+      }
+
       toast.success(checkoutT("toast.paymentMethodUpdated"));
       await fetchOrder();
     } catch {
@@ -205,7 +218,9 @@ function OrderStatusContent() {
     setContinuingPayment(true);
 
     try {
-      await handleChangePaymentMethod("STRIPE");
+      await handleChangePaymentMethod(
+        String(order?.paymentMethod || "STRIPE").toUpperCase(),
+      );
     } finally {
       setContinuingPayment(false);
     }
@@ -217,17 +232,17 @@ function OrderStatusContent() {
     await fetchOrder();
   };
 
-  const paymentPendingStripeOrder = isPaymentPendingStripeOrder(order);
+  const paymentPendingOnlineOrder = isPaymentPendingOnlineOrder(order);
   const canSwitchPaymentMethod = isPendingOnlinePaymentOrder(order);
   const placedPaidOrder = isPlacedPaidOrder(order);
   const showSuccessNotice =
     !loading && order?.id && isSuccessView && placedPaidOrder;
   const showPaymentPendingNotice =
-    !loading && order?.id && paymentPendingStripeOrder;
+    !loading && order?.id && paymentPendingOnlineOrder;
   const successNoticeTitle = t("successNotice.title");
   const successNoticeDescription = t("successNotice.description");
 
-  const currentStep = paymentPendingStripeOrder
+  const currentStep = paymentPendingOnlineOrder
     ? 0
     : getOrderProgressStep(order?.status, order?.orderType);
   const terminalOrderState = getTerminalOrderState(order?.status);
@@ -310,7 +325,7 @@ function OrderStatusContent() {
               {/* HEADER */}
               <div className="mb-[35px]">
                 <h1 className="text-xl font-semibold text-gray-900 mb-[10px]">
-                  {paymentPendingStripeOrder
+                  {paymentPendingOnlineOrder
                     ? t("paymentPendingHeading")
                     : t("trackYourOrder")}
                 </h1>
@@ -326,7 +341,7 @@ function OrderStatusContent() {
               {/* STATUS CARD */}
               <div className="bg-white rounded-[10px] shadow-lg px-[61px] py-[35px] border border-gray-50">
                 <h2 className="text-xl font-semibold mb-[36px]">
-                  {paymentPendingStripeOrder
+                  {paymentPendingOnlineOrder
                     ? t("paymentPendingStatus")
                     : t("orderStatus")}
                 </h2>
@@ -347,7 +362,7 @@ function OrderStatusContent() {
                 )}
 
                 {/* DATA */}
-                {!loading && paymentPendingStripeOrder ? (
+                {!loading && paymentPendingOnlineOrder ? (
                   <div className="rounded-2xl border border-amber-100 bg-amber-50 p-5 text-sm leading-6 text-amber-800">
                     <p className="font-semibold">{t("paymentPendingStatus")}</p>
                     <p className="mt-1">
@@ -357,7 +372,7 @@ function OrderStatusContent() {
                 ) : null}
 
                 {!loading &&
-                !paymentPendingStripeOrder &&
+                !paymentPendingOnlineOrder &&
                 terminalOrderState ? (
                   <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-red-800">
                     <p className="font-semibold">
@@ -370,7 +385,7 @@ function OrderStatusContent() {
                 ) : null}
 
                 {!loading &&
-                  !paymentPendingStripeOrder &&
+                  !paymentPendingOnlineOrder &&
                   !terminalOrderState && (
                     <div className="space-y-0">
                       {orderSteps.map((step, index) => (

@@ -1,12 +1,25 @@
 import { describe, expect, it } from "vitest";
 
-import { isPaymentPendingStripeOrder, isPlacedPaidOrder } from "./payment-state";
+import {
+  isPaymentPendingOnlineOrder,
+  isPaymentPendingStripeOrder,
+  isPlacedPaidOrder,
+} from "./payment-state";
 
 describe("order payment state", () => {
   it("treats PAYMENT_PENDING Stripe orders as not placed", () => {
     const order = { paymentMethod: "STRIPE", paymentStatus: "PENDING", status: "PAYMENT_PENDING" };
 
     expect(isPaymentPendingStripeOrder(order)).toBe(true);
+    expect(isPaymentPendingOnlineOrder(order)).toBe(true);
+    expect(isPlacedPaidOrder(order)).toBe(false);
+  });
+
+  it("treats PAYMENT_PENDING PayPal orders as online payments", () => {
+    const order = { paymentMethod: "PAYPAL", paymentStatus: "PENDING", status: "PAYMENT_PENDING" };
+
+    expect(isPaymentPendingOnlineOrder(order)).toBe(true);
+    expect(isPaymentPendingStripeOrder(order)).toBe(false);
     expect(isPlacedPaidOrder(order)).toBe(false);
   });
 

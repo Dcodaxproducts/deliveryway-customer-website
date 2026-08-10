@@ -22,6 +22,8 @@ export type PaymentProviderData = {
   clientSecret?: string;
   publishableKey?: string;
   paymentIntentId?: string;
+  paypalOrderId?: string;
+  approvalUrl?: string;
 };
 
 export type PaymentSession = PaymentProviderData;
@@ -38,6 +40,7 @@ export type PaymentAttemptResult = {
   paymentSession: PaymentSession | null;
   clientSecret: string;
   publishableKey: string;
+  approvalUrl: string;
 };
 
 export type WalletItem = {
@@ -141,6 +144,9 @@ export const createOrderPaymentAttempt = async ({
   const publishableKey =
     getString(paymentSessionRecord?.publishableKey) ||
     getString(providerDataRecord?.publishableKey);
+  const approvalUrl =
+    getString(paymentSessionRecord?.approvalUrl) ||
+    getString(providerDataRecord?.approvalUrl);
 
   return {
     response,
@@ -148,5 +154,21 @@ export const createOrderPaymentAttempt = async ({
     paymentSession: paymentSessionRecord as PaymentSession | null,
     clientSecret,
     publishableKey,
+    approvalUrl,
   };
 };
+
+export const capturePaypalOrder = ({
+  orderId,
+  paypalOrderId,
+  token,
+}: {
+  orderId: string | number;
+  paypalOrderId: string;
+  token?: string | null;
+}): Promise<ApiResult> =>
+  postPayments(
+    `/v1/payments/orders/${orderId}/paypal/capture`,
+    { paypalOrderId },
+    token,
+  );

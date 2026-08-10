@@ -13,6 +13,7 @@ import { useCheckout } from "@/hooks/useCheckout";
 import { useCart } from "@/hooks/useCart";
 import { useHome } from "@/hooks/useHome";
 import { useLoyalty } from "@/hooks/useLoyalty";
+import { usePayments } from "@/hooks/usePayments";
 import { toast } from "sonner";
 import { useAuthContext } from "@/hooks/useAuth";
 import { useDomainContext } from "@/hooks/useDomainContext";
@@ -372,6 +373,7 @@ function CheckoutPageContent() {
   const { updateCustomerCart, updateCustomerCartOrderType, quoteCustomerCart } =
     useCart(token);
   const { fetchLoyalty } = useLoyalty(token);
+  const { createOrderPaymentAttempt } = usePayments(token);
   const checkoutBranchId = checkoutContextBranchId;
   const homeQuery = useHome(
     restaurantId,
@@ -1467,49 +1469,53 @@ function CheckoutPageContent() {
 
       clearBackendError();
 
-      if (checkoutPaymentMethod === "STRIPE") {
-        const attemptRes = await post(
-          `/v1/payments/orders/${orderId}/attempts`,
-          {
-            paymentMethod: "STRIPE",
+      if (
+        checkoutPaymentMethod === "STRIPE" ||
+        checkoutPaymentMethod === "PAYPAL"
+      ) {
+        const attempt = await createOrderPaymentAttempt({
+          orderId,
+          payload: {
+            paymentMethod: checkoutPaymentMethod,
             currency,
             note: "Order payment",
           },
-        );
+        });
 
-        if (hasBackendError(attemptRes) || !attemptRes?.success) {
+        if (
+          hasBackendError(attempt.response) ||
+          !attempt.response?.success
+        ) {
           reportBackendError(
             t("toast.failedInitiatePayment"),
-            attemptRes,
+            attempt.response,
             t("toast.failedInitiatePayment"),
           );
           return;
         }
 
-        const payment = asRecord(attemptRes?.data);
-        const paymentSession = asRecord(attemptRes?.paymentSession);
-        const providerData = asRecord(payment.providerData);
-        const clientSecret =
-          typeof paymentSession.clientSecret === "string"
-            ? paymentSession.clientSecret
-            : typeof providerData.clientSecret === "string"
-              ? providerData.clientSecret
-              : "";
-        const publishableKey =
-          typeof paymentSession.publishableKey === "string"
-            ? paymentSession.publishableKey
-            : typeof providerData.publishableKey === "string"
-              ? providerData.publishableKey
-              : "";
+        if (checkoutPaymentMethod === "PAYPAL") {
+          if (!attempt.approvalUrl) {
+            reportBackendError(
+              t("toast.failedInitiatePayment"),
+              attempt.response,
+              t("toast.failedInitiatePayment"),
+            );
+            return;
+          }
+
+          window.location.assign(attempt.approvalUrl);
+          return;
+        }
 
         setStripePayment({
           open: true,
-          clientSecret,
-          publishableKey,
+          clientSecret: attempt.clientSecret,
+          publishableKey: attempt.publishableKey,
           paymentId:
-            typeof payment.id === "string"
-              ? payment.id
-              : String(payment.id ?? ""),
+            typeof attempt.payment?.id === "string"
+              ? attempt.payment.id
+              : String(attempt.payment?.id ?? ""),
           orderId,
         });
 

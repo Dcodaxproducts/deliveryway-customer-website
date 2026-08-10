@@ -959,6 +959,10 @@
     "notesPlaceholder": "Geben Sie hier Ihre Anmerkung ein",
     "selectPaymentMethod": "Zahlungsmethode auswählen",
     "paymentMethodsUnavailable": "Für dieses Restaurant ist derzeit keine Zahlungsart verfügbar.",
+    "paypalProcessing": "Ihre PayPal-Zahlung wird abgeschlossen",
+    "paypalProcessingDescription": "Bitte lassen Sie diese Seite geöffnet, während wir die Zahlung prüfen.",
+    "paypalCaptureFailed": "Die PayPal-Zahlung konnte nicht abgeschlossen werden",
+    "paypalReturnInvalid": "Die PayPal-Rückgabeinformationen sind unvollständig. Ihre Bestellung wurde nicht aufgegeben.",
     "cash": "Barzahlung",
     "cashOnDelivery": "Barzahlung bei Lieferung",
     "minimumOrderValue": "Mindestbestellwert",
@@ -1222,8 +1226,8 @@
     "reviewUnavailableDescription": "Sie können diese Bestellung bewerten, sobald sie abgeschlossen ist.",
     "cancel": "Abbrechen",
     "loadingReviewsPage": "Bewertungsseite wird geladen...",
-    "stripePaymentPendingDescription": "Diese Stripe-Bestellung ist noch nicht platziert. Schließe die Zahlung ab; nach der Stripe-Bestätigung wird der Bestellstatus automatisch aktualisiert.",
-    "paymentPendingOverviewDescription": "Zahlung ausstehend — die Bestellung wird erst nach erfolgreicher Stripe-Bestätigung platziert."
+    "onlinePaymentPendingDescription": "Diese Online-Zahlungsbestellung ist noch nicht platziert. Schließe die Zahlung ab; nach der Bestätigung des Zahlungsanbieters wird der Status automatisch aktualisiert.",
+    "paymentPendingOverviewDescription": "Zahlung ausstehend — die Bestellung wird erst nach erfolgreicher Zahlungsbestätigung platziert."
   },
   "ordersHistory": {
     "title": "Ihre Bestellhistorie",
@@ -1644,14 +1648,14 @@
       "title": "Bestellung erfolgreich aufgegeben",
       "description": "Wir haben Ihre Bestellung erhalten. Den aktuellen Status können Sie unten verfolgen.",
       "paymentPendingTitle": "Zahlung ausstehend",
-      "paymentPendingDescription": "Diese Stripe-Bestellung ist noch nicht platziert. Schließe die Online-Zahlung ab; danach aktualisieren wir den Status automatisch."
+      "paymentPendingDescription": "Diese Bestellung ist noch nicht platziert. Schließe die Online-Zahlung ab; danach aktualisieren wir den Status automatisch."
     },
     "completePayment": "Zahlung abschließen",
     "completePaymentDescription": "Dies startet den ausstehenden Stripe-Zahlungsversuch für dieselbe Bestellung erneut.",
     "closePaymentPopup": "Zahlungspopup schließen",
     "paymentPendingHeading": "Zahlung abschließen",
     "paymentPendingStatus": "Zahlung ausstehend",
-    "paymentPendingTrackingDescription": "Tracking startet, sobald Stripe die Zahlung bestätigt und die Bestellung als platziert markiert wurde."
+    "paymentPendingTrackingDescription": "Tracking startet, sobald der Zahlungsanbieter die Zahlung bestätigt und die Bestellung als platziert markiert wurde."
   },
   "notifications": {
     "title": "Benachrichtigungen",

@@ -959,6 +959,10 @@
     "notesPlaceholder": "Type your note here",
     "selectPaymentMethod": "Select Payment Method",
     "paymentMethodsUnavailable": "No payment method is currently available for this restaurant.",
+    "paypalProcessing": "Completing your PayPal payment",
+    "paypalProcessingDescription": "Please keep this page open while we verify the payment.",
+    "paypalCaptureFailed": "PayPal payment could not be completed",
+    "paypalReturnInvalid": "The PayPal return information is incomplete. Your order has not been placed.",
     "cash": "Cash",
     "cashOnDelivery": "Cash on delivery",
     "minimumOrderValue": "Minimum order value",
@@ -1222,8 +1226,8 @@
     "reviewUnavailableDescription": "You can review this order once it has been completed.",
     "cancel": "Cancel",
     "loadingReviewsPage": "Loading reviews page...",
-    "stripePaymentPendingDescription": "This Stripe order is not placed yet. Complete payment, then the order status will update automatically after Stripe confirmation.",
-    "paymentPendingOverviewDescription": "Payment pending — this order will be placed only after successful Stripe confirmation."
+    "onlinePaymentPendingDescription": "This online-payment order is not placed yet. Complete payment, then the order status will update automatically after provider confirmation.",
+    "paymentPendingOverviewDescription": "Payment pending — this order will be placed only after successful payment confirmation."
   },
   "ordersHistory": {
     "title": "Your Order History",
@@ -1644,14 +1648,14 @@
       "title": "Order placed successfully",
       "description": "We have received your order. You can track the latest status below.",
       "paymentPendingTitle": "Payment pending",
-      "paymentPendingDescription": "This Stripe order is not placed yet. Complete online payment and we will update the status automatically after confirmation."
+      "paymentPendingDescription": "This order is not placed yet. Complete the online payment and we will update the status automatically after confirmation."
     },
     "completePayment": "Complete payment",
     "completePaymentDescription": "This will retry the pending Stripe payment attempt for the same order.",
     "closePaymentPopup": "Close payment popup",
     "paymentPendingHeading": "Complete your payment",
     "paymentPendingStatus": "Payment pending",
-    "paymentPendingTrackingDescription": "Order tracking starts after Stripe confirms payment and the order is marked placed."
+    "paymentPendingTrackingDescription": "Order tracking starts after the payment provider confirms payment and the order is marked placed."
   },
   "notifications": {
     "title": "Notifications",
