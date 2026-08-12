@@ -536,6 +536,7 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
             scrollTarget={scrollTarget}
             onActiveCategoryChange={setActiveOnePageCategoryId}
             currency={currency}
+            loading={loadingCategories}
           />
         </main>
       </div>
@@ -594,6 +595,7 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
               : setActiveOnePageCategoryId
           }
           currency={currency}
+          loading={loadingSections}
         />
       </main>
     </div>

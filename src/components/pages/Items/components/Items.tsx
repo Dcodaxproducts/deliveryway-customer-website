@@ -46,6 +46,7 @@ type ItemsListingProps = {
   onCategoryItemCountChange?: (categoryId: string, count: number) => void;
   currency?: string | null;
   hideSectionHeading?: boolean;
+  loading?: boolean;
 };
 
 type CategoryItemsState = {
@@ -102,6 +103,7 @@ export function ItemsListing({
   onCategoryItemCountChange,
   currency,
   hideSectionHeading = false,
+  loading = false,
 }: ItemsListingProps) {
   const t = useTranslations("items.common");
   const { restaurantId: authRestaurantId, user } = useAuth();
@@ -724,7 +726,12 @@ export function ItemsListing({
           </p>
         </div>
 
-        {sections.length === 0 ? (
+        {loading && sections.length === 0 ? (
+          <div className="flex min-h-48 items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white text-sm text-gray-500">
+            <Loader2 className="mr-2 h-4 w-4 animate-spin text-primary" />
+            {t("loadingItems")}
+          </div>
+        ) : sections.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-400">
             {contentSource === "menu" ? t("noMenus") : t("noCategories")}
           </div>
@@ -799,7 +806,12 @@ export function ItemsListing({
         </div>
       ) : null}
 
-      {!activeCategoryId ? (
+      {loading && !activeCategoryId ? (
+        <div className="flex min-h-48 items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white text-sm text-gray-500">
+          <Loader2 className="mr-2 h-4 w-4 animate-spin text-primary" />
+          {t("loadingItems")}
+        </div>
+      ) : !activeCategoryId ? (
         <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-400">
           {contentSource === "menu" ? t("selectMenu") : t("selectCategory")}
         </div>

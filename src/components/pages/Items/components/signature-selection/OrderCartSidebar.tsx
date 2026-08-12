@@ -48,8 +48,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
-import { normalizeCustomerCartData } from "@/services/cart";
+import {
+  normalizeCartQuote,
+  normalizeCustomerCartData,
+} from "@/services/cart";
 import { cn } from "@/lib/utils";
+import { getStoredDeliveryLocation } from "@/lib/delivery-location";
+import {
+  getGuestDeliveryAddressFromStoredLocation,
+  getGuestDeliveryAddressPayload,
+  hasGuestDeliveryAddress,
+} from "@/components/pages/Checkout/utils/guest-delivery-address";
 
 type OrderCartSidebarProps = {
   customerId?: string;
@@ -75,6 +84,7 @@ export function OrderCartSidebar({
   const { token } = useAuth();
   const {
     fetchCustomerCartForOrderType,
+    quoteCustomerCart,
     updateCustomerCartItemQuantity,
     updateCustomerCartDealQuantity,
     deleteCustomerCartItem,
@@ -85,6 +95,26 @@ export function OrderCartSidebar({
   const [cartQuote, setCartQuote] = useState<ApiRecord | null>(null);
   const [loadingCart, setLoadingCart] = useState(false);
   const [actionId, setActionId] = useState<string | null>(null);
+
+  const fetchStoredLocationQuote = async () => {
+    if (!customerId || checkoutType !== "delivery") return null;
+
+    const address = getGuestDeliveryAddressFromStoredLocation(
+      getStoredDeliveryLocation(),
+    );
+    if (!address || !hasGuestDeliveryAddress(address)) return null;
+
+    const response = await quoteCustomerCart({
+      customerId,
+      payload: {
+        guestDeliveryAddress: getGuestDeliveryAddressPayload(address),
+      },
+    });
+
+    if (!response || response.error || response.success === false) return null;
+
+    return normalizeCartQuote(response.data);
+  };
 
   const fetchCart = async () => {
     if (!customerId) return;
@@ -108,7 +138,8 @@ export function OrderCartSidebar({
       }
 
       setCartItems(items.map((item) => normalizeCartItem(item)));
-      setCartQuote(quote as ApiRecord | null);
+      const locationQuote = await fetchStoredLocationQuote();
+      setCartQuote((locationQuote ?? quote) as ApiRecord | null);
     } catch (err) {
       setCartItems([]);
       setCartQuote(null);
@@ -117,15 +148,16 @@ export function OrderCartSidebar({
     }
   };
 
-  const syncCartFromMutationResponse = (responseData: unknown) => {
+  const syncCartFromMutationResponse = async (responseData: unknown) => {
     const { items, quote } = normalizeCustomerCartData(responseData);
     setCartItems(items.map((item) => normalizeCartItem(item)));
-    setCartQuote(quote as ApiRecord | null);
+    const locationQuote = await fetchStoredLocationQuote();
+    setCartQuote((locationQuote ?? quote) as ApiRecord | null);
   };
 
   useEffect(() => {
     if (cartSnapshot !== undefined && cartSnapshot !== null) {
-      syncCartFromMutationResponse(cartSnapshot);
+      void syncCartFromMutationResponse(cartSnapshot);
       return;
     }
 
@@ -307,7 +339,7 @@ export function OrderCartSidebar({
         return;
       }
 
-      syncCartFromMutationResponse(res.data);
+      await syncCartFromMutationResponse(res.data);
     } catch (err) {
       toast.error(cartT("failedUpdateQuantity"));
       await fetchCart();
@@ -334,7 +366,7 @@ export function OrderCartSidebar({
       }
 
       toast.success(cartT("itemRemoved"));
-      syncCartFromMutationResponse(res.data);
+      await syncCartFromMutationResponse(res.data);
     } catch (err) {
       toast.error(cartT("failedRemoveItem"));
     } finally {
