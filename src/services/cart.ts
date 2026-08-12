@@ -648,7 +648,7 @@ export const addGroupOrderItem = ({
   token?: string | null;
 }) =>
   postCart(
-    `/v1/group-orders/${groupOrderId}/items`,
+    `/v1/group-orders/${groupOrderId}/items?compact=true`,
     normalizeGroupOrderItemPayload(payload),
     token,
   );

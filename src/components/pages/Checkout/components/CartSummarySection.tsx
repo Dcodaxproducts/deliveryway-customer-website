@@ -317,35 +317,25 @@ const getItemSlug = (item: CartItem) => {
   return item?.slug || item?.menuItem?.slug || slugify(item?.name || "");
 };
 
-export const CART_ITEM_FALLBACK_IMAGE = "/menu-item.jpg";
-
 export const getItemImage = (item: CartItem) => {
-  return (
-    item.img ||
-    item?.deal?.imageUrl ||
-    item?.menuItem?.imageUrl ||
-    CART_ITEM_FALLBACK_IMAGE
-  );
+  return item.img || item?.deal?.imageUrl || item?.menuItem?.imageUrl || null;
 };
 
 const CartItemImage = ({ item }: { item: CartItem }) => {
   const imageUrl = String(getItemImage(item) || "");
   const [failedImageUrl, setFailedImageUrl] = useState("");
 
-  const resolvedImageUrl =
-    failedImageUrl === imageUrl ? CART_ITEM_FALLBACK_IMAGE : imageUrl;
+  if (!imageUrl || failedImageUrl === imageUrl) return null;
 
   return (
     <Image
-      src={resolvedImageUrl}
+      src={imageUrl}
       alt={item.name}
       fill
       className="object-cover"
       unoptimized
       onError={() => {
-        if (imageUrl !== CART_ITEM_FALLBACK_IMAGE) {
-          setFailedImageUrl(imageUrl);
-        }
+        setFailedImageUrl(imageUrl);
       }}
     />
   );
@@ -1404,9 +1394,11 @@ export function CartSummarySection({
                   </div>
 
                   <div className="flex items-start gap-4">
-                    <div className="relative h-[76px] w-[76px] shrink-0 overflow-hidden rounded-[12px]">
-                      <CartItemImage item={item} />
-                    </div>
+                    {getItemImage(item) ? (
+                      <div className="relative h-[76px] w-[76px] shrink-0 overflow-hidden rounded-[12px]">
+                        <CartItemImage item={item} />
+                      </div>
+                    ) : null}
 
                     <div className="min-w-0 flex-1 space-y-[8px] pr-10">
                       <div>

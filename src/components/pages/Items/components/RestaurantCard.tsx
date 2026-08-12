@@ -593,8 +593,7 @@ export function RestaurantCard({
     ensureCustomerSession,
     fetchGroupOrders,
   } = useCart(token);
-  const { fetchGroupOrderById, searchGroupOrdersByInviteCode } =
-    useGroupOrderApi(token);
+  const { searchGroupOrdersByInviteCode } = useGroupOrderApi(token);
   const { user } = useAuth();
   const { context: domainContext } = useDomainContext();
 
@@ -2228,10 +2227,7 @@ export function RestaurantCard({
         let groupOrder: ApiRecord | null = null;
 
         if (groupOrderId) {
-          const { groupOrder: directGroupOrder } = await fetchGroupOrderById({
-            orderId: groupOrderId,
-          });
-          groupOrder = directGroupOrder as ApiRecord | null;
+          groupOrder = { id: groupOrderId };
         }
 
         if (!groupOrder && groupCode) {
@@ -2255,12 +2251,17 @@ export function RestaurantCard({
         }
         setStoredGroupOrderId(String(groupOrder.id));
 
-        const currentParticipant = findCurrentGroupOrderParticipant({
-          order: groupOrder,
-          userId: groupCustomerId,
-        });
+        const currentParticipant = groupOrder.participants
+          ? findCurrentGroupOrderParticipant({
+              order: groupOrder,
+              userId: groupCustomerId,
+            })
+          : null;
 
-        if (isGroupOrderParticipantCompleted(currentParticipant)) {
+        if (
+          currentParticipant &&
+          isGroupOrderParticipantCompleted(currentParticipant)
+        ) {
           markStoredGroupOrderCompleted({
             orderId: groupOrder.id as string | number | null,
             inviteCode: groupOrder.inviteCode as string | number | null,
@@ -2279,10 +2280,7 @@ export function RestaurantCard({
       }
 
       if (isApiErrorResponse(res)) {
-        if (
-          !hasLoadedDetails &&
-          isRequiredModifierSelectionError(res)
-        ) {
+        if (!hasLoadedDetails && isRequiredModifierSelectionError(res)) {
           const detailedItem = await loadDetailedItem();
 
           if (detailedItem && hasMenuItemCustomization(detailedItem)) {

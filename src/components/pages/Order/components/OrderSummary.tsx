@@ -20,7 +20,13 @@ import {
 import Link from "next/link";
 import { formatDisplayAddress } from "@/lib/address-display";
 import { formatMoney, resolveCustomerCurrency } from "@/lib/money";
-import { canReviewOrder, type Order, type OrderDisplayItem, type OrderItem, type OrderPricingBreakdownLine } from "@/services/orders";
+import {
+  canReviewOrder,
+  type Order,
+  type OrderDisplayItem,
+  type OrderItem,
+  type OrderPricingBreakdownLine,
+} from "@/services/orders";
 import { useTranslations } from "next-intl";
 import { isPaymentPendingOnlineOrder } from "@/components/pages/Order/payment-state";
 
@@ -29,7 +35,8 @@ const getAmountNumber = (value: unknown) => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
-const shouldShowAmountLine = (value: unknown) => Math.abs(getAmountNumber(value)) > 0;
+const shouldShowAmountLine = (value: unknown) =>
+  Math.abs(getAmountNumber(value)) > 0;
 
 const getBreakdownKey = (line: OrderPricingBreakdownLine) =>
   String(line.key || line.label || "").toLowerCase();
@@ -37,12 +44,17 @@ const getBreakdownKey = (line: OrderPricingBreakdownLine) =>
 const isTaxBreakdownLine = (line: OrderPricingBreakdownLine) => {
   const key = getBreakdownKey(line).replace(/[\s_-]/g, "");
 
-  return key === "tax" || key === "taxes" || key === "taxamount" || key.includes("tax");
+  return (
+    key === "tax" ||
+    key === "taxes" ||
+    key === "taxamount" ||
+    key.includes("tax")
+  );
 };
 
 const getRecord = (value: unknown): Record<string, unknown> | null =>
   typeof value === "object" && value !== null && !Array.isArray(value)
-    ? value as Record<string, unknown>
+    ? (value as Record<string, unknown>)
     : null;
 
 const getText = (value: unknown) =>
@@ -58,7 +70,9 @@ const humanizeEnum = (value?: string | null) =>
 
 const getModifierLines = (item: OrderItem) => {
   const modifiers = Array.isArray(item.modifiers) ? item.modifiers : [];
-  const snapshotModifiers = Array.isArray(item.snapshotModifiers) ? item.snapshotModifiers : [];
+  const snapshotModifiers = Array.isArray(item.snapshotModifiers)
+    ? item.snapshotModifiers
+    : [];
   const modifierNames = modifiers.flatMap((modifier) => {
     const nestedModifierName = getText(modifier.modifier?.name);
     const name = getText(modifier.name) || nestedModifierName;
@@ -102,33 +116,69 @@ export default function OrderSummary({
   const orderItems = order?.items || [];
   const backendDisplayItems = order?.displayItems || [];
   const resolvedTitle = title ?? t("orderDetails");
-  const latestCharge = order?.transactions?.find((transaction) =>
-    String(transaction.type || "").toUpperCase() === "CHARGE"
-  ) ?? order?.transactions?.[0];
-  const paymentStatus = String(order?.paymentStatus || latestCharge?.status || "").toUpperCase();
-  const paymentMethod = String(order?.paymentMethod || latestCharge?.paymentMethod || "").toUpperCase();
+  const latestCharge =
+    order?.transactions?.find(
+      (transaction) =>
+        String(transaction.type || "").toUpperCase() === "CHARGE",
+    ) ?? order?.transactions?.[0];
+  const paymentStatus = String(
+    order?.paymentStatus || latestCharge?.status || "",
+  ).toUpperCase();
+  const paymentMethod = String(
+    order?.paymentMethod || latestCharge?.paymentMethod || "",
+  ).toUpperCase();
   const paymentCurrency = resolveCustomerCurrency({
     moneyCurrency: order?.pricing?.currency || latestCharge?.currency,
   });
-  const paymentAmount = order?.payableAmount ?? order?.totalAmount ?? latestCharge?.amount;
+  const paymentAmount =
+    order?.payableAmount ?? order?.totalAmount ?? latestCharge?.amount;
   const pricingBreakdown = Array.isArray(order?.pricing?.breakdown)
     ? order.pricing.breakdown
     : [];
   const backendBillRows = pricingBreakdown.filter((line) => {
     const key = getBreakdownKey(line);
-    return key !== "total" && key !== "payableamount" && !isTaxBreakdownLine(line) && shouldShowAmountLine(line.amount);
+    return (
+      key !== "total" &&
+      key !== "payableamount" &&
+      !isTaxBreakdownLine(line) &&
+      shouldShowAmountLine(line.amount)
+    );
   });
   const fallbackBillRows = [
     { key: "subtotal", label: t("itemTotal"), amount: order?.subtotal },
-    { key: "deliveryFee", label: t("deliveryFee"), amount: order?.deliveryFee, info: true },
-    { key: "serviceChargeAmount", label: t("serviceCharge"), amount: order?.serviceChargeAmount },
+    {
+      key: "deliveryFee",
+      label: t("deliveryFee"),
+      amount: order?.deliveryFee,
+      info: true,
+    },
+    {
+      key: "serviceChargeAmount",
+      label: t("serviceCharge"),
+      amount: order?.serviceChargeAmount,
+    },
     { key: "tipAmount", label: t("tip"), amount: order?.tipAmount },
-  ].filter((line) => line.key === "subtotal" || shouldShowAmountLine(line.amount));
-  const billRows = backendBillRows.length > 0 ? backendBillRows : fallbackBillRows;
+  ].filter(
+    (line) => line.key === "subtotal" || shouldShowAmountLine(line.amount),
+  );
+  const billRows =
+    backendBillRows.length > 0 ? backendBillRows : fallbackBillRows;
   const discountRows = [
-    { key: "discountAmount", label: t("discount"), amount: order?.pricing?.discountAmount ?? order?.discountAmount },
-    { key: "loyaltyDiscountAmount", label: t("loyaltyDiscount"), amount: order?.pricing?.loyaltyDiscountAmount },
-    { key: "walletAppliedAmount", label: t("walletApplied"), amount: order?.pricing?.walletAppliedAmount },
+    {
+      key: "discountAmount",
+      label: t("discount"),
+      amount: order?.pricing?.discountAmount ?? order?.discountAmount,
+    },
+    {
+      key: "loyaltyDiscountAmount",
+      label: t("loyaltyDiscount"),
+      amount: order?.pricing?.loyaltyDiscountAmount,
+    },
+    {
+      key: "walletAppliedAmount",
+      label: t("walletApplied"),
+      amount: order?.pricing?.walletAppliedAmount,
+    },
   ].filter((line) => shouldShowAmountLine(line.amount));
   const paidAmount = order?.pricing?.paidAmount;
   const remainingAmount = order?.pricing?.remainingAmount;
@@ -136,43 +186,70 @@ export default function OrderSummary({
   const orderDisplayId = order?.displayId || order?.id || "";
   const restaurantName = order?.restaurant?.name || t("restaurantFallback");
   const branchName = order?.branch?.name || "";
-  const orderStatusLabel = order?.statusLabel || humanizeEnum(order?.status) || t("notAvailable");
+  const orderStatusLabel =
+    order?.statusLabel || humanizeEnum(order?.status) || t("notAvailable");
   const orderTypeLabel =
     order?.fulfillment?.modeLabel ||
     humanizeEnum(order?.orderType || order?.fulfillment?.type) ||
     t("notAvailable");
-  const scheduledOrOrderTime = order?.scheduledFor || order?.orderTime || order?.createdAt;
+  const scheduledOrOrderTime =
+    order?.scheduledFor || order?.orderTime || order?.createdAt;
   const estimate = getRecord(order?.fulfillment?.estimate);
   const estimatedReadyAt = getText(estimate?.estimatedReadyAt);
   const estimatedDeliveredAt = getText(estimate?.estimatedDeliveredAt);
-  const showDeliveryOtp = Boolean(order?.fulfillment?.showDeliveryOtp && order?.fulfillment?.deliveryOtp);
+  const showDeliveryOtp = Boolean(
+    order?.fulfillment?.showDeliveryOtp && order?.fulfillment?.deliveryOtp,
+  );
   const canContinuePayment =
     Boolean(onContinuePayment && order?.id) &&
     (paymentMethod === "STRIPE" || paymentMethod === "PAYPAL") &&
     (paymentStatus === "PENDING" || paymentStatus === "FAILED");
-  const fallbackPaymentMethods = ["COD", "WALLET", "STRIPE", "PAYPAL", "CARD_ON_DELIVERY"];
-  const paymentSwitchOptions = (order?.payment?.availableMethods?.length
-    ? order.payment.availableMethods
-    : order?.availablePaymentMethods?.length
-      ? order.availablePaymentMethods
-      : fallbackPaymentMethods
+  const fallbackPaymentMethods = [
+    "COD",
+    "WALLET",
+    "STRIPE",
+    "PAYPAL",
+    "CARD_ON_DELIVERY",
+  ];
+  const paymentSwitchOptions = (
+    order?.payment?.availableMethods?.length
+      ? order.payment.availableMethods
+      : order?.availablePaymentMethods?.length
+        ? order.availablePaymentMethods
+        : fallbackPaymentMethods
   )
     .map((method) => method.toUpperCase())
-    .filter((method, index, methods) => method && methods.indexOf(method) === index && method !== paymentMethod);
-  const showPaymentSwitcher = Boolean(canSwitchPaymentMethod && onChangePaymentMethod && paymentSwitchOptions.length > 0);
+    .filter(
+      (method, index, methods) =>
+        method && methods.indexOf(method) === index && method !== paymentMethod,
+    );
+  const showPaymentSwitcher = Boolean(
+    canSwitchPaymentMethod &&
+    onChangePaymentMethod &&
+    paymentSwitchOptions.length > 0,
+  );
   const deliveryAddress = formatDisplayAddress(order?.deliveryAddress);
   const paymentPendingOnlineOrder = isPaymentPendingOnlineOrder(order);
   const couponCode = order?.coupon?.code?.trim() || "";
   const couponTitle = order?.coupon?.title?.trim() || "";
   const isDealCoupon = /^DEAL-/i.test(couponCode);
-  const hasBackendDealRows = orderItems.some((item) => Boolean(item.dealId || item.includedItems?.length));
-  const shouldShowInferredDeal = Boolean(isDealCoupon && !hasBackendDealRows && orderItems.length > 0);
-  const inferredDealTotal = order?.subtotal ?? orderItems.reduce((total, item) => {
-    const fallbackTotal = getAmountNumber(item.unitPrice) * getAmountNumber(item.quantity);
+  const hasBackendDealRows = orderItems.some((item) =>
+    Boolean(item.dealId || item.includedItems?.length),
+  );
+  const shouldShowInferredDeal = Boolean(
+    isDealCoupon && !hasBackendDealRows && orderItems.length > 0,
+  );
+  const inferredDealTotal =
+    order?.subtotal ??
+    orderItems.reduce((total, item) => {
+      const fallbackTotal =
+        getAmountNumber(item.unitPrice) * getAmountNumber(item.quantity);
 
-    return total + getAmountNumber(item.lineTotal ?? fallbackTotal);
-  }, 0);
-  const inferredDealImage = orderItems.find((item) => item.imageUrl || item.menuItem?.imageUrl);
+      return total + getAmountNumber(item.lineTotal ?? fallbackTotal);
+    }, 0);
+  const inferredDealImage = orderItems.find(
+    (item) => item.imageUrl || item.menuItem?.imageUrl,
+  );
 
   const formatDateTime = (value?: string | null) => {
     if (!value) return "";
@@ -235,20 +312,30 @@ export default function OrderSummary({
 
   const renderItemCard = (item: OrderItem, keyPrefix = "item") => {
     const modifierLines = getModifierLines(item);
-    const itemTotal = item.lineTotal ?? getAmountNumber(item.unitPrice) * getAmountNumber(item.quantity);
-    const isDealItem = String(item.itemType || item.type || "").toUpperCase() === "DEAL" || Boolean(item.dealId);
+    const itemTotal =
+      item.lineTotal ??
+      getAmountNumber(item.unitPrice) * getAmountNumber(item.quantity);
+    const isDealItem =
+      String(item.itemType || item.type || "").toUpperCase() === "DEAL" ||
+      Boolean(item.dealId);
+    const itemImage = item.imageUrl || item.menuItem?.imageUrl || null;
 
     return (
-      <div key={`${keyPrefix}-${item.id}`} className="rounded-2xl border border-gray-100 bg-white p-3 shadow-sm">
+      <div
+        key={`${keyPrefix}-${item.id}`}
+        className="rounded-2xl border border-gray-100 bg-white p-3 shadow-sm"
+      >
         <div className="flex items-center gap-4">
-          <div className="relative h-[76px] w-[76px] overflow-hidden rounded-[12px] bg-gray-100">
-            <Image
-              src={item.imageUrl || item.menuItem?.imageUrl || "/placeholder.png"}
-              alt={item.menuItemName || t("itemFallback")}
-              fill
-              className="object-cover"
-            />
-          </div>
+          {itemImage ? (
+            <div className="relative h-[76px] w-[76px] overflow-hidden rounded-[12px] bg-gray-100">
+              <Image
+                src={itemImage}
+                alt={item.menuItemName || t("itemFallback")}
+                fill
+                className="object-cover"
+              />
+            </div>
+          ) : null}
 
           <div className="flex-1 space-y-[8px]">
             <div className="flex flex-wrap items-center gap-2">
@@ -263,7 +350,9 @@ export default function OrderSummary({
             </div>
 
             <p className="text-xs text-gray-500">
-              {[item.variationName, item.menuItem?.category?.name].filter(Boolean).join(" · ")}
+              {[item.variationName, item.menuItem?.category?.name]
+                .filter(Boolean)
+                .join(" · ")}
             </p>
 
             <div className="flex justify-between gap-4">
@@ -280,7 +369,9 @@ export default function OrderSummary({
 
         {modifierLines.length > 0 ? (
           <div className="mt-3 rounded-xl bg-gray-50 px-3 py-2 text-xs leading-5 text-gray-500">
-            <span className="font-semibold text-gray-600">{t("modifiers")}:</span>{" "}
+            <span className="font-semibold text-gray-600">
+              {t("modifiers")}:
+            </span>{" "}
             {modifierLines.join(", ")}
           </div>
         ) : null}
@@ -295,34 +386,55 @@ export default function OrderSummary({
   };
 
   const renderDisplayItem = (displayItem: OrderDisplayItem, index: number) => {
-    const displayType = String(displayItem.type || displayItem.itemType || "").toUpperCase();
-    const isDeal = displayType === "DEAL" || Boolean(displayItem.dealId && displayItem.items?.length);
+    const displayType = String(
+      displayItem.type || displayItem.itemType || "",
+    ).toUpperCase();
+    const isDeal =
+      displayType === "DEAL" ||
+      Boolean(displayItem.dealId && displayItem.items?.length);
 
     if (!isDeal) {
       return renderItemCard(displayItem, `display-${index}`);
     }
 
-    const includedItems = displayItem.items?.length ? displayItem.items : displayItem.includedItems || [];
+    const includedItems = displayItem.items?.length
+      ? displayItem.items
+      : displayItem.includedItems || [];
     const dealLineTotal = getAmountNumber(displayItem.lineTotal);
-    const dealTotal = dealLineTotal > 0
-      ? dealLineTotal
-      : includedItems.reduce((total, item) => {
-        const fallbackTotal = getAmountNumber(item.unitPrice) * getAmountNumber(item.quantity);
-        return total + getAmountNumber(item.lineTotal ?? fallbackTotal);
-      }, 0);
-    const dealImage = includedItems.find((item) => item.imageUrl || item.menuItem?.imageUrl);
+    const dealTotal =
+      dealLineTotal > 0
+        ? dealLineTotal
+        : includedItems.reduce((total, item) => {
+            const fallbackTotal =
+              getAmountNumber(item.unitPrice) * getAmountNumber(item.quantity);
+            return total + getAmountNumber(item.lineTotal ?? fallbackTotal);
+          }, 0);
+    const dealImage = includedItems.find(
+      (item) => item.imageUrl || item.menuItem?.imageUrl,
+    );
+    const dealImageUrl =
+      displayItem.imageUrl ||
+      displayItem.menuItem?.imageUrl ||
+      dealImage?.imageUrl ||
+      dealImage?.menuItem?.imageUrl ||
+      null;
 
     return (
-      <div key={`display-deal-${displayItem.dealId || displayItem.id || index}`} className="rounded-2xl border border-primary/15 bg-white p-3 shadow-sm">
+      <div
+        key={`display-deal-${displayItem.dealId || displayItem.id || index}`}
+        className="rounded-2xl border border-primary/15 bg-white p-3 shadow-sm"
+      >
         <div className="flex items-center gap-4">
-          <div className="relative h-[76px] w-[76px] overflow-hidden rounded-[12px] bg-gray-100">
-            <Image
-              src={displayItem.imageUrl || displayItem.menuItem?.imageUrl || dealImage?.imageUrl || dealImage?.menuItem?.imageUrl || "/placeholder.png"}
-              alt={displayItem.menuItemName || t("deal")}
-              fill
-              className="object-cover"
-            />
-          </div>
+          {dealImageUrl ? (
+            <div className="relative h-[76px] w-[76px] overflow-hidden rounded-[12px] bg-gray-100">
+              <Image
+                src={dealImageUrl}
+                alt={displayItem.menuItemName || t("deal")}
+                fill
+                className="object-cover"
+              />
+            </div>
+          ) : null}
 
           <div className="flex-1 space-y-[8px]">
             <div className="flex flex-wrap items-center gap-2">
@@ -342,7 +454,10 @@ export default function OrderSummary({
 
             <div className="flex justify-between gap-4">
               <p className="text-base font-medium text-primary">
-                {formatMoney(dealTotal || displayItem.lineTotal, paymentCurrency)}
+                {formatMoney(
+                  dealTotal || displayItem.lineTotal,
+                  paymentCurrency,
+                )}
               </p>
 
               <div className="text-sm text-gray-700">
@@ -354,17 +469,30 @@ export default function OrderSummary({
 
         {includedItems.length > 0 ? (
           <div className="mt-3 rounded-xl bg-gray-50 p-3">
-            <p className="text-xs font-semibold text-gray-600">{t("dealIncludes")}:</p>
+            <p className="text-xs font-semibold text-gray-600">
+              {t("dealIncludes")}:
+            </p>
             <div className="mt-2 grid gap-2 sm:grid-cols-2">
               {includedItems.map((item, itemIndex) => {
                 const modifiers = getModifierLines(item);
-                const itemImage = item.imageUrl || item.menuItem?.imageUrl || "/placeholder.png";
+                const itemImage =
+                  item.imageUrl || item.menuItem?.imageUrl || null;
 
                 return (
-                  <div key={`${item.id || itemIndex}`} className="flex items-center gap-2 rounded-lg bg-white p-2 shadow-sm ring-1 ring-gray-100">
-                    <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-gray-100">
-                      <Image src={itemImage} alt={item.menuItemName || t("itemFallback")} fill className="object-cover" />
-                    </div>
+                  <div
+                    key={`${item.id || itemIndex}`}
+                    className="flex items-center gap-2 rounded-lg bg-white p-2 shadow-sm ring-1 ring-gray-100"
+                  >
+                    {itemImage ? (
+                      <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                        <Image
+                          src={itemImage}
+                          alt={item.menuItemName || t("itemFallback")}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    ) : null}
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-xs font-semibold text-gray-800">
                         {getIncludedDealItemName(item, t("itemFallback"))}
@@ -484,7 +612,8 @@ export default function OrderSummary({
               </div>
             ) : null}
 
-            {!paymentPendingOnlineOrder && (estimatedReadyAt || estimatedDeliveredAt) ? (
+            {!paymentPendingOnlineOrder &&
+            (estimatedReadyAt || estimatedDeliveredAt) ? (
               <div className="rounded-2xl bg-gray-50 p-3 sm:col-span-2">
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {estimatedReadyAt ? (
@@ -526,14 +655,21 @@ export default function OrderSummary({
           ) : shouldShowInferredDeal ? (
             <div className="rounded-2xl border border-primary/15 bg-white p-3 shadow-sm">
               <div className="flex items-center gap-4">
-                <div className="relative h-[76px] w-[76px] overflow-hidden rounded-[12px]">
-                  <Image
-                    src={inferredDealImage?.imageUrl || inferredDealImage?.menuItem?.imageUrl || "/placeholder.png"}
-                    alt={couponTitle || t("deal")}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
+                {inferredDealImage?.imageUrl ||
+                inferredDealImage?.menuItem?.imageUrl ? (
+                  <div className="relative h-[76px] w-[76px] overflow-hidden rounded-[12px]">
+                    <Image
+                      src={
+                        inferredDealImage.imageUrl ||
+                        inferredDealImage.menuItem?.imageUrl ||
+                        ""
+                      }
+                      alt={couponTitle || t("deal")}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                ) : null}
 
                 <div className="flex-1 space-y-[8px]">
                   <div className="flex flex-wrap items-center gap-2">
@@ -564,23 +700,34 @@ export default function OrderSummary({
               </div>
 
               <div className="mt-3 rounded-xl bg-gray-50 p-3">
-                <p className="text-xs font-semibold text-gray-600">{t("dealIncludes")}:</p>
+                <p className="text-xs font-semibold text-gray-600">
+                  {t("dealIncludes")}:
+                </p>
                 <div className="mt-2 grid gap-2 sm:grid-cols-2">
                   {orderItems.map((item) => {
                     const modifiers = getModifierLines(item);
-                    const itemName = getIncludedDealItemName(item, t("itemFallback"));
-                    const itemImage = item.imageUrl || item.menuItem?.imageUrl || "/placeholder.png";
+                    const itemName = getIncludedDealItemName(
+                      item,
+                      t("itemFallback"),
+                    );
+                    const itemImage =
+                      item.imageUrl || item.menuItem?.imageUrl || null;
 
                     return (
-                      <div key={item.id} className="flex items-center gap-2 rounded-lg bg-white p-2 shadow-sm ring-1 ring-gray-100">
-                        <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-gray-100">
-                          <Image
-                            src={itemImage}
-                            alt={item.menuItemName || t("itemFallback")}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
+                      <div
+                        key={item.id}
+                        className="flex items-center gap-2 rounded-lg bg-white p-2 shadow-sm ring-1 ring-gray-100"
+                      >
+                        {itemImage ? (
+                          <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                            <Image
+                              src={itemImage}
+                              alt={item.menuItemName || t("itemFallback")}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                        ) : null}
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-xs font-semibold text-gray-800">
                             {itemName}
@@ -639,7 +786,10 @@ export default function OrderSummary({
 
         <div className="space-y-[10px] pt-[10px]">
           {discountRows.map((line) => (
-            <div key={line.key} className="flex justify-between gap-4 text-sm text-gray-500">
+            <div
+              key={line.key}
+              className="flex justify-between gap-4 text-sm text-gray-500"
+            >
               <span>{line.label}</span>
               <span>-{formatMoney(line.amount, paymentCurrency)}</span>
             </div>
@@ -650,7 +800,8 @@ export default function OrderSummary({
             <span>{formatMoney(order?.totalAmount, paymentCurrency)}</span>
           </div>
 
-          {shouldShowAmountLine(order?.payableAmount) && order?.payableAmount !== order?.totalAmount ? (
+          {shouldShowAmountLine(order?.payableAmount) &&
+          order?.payableAmount !== order?.totalAmount ? (
             <div className="flex justify-between text-sm font-semibold text-gray-700">
               <span>{t("payableAmount")}</span>
               <span>{formatMoney(order?.payableAmount, paymentCurrency)}</span>
@@ -696,7 +847,9 @@ export default function OrderSummary({
               </p>
             </div>
 
-            <span className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${getPaymentTone()}`}>
+            <span
+              className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${getPaymentTone()}`}
+            >
               {paymentStatus === "PAID" ? (
                 <CheckCircle2 size={14} />
               ) : (
@@ -775,14 +928,20 @@ export default function OrderSummary({
               ) : (
                 <CreditCard className="h-4 w-4" />
               )}
-              {paymentStatus === "FAILED" ? t("retryPayment") : t("continuePayment")}
+              {paymentStatus === "FAILED"
+                ? t("retryPayment")
+                : t("continuePayment")}
             </button>
           ) : null}
 
           {showPaymentSwitcher ? (
             <div className="mt-4 rounded-2xl border border-amber-100 bg-amber-50/70 p-3">
-              <p className="text-sm font-semibold text-gray-900">{t("switchPaymentMethod")}</p>
-              <p className="mt-1 text-xs leading-5 text-gray-600">{t("switchPaymentMethodDescription")}</p>
+              <p className="text-sm font-semibold text-gray-900">
+                {t("switchPaymentMethod")}
+              </p>
+              <p className="mt-1 text-xs leading-5 text-gray-600">
+                {t("switchPaymentMethodDescription")}
+              </p>
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 {paymentSwitchOptions.map((method) => {
                   const isChanging = changingPaymentMethod === method;
@@ -792,10 +951,14 @@ export default function OrderSummary({
                       key={method}
                       type="button"
                       onClick={() => onChangePaymentMethod?.(method)}
-                      disabled={Boolean(changingPaymentMethod) || continuingPayment}
+                      disabled={
+                        Boolean(changingPaymentMethod) || continuingPayment
+                      }
                       className="flex h-10 items-center justify-center gap-2 rounded-full border border-white bg-white px-3 text-xs font-semibold text-gray-800 shadow-sm transition hover:border-primary/30 hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      {isChanging ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                      {isChanging ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : null}
                       {getPaymentMethodLabel(method)}
                     </button>
                   );

@@ -205,7 +205,7 @@ describe("cart service", () => {
     });
 
     expect(postCartMock).toHaveBeenCalledWith(
-      "/v1/group-orders/group-order-1/items",
+      "/v1/group-orders/group-order-1/items?compact=true",
       {
         menuItemId: "burger-id",
         quantity: 1,

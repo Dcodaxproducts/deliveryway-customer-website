@@ -10,7 +10,10 @@ import { useSearchParams, useRouter } from "next/navigation";
 import useOrders from "@/hooks/useOrders";
 import { useAuthContext } from "@/hooks/useAuth";
 import { queryKeys } from "@/config/query-keys";
-import { createReviewSchema, type ReviewFormValues } from "@/validations/reviews";
+import {
+  createReviewSchema,
+  type ReviewFormValues,
+} from "@/validations/reviews";
 import { canReviewOrder, type Order } from "@/services/orders";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -34,7 +37,7 @@ export default function WriteReview() {
 
   const translatedReviewSchema = useMemo(
     () => createReviewSchema({ reviewMax: validationT("reviewMax") }),
-    [validationT]
+    [validationT],
   );
 
   const { setValue, watch, handleSubmit } = useForm<ReviewFormValues>({
@@ -57,7 +60,9 @@ export default function WriteReview() {
       try {
         setLoading(true);
 
-        const { response: res, order: nextOrder } = await fetchOrderById({ orderId });
+        const { response: res, order: nextOrder } = await fetchOrderById({
+          orderId,
+        });
 
         if (!res || res.success === false || !nextOrder) {
           setNotFound(true);
@@ -86,9 +91,7 @@ export default function WriteReview() {
           key={star}
           size={22}
           className={
-            star <= value
-              ? "text-[#EC5834] fill-[#EC5834]"
-              : "text-gray-300"
+            star <= value ? "text-[#EC5834] fill-[#EC5834]" : "text-gray-300"
           }
         />
       ))}
@@ -140,9 +143,7 @@ export default function WriteReview() {
   if (notFound || !order) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center text-center px-4">
-        <h2 className="text-lg font-semibold mb-2">
-          {t("orderNotFound")}
-        </h2>
+        <h2 className="text-lg font-semibold mb-2">{t("orderNotFound")}</h2>
         <p className="text-sm text-gray-500 mb-4">
           {t("reviewOrderNotFoundDescription")}
         </p>
@@ -209,26 +210,22 @@ export default function WriteReview() {
   return (
     <div className="min-h-screen px-4 py-8">
       <div className="max-w-6xl mx-auto">
-
         {/* HEADER */}
         <h1 className="text-2xl font-semibold mb-1">{t("addReview")}</h1>
-        <p className="text-sm text-gray-500 mb-6">
-          {t("reviewSubtitle")}
-        </p>
+        <p className="text-sm text-gray-500 mb-6">{t("reviewSubtitle")}</p>
 
         {/* ORDER CARD */}
         <div className="flex items-center gap-4 bg-white p-4 rounded-xl mb-6">
-          <div className="w-14 h-14 relative rounded-lg overflow-hidden">
-            <Image
-              src={
-                order?.items?.[0]?.menuItem?.imageUrl ||
-                "/placeholder.png"
-              }
-              alt={t("itemFallback")}
-              fill
-              className="object-cover"
-            />
-          </div>
+          {order?.items?.[0]?.menuItem?.imageUrl ? (
+            <div className="w-14 h-14 relative rounded-lg overflow-hidden">
+              <Image
+                src={order.items[0].menuItem.imageUrl}
+                alt={t("itemFallback")}
+                fill
+                className="object-cover"
+              />
+            </div>
+          ) : null}
 
           <div>
             <p className="text-xs text-gray-500">
@@ -240,15 +237,13 @@ export default function WriteReview() {
             </h2>
 
             <p className="text-xs text-gray-400">
-              {formatDate(order.createdAt || "")} · Rs{" "}
-              {order.totalAmount}
+              {formatDate(order.createdAt || "")} · Rs {order.totalAmount}
             </p>
           </div>
         </div>
 
         {/* REVIEW BOX */}
         <div className="bg-white border border-[#ACACAC] rounded-xl p-5">
-
           {/* RATING */}
           <p className="text-center text-sm font-medium mb-3">
             {t("overallExperience")}
@@ -273,7 +268,9 @@ export default function WriteReview() {
           <p className="text-sm mb-2">{t("yourReview")}</p>
           <textarea
             value={review}
-            onChange={(e) => setValue("review", e.target.value, { shouldValidate: true })}
+            onChange={(e) =>
+              setValue("review", e.target.value, { shouldValidate: true })
+            }
             placeholder={t("reviewPlaceholder")}
             className="w-full border border-[#ACACAC] rounded-lg p-3 text-sm outline-none min-h-[120px]"
           />

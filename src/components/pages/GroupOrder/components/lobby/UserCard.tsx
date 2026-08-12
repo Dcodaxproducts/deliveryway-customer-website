@@ -339,14 +339,16 @@ export function UserCard({
                 className={`flex items-start justify-between gap-3 ${pendingItemIds.has(String(item.id)) ? "opacity-70" : ""}`}
               >
                 <div className="flex min-w-0 items-start gap-3">
-                  <div className="w-11 h-11 shrink-0 rounded-md overflow-hidden relative border border-gray-200">
-                    <Image
-                      src={item.menuItem?.imageUrl || "/items/table.png"}
-                      alt=""
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
+                  {item.menuItem?.imageUrl ? (
+                    <div className="w-11 h-11 shrink-0 rounded-md overflow-hidden relative border border-gray-200">
+                      <Image
+                        src={item.menuItem.imageUrl}
+                        alt=""
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  ) : null}
                   <div className="min-w-0">
                     <p className="text-sm text-gray-700 font-medium">
                       {item.menuItem?.name}

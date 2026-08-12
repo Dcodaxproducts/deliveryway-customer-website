@@ -615,8 +615,7 @@ export function SignatureSelectionContent({
     ensureCustomerSession,
     fetchGroupOrders,
   } = useCart(token);
-  const { fetchGroupOrderById, searchGroupOrdersByInviteCode } =
-    useGroupOrderApi(token);
+  const { searchGroupOrdersByInviteCode } = useGroupOrderApi(token);
   const homeQuery = useHome(
     restaurantId,
     branchId,
@@ -2071,10 +2070,7 @@ export function SignatureSelectionContent({
         let groupOrder: ApiRecord | null = null;
 
         if (groupOrderId) {
-          const { groupOrder: directGroupOrder } = await fetchGroupOrderById({
-            orderId: groupOrderId,
-          });
-          groupOrder = directGroupOrder as ApiRecord | null;
+          groupOrder = { id: groupOrderId };
         }
 
         if (!groupOrder && groupCode) {
@@ -2105,12 +2101,17 @@ export function SignatureSelectionContent({
 
         setStoredGroupOrderId(String(groupOrder.id));
 
-        const currentParticipant = findCurrentGroupOrderParticipant({
-          order: groupOrder,
-          userId: groupCustomerId,
-        });
+        const currentParticipant = groupOrder.participants
+          ? findCurrentGroupOrderParticipant({
+              order: groupOrder,
+              userId: groupCustomerId,
+            })
+          : null;
 
-        if (isGroupOrderParticipantCompleted(currentParticipant)) {
+        if (
+          currentParticipant &&
+          isGroupOrderParticipantCompleted(currentParticipant)
+        ) {
           markStoredGroupOrderCompleted({
             orderId: groupOrder.id as string | number | null,
             inviteCode: groupOrder.inviteCode as string | number | null,

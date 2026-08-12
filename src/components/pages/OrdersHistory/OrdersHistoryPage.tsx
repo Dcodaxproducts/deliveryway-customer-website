@@ -23,11 +23,11 @@ export function OrdersHistoryPage() {
   const locale = useLocale();
   const { token, user } = useAuthContext();
   const { fetchOrdersPage, reorderOrderToCart } = useOrders(token);
-const router = useRouter();
+  const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
- const [reorderingId, setReorderingId] = useState<string | null>(null);
+  const [reorderingId, setReorderingId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState<OrderMeta | null>(null);
   const restaurantId = useMemo(() => {
@@ -38,7 +38,7 @@ const router = useRouter();
       user?.branchId || user?.branch?.id
         ? String(user?.branchId || user?.branch?.id)
         : null,
-    [user?.branch?.id, user?.branchId]
+    [user?.branch?.id, user?.branchId],
   );
   const { reviews: customerReviews } = useCustomerReviews({
     restaurantId,
@@ -51,41 +51,44 @@ const router = useRouter();
     return new Map(
       customerReviews
         .filter((review) => review.orderId)
-        .map((review) => [review.orderId, review])
+        .map((review) => [review.orderId, review]),
     );
   }, [customerReviews]);
 
   // ================= REORDER FUNCTION =================
   const handleReorder = async (order: Order | null) => {
-  try {
-    if (!order?.itemsPreview?.length) return;
+    try {
+      if (!order?.itemsPreview?.length) return;
 
-    setReorderingId(order.id);
+      setReorderingId(order.id);
 
-    await reorderOrderToCart({ orderId: order.id });
+      await reorderOrderToCart({ orderId: order.id });
 
-    toast.success(t("reorderSuccessful"));
+      toast.success(t("reorderSuccessful"));
 
-    //  redirect to checkout
-    router.push("/checkout");
-
-  } catch (err) {
-    toast.error(t("reorderFailed"));
-  } finally {
-    setReorderingId(null);
-  }
-};
+      //  redirect to checkout
+      router.push("/checkout");
+    } catch (err) {
+      toast.error(t("reorderFailed"));
+    } finally {
+      setReorderingId(null);
+    }
+  };
   // ================= FETCH ORDERS =================
   useEffect(() => {
     const fetchOrders = async () => {
-      if(!token){
-        return
+      if (!token) {
+        return;
       }
       try {
         setLoading(true);
         setError(null);
 
-        const { response: res, orders: nextOrders, meta: nextMeta } = await fetchOrdersPage({ page, limit: 10 });
+        const {
+          response: res,
+          orders: nextOrders,
+          meta: nextMeta,
+        } = await fetchOrdersPage({ page, limit: 10 });
 
         if (!res || res.success === false) {
           setError(res?.message || t("failedFetchOrders"));
@@ -139,7 +142,6 @@ const router = useRouter();
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6">
       <div className="max-w-5xl mx-auto">
-
         <h1 className="text-lg sm:text-[22px] font-semibold text-gray-900 mb-5 sm:mb-6">
           {t("title")}
         </h1>
@@ -185,32 +187,33 @@ const router = useRouter();
                   className="bg-white rounded-2xl shadow-sm overflow-hidden border border-[#F2F2F2]"
                 >
                   <div className="flex flex-col sm:flex-row gap-4 p-4">
-                    <div className="relative w-full sm:w-[110px] h-[180px] sm:h-[90px] rounded-xl overflow-hidden shrink-0">
-                      <Image
-                        src={firstItem?.imageUrl || "/placeholder.png"}
-                        alt={firstItem?.menuItemName || t("orderImageAlt")}
-                        fill
-                        className="object-cover"
-                      />
-
-                      <span className="absolute top-2 left-2 text-[11px] px-2 py-[3px] rounded-md font-medium bg-green-100 text-green-700">
-                        {mapStatus(order.status)}
-                      </span>
-                    </div>
+                    {firstItem?.imageUrl ? (
+                      <div className="relative w-full sm:w-[110px] h-[180px] sm:h-[90px] rounded-xl overflow-hidden shrink-0">
+                        <Image
+                          src={firstItem.imageUrl}
+                          alt={firstItem.menuItemName || t("orderImageAlt")}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    ) : null}
 
                     {/* CONTENT */}
                     <div className="flex-1">
-
                       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
-
                         <div>
+                          <span className="mb-2 inline-flex text-[11px] px-2 py-[3px] rounded-md font-medium bg-green-100 text-green-700">
+                            {mapStatus(order.status)}
+                          </span>
                           <h2 className="text-[14px] sm:text-[15px] font-semibold text-gray-900">
                             {order.branch?.name || t("restaurantFallback")}
                           </h2>
 
                           <p className="text-[11px] text-gray-400 mt-[2px]">
-                            {t("orderNumberShort", { id: String(order.id).slice(-6) })} ·{" "}
-                            {formatDate(order.createdAt || "")}
+                            {t("orderNumberShort", {
+                              id: String(order.id).slice(-6),
+                            })}{" "}
+                            · {formatDate(order.createdAt || "")}
                           </p>
                         </div>
 
@@ -227,7 +230,7 @@ const router = useRouter();
                         {order.itemsPreview
                           ?.map(
                             (item: OrderItem) =>
-                              `${item.menuItemName} (x${item.quantity})`
+                              `${item.menuItemName} (x${item.quantity})`,
                           )
                           .join(", ")}
                       </p>
@@ -241,7 +244,7 @@ const router = useRouter();
                           {t("viewDetails")}
                         </Link>
 
-  <button
+                        <button
                           onClick={() => handleReorder(order)}
                           disabled={reorderingId === order.id}
                           className="cursor-pointer text-xs px-3 py-1 bg-primary text-white rounded-[8px] flex items-center gap-1 disabled:opacity-60"
@@ -260,51 +263,52 @@ const router = useRouter();
                   </div>
 
                   {/* BOTTOM */}
-                 <div className="bg-[#f6f6f6] border-t border-[#f2f2f2] px-4 py-3 flex justify-between items-center">
+                  <div className="bg-[#f6f6f6] border-t border-[#f2f2f2] px-4 py-3 flex justify-between items-center">
+                    {connectedReview ? (
+                      <>
+                        {/*  Already reviewed */}
+                        <span className="text-[12px] text-gray-400">
+                          {t("youRatedThisOrder")}
+                        </span>
 
-  {connectedReview ? (
-      <>
-        {/*  Already reviewed */}
-        <span className="text-[12px] text-gray-400">
-          {t("youRatedThisOrder")}
-        </span>
+                        <div className="flex gap-[2px]">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              size={14}
+                              className={
+                                star <= reviewRating
+                                  ? "text-[#EC5834] fill-[#EC5834]"
+                                  : "text-gray-300"
+                              }
+                            />
+                          ))}
+                        </div>
+                      </>
+                    ) : canReviewOrder(orderForReviewState) ? (
+                      <>
+                        {/*  No review */}
+                        <span className="text-[12px] text-gray-400">
+                          {t("howWasYourFood")}
+                        </span>
 
-        <div className="flex gap-[2px]">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <Star
-              key={star}
-              size={14}
-              className={
-                star <= reviewRating
-                  ? "text-[#EC5834] fill-[#EC5834]"
-                  : "text-gray-300"
-              }
-            />
-          ))}
-        </div>
-      </>
-  ) : canReviewOrder(orderForReviewState) ? (
-      <>
-        {/*  No review */}
-        <span className="text-[12px] text-gray-400">
-          {t("howWasYourFood")}
-        </span>
-
-        <button
-          onClick={() =>
-            router.push(`/order/write-review?orderId=${order.id}`)
-          }
-          className="text-xs text-primary font-medium cursor-pointer"
-        >
-          {t("writeReview")}
-        </button>
-      </>
-  ) : (
-    <span className="text-[12px] text-gray-400">
-      {t("orderProcessing")}
-    </span>
-  )}
-</div>
+                        <button
+                          onClick={() =>
+                            router.push(
+                              `/order/write-review?orderId=${order.id}`,
+                            )
+                          }
+                          className="text-xs text-primary font-medium cursor-pointer"
+                        >
+                          {t("writeReview")}
+                        </button>
+                      </>
+                    ) : (
+                      <span className="text-[12px] text-gray-400">
+                        {t("orderProcessing")}
+                      </span>
+                    )}
+                  </div>
                 </div>
               );
             })}
@@ -314,7 +318,6 @@ const router = useRouter();
         {/* ================= PAGINATION ================= */}
         {!loading && meta && (meta.totalPages || 0) > 1 && (
           <div className="flex justify-center mt-6 gap-2 flex-wrap">
-
             <button
               disabled={!meta.hasPrevious}
               onClick={() => setPage((p) => p - 1)}

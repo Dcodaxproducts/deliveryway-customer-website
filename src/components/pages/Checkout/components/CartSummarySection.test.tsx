@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  CART_ITEM_FALLBACK_IMAGE,
   getCartBillTotals,
   getItemImage,
   getItemPricing,
@@ -24,7 +23,7 @@ describe("getTotalBeforeDiscount", () => {
         subtotal: 1000,
         orderFee: 0,
         tipAmount: 0,
-      })
+      }),
     ).toBe(1000);
   });
 
@@ -36,7 +35,7 @@ describe("getTotalBeforeDiscount", () => {
         orderFee: 5,
         serviceCharge: 3,
         tipAmount: 0,
-      })
+      }),
     ).toBe(32.58);
   });
 });
@@ -73,15 +72,48 @@ describe("getCartBillTotals", () => {
 
 describe("isDealCartItem", () => {
   it("treats backend deal rows and deal-included rows as deal cart items", () => {
-    expect(isDealCartItem({ id: "deal-row", type: "DEAL", name: "Deal", price: 10, quantity: 1 })).toBe(true);
-    expect(isDealCartItem({ id: "included-row", dealId: "deal-1", name: "Included", price: 10, quantity: 1 })).toBe(true);
-    expect(isDealCartItem({ id: "parent-row", name: "Parent", price: 10, quantity: 1, includedItems: [{ name: "Included", quantity: 1, selectedModifiers: [] }] })).toBe(true);
-    expect(isDealCartItem({ id: "item-row", name: "Regular", price: 10, quantity: 1 })).toBe(false);
+    expect(
+      isDealCartItem({
+        id: "deal-row",
+        type: "DEAL",
+        name: "Deal",
+        price: 10,
+        quantity: 1,
+      }),
+    ).toBe(true);
+    expect(
+      isDealCartItem({
+        id: "included-row",
+        dealId: "deal-1",
+        name: "Included",
+        price: 10,
+        quantity: 1,
+      }),
+    ).toBe(true);
+    expect(
+      isDealCartItem({
+        id: "parent-row",
+        name: "Parent",
+        price: 10,
+        quantity: 1,
+        includedItems: [
+          { name: "Included", quantity: 1, selectedModifiers: [] },
+        ],
+      }),
+    ).toBe(true);
+    expect(
+      isDealCartItem({
+        id: "item-row",
+        name: "Regular",
+        price: 10,
+        quantity: 1,
+      }),
+    ).toBe(false);
   });
 });
 
 describe("getItemImage", () => {
-  it("uses the standard item fallback when the cart item has no image", () => {
+  it("keeps the image empty when the cart item has no image", () => {
     expect(
       getItemImage({
         id: "cart-item-1",
@@ -89,7 +121,7 @@ describe("getItemImage", () => {
         price: 10,
         quantity: 1,
       }),
-    ).toBe(CART_ITEM_FALLBACK_IMAGE);
+    ).toBeNull();
   });
 
   it("keeps an uploaded cart item image", () => {
@@ -107,14 +139,16 @@ describe("getItemImage", () => {
 
 describe("getServiceChargeAmountFromQuote", () => {
   it("reads service charge amount from direct and charge breakdown quote fields", () => {
-    expect(getServiceChargeAmountFromQuote({ serviceChargeAmount: 1.5 })).toBe(1.5);
+    expect(getServiceChargeAmountFromQuote({ serviceChargeAmount: 1.5 })).toBe(
+      1.5,
+    );
     expect(
       getServiceChargeAmountFromQuote({
         chargeBreakdown: {
           totalServiceChargeAmount: 2.5,
           serviceCharges: [{ label: "Service", amount: 1 }],
         },
-      })
+      }),
     ).toBe(2.5);
     expect(
       getServiceChargeAmountFromQuote({
@@ -124,7 +158,7 @@ describe("getServiceChargeAmountFromQuote", () => {
             { label: "Packaging", amount: 0.5 },
           ],
         },
-      })
+      }),
     ).toBe(1.5);
   });
 });
@@ -160,18 +194,18 @@ describe("getScopedItemDiscountDisplays", () => {
       discountedLineTotal: null,
     };
 
-    const discounts = getScopedItemDiscountDisplays([
-      getPricingEntry(discountedItem),
-      getPricingEntry(regularItem),
-    ], {
-      discountAmount: 3,
-      appliedPromotion: {
-        id: "happy-hour-1",
-        title: "Happy hour",
-        applyMode: "SCOPED_ITEMS",
+    const discounts = getScopedItemDiscountDisplays(
+      [getPricingEntry(discountedItem), getPricingEntry(regularItem)],
+      {
         discountAmount: 3,
+        appliedPromotion: {
+          id: "happy-hour-1",
+          title: "Happy hour",
+          applyMode: "SCOPED_ITEMS",
+          discountAmount: 3,
+        },
       },
-    });
+    );
 
     expect(discounts.get("cart-item-1")).toEqual({
       lineDiscount: 3,
@@ -190,7 +224,12 @@ describe("getScopedItemDiscountDisplays", () => {
       unitPriceWithModifiers: 8.9,
       lineTotal: 8.9,
       quantity: 1,
-      promotion: { id: "deal-1", title: "Angebot 2", discountType: "FIXED_PRICE", discountAmount: 8.9 },
+      promotion: {
+        id: "deal-1",
+        title: "Angebot 2",
+        discountType: "FIXED_PRICE",
+        discountAmount: 8.9,
+      },
       happyHour: null,
       promotionDiscountAmount: 8.9,
       discountedUnitPrice: 0,
@@ -204,7 +243,12 @@ describe("getScopedItemDiscountDisplays", () => {
       unitPriceWithModifiers: 7.5,
       lineTotal: 7.5,
       quantity: 1,
-      promotion: { id: "deal-1", title: "Angebot 2", discountType: "FIXED_PRICE", discountAmount: 7.5 },
+      promotion: {
+        id: "deal-1",
+        title: "Angebot 2",
+        discountType: "FIXED_PRICE",
+        discountAmount: 7.5,
+      },
       happyHour: null,
       promotionDiscountAmount: 7.5,
       discountedUnitPrice: 0,
@@ -218,31 +262,48 @@ describe("getScopedItemDiscountDisplays", () => {
       unitPriceWithModifiers: 9.55,
       lineTotal: 9.55,
       quantity: 1,
-      promotion: { id: "deal-1", title: "Angebot 2", discountType: "FIXED_PRICE", discountAmount: 9.55 },
+      promotion: {
+        id: "deal-1",
+        title: "Angebot 2",
+        discountType: "FIXED_PRICE",
+        discountAmount: 9.55,
+      },
       happyHour: null,
       promotionDiscountAmount: 9.55,
       discountedUnitPrice: 0,
       discountedLineTotal: 0,
     };
 
-    const discounts = getScopedItemDiscountDisplays([
-      getPricingEntry(tuna),
-      getPricingEntry(spicyTom),
-      getPricingEntry(garlive),
-    ], {
-      discountAmount: 3.45,
-      appliedPromotion: {
-        id: "deal-1",
-        title: "Angebot 2",
-        applyMode: "SCOPED_ITEMS",
-        discountType: "FIXED_PRICE",
+    const discounts = getScopedItemDiscountDisplays(
+      [
+        getPricingEntry(tuna),
+        getPricingEntry(spicyTom),
+        getPricingEntry(garlive),
+      ],
+      {
         discountAmount: 3.45,
+        appliedPromotion: {
+          id: "deal-1",
+          title: "Angebot 2",
+          applyMode: "SCOPED_ITEMS",
+          discountType: "FIXED_PRICE",
+          discountAmount: 3.45,
+        },
       },
-    });
+    );
 
-    expect(discounts.get("cart-item-tuna")?.discountedLineTotal).toBeCloseTo(7.72, 2);
-    expect(discounts.get("cart-item-spicy")?.discountedLineTotal).toBeCloseTo(6.5, 2);
-    expect(discounts.get("cart-item-garlive")?.discountedLineTotal).toBeCloseTo(8.28, 2);
+    expect(discounts.get("cart-item-tuna")?.discountedLineTotal).toBeCloseTo(
+      7.72,
+      2,
+    );
+    expect(discounts.get("cart-item-spicy")?.discountedLineTotal).toBeCloseTo(
+      6.5,
+      2,
+    );
+    expect(discounts.get("cart-item-garlive")?.discountedLineTotal).toBeCloseTo(
+      8.28,
+      2,
+    );
   });
 
   it("does not treat null discount contract fields as zero-price discounts", () => {
@@ -261,7 +322,9 @@ describe("getScopedItemDiscountDisplays", () => {
       discountedLineTotal: null,
     };
 
-    const discounts = getScopedItemDiscountDisplays([getPricingEntry(regularItem)]);
+    const discounts = getScopedItemDiscountDisplays([
+      getPricingEntry(regularItem),
+    ]);
 
     expect(discounts.size).toBe(0);
   });

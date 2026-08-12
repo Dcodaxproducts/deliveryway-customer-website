@@ -133,7 +133,7 @@ describe("fetchMenuItemDetailsByIds", () => {
     });
 
     expect(getItemsMock).toHaveBeenCalledWith(
-      "/customer-app/items?restaurantId=restaurant-1&page=2&limit=12&sortBy=createdAt&sortOrder=ASC&categoryId=category-1&branchId=branch-1",
+      "/customer-app/items?restaurantId=restaurant-1&page=2&limit=12&sortBy=sortOrder&sortOrder=ASC&categoryId=category-1&branchId=branch-1",
       "token-1",
     );
   });
@@ -150,7 +150,7 @@ describe("fetchMenuItemDetailsByIds", () => {
     });
 
     expect(getItemsMock).toHaveBeenCalledWith(
-      "/customer-app/items?restaurantId=restaurant-1&page=1&limit=50&sortBy=createdAt&sortOrder=ASC&categoryId=category-1&branchId=branch-1",
+      "/customer-app/items?restaurantId=restaurant-1&page=1&limit=50&sortBy=sortOrder&sortOrder=ASC&categoryId=category-1&branchId=branch-1",
       undefined,
     );
   });
@@ -247,7 +247,7 @@ describe("fetchMenuItemDetailsByIds", () => {
     });
 
     expect(getItemsMock).toHaveBeenCalledWith(
-      "/customer-app/categories?restaurantId=restaurant-1&page=1&limit=50&sortBy=createdAt&sortOrder=ASC",
+      "/customer-app/categories?restaurantId=restaurant-1&page=1&limit=50&sortBy=sortOrder&sortOrder=ASC",
       "token-1",
     );
   });

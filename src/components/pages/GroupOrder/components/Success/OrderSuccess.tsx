@@ -322,6 +322,10 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
                 <div className="space-y-3">
                   {items.map((item, index) => {
                     const modifiers = getItemModifiers(item);
+                    const itemImage = getItemImageUrl(
+                      item,
+                      participantImageByItem,
+                    );
 
                     return (
                       <div
@@ -330,20 +334,17 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
                       >
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex min-w-0 items-start gap-3">
-                            <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl bg-gray-200">
-                              <Image
-                                src={
-                                  getItemImageUrl(
-                                    item,
-                                    participantImageByItem,
-                                  ) || "/items/table.png"
-                                }
-                                alt={getItemName(item) || t("itemFallback")}
-                                fill
-                                className="object-cover"
-                                sizes="56px"
-                              />
-                            </div>
+                            {itemImage ? (
+                              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl bg-gray-200">
+                                <Image
+                                  src={itemImage}
+                                  alt={getItemName(item) || t("itemFallback")}
+                                  fill
+                                  className="object-cover"
+                                  sizes="56px"
+                                />
+                              </div>
+                            ) : null}
                             <div className="min-w-0">
                               <p className="text-sm font-semibold text-gray-900">
                                 {getItemName(item) || t("itemFallback")}

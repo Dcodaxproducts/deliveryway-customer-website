@@ -69,7 +69,7 @@ export const fetchMenuItemsPage = async ({
     restaurantId,
     page: String(page),
     limit: String(safeLimit),
-    sortBy: "createdAt",
+    sortBy: "sortOrder",
     sortOrder: "ASC",
   });
 
@@ -135,9 +135,7 @@ export const fetchMenuItemDetails = async ({
     const result = { response, item };
 
     if (item) {
-      if (
-        menuItemDetailsCache.size >= MENU_ITEM_DETAILS_CACHE_MAX_ENTRIES
-      ) {
+      if (menuItemDetailsCache.size >= MENU_ITEM_DETAILS_CACHE_MAX_ENTRIES) {
         const oldestKey = menuItemDetailsCache.keys().next().value;
         if (oldestKey) menuItemDetailsCache.delete(oldestKey);
       }
@@ -230,9 +228,7 @@ export const fetchMenuItemDetailsByIds = async ({
         const items = normalizeApiArray<MenuItem>(response);
         const normalizedSearchTerm = searchTerm.toLowerCase();
         const summary =
-          items.find(
-            (item) => String(item?.id || "") === itemId,
-          ) ||
+          items.find((item) => String(item?.id || "") === itemId) ||
           items.find(
             (item) =>
               String(item?.slug || "").toLowerCase() === normalizedSearchTerm,
@@ -322,7 +318,7 @@ export const fetchMenuCategoriesPage = async ({
     restaurantId,
     page: String(page),
     limit: String(limit),
-    sortBy: "createdAt",
+    sortBy: "sortOrder",
     sortOrder: "ASC",
   });
 
