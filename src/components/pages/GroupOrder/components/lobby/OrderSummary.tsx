@@ -705,6 +705,7 @@ const GroupOrderStripeCheckout = ({ onSuccess }: { onSuccess: () => void }) => {
 
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
+        confirmParams: { return_url: window.location.href },
         redirect: "if_required",
       });
 

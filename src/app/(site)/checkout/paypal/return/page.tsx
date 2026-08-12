@@ -2,66 +2,34 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 
-import { getBackendErrorMessage, hasBackendError } from "@/components/pages/Checkout/utils/checkout-normalizers";
-import { useAuthContext } from "@/hooks/useAuth";
-import { useCart } from "@/hooks/useCart";
-import { usePayments } from "@/hooks/usePayments";
-import { dispatchCartChanged } from "@/lib/cart-events";
+import { API_BASE_URL } from "@/lib/axios";
 
 function PaypalReturnContent() {
   const t = useTranslations("checkout");
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const { token, user, loading } = useAuthContext();
-  const { capturePaypalOrder } = usePayments(token);
-  const { clearCustomerCart } = useCart(token);
   const started = useRef(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (loading || started.current) return;
+    if (started.current) return;
 
     const orderId = searchParams.get("orderId");
     const paypalOrderId = searchParams.get("token");
 
-    if (!token || !orderId || !paypalOrderId) {
+    if (!orderId || !paypalOrderId) {
       setError(t("paypalReturnInvalid"));
       return;
     }
 
     started.current = true;
-    void (async () => {
-      const response = await capturePaypalOrder({ orderId, paypalOrderId });
-
-      if (hasBackendError(response) || response?.success === false) {
-        setError(getBackendErrorMessage(response, t("paypalCaptureFailed")));
-        return;
-      }
-
-      if (user?.id) {
-        await clearCustomerCart({ customerId: String(user.id) });
-      }
-      dispatchCartChanged({ itemCount: 0 });
-      window.dispatchEvent(new Event("loyalty-updated"));
-      router.replace(`/order?success=true&orderId=${orderId}`);
-    })().catch((reason: unknown) => {
-      setError(
-        reason instanceof Error ? reason.message : t("paypalCaptureFailed"),
-      );
-    });
-  }, [
-    capturePaypalOrder,
-    clearCustomerCart,
-    loading,
-    router,
-    searchParams,
-    t,
-    token,
-    user?.id,
-  ]);
+    const callbackUrl = new URL(`${API_BASE_URL}/payments/paypal/return`);
+    callbackUrl.searchParams.set("token", paypalOrderId);
+    callbackUrl.searchParams.set("orderId", orderId);
+    window.location.replace(callbackUrl.toString());
+  }, [searchParams, t]);
 
   return (
     <main className="mx-auto flex min-h-[60vh] max-w-xl items-center justify-center p-6">

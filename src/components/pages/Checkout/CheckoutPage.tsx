@@ -1761,6 +1761,7 @@ function CheckoutPageContent() {
               options={{ clientSecret: stripePayment.clientSecret }}
             >
               <OrderStripeCheckout
+                orderId={String(stripePayment.orderId)}
                 onSuccess={async () => {
                   const paidOrderId = stripePayment.orderId;
 
@@ -1779,7 +1780,13 @@ function CheckoutPageContent() {
   );
 }
 
-const OrderStripeCheckout = ({ onSuccess }: { onSuccess: () => void }) => {
+const OrderStripeCheckout = ({
+  onSuccess,
+  orderId,
+}: {
+  onSuccess: () => void;
+  orderId: string;
+}) => {
   const t = useTranslations("checkout");
   const stripe = useStripe();
   const elements = useElements();
@@ -1790,9 +1797,13 @@ const OrderStripeCheckout = ({ onSuccess }: { onSuccess: () => void }) => {
 
     try {
       setLoading(true);
+      const returnUrl = new URL("/order", window.location.origin);
+      returnUrl.searchParams.set("success", "true");
+      returnUrl.searchParams.set("orderId", orderId);
 
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
+        confirmParams: { return_url: returnUrl.toString() },
         redirect: "if_required",
       });
 
