@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import useOrders from "@/hooks/useOrders";
 import usePayments from "@/hooks/usePayments";
@@ -38,11 +38,13 @@ function OrderStatusContent() {
   const errorT = useTranslations("errors");
   const { token } = useAuthContext();
   const { fetchOrderById } = useOrders(token);
-  const { createOrderPaymentAttempt } = usePayments(token);
+  const { createOrderPaymentAttempt, reconcileStripeOrder } = usePayments(token);
 
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
   const isSuccessView = searchParams.get("success") === "true";
+  const returnedStripePaymentIntentId = searchParams.get("payment_intent");
+  const reconciledStripeIntentRef = useRef<string | null>(null);
 
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -120,6 +122,38 @@ function OrderStatusContent() {
   useEffect(() => {
     fetchOrder();
   }, [fetchOrder]);
+
+  useEffect(() => {
+    if (
+      !orderId ||
+      !returnedStripePaymentIntentId ||
+      reconciledStripeIntentRef.current === returnedStripePaymentIntentId
+    ) {
+      return;
+    }
+
+    reconciledStripeIntentRef.current = returnedStripePaymentIntentId;
+    void reconcileStripeOrder({
+      orderId,
+      paymentIntentId: returnedStripePaymentIntentId,
+    })
+      .then(async (result) => {
+        if (!result || result.success === false) {
+          throw new Error(result?.message || "Stripe payment reconciliation failed");
+        }
+        toast.success(checkoutT("toast.paymentSuccessful"));
+        await fetchOrder({ silent: true });
+      })
+      .catch(() => {
+        toast.error(checkoutT("toast.paymentSuccessfulPendingWebhook"));
+      });
+  }, [
+    checkoutT,
+    fetchOrder,
+    orderId,
+    reconcileStripeOrder,
+    returnedStripePaymentIntentId,
+  ]);
 
   const refreshOrder = useCallback(() => {
     void fetchOrder({ silent: true });
@@ -226,8 +260,15 @@ function OrderStatusContent() {
     }
   };
 
-  const handlePaymentSuccess = async () => {
-    toast.success(checkoutT("toast.paymentSuccessfulPendingWebhook"));
+  const handlePaymentSuccess = async (paymentIntentId: string) => {
+    if (!orderId) return;
+
+    const result = await reconcileStripeOrder({ orderId, paymentIntentId });
+    if (!result || result.success === false) {
+      throw new Error(result?.message || "Stripe payment reconciliation failed");
+    }
+
+    toast.success(checkoutT("toast.paymentSuccessful"));
     resetStripePayment();
     await fetchOrder();
   };
@@ -472,7 +513,11 @@ function OrderStatusContent() {
   );
 }
 
-const OrderPaymentElement = ({ onSuccess }: { onSuccess: () => void }) => {
+const OrderPaymentElement = ({
+  onSuccess,
+}: {
+  onSuccess: (paymentIntentId: string) => Promise<void>;
+}) => {
   const checkoutT = useTranslations("checkout");
   const stripe = useStripe();
   const elements = useElements();
@@ -496,7 +541,7 @@ const OrderPaymentElement = ({ onSuccess }: { onSuccess: () => void }) => {
       }
 
       if (paymentIntent?.status === "succeeded") {
-        onSuccess();
+        await onSuccess(paymentIntent.id);
         return;
       }
 

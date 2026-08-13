@@ -373,7 +373,7 @@ function CheckoutPageContent() {
   const { updateCustomerCart, updateCustomerCartOrderType, quoteCustomerCart } =
     useCart(token);
   const { fetchLoyalty } = useLoyalty(token);
-  const { createOrderPaymentAttempt } = usePayments(token);
+  const { createOrderPaymentAttempt, reconcileStripeOrder } = usePayments(token);
   const checkoutBranchId = checkoutContextBranchId;
   const homeQuery = useHome(
     restaurantId,
@@ -1762,8 +1762,18 @@ function CheckoutPageContent() {
             >
               <OrderStripeCheckout
                 orderId={String(stripePayment.orderId)}
-                onSuccess={async () => {
+                onSuccess={async (paymentIntentId) => {
                   const paidOrderId = stripePayment.orderId;
+
+                  const result = await reconcileStripeOrder({
+                    orderId: String(paidOrderId),
+                    paymentIntentId,
+                  });
+                  if (!result || result.success === false) {
+                    throw new Error(
+                      result?.message || "Stripe payment reconciliation failed",
+                    );
+                  }
 
                   resetStripePayment();
 
@@ -1784,7 +1794,7 @@ const OrderStripeCheckout = ({
   onSuccess,
   orderId,
 }: {
-  onSuccess: () => void;
+  onSuccess: (paymentIntentId: string) => Promise<void>;
   orderId: string;
 }) => {
   const t = useTranslations("checkout");
@@ -1813,8 +1823,8 @@ const OrderStripeCheckout = ({
       }
 
       if (paymentIntent?.status === "succeeded") {
-        toast.success(t("toast.paymentSuccessfulPendingWebhook"));
-        onSuccess();
+        await onSuccess(paymentIntent.id);
+        toast.success(t("toast.paymentSuccessful"));
         return;
       }
 

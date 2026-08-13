@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { capturePaypalOrder, createOrderPaymentAttempt } from "./payments";
+import {
+  capturePaypalOrder,
+  createOrderPaymentAttempt,
+  reconcileStripeOrder,
+} from "./payments";
 
 const postPaymentsMock = vi.hoisted(() => vi.fn());
 
@@ -148,6 +152,25 @@ describe("payments service", () => {
       "/v1/payments/orders/order-4/paypal/capture",
       { paypalOrderId: "paypal-order-4" },
       "token-4",
+    );
+  });
+
+  it("reconciles a succeeded Stripe order after client confirmation", async () => {
+    postPaymentsMock.mockResolvedValue({
+      success: true,
+      data: { orderId: "order-5", paymentStatus: "PAID" },
+    });
+
+    await reconcileStripeOrder({
+      orderId: "order-5",
+      paymentIntentId: "pi_5",
+      token: "token-5",
+    });
+
+    expect(postPaymentsMock).toHaveBeenCalledWith(
+      "/v1/payments/orders/order-5/stripe/reconcile",
+      { paymentIntentId: "pi_5" },
+      "token-5",
     );
   });
 });

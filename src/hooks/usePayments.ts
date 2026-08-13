@@ -13,6 +13,7 @@ import {
   getPayments,
   patchPayments,
   postPayments,
+  reconcileStripeOrder,
 } from "@/services/payments";
 
 const service = {
@@ -45,6 +46,12 @@ export const usePayments = (token: string | null) => {
     [token]
   );
 
+  const confirmStripeOrder = useCallback(
+    (args: Parameters<typeof reconcileStripeOrder>[0]) =>
+      reconcileStripeOrder({ ...args, token }),
+    [token]
+  );
+
   return useMemo(
     () => ({
       ...api,
@@ -52,8 +59,9 @@ export const usePayments = (token: string | null) => {
       fetchWallet: getWallet,
       createOrderPaymentAttempt: startOrderPaymentAttempt,
       capturePaypalOrder: completePaypalOrder,
+      reconcileStripeOrder: confirmStripeOrder,
     }),
-    [api, completePaypalOrder, getPaymentsPage, getWallet, startOrderPaymentAttempt]
+    [api, completePaypalOrder, confirmStripeOrder, getPaymentsPage, getWallet, startOrderPaymentAttempt]
   );
 };
 

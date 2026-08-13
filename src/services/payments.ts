@@ -172,3 +172,18 @@ export const capturePaypalOrder = ({
     { paypalOrderId },
     token,
   );
+
+export const reconcileStripeOrder = ({
+  orderId,
+  paymentIntentId,
+  token,
+}: {
+  orderId: string | number;
+  paymentIntentId: string;
+  token?: string | null;
+}): Promise<ApiResult> =>
+  postPayments(
+    `/v1/payments/orders/${orderId}/stripe/reconcile`,
+    { paymentIntentId },
+    token,
+  );
