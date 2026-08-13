@@ -437,10 +437,12 @@ export function OrderSummary({
             </span>
             <span>{formatAmount(summary?.subtotal || 0)}</span>
           </div>
-          <div className="flex justify-between">
-            <span>{cartT("deliveryFee")}</span>
-            <span>{formatAmount(summary?.deliveryFee || 0)}</span>
-          </div>
+          {isDeliveryOrder && positiveAmount(summary?.deliveryFee) ? (
+            <div className="flex justify-between">
+              <span>{cartT("deliveryFee")}</span>
+              <span>{formatAmount(summary?.deliveryFee)}</span>
+            </div>
+          ) : null}
           {positiveAmount(serviceChargeAmount) ? (
             <div className="flex justify-between">
               <span>{serviceChargeLabel}</span>

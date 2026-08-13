@@ -127,6 +127,8 @@ export default function OrderSummary({
   const paymentMethod = String(
     order?.paymentMethod || latestCharge?.paymentMethod || "",
   ).toUpperCase();
+  const isDeliveryOrder =
+    String(order?.orderType || "").toUpperCase() === "DELIVERY";
   const paymentCurrency = resolveCustomerCurrency({
     moneyCurrency: order?.pricing?.currency || latestCharge?.currency,
   });
@@ -140,18 +142,23 @@ export default function OrderSummary({
     return (
       key !== "total" &&
       key !== "payableamount" &&
+      (isDeliveryOrder || key !== "deliveryfee") &&
       !isTaxBreakdownLine(line) &&
       shouldShowAmountLine(line.amount)
     );
   });
   const fallbackBillRows = [
     { key: "subtotal", label: t("itemTotal"), amount: order?.subtotal },
-    {
-      key: "deliveryFee",
-      label: t("deliveryFee"),
-      amount: order?.deliveryFee,
-      info: true,
-    },
+    ...(isDeliveryOrder
+      ? [
+          {
+            key: "deliveryFee",
+            label: t("deliveryFee"),
+            amount: order?.deliveryFee,
+            info: true,
+          },
+        ]
+      : []),
     {
       key: "serviceChargeAmount",
       label: t("serviceCharge"),

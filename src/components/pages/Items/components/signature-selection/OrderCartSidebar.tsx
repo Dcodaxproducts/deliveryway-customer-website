@@ -786,20 +786,24 @@ export function OrderCartSidebar({
               </div>
             ) : null}
 
-            {checkoutType === "delivery" && deliveryPolicy ? (
+            {checkoutType === "delivery" &&
+            deliveryPolicy &&
+            (minimumOrderAmount > 0 || freeDeliveryThreshold > 0) ? (
               <>
-                <div className="flex items-center justify-between">
-                  <span>{t("minimumOrderValue")}</span>
-                  <span>{formatCurrency(minimumOrderAmount, currency)}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>{t("freeDeliveryAmount")}</span>
-                  <span>
-                    {freeDeliveryThreshold > 0
-                      ? formatCurrency(freeDeliveryThreshold, currency)
-                      : t("notAvailable")}
-                  </span>
-                </div>
+                {minimumOrderAmount > 0 ? (
+                  <div className="flex items-center justify-between">
+                    <span>{t("minimumOrderValue")}</span>
+                    <span>{formatCurrency(minimumOrderAmount, currency)}</span>
+                  </div>
+                ) : null}
+                {freeDeliveryThreshold > 0 ? (
+                  <div className="flex items-center justify-between">
+                    <span>{t("freeDeliveryAmount")}</span>
+                    <span>
+                      {formatCurrency(freeDeliveryThreshold, currency)}
+                    </span>
+                  </div>
+                ) : null}
               </>
             ) : null}
 

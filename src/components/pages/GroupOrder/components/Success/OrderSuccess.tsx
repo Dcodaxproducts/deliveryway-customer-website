@@ -164,6 +164,8 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
   const subtotal = pricing?.subtotal ?? order?.subtotal;
   const taxAmount = pricing?.taxAmount ?? order?.taxAmount;
   const deliveryFee = pricing?.deliveryFee ?? order?.deliveryFee;
+  const isDeliveryOrder =
+    String(order?.orderType || "").toUpperCase() === "DELIVERY";
   const transactionFeeAmount =
     pricing?.transactionFeeAmount ?? order?.transactionFeeAmount;
   const tipAmount = pricing?.tipAmount ?? order?.tipAmount;
@@ -480,7 +482,7 @@ const OrderSuccess = ({ data }: OrderSuccessProps) => {
                   <span>{t("subtotal")}</span>
                   <span>{formatCurrency(subtotal)}</span>
                 </div>
-                {hasAmount(deliveryFee) ? (
+                {isDeliveryOrder && hasAmount(deliveryFee) ? (
                   <div className="flex justify-between gap-4">
                     <span>{t("deliveryFee")}</span>
                     <span>{formatCurrency(deliveryFee)}</span>

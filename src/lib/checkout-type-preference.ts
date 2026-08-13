@@ -21,7 +21,7 @@ export const resolveSelectedCheckoutType = (
   selectedOrderType?: BranchOrderType | null,
   storedPreference?: CheckoutTypePreference | null,
 ): CheckoutTypePreference =>
-  orderTypeToCheckoutType(selectedOrderType) ?? storedPreference ?? "delivery";
+  storedPreference ?? orderTypeToCheckoutType(selectedOrderType) ?? "delivery";
 
 export const resolveHomeCheckoutType = (
   availableTypes: readonly CheckoutTypePreference[],
