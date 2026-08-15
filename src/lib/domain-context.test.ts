@@ -14,7 +14,7 @@ describe("domain context helpers", () => {
 
   it("normalizes hostnames from full URLs and host headers", () => {
     expect(normalizeDomainHost("https://Pizza.Example.com/menu")).toBe("pizza.example.com");
-    expect(normalizeDomainHost("www.brand.example.com:3000")).toBe("brand.example.com");
+    expect(normalizeDomainHost("www.brand.example.com:3000")).toBe("www.brand.example.com");
   });
 
   it("extracts valid context from API envelopes", () => {

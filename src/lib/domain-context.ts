@@ -28,9 +28,9 @@ export const normalizeDomainHost = (value: string) => {
 
   try {
     const url = trimmedValue.includes("://") ? new URL(trimmedValue) : new URL(`https://${trimmedValue}`);
-    return url.hostname.replace(/^www\./, "");
+    return url.hostname;
   } catch {
-    return trimmedValue.split("/")[0].split(":")[0].replace(/^www\./, "");
+    return trimmedValue.split("/")[0].split(":")[0];
   }
 };
 
