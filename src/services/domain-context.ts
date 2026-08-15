@@ -8,6 +8,8 @@ import {
   type DomainContext,
 } from "@/lib/domain-context";
 
+const domainContextRequests = new Map<string, Promise<DomainContext>>();
+
 const getMessage = (value: unknown, fallback: string) => {
   if (typeof value === "object" && value !== null && !Array.isArray(value)) {
     const message = (value as Record<string, unknown>).message;
@@ -17,17 +19,9 @@ const getMessage = (value: unknown, fallback: string) => {
   return fallback;
 };
 
-export const resolveDomainContext = async (host: string): Promise<DomainContext> => {
-  const normalizedHost = normalizeDomainHost(host);
-
-  if (!normalizedHost) {
-    throw new Error("Host is required");
-  }
-
-  const localContext = getLocalDomainContext(normalizedHost);
-
-  if (localContext) return localContext;
-
+const fetchDomainContext = async (
+  normalizedHost: string,
+): Promise<DomainContext> => {
   const endpoint = `/customer-app/domain-context?host=${encodeURIComponent(normalizedHost)}`;
   const response = await fetch(buildApiUrl(API_BASE_URL, endpoint), {
     headers: {
@@ -48,4 +42,29 @@ export const resolveDomainContext = async (host: string): Promise<DomainContext>
   }
 
   return context;
+};
+
+export const resolveDomainContext = (host: string): Promise<DomainContext> => {
+  const normalizedHost = normalizeDomainHost(host);
+
+  if (!normalizedHost) {
+    return Promise.reject(new Error("Host is required"));
+  }
+
+  const localContext = getLocalDomainContext(normalizedHost);
+
+  if (localContext) return Promise.resolve(localContext);
+
+  const existingRequest = domainContextRequests.get(normalizedHost);
+
+  if (existingRequest) return existingRequest;
+
+  const request = fetchDomainContext(normalizedHost).catch((error: unknown) => {
+    domainContextRequests.delete(normalizedHost);
+    throw error;
+  });
+
+  domainContextRequests.set(normalizedHost, request);
+
+  return request;
 };
