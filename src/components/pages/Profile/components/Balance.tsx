@@ -9,6 +9,7 @@ import {
   useElements,
   useStripe,
 } from "@stripe/react-stripe-js";
+import { STRIPE_PAYMENT_ELEMENT_OPTIONS } from "@/config/stripe-payment-element";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -73,7 +74,7 @@ const CheckoutForm = ({
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border border-zinc-200 p-4">
-        <PaymentElement />
+        <PaymentElement options={STRIPE_PAYMENT_ELEMENT_OPTIONS} />
       </div>
 
       <div className="grid grid-cols-2 gap-3">

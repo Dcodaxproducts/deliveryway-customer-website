@@ -8,6 +8,7 @@ import {
   useStripe,
 } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
+import { STRIPE_PAYMENT_ELEMENT_OPTIONS } from "@/config/stripe-payment-element";
 import { CreditCard, Gift } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
@@ -107,7 +108,7 @@ const GiftCardStripePaymentForm = ({
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border border-gray-200 p-4">
-        <PaymentElement />
+        <PaymentElement options={STRIPE_PAYMENT_ELEMENT_OPTIONS} />
       </div>
 
       <Button

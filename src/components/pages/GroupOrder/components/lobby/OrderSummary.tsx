@@ -10,6 +10,7 @@ import {
   useStripe,
 } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
+import { STRIPE_PAYMENT_ELEMENT_OPTIONS } from "@/config/stripe-payment-element";
 
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -731,7 +732,7 @@ const GroupOrderStripeCheckout = ({ onSuccess }: { onSuccess: () => void }) => {
 
   return (
     <div className="space-y-4">
-      <PaymentElement />
+      <PaymentElement options={STRIPE_PAYMENT_ELEMENT_OPTIONS} />
 
       <button
         type="button"

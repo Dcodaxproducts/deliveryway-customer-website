@@ -26,6 +26,7 @@ import {
   useElements,
 } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
+import { STRIPE_PAYMENT_ELEMENT_OPTIONS } from "@/config/stripe-payment-element";
 import type {
   ApiRecord,
   BackendErrorState,
@@ -1838,7 +1839,7 @@ const OrderStripeCheckout = ({
 
   return (
     <div className="space-y-4">
-      <PaymentElement />
+      <PaymentElement options={STRIPE_PAYMENT_ELEMENT_OPTIONS} />
 
       <button
         type="button"
