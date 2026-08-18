@@ -29,6 +29,7 @@ import {
 } from "@/services/orders";
 import { useTranslations } from "next-intl";
 import { isPaymentPendingOnlineOrder } from "@/components/pages/Order/payment-state";
+import { isTaxBreakdownLine } from "@/lib/customer-pricing";
 
 const getAmountNumber = (value: unknown) => {
   const parsed = Number(value);
@@ -40,17 +41,6 @@ const shouldShowAmountLine = (value: unknown) =>
 
 const getBreakdownKey = (line: OrderPricingBreakdownLine) =>
   String(line.key || line.label || "").toLowerCase();
-
-const isTaxBreakdownLine = (line: OrderPricingBreakdownLine) => {
-  const key = getBreakdownKey(line).replace(/[\s_-]/g, "");
-
-  return (
-    key === "tax" ||
-    key === "taxes" ||
-    key === "taxamount" ||
-    key.includes("tax")
-  );
-};
 
 const getRecord = (value: unknown): Record<string, unknown> | null =>
   typeof value === "object" && value !== null && !Array.isArray(value)
