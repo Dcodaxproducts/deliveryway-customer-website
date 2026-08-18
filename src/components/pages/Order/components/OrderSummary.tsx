@@ -23,6 +23,7 @@ import { formatMoney, resolveCustomerCurrency } from "@/lib/money";
 import { canReviewOrder, type Order, type OrderDisplayItem, type OrderItem, type OrderPricingBreakdownLine } from "@/services/orders";
 import { useTranslations } from "next-intl";
 import { isPaymentPendingStripeOrder } from "@/components/pages/Order/payment-state";
+import { isTaxBreakdownLine } from "@/lib/customer-pricing";
 
 const getAmountNumber = (value: unknown) => {
   const parsed = Number(value);
@@ -33,12 +34,6 @@ const shouldShowAmountLine = (value: unknown) => Math.abs(getAmountNumber(value)
 
 const getBreakdownKey = (line: OrderPricingBreakdownLine) =>
   String(line.key || line.label || "").toLowerCase();
-
-const isTaxBreakdownLine = (line: OrderPricingBreakdownLine) => {
-  const key = getBreakdownKey(line).replace(/[\s_-]/g, "");
-
-  return key === "tax" || key === "taxes" || key === "taxamount" || key.includes("tax");
-};
 
 const getRecord = (value: unknown): Record<string, unknown> | null =>
   typeof value === "object" && value !== null && !Array.isArray(value)
