@@ -17,7 +17,10 @@ import {
   setStoredSelectedDeliveryAddressId,
 } from "@/lib/delivery-location";
 import { isReliableGeolocationAccuracy } from "@/lib/geolocation";
-import { parseReverseGeocodeAddress, reverseGeocode } from "@/services/geocoding";
+import {
+  parseReverseGeocodeAddress,
+  reverseGeocode,
+} from "@/services/geocoding";
 import { toast } from "sonner";
 import {
   fetchAddresses as fetchProfileAddresses,
@@ -79,7 +82,10 @@ export function DeliveryAddressSection({
     dragScrollHandlers,
   } = useHorizontalDragScroll<HTMLDivElement>();
 
-  const updateGuestAddressField = (field: keyof CheckoutAddressValues, value: string) => {
+  const updateGuestAddressField = (
+    field: keyof CheckoutAddressValues,
+    value: string,
+  ) => {
     setGuestDeliveryAddress({
       ...guestDeliveryAddress,
       [field]: value,
@@ -133,13 +139,15 @@ export function DeliveryAddressSection({
     try {
       setLocating(true);
 
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0,
-        });
-      });
+      const position = await new Promise<GeolocationPosition>(
+        (resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0,
+          });
+        },
+      );
 
       if (!isReliableGeolocationAccuracy(position.coords.accuracy)) {
         toast.error(addressT("unableDetectLocation"));
@@ -148,7 +156,10 @@ export function DeliveryAddressSection({
 
       const lat = position.coords.latitude.toString();
       const lng = position.coords.longitude.toString();
-      const geocode = await reverseGeocode(position.coords.latitude, position.coords.longitude);
+      const geocode = await reverseGeocode(
+        position.coords.latitude,
+        position.coords.longitude,
+      );
 
       const parsedAddress = geocode.ok
         ? parseReverseGeocodeAddress(geocode.address || {}, geocode.displayName)
@@ -158,13 +169,11 @@ export function DeliveryAddressSection({
         ...guestDeliveryAddress,
         street: parsedAddress?.street || guestDeliveryAddress.street,
         houseNumber: parsedAddress?.houseNumber || "",
-        area:
-          parsedAddress?.houseNumber ||
-          parsedAddress?.area ||
-          "",
+        area: parsedAddress?.houseNumber || parsedAddress?.area || "",
         city: parsedAddress?.city || guestDeliveryAddress.city,
         state: parsedAddress?.state || guestDeliveryAddress.state,
-        postalCode: parsedAddress?.postalCode || guestDeliveryAddress.postalCode,
+        postalCode:
+          parsedAddress?.postalCode || guestDeliveryAddress.postalCode,
         country: parsedAddress?.country || guestDeliveryAddress.country,
         lat,
         lng,
@@ -260,45 +269,68 @@ export function DeliveryAddressSection({
 
           <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">{t("street")}</label>
+              <label className="text-sm font-medium text-gray-700">
+                {t("street")}
+              </label>
               <Input
+                name="checkout-delivery-street"
+                autoComplete="off"
                 value={guestDeliveryAddress.street}
-                onChange={(event) => updateGuestAddressField("street", event.target.value)}
+                onChange={(event) =>
+                  updateGuestAddressField("street", event.target.value)
+                }
                 placeholder={t("streetPlaceholder")}
                 className="h-12 rounded-xl border-gray-200"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">{addressT("houseNumber")}</label>
+              <label className="text-sm font-medium text-gray-700">
+                {addressT("houseNumber")}
+              </label>
               <Input
+                name="checkout-delivery-house-number"
+                autoComplete="off"
                 value={guestDeliveryAddress.houseNumber}
-                onChange={(event) => updateGuestAddressField("houseNumber", event.target.value)}
+                onChange={(event) =>
+                  updateGuestAddressField("houseNumber", event.target.value)
+                }
                 placeholder={t("houseNumberPlaceholder")}
                 className="h-12 rounded-xl border-gray-200"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">{t("postalCode")}</label>
+              <label className="text-sm font-medium text-gray-700">
+                {t("postalCode")}
+              </label>
               <Input
+                name="checkout-delivery-postal-code"
+                autoComplete="off"
                 value={guestDeliveryAddress.postalCode}
-                onChange={(event) => updateGuestAddressField("postalCode", event.target.value)}
+                onChange={(event) =>
+                  updateGuestAddressField("postalCode", event.target.value)
+                }
                 placeholder={t("postalCodePlaceholder")}
                 className="h-12 rounded-xl border-gray-200"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">{t("city")}</label>
+              <label className="text-sm font-medium text-gray-700">
+                {t("city")}
+              </label>
               <Input
+                name="checkout-delivery-city"
+                autoComplete="off"
                 value={guestDeliveryAddress.city}
-                onChange={(event) => updateGuestAddressField("city", event.target.value)}
+                onChange={(event) =>
+                  updateGuestAddressField("city", event.target.value)
+                }
                 placeholder={t("cityPlaceholder")}
                 className="h-12 rounded-xl border-gray-200"
               />
             </div>
-
           </div>
         </div>
       </section>
@@ -339,7 +371,10 @@ export function DeliveryAddressSection({
             const isSelected = selectedAddress === addr.id;
             const addressLabel = formatDisplayAddress(addr);
             const addressTitle =
-              addr.houseNumber || addr.area || addr.city || addressT("deliveryAddress");
+              addr.houseNumber ||
+              addr.area ||
+              addr.city ||
+              addressT("deliveryAddress");
 
             return (
               <button
@@ -370,7 +405,9 @@ export function DeliveryAddressSection({
 
                 <span className="min-w-0 flex-1">
                   <span className="flex flex-wrap items-center gap-2">
-                    <span className="text-base font-bold text-gray-950">{addressTitle}</span>
+                    <span className="text-base font-bold text-gray-950">
+                      {addressTitle}
+                    </span>
                     {addr.isDefault ? (
                       <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary">
                         {addressT("defaultAddress")}
@@ -411,88 +448,91 @@ export function DeliveryAddressSection({
           </div>
           <div className="min-w-0 overflow-visible py-1">
             <div className="-mx-8 overflow-visible px-8 py-7 sm:-mx-10 sm:px-10">
-            <div
-              ref={addressRailRef}
-              role="listbox"
-              aria-label="Saved delivery addresses"
-              tabIndex={0}
-              {...dragScrollHandlers}
-              className="grid auto-cols-[calc((100%_-_1.25rem)/2)] grid-flow-col grid-rows-1 gap-5 overflow-x-auto scroll-smooth px-4 pb-10 pt-5 [scrollbar-width:none] active:cursor-grabbing [&::-webkit-scrollbar]:hidden"
-            >
+              <div
+                ref={addressRailRef}
+                role="listbox"
+                aria-label="Saved delivery addresses"
+                tabIndex={0}
+                {...dragScrollHandlers}
+                className="grid auto-cols-[calc((100%_-_1.25rem)/2)] grid-flow-col grid-rows-1 gap-5 overflow-x-auto scroll-smooth px-4 pb-10 pt-5 [scrollbar-width:none] active:cursor-grabbing [&::-webkit-scrollbar]:hidden"
+              >
+                {addresses.map((addr) => {
+                  const isSelected = selectedAddress === addr.id;
+                  const addressLabel = formatDisplayAddress(addr);
+                  const addressTitle =
+                    addr.houseNumber ||
+                    addr.area ||
+                    addr.city ||
+                    addressT("deliveryAddress");
 
-          {addresses.map((addr) => {
-            const isSelected = selectedAddress === addr.id;
-            const addressLabel = formatDisplayAddress(addr);
-            const addressTitle = addr.houseNumber || addr.area || addr.city || addressT("deliveryAddress");
-
-            return (
-              <button
-                key={addr.id}
-                type="button"
-                role="option"
-                aria-selected={isSelected}
-                onClick={() => {
-                  setSelectedAddress(addr.id);
-                  if (userId) {
-                    setStoredSelectedDeliveryAddressId(userId, addr.id);
-                  }
-                }}
-                className={`min-h-[124px] w-full snap-start rounded-[18px] border p-6 text-left shadow-[0_20px_48px_rgba(15,23,42,0.13)] transition-all duration-200
+                  return (
+                    <button
+                      key={addr.id}
+                      type="button"
+                      role="option"
+                      aria-selected={isSelected}
+                      onClick={() => {
+                        setSelectedAddress(addr.id);
+                        if (userId) {
+                          setStoredSelectedDeliveryAddressId(userId, addr.id);
+                        }
+                      }}
+                      className={`min-h-[124px] w-full snap-start rounded-[18px] border p-6 text-left shadow-[0_20px_48px_rgba(15,23,42,0.13)] transition-all duration-200
                   ${
                     isSelected
                       ? "border-primary bg-primary text-white shadow-[0_22px_52px_rgba(211,18,26,0.30)] hover:-translate-y-0.5"
                       : "border-gray-100 bg-white text-gray-900 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-[0_24px_56px_rgba(15,23,42,0.16)]"
                   }
                 `}
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between gap-3">
-                    {isSelected ? (
-                      <span className="flex items-center gap-2 text-sm font-bold text-white">
-                        <span className="flex size-6 items-center justify-center rounded-full border-2 border-white/80">
-                          <MapPin size={13} strokeWidth={3} />
-                        </span>
-                        {addressTitle}
-                      </span>
-                    ) : null}
-                    {addr.isDefault ? (
-                      <span
-                        className={`ml-auto rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                          isSelected
-                            ? "bg-white/15 text-white"
-                            : "bg-primary/10 text-primary"
-                        }`}
-                      >
-                        {addressT("defaultAddress")}
-                      </span>
-                    ) : null}
-                  </div>
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between gap-3">
+                          {isSelected ? (
+                            <span className="flex items-center gap-2 text-sm font-bold text-white">
+                              <span className="flex size-6 items-center justify-center rounded-full border-2 border-white/80">
+                                <MapPin size={13} strokeWidth={3} />
+                              </span>
+                              {addressTitle}
+                            </span>
+                          ) : null}
+                          {addr.isDefault ? (
+                            <span
+                              className={`ml-auto rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                                isSelected
+                                  ? "bg-white/15 text-white"
+                                  : "bg-primary/10 text-primary"
+                              }`}
+                            >
+                              {addressT("defaultAddress")}
+                            </span>
+                          ) : null}
+                        </div>
 
-                  <p
-                    className={`line-clamp-3 text-sm font-semibold leading-relaxed ${
-                      isSelected ? "text-white" : "text-gray-800"
-                    }`}
-                  >
-                    {addressLabel}
-                  </p>
-                </div>
-              </button>
-            );
-          })}
-            </div>
+                        <p
+                          className={`line-clamp-3 text-sm font-semibold leading-relaxed ${
+                            isSelected ? "text-white" : "text-gray-800"
+                          }`}
+                        >
+                          {addressLabel}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
           <div className="flex justify-end">
-          {canScrollRight ? (
-            <button
-              type="button"
-              aria-label="Next delivery addresses"
-              onClick={() => scrollAddressPage("right")}
-              className="flex size-11 items-center justify-center rounded-[12px] bg-white text-gray-900 shadow-[0_12px_30px_rgba(15,23,42,0.14)] transition hover:-translate-y-0.5 hover:text-primary"
-            >
-              <ChevronRight size={22} strokeWidth={2.5} />
-            </button>
-          ) : null}
+            {canScrollRight ? (
+              <button
+                type="button"
+                aria-label="Next delivery addresses"
+                onClick={() => scrollAddressPage("right")}
+                className="flex size-11 items-center justify-center rounded-[12px] bg-white text-gray-900 shadow-[0_12px_30px_rgba(15,23,42,0.14)] transition hover:-translate-y-0.5 hover:text-primary"
+              >
+                <ChevronRight size={22} strokeWidth={2.5} />
+              </button>
+            ) : null}
           </div>
         </div>
       )}

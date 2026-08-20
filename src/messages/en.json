@@ -1199,6 +1199,7 @@
     "retryPayment": "Retry Payment",
     "notAvailable": "Not available",
     "paymentStatus": {
+      "onlinePaid": "ONLINE PAID",
       "paid": "Paid",
       "pending": "Pending",
       "failed": "Failed",

@@ -28,7 +28,10 @@ import {
   type OrderPricingBreakdownLine,
 } from "@/services/orders";
 import { useTranslations } from "next-intl";
-import { isPaymentPendingOnlineOrder } from "@/components/pages/Order/payment-state";
+import {
+  getPaymentStatusTranslationKey,
+  isPaymentPendingOnlineOrder,
+} from "@/components/pages/Order/payment-state";
 import { isTaxBreakdownLine } from "@/lib/customer-pricing";
 
 const getAmountNumber = (value: unknown) => {
@@ -275,20 +278,9 @@ export default function OrderSummary({
     return "border-amber-100 bg-amber-50 text-amber-700";
   };
 
-  const paymentStatusLabel = (() => {
-    switch (paymentStatus) {
-      case "PAID":
-        return t("paymentStatus.paid");
-      case "FAILED":
-        return t("paymentStatus.failed");
-      case "CANCELLED":
-        return t("paymentStatus.cancelled");
-      case "PENDING":
-        return t("paymentStatus.pending");
-      default:
-        return t("paymentStatus.unknown");
-    }
-  })();
+  const paymentStatusLabel = t(
+    getPaymentStatusTranslationKey(paymentStatus, paymentMethod),
+  );
 
   const getPaymentMethodLabel = (method: string) => {
     switch (method) {

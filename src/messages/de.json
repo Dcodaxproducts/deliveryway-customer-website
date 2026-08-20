@@ -1199,6 +1199,7 @@
     "retryPayment": "Zahlung erneut versuchen",
     "notAvailable": "Nicht verfügbar",
     "paymentStatus": {
+      "onlinePaid": "ONLINE BEZAHLT",
       "paid": "Bezahlt",
       "pending": "Ausstehend",
       "failed": "Fehlgeschlagen",
