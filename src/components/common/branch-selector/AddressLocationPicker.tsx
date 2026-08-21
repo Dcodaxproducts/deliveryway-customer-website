@@ -1,6 +1,12 @@
 "use client";
 
-import { Loader2, MapPin, MousePointer2, Navigation, Search } from "lucide-react";
+import {
+  Loader2,
+  MapPin,
+  MousePointer2,
+  Navigation,
+  Search,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
@@ -21,7 +27,7 @@ type AddressLocationPickerProps = {
   onSelectLocation: (
     coordinates: GoogleLatLngLiteral,
     label?: string,
-    details?: GoogleAddressDetails
+    details?: GoogleAddressDetails,
   ) => void;
   onUseCurrentLocation?: () => void;
   isLocating?: boolean;
@@ -45,7 +51,9 @@ const MIN_QUERY_LENGTH = 3;
 const COORDINATE_QUERY_PATTERN =
   /^\s*(-?(?:\d+(?:\.\d+)?|\.\d+))\s*,\s*(-?(?:\d+(?:\.\d+)?|\.\d+))\s*$/;
 
-export const parseCoordinateQuery = (value: string): GoogleLatLngLiteral | null => {
+export const parseCoordinateQuery = (
+  value: string,
+): GoogleLatLngLiteral | null => {
   const match = value.match(COORDINATE_QUERY_PATTERN);
 
   if (!match) return null;
@@ -62,10 +70,12 @@ export const parseCoordinateQuery = (value: string): GoogleLatLngLiteral | null 
 const getAddressComponent = (
   components: GoogleAddressComponent[] | undefined,
   type: string,
-  name: "long_name" | "short_name" = "long_name"
-) => components?.find((component) => component.types.includes(type))?.[name] ?? "";
+  name: "long_name" | "short_name" = "long_name",
+) =>
+  components?.find((component) => component.types.includes(type))?.[name] ?? "";
 
-const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const escapeRegExp = (value: string) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const getFirstAddressLine = (value: string | undefined) =>
   (value || "").split(",")[0]?.trim() || "";
@@ -85,20 +95,22 @@ const stripStreetNumberFromStreet = (street: string, streetNumber: string) => {
 
 export const parseAddressDetails = (
   components: GoogleAddressComponent[] | undefined,
-  fallbackLabel?: string
+  fallbackLabel?: string,
 ): GoogleAddressDetails => {
   const streetNumber = getAddressComponent(components, "street_number");
   const route = getAddressComponent(components, "route");
-  const fallbackStreet = stripStreetNumberFromStreet(
-    getFirstAddressLine(fallbackLabel),
-    streetNumber
-  );
   const city =
     getAddressComponent(components, "locality") ||
     getAddressComponent(components, "postal_town") ||
     getAddressComponent(components, "administrative_area_level_2") ||
     getAddressComponent(components, "sublocality") ||
     getAddressComponent(components, "neighborhood");
+  const firstAddressLine = getFirstAddressLine(fallbackLabel);
+  const fallbackStreet =
+    firstAddressLine.localeCompare(city, undefined, { sensitivity: "base" }) ===
+    0
+      ? ""
+      : stripStreetNumberFromStreet(firstAddressLine, streetNumber);
 
   return {
     street: route || fallbackStreet,
@@ -139,12 +151,17 @@ export function AddressLocationPicker({
   const markerRef = useRef<GoogleMarkerInstance | null>(null);
 
   const trimmedQuery = query.trim();
-  const selectedLabel = locationLabel || (coordinates ? t("selectedMapLocation") : "");
-  const center = useMemo(() => coordinates ?? DEFAULT_MAP_CENTER, [coordinates]);
+  const selectedLabel =
+    locationLabel || (coordinates ? t("selectedMapLocation") : "");
+  const center = useMemo(
+    () => coordinates ?? DEFAULT_MAP_CENTER,
+    [coordinates],
+  );
   const isMapOpen = mapOpen ?? internalMapOpen;
   const setMapOpenState = useCallback(
     (nextOpen: boolean | ((current: boolean) => boolean)) => {
-      const resolvedOpen = typeof nextOpen === "function" ? nextOpen(isMapOpen) : nextOpen;
+      const resolvedOpen =
+        typeof nextOpen === "function" ? nextOpen(isMapOpen) : nextOpen;
 
       if (mapOpen === undefined) {
         setInternalMapOpen(resolvedOpen);
@@ -152,7 +169,7 @@ export function AddressLocationPicker({
 
       onMapOpenChange?.(resolvedOpen);
     },
-    [isMapOpen, mapOpen, onMapOpenChange]
+    [isMapOpen, mapOpen, onMapOpenChange],
   );
 
   useEffect(() => {
@@ -213,12 +230,13 @@ export function AddressLocationPicker({
 
           setIsSearching(false);
           setPredictions(
-            serviceStatus === googleMaps.maps.places.PlacesServiceStatus.OK && results
+            serviceStatus === googleMaps.maps.places.PlacesServiceStatus.OK &&
+              results
               ? results.slice(0, 5)
-              : []
+              : [],
           );
           setIsPredictionPanelOpen(true);
-        }
+        },
       );
     }, 250);
 
@@ -237,21 +255,28 @@ export function AddressLocationPicker({
 
       const geocoder = new googleMaps.maps.Geocoder();
 
-      geocoder.geocode({ location: nextCoordinates }, (results, geocoderStatus) => {
-        const firstResult = results?.[0];
-        const label =
-          geocoderStatus === googleMaps.maps.GeocoderStatus.OK && firstResult?.formatted_address
-            ? firstResult.formatted_address
-            : t("selectedMapLocation");
+      geocoder.geocode(
+        { location: nextCoordinates },
+        (results, geocoderStatus) => {
+          const firstResult = results?.[0];
+          const label =
+            geocoderStatus === googleMaps.maps.GeocoderStatus.OK &&
+            firstResult?.formatted_address
+              ? firstResult.formatted_address
+              : t("selectedMapLocation");
 
-        onSelectLocation(
-          nextCoordinates,
-          label,
-          parseAddressDetails(firstResult?.address_components, firstResult?.formatted_address)
-        );
-      });
+          onSelectLocation(
+            nextCoordinates,
+            label,
+            parseAddressDetails(
+              firstResult?.address_components,
+              firstResult?.formatted_address,
+            ),
+          );
+        },
+      );
     },
-    [googleMaps, onSelectLocation]
+    [googleMaps, onSelectLocation],
   );
 
   const syncMarker = useCallback(
@@ -279,7 +304,7 @@ export function AddressLocationPicker({
         markerRef.current.setPosition(nextCoordinates);
       }
     },
-    [googleMaps, reverseGeocode]
+    [googleMaps, reverseGeocode],
   );
 
   useEffect(() => {
@@ -317,7 +342,15 @@ export function AddressLocationPicker({
     if (coordinates) {
       syncMarker(coordinates);
     }
-  }, [center, coordinates, googleMaps, isReady, isMapOpen, reverseGeocode, syncMarker]);
+  }, [
+    center,
+    coordinates,
+    googleMaps,
+    isReady,
+    isMapOpen,
+    reverseGeocode,
+    syncMarker,
+  ]);
 
   const handleCoordinateSearch = () => {
     const nextCoordinates = parseCoordinateQuery(trimmedQuery);
@@ -337,7 +370,7 @@ export function AddressLocationPicker({
   const applyGeocodeResult = (
     nextCoordinates: GoogleLatLngLiteral,
     label: string,
-    components: GoogleAddressComponent[] | undefined
+    components: GoogleAddressComponent[] | undefined,
   ) => {
     setPredictions([]);
     setIsPredictionPanelOpen(false);
@@ -347,7 +380,7 @@ export function AddressLocationPicker({
     onSelectLocation(
       nextCoordinates,
       label,
-      parseAddressDetails(components, label)
+      parseAddressDetails(components, label),
     );
   };
 
@@ -364,7 +397,11 @@ export function AddressLocationPicker({
       const firstResult = results?.[0];
       const location = firstResult?.geometry?.location;
 
-      if (geocoderStatus !== googleMaps.maps.GeocoderStatus.OK || !firstResult || !location) {
+      if (
+        geocoderStatus !== googleMaps.maps.GeocoderStatus.OK ||
+        !firstResult ||
+        !location
+      ) {
         setIsPredictionPanelOpen(false);
         return;
       }
@@ -375,7 +412,7 @@ export function AddressLocationPicker({
           lng: location.lng(),
         },
         firstResult.formatted_address || trimmedQuery,
-        firstResult.address_components
+        firstResult.address_components,
       );
     });
   };
@@ -387,7 +424,9 @@ export function AddressLocationPicker({
     setIsPredictionPanelOpen(false);
     setQuery(prediction.description);
 
-    const placesService = new googleMaps.maps.places.PlacesService(document.createElement("div"));
+    const placesService = new googleMaps.maps.places.PlacesService(
+      document.createElement("div"),
+    );
     placesService.getDetails(
       {
         placeId: prediction.place_id,
@@ -396,7 +435,10 @@ export function AddressLocationPicker({
       (place, placeStatus) => {
         const location = place?.geometry?.location;
 
-        if (placeStatus !== googleMaps.maps.places.PlacesServiceStatus.OK || !location) {
+        if (
+          placeStatus !== googleMaps.maps.places.PlacesServiceStatus.OK ||
+          !location
+        ) {
           return;
         }
 
@@ -410,21 +452,25 @@ export function AddressLocationPicker({
           place.formatted_address ?? prediction.description,
           parseAddressDetails(
             place.address_components,
-            place.formatted_address ?? prediction.description
-          )
+            place.formatted_address ?? prediction.description,
+          ),
         );
-      }
+      },
     );
   };
 
   const unavailableCopy =
-    status === "missing-key"
-      ? t("searchUnavailable")
-      : errorMessage;
+    status === "missing-key" ? t("searchUnavailable") : errorMessage;
 
   return (
     <div ref={pickerRef} className="space-y-3">
-      <div className={actionsBelow ? "grid gap-3" : "grid gap-3 md:grid-cols-[1fr_auto_auto]"}>
+      <div
+        className={
+          actionsBelow
+            ? "grid gap-3"
+            : "grid gap-3 md:grid-cols-[1fr_auto_auto]"
+        }
+      >
         <div className="relative">
           <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" />
           <input
@@ -487,10 +533,12 @@ export function AddressLocationPicker({
                     <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                     <span className="min-w-0">
                       <span className="block truncate text-sm font-semibold text-[#111827]">
-                        {prediction.structured_formatting?.main_text ?? prediction.description}
+                        {prediction.structured_formatting?.main_text ??
+                          prediction.description}
                       </span>
                       <span className="mt-1 block truncate text-xs text-[#6B7280]">
-                        {prediction.structured_formatting?.secondary_text ?? prediction.description}
+                        {prediction.structured_formatting?.secondary_text ??
+                          prediction.description}
                       </span>
                     </span>
                   </button>
@@ -514,7 +562,11 @@ export function AddressLocationPicker({
               disabled={isLocating}
               className="inline-flex h-[49px] min-w-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-primary/20 bg-white px-2.5 text-xs font-semibold text-primary transition hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-70 sm:px-4 sm:text-sm"
             >
-              {isLocating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Navigation className="h-4 w-4" />}
+              {isLocating ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Navigation className="h-4 w-4" />
+              )}
               {t("currentLocation")}
             </button>
           ) : null}
@@ -549,7 +601,9 @@ export function AddressLocationPicker({
       ) : null}
 
       {isMapOpen ? (
-        <div className={`overflow-hidden rounded-2xl border border-[#E5E7EB] bg-[#F9FAFB] ${compact ? "h-[220px]" : "h-[280px]"}`}>
+        <div
+          className={`overflow-hidden rounded-2xl border border-[#E5E7EB] bg-[#F9FAFB] ${compact ? "h-[220px]" : "h-[280px]"}`}
+        >
           {isReady ? (
             <div ref={mapElementRef} className="h-full w-full" />
           ) : (

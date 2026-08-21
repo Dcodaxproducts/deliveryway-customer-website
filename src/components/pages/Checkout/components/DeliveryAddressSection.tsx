@@ -199,9 +199,12 @@ export function DeliveryAddressSection({
 
       setGuestDeliveryAddress({
         ...guestDeliveryAddress,
-        street: street || guestDeliveryAddress.street || label?.trim() || "",
+        street:
+          street ||
+          guestDeliveryAddress.street ||
+          (details ? "" : label?.trim() || ""),
         houseNumber: houseNumber || guestDeliveryAddress.houseNumber,
-        area: houseNumber || guestDeliveryAddress.area,
+        area: guestDeliveryAddress.area,
         postalCode: postalCode || guestDeliveryAddress.postalCode,
         city: city || guestDeliveryAddress.city,
         state: state || guestDeliveryAddress.state,

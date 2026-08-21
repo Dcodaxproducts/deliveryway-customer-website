@@ -185,7 +185,9 @@ export function AddressModal({
       setAddressValue("lat", String(coordinates.lat));
       setAddressValue("lng", String(coordinates.lng));
 
-      const street = details?.street?.trim() || label?.trim() || "";
+      const street = details
+        ? details.street?.trim() || ""
+        : label?.trim() || "";
       const houseNumber = details?.houseNumber?.trim() || "";
       const postalCode = details?.postalCode?.trim() || "";
       const city = details?.city?.trim() || "";
@@ -197,7 +199,6 @@ export function AddressModal({
       }
 
       setAddressValue("houseNumber", houseNumber);
-      setAddressValue("area", houseNumber);
 
       if (postalCode) {
         setAddressValue("postalCode", postalCode);

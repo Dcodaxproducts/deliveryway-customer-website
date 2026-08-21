@@ -9,7 +9,7 @@ import type { GoogleAddressComponent } from "@/types/google-maps";
 const component = (
   longName: string,
   types: string[],
-  shortName = longName
+  shortName = longName,
 ): GoogleAddressComponent => ({
   long_name: longName,
   short_name: shortName,
@@ -38,11 +38,26 @@ describe("parseAddressDetails", () => {
   it("strips the house number from fallback labels when route is missing", () => {
     const details = parseAddressDetails(
       [component("40", ["street_number"])],
-      "Example Street 40, 10000 City"
+      "Example Street 40, 10000 City",
     );
 
     expect(details.street).toBe("Example Street");
     expect(details.houseNumber).toBe("40");
+  });
+
+  it("does not store a city-level Google result as the street", () => {
+    const details = parseAddressDetails(
+      [
+        component("Frankfurt am Main", ["locality"]),
+        component("60311", ["postal_code"]),
+        component("Germany", ["country"]),
+      ],
+      "Frankfurt am Main, 60311 Frankfurt am Main, Germany",
+    );
+
+    expect(details.street).toBe("");
+    expect(details.city).toBe("Frankfurt am Main");
+    expect(details.postalCode).toBe("60311");
   });
 });
 
