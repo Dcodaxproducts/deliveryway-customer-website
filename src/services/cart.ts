@@ -116,6 +116,7 @@ const normalizeCartChargeBreakdown = (
 
   const taxes = normalizeChargeLines(breakdown.taxes);
   const serviceCharges = normalizeChargeLines(breakdown.serviceCharges);
+  const transactionFees = normalizeChargeLines(breakdown.transactionFees);
   const availableTaxTypes = Array.isArray(breakdown.availableTaxTypes)
     ? breakdown.availableTaxTypes
         .map((taxType) => {
@@ -153,6 +154,8 @@ const normalizeCartChargeBreakdown = (
     totalTaxAmount: toNumber(breakdown.totalTaxAmount, 0),
     serviceCharges,
     totalServiceChargeAmount: toNumber(breakdown.totalServiceChargeAmount, 0),
+    transactionFees,
+    totalTransactionFeeAmount: toNumber(breakdown.totalTransactionFeeAmount, 0),
   };
 };
 
@@ -196,6 +199,14 @@ export const normalizeCartQuote = (value: unknown): CartQuote | null => {
         ? null
         : toNumber(quote.serviceChargeValue, 0),
     serviceChargeAmount: toNumber(quote.serviceChargeAmount, 0),
+    transactionFeeType: getServiceChargeType(quote.transactionFeeType),
+    transactionFeeValue:
+      quote.transactionFeeValue === null ||
+      quote.transactionFeeValue === undefined
+        ? null
+        : toNumber(quote.transactionFeeValue, 0),
+    transactionFeeAmount: toNumber(quote.transactionFeeAmount, 0),
+    transactionFeePayer: getString(quote.transactionFeePayer) || null,
     tipAmount: toNumber(quote.tipAmount, 0),
     discountAmount: toNumber(quote.discountAmount, 0),
     ...(couponCode ? { couponCode } : {}),
@@ -232,6 +243,11 @@ const getCartQuoteSource = (cart: ApiRecord | null) => {
     serviceChargeType: quote.serviceChargeType ?? cart.serviceChargeType,
     serviceChargeValue: quote.serviceChargeValue ?? cart.serviceChargeValue,
     serviceChargeAmount: quote.serviceChargeAmount ?? cart.serviceChargeAmount,
+    transactionFeeType: quote.transactionFeeType ?? cart.transactionFeeType,
+    transactionFeeValue: quote.transactionFeeValue ?? cart.transactionFeeValue,
+    transactionFeeAmount:
+      quote.transactionFeeAmount ?? cart.transactionFeeAmount,
+    transactionFeePayer: quote.transactionFeePayer ?? cart.transactionFeePayer,
     tipAmount: quote.tipAmount ?? cart.tipAmount,
     discountAmount: quote.discountAmount ?? cart.discountAmount,
     loyaltyDiscountAmount:

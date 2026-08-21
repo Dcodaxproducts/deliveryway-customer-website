@@ -317,12 +317,14 @@ const getCheckoutQuoteSignature = ({
   customerId,
   guestDeliveryAddress,
   isGuest,
+  paymentMethod,
   selectedAddress,
 }: {
   activeTab: string;
   customerId: string;
   guestDeliveryAddress: CheckoutAddressValues;
   isGuest: boolean;
+  paymentMethod: string;
   selectedAddress: string | null;
 }) => {
   const address = isGuest
@@ -333,6 +335,7 @@ const getCheckoutQuoteSignature = ({
     activeTab,
     customerId,
     isGuest,
+    paymentMethod,
     address,
   });
 };
@@ -374,7 +377,8 @@ function CheckoutPageContent() {
   const { updateCustomerCart, updateCustomerCartOrderType, quoteCustomerCart } =
     useCart(token);
   const { fetchLoyalty } = useLoyalty(token);
-  const { createOrderPaymentAttempt, reconcileStripeOrder } = usePayments(token);
+  const { createOrderPaymentAttempt, reconcileStripeOrder } =
+    usePayments(token);
   const checkoutBranchId = checkoutContextBranchId;
   const homeQuery = useHome(
     restaurantId,
@@ -812,6 +816,7 @@ function CheckoutPageContent() {
       customerId,
       guestDeliveryAddress,
       isGuest,
+      paymentMethod: checkoutPaymentMethod,
       selectedAddress,
     });
 
@@ -841,9 +846,9 @@ function CheckoutPageContent() {
       syncedOrderTypeRef.current = orderType;
       syncCartFromResponse(orderTypeRes);
 
-      if (activeTab === "pickup") return;
-
-      const payload: Record<string, unknown> = {};
+      const payload: Record<string, unknown> = {
+        paymentMethod: checkoutPaymentMethod,
+      };
 
       if (
         activeTab === "delivery" &&
@@ -888,6 +893,7 @@ function CheckoutPageContent() {
     guestDeliveryAddress,
     isGuest,
     loadingCart,
+    checkoutPaymentMethod,
     quoteCustomerCart,
     selectedAddress,
     updateCustomerCartOrderType,
@@ -1483,10 +1489,7 @@ function CheckoutPageContent() {
           },
         });
 
-        if (
-          hasBackendError(attempt.response) ||
-          !attempt.response?.success
-        ) {
+        if (hasBackendError(attempt.response) || !attempt.response?.success) {
           reportBackendError(
             t("toast.failedInitiatePayment"),
             attempt.response,

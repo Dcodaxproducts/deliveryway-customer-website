@@ -173,6 +173,10 @@ interface CartQuote {
   serviceChargeType?: string | null;
   serviceChargeValue?: number | string | null;
   serviceChargeAmount?: number | string;
+  transactionFeeType?: string | null;
+  transactionFeeValue?: number | string | null;
+  transactionFeeAmount?: number | string;
+  transactionFeePayer?: string | null;
   tipAmount?: number | string;
   discountAmount?: number | string;
   hasDiscount?: boolean;
@@ -755,14 +759,17 @@ export const getTotalBeforeDiscount = ({
   deposit = 0,
   orderFee = 0,
   serviceCharge = 0,
+  transactionFee = 0,
   tipAmount = 0,
 }: {
   subtotal: number;
   deposit?: number;
   orderFee?: number;
   serviceCharge?: number;
+  transactionFee?: number;
   tipAmount?: number;
-}) => subtotal + deposit + orderFee + serviceCharge + tipAmount;
+}) =>
+  subtotal + deposit + orderFee + serviceCharge + transactionFee + tipAmount;
 
 export const getServiceChargeAmountFromQuote = (quote?: CartQuote | null) => {
   const breakdownTotal = toNullableNumber(
@@ -786,6 +793,18 @@ export const getServiceChargeAmountFromQuote = (quote?: CartQuote | null) => {
       0,
     ),
   );
+};
+
+export const getTransactionFeeAmountFromQuote = (quote?: CartQuote | null) => {
+  const breakdownTotal = toNullableNumber(
+    quote?.chargeBreakdown?.totalTransactionFeeAmount,
+  );
+
+  if (breakdownTotal !== null) {
+    return Math.max(0, breakdownTotal);
+  }
+
+  return Math.max(0, toNumber(quote?.transactionFeeAmount, 0));
 };
 
 const hasDiscountMetadata = (value: unknown) => {
@@ -1035,6 +1054,7 @@ export function CartSummarySection({
     total: resolvedQuote ? getDisplayTotalAmount(resolvedQuote) : null,
   });
   const serviceChargeAmount = getServiceChargeAmountFromQuote(resolvedQuote);
+  const transactionFeeAmount = getTransactionFeeAmountFromQuote(resolvedQuote);
   const serviceChargeLabel = getServiceChargeLabel({
     serviceChargeType: resolvedQuote?.serviceChargeType,
     serviceChargeValue: resolvedQuote?.serviceChargeValue,
@@ -1114,6 +1134,7 @@ export function CartSummarySection({
     deposit: depositTotal,
     orderFee: selectedOrderFee,
     serviceCharge: serviceChargeAmount,
+    transactionFee: transactionFeeAmount,
     tipAmount,
   });
 
@@ -1803,6 +1824,13 @@ export function CartSummarySection({
             <div className="flex items-center justify-between">
               <span>{serviceChargeLabel}</span>
               <span>{formatCurrency(serviceChargeAmount, currency)}</span>
+            </div>
+          ) : null}
+
+          {shouldShowPositiveAmountLine(transactionFeeAmount) ? (
+            <div className="flex items-center justify-between">
+              <span>{t("totals.onlinePaymentFee")}</span>
+              <span>{formatCurrency(transactionFeeAmount, currency)}</span>
             </div>
           ) : null}
 

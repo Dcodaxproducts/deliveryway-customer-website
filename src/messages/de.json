@@ -1097,6 +1097,7 @@
     "totals": {
       "serviceCharge": "Servicegebühr",
       "serviceChargeWithPercentage": "Servicegebühr ({value}%)",
+      "onlinePaymentFee": "Online-Zahlungsgebühr",
       "tip": "Trinkgeld",
       "payableAmount": "Zahlbetrag",
       "estimatedPayableAmount": "Geschätzter Zahlbetrag"
@@ -1168,6 +1169,7 @@
     "deliveryFee": "Liefergebühr",
     "taxes": "Steuern",
     "serviceCharge": "Servicegebühr",
+    "onlinePaymentFee": "Online-Zahlungsgebühr",
     "tip": "Trinkgeld",
     "discountApplied": "Rabatt angewendet",
     "discount": "Rabatt",

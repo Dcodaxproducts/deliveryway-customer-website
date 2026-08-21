@@ -138,6 +138,7 @@ export type OrderPricing = {
   taxAmount?: number | string | null;
   deliveryFee?: number | string | null;
   serviceChargeAmount?: number | string | null;
+  transactionFeeAmount?: number | string | null;
   tipAmount?: number | string | null;
   discountAmount?: number | string | null;
   loyaltyDiscountAmount?: number | string | null;
@@ -195,6 +196,10 @@ export type Order = {
   serviceChargeType?: string | null;
   serviceChargeValue?: number | string | null;
   serviceChargeAmount?: number | string | null;
+  transactionFeeType?: string | null;
+  transactionFeeValue?: number | string | null;
+  transactionFeeAmount?: number | string | null;
+  transactionFeePayer?: string | null;
   tipAmount?: number | string | null;
   discountAmount?: number | string | null;
   payableAmount?: number | string | null;
@@ -259,7 +264,9 @@ export type SubmitOrderReviewPayload = {
   comment?: string;
 };
 
-export const canReviewOrder = (order: Pick<Order, "orderType" | "status" | "review">) => {
+export const canReviewOrder = (
+  order: Pick<Order, "orderType" | "status" | "review">,
+) => {
   if (order.review) {
     return false;
   }
@@ -275,7 +282,11 @@ export const canReviewOrder = (order: Pick<Order, "orderType" | "status" | "revi
     return status === "PICKED_UP";
   }
 
-  if (orderType === "DINE_IN" || orderType === "DINEIN" || orderType === "TABLE") {
+  if (
+    orderType === "DINE_IN" ||
+    orderType === "DINEIN" ||
+    orderType === "TABLE"
+  ) {
     return status === "SERVED";
   }
 
@@ -291,7 +302,7 @@ export const deleteOrders = ordersService.del;
 
 const getRecord = (value: unknown): Record<string, unknown> | null =>
   typeof value === "object" && value !== null && !Array.isArray(value)
-    ? value as Record<string, unknown>
+    ? (value as Record<string, unknown>)
     : null;
 
 const getString = (value: unknown) =>
@@ -348,10 +359,16 @@ const normalizeTransaction = (value: unknown): OrderTransaction | null => {
 
 const normalizeTransactions = (value: unknown): OrderTransaction[] =>
   Array.isArray(value)
-    ? value.map(normalizeTransaction).filter((transaction): transaction is OrderTransaction => Boolean(transaction))
+    ? value
+        .map(normalizeTransaction)
+        .filter((transaction): transaction is OrderTransaction =>
+          Boolean(transaction),
+        )
     : [];
 
-const normalizeDeliveryAddress = (value: unknown): OrderDeliveryAddress | null => {
+const normalizeDeliveryAddress = (
+  value: unknown,
+): OrderDeliveryAddress | null => {
   const record = getRecord(value);
 
   if (!record) {
@@ -388,7 +405,9 @@ const normalizeOrderItem = (value: unknown): OrderItem | null => {
   const menuItem = getRecord(record.menuItem);
   const category = getRecord(menuItem?.category ?? record.category);
   const imageUrl = getString(record.imageUrl || menuItem?.imageUrl);
-  const menuItemName = getString(record.menuItemName || record.name || menuItem?.name);
+  const menuItemName = getString(
+    record.menuItemName || record.name || menuItem?.name,
+  );
 
   return {
     id,
@@ -409,20 +428,30 @@ const normalizeOrderItem = (value: unknown): OrderItem | null => {
     restaurantMenuId: getString(record.restaurantMenuId) || null,
     dealId: getString(record.dealId) || null,
     note: getString(record.note) || null,
-    snapshotModifiers: Array.isArray(record.snapshotModifiers) ? record.snapshotModifiers : [],
-    snapshotSections: Array.isArray(record.snapshotSections) ? record.snapshotSections : [],
+    snapshotModifiers: Array.isArray(record.snapshotModifiers)
+      ? record.snapshotModifiers
+      : [],
+    snapshotSections: Array.isArray(record.snapshotSections)
+      ? record.snapshotSections
+      : [],
     sections: Array.isArray(record.sections) ? record.sections : [],
     splitPizza: record.splitPizza,
-    selectedSections: Array.isArray(record.selectedSections) ? record.selectedSections : [],
-    modifiers: Array.isArray(record.modifiers) ? record.modifiers as OrderModifierInput[] : [],
+    selectedSections: Array.isArray(record.selectedSections)
+      ? record.selectedSections
+      : [],
+    modifiers: Array.isArray(record.modifiers)
+      ? (record.modifiers as OrderModifierInput[])
+      : [],
     modifierSelections: Array.isArray(record.modifierSelections)
-      ? record.modifierSelections as OrderModifierSelectionInput[]
+      ? (record.modifierSelections as OrderModifierSelectionInput[])
       : [],
     selectedModifiers: Array.isArray(record.selectedModifiers)
-      ? record.selectedModifiers as OrderModifierInput[]
+      ? (record.selectedModifiers as OrderModifierInput[])
       : [],
     includedItems: Array.isArray(record.includedItems)
-      ? record.includedItems.map(normalizeOrderItem).filter((item): item is OrderItem => Boolean(item))
+      ? record.includedItems
+          .map(normalizeOrderItem)
+          .filter((item): item is OrderItem => Boolean(item))
       : [],
     menuItem: {
       id: getString(menuItem?.id || record.menuItemId) || null,
@@ -430,8 +459,8 @@ const normalizeOrderItem = (value: unknown): OrderItem | null => {
       imageUrl: imageUrl || null,
       category: category
         ? {
-          name: getString(category.name) || null,
-        }
+            name: getString(category.name) || null,
+          }
         : null,
     },
   };
@@ -439,7 +468,9 @@ const normalizeOrderItem = (value: unknown): OrderItem | null => {
 
 const normalizeOrderItems = (value: unknown): OrderItem[] =>
   Array.isArray(value)
-    ? value.map(normalizeOrderItem).filter((item): item is OrderItem => Boolean(item))
+    ? value
+        .map(normalizeOrderItem)
+        .filter((item): item is OrderItem => Boolean(item))
     : [];
 
 const normalizeOrderDisplayItem = (value: unknown): OrderDisplayItem | null => {
@@ -449,7 +480,12 @@ const normalizeOrderDisplayItem = (value: unknown): OrderDisplayItem | null => {
 
   const normalizedItem = normalizeOrderItem({
     ...record,
-    id: record.id || record.dealId || record.menuItemId || record.menuItemName || record.type,
+    id:
+      record.id ||
+      record.dealId ||
+      record.menuItemId ||
+      record.menuItemName ||
+      record.type,
     itemType: record.itemType || record.type,
   });
 
@@ -457,36 +493,48 @@ const normalizeOrderDisplayItem = (value: unknown): OrderDisplayItem | null => {
 
   return {
     ...normalizedItem,
-    type: getString(record.type || record.itemType) || normalizedItem.itemType || null,
+    type:
+      getString(record.type || record.itemType) ||
+      normalizedItem.itemType ||
+      null,
     items: normalizeOrderItems(record.items),
   };
 };
 
 const normalizeOrderDisplayItems = (value: unknown): OrderDisplayItem[] =>
   Array.isArray(value)
-    ? value.map(normalizeOrderDisplayItem).filter((item): item is OrderDisplayItem => Boolean(item))
+    ? value
+        .map(normalizeOrderDisplayItem)
+        .filter((item): item is OrderDisplayItem => Boolean(item))
     : [];
 
-const normalizePricingBreakdown = (value: unknown): OrderPricingBreakdownLine[] =>
+const normalizePricingBreakdown = (
+  value: unknown,
+): OrderPricingBreakdownLine[] =>
   Array.isArray(value)
     ? value.flatMap((line) => {
-      const record = getRecord(line);
-      const key = getString(record?.key);
-      const label = getString(record?.label);
+        const record = getRecord(line);
+        const key = getString(record?.key);
+        const label = getString(record?.label);
 
-      if (!key && !label) {
-        return [];
-      }
+        if (!key && !label) {
+          return [];
+        }
 
-      return [{
-        key: key || label,
-        label: label || key,
-        amount: getAmount(record?.amount, 0),
-      }];
-    })
+        return [
+          {
+            key: key || label,
+            label: label || key,
+            amount: getAmount(record?.amount, 0),
+          },
+        ];
+      })
     : [];
 
-const normalizeOrderPricing = (value: unknown, fallback: Record<string, unknown>): OrderPricing | null => {
+const normalizeOrderPricing = (
+  value: unknown,
+  fallback: Record<string, unknown>,
+): OrderPricing | null => {
   const record = getRecord(value);
   const source = record ?? fallback;
   const breakdown = normalizePricingBreakdown(source.breakdown);
@@ -501,6 +549,7 @@ const normalizeOrderPricing = (value: unknown, fallback: Record<string, unknown>
     taxAmount: getAmount(source.taxAmount),
     deliveryFee: getAmount(source.deliveryFee),
     serviceChargeAmount: getAmount(source.serviceChargeAmount),
+    transactionFeeAmount: getAmount(source.transactionFeeAmount),
     tipAmount: getAmount(source.tipAmount),
     discountAmount: getAmount(source.discountAmount),
     loyaltyDiscountAmount: getAmount(source.loyaltyDiscountAmount),
@@ -514,23 +563,35 @@ const normalizeOrderPricing = (value: unknown, fallback: Record<string, unknown>
   };
 };
 
-const normalizeOrderPayment = (value: unknown, fallback: Record<string, unknown>): OrderPayment | null => {
+const normalizeOrderPayment = (
+  value: unknown,
+  fallback: Record<string, unknown>,
+): OrderPayment | null => {
   const record = getRecord(value);
   const refund = getRecord(record?.refund);
-  const transactions = normalizeTransactions(record?.transactions ?? fallback.transactions);
+  const transactions = normalizeTransactions(
+    record?.transactions ?? fallback.transactions,
+  );
 
   if (!record && transactions.length === 0 && !("paymentMethod" in fallback)) {
     return null;
   }
 
   return {
-    selectedMethod: getString(record?.selectedMethod || getRecord(fallback.paymentOptions)?.selected || fallback.paymentMethod) || null,
+    selectedMethod:
+      getString(
+        record?.selectedMethod ||
+          getRecord(fallback.paymentOptions)?.selected ||
+          fallback.paymentMethod,
+      ) || null,
     status: getString(record?.status || fallback.paymentStatus) || null,
     statusLabel: getString(record?.statusLabel) || null,
     availableMethods: Array.isArray(record?.availableMethods)
       ? record.availableMethods.map(getString).filter(Boolean)
       : Array.isArray(getRecord(fallback.paymentOptions)?.available)
-        ? (getRecord(fallback.paymentOptions)?.available as unknown[]).map(getString).filter(Boolean)
+        ? (getRecord(fallback.paymentOptions)?.available as unknown[])
+            .map(getString)
+            .filter(Boolean)
         : Array.isArray(fallback.availablePaymentMethods)
           ? fallback.availablePaymentMethods.map(getString).filter(Boolean)
           : [],
@@ -539,11 +600,11 @@ const normalizeOrderPayment = (value: unknown, fallback: Record<string, unknown>
     transactions,
     refund: refund
       ? {
-        isRefundable: getBoolean(refund.isRefundable),
-        refundableAmount: getAmount(refund.refundableAmount),
-        refundStatus: getString(refund.refundStatus) || null,
-        refundTransactions: normalizeTransactions(refund.refundTransactions),
-      }
+          isRefundable: getBoolean(refund.isRefundable),
+          refundableAmount: getAmount(refund.refundableAmount),
+          refundStatus: getString(refund.refundStatus) || null,
+          refundTransactions: normalizeTransactions(refund.refundTransactions),
+        }
       : null,
   };
 };
@@ -589,7 +650,9 @@ export const normalizeOrderDetail = (value: unknown): Order | null => {
   const items = normalizeOrderItems(record.items);
   const itemsPreview = normalizeOrderItems(record.itemsPreview);
   const displayItems = normalizeOrderDisplayItems(record.displayItems);
-  const deliveryAddress = normalizeDeliveryAddress(fulfillment?.deliveryAddress ?? record.deliveryAddress);
+  const deliveryAddress = normalizeDeliveryAddress(
+    fulfillment?.deliveryAddress ?? record.deliveryAddress,
+  );
   const transactions = payment?.transactions?.length
     ? payment.transactions
     : normalizeTransactions(record.transactions);
@@ -603,7 +666,8 @@ export const normalizeOrderDetail = (value: unknown): Order | null => {
     statusLabel: getString(record.statusLabel) || null,
     statusDescription: getString(record.statusDescription) || null,
     paymentStatus: getString(payment?.status || record.paymentStatus) || null,
-    paymentMethod: getString(payment?.selectedMethod || record.paymentMethod) || null,
+    paymentMethod:
+      getString(payment?.selectedMethod || record.paymentMethod) || null,
     availablePaymentMethods: Array.isArray(record.availablePaymentMethods)
       ? record.availablePaymentMethods.map(getString).filter(Boolean)
       : [],
@@ -616,7 +680,13 @@ export const normalizeOrderDetail = (value: unknown): Order | null => {
     taxAmount: pricing?.taxAmount ?? getAmount(record.taxAmount),
     serviceChargeType: getString(record.serviceChargeType) || null,
     serviceChargeValue: getAmount(record.serviceChargeValue),
-    serviceChargeAmount: pricing?.serviceChargeAmount ?? getAmount(record.serviceChargeAmount),
+    serviceChargeAmount:
+      pricing?.serviceChargeAmount ?? getAmount(record.serviceChargeAmount),
+    transactionFeeType: getString(record.transactionFeeType) || null,
+    transactionFeeValue: getAmount(record.transactionFeeValue),
+    transactionFeeAmount:
+      pricing?.transactionFeeAmount ?? getAmount(record.transactionFeeAmount),
+    transactionFeePayer: getString(record.transactionFeePayer) || null,
     tipAmount: pricing?.tipAmount ?? getAmount(record.tipAmount),
     discountAmount: pricing?.discountAmount ?? getAmount(record.discountAmount),
     payableAmount: pricing?.payableAmount ?? getAmount(record.payableAmount),
@@ -635,24 +705,26 @@ export const normalizeOrderDetail = (value: unknown): Order | null => {
     payment,
     fulfillment: fulfillment
       ? {
-        type: getString(fulfillment.type) || null,
-        modeLabel: getString(fulfillment.modeLabel) || null,
-        deliveryOtp: getString(fulfillment.deliveryOtp) || null,
-        showDeliveryOtp: getBoolean(fulfillment.showDeliveryOtp),
-        deliveryAddress,
-        pickup: getRecord(fulfillment.pickup),
-        dineIn: getRecord(fulfillment.dineIn),
-        deliveryman: getRecord(fulfillment.deliveryman),
-        estimate: getRecord(fulfillment.estimate),
-        tracking: getRecord(fulfillment.tracking),
-      }
+          type: getString(fulfillment.type) || null,
+          modeLabel: getString(fulfillment.modeLabel) || null,
+          deliveryOtp: getString(fulfillment.deliveryOtp) || null,
+          showDeliveryOtp: getBoolean(fulfillment.showDeliveryOtp),
+          deliveryAddress,
+          pickup: getRecord(fulfillment.pickup),
+          dineIn: getRecord(fulfillment.dineIn),
+          deliveryman: getRecord(fulfillment.deliveryman),
+          estimate: getRecord(fulfillment.estimate),
+          tracking: getRecord(fulfillment.tracking),
+        }
       : null,
     createdAt: getString(record.createdAt) || "",
     review: getRecord(record.review) as OrderReview | null,
   } as Order;
 };
 
-const normalizeFlatModifiers = (value: unknown): Array<{ modifierId: string; quantity: number }> => {
+const normalizeFlatModifiers = (
+  value: unknown,
+): Array<{ modifierId: string; quantity: number }> => {
   if (!Array.isArray(value)) {
     return [];
   }
@@ -661,7 +733,9 @@ const normalizeFlatModifiers = (value: unknown): Array<{ modifierId: string; qua
     .map((modifier) => {
       const record = getRecord(modifier);
       const nestedModifier = getRecord(record?.modifier);
-      const modifierId = getString(record?.modifierId || record?.id || nestedModifier?.id);
+      const modifierId = getString(
+        record?.modifierId || record?.id || nestedModifier?.id,
+      );
 
       return {
         modifierId,
@@ -671,7 +745,9 @@ const normalizeFlatModifiers = (value: unknown): Array<{ modifierId: string; qua
     .filter((modifier) => modifier.modifierId);
 };
 
-const normalizeModifierSelections = (value: unknown): CartModifierSelectionInput[] => {
+const normalizeModifierSelections = (
+  value: unknown,
+): CartModifierSelectionInput[] => {
   if (!Array.isArray(value)) {
     return [];
   }
@@ -687,21 +763,31 @@ const normalizeModifierSelections = (value: unknown): CartModifierSelectionInput
         modifiers,
       };
     })
-    .filter((selection) => selection.modifierGroupId && selection.modifiers.length > 0);
+    .filter(
+      (selection) =>
+        selection.modifierGroupId && selection.modifiers.length > 0,
+    );
 };
 
-const groupSelectedModifiers = (value: unknown): CartModifierSelectionInput[] => {
+const groupSelectedModifiers = (
+  value: unknown,
+): CartModifierSelectionInput[] => {
   if (!Array.isArray(value)) {
     return [];
   }
 
-  const grouped = new Map<string, Array<{ modifierId: string; quantity: number }>>();
+  const grouped = new Map<
+    string,
+    Array<{ modifierId: string; quantity: number }>
+  >();
 
   value.forEach((modifier) => {
     const record = getRecord(modifier);
     const modifierGroupId = getString(record?.modifierGroupId);
     const nestedModifier = getRecord(record?.modifier);
-    const modifierId = getString(record?.modifierId || record?.id || nestedModifier?.id);
+    const modifierId = getString(
+      record?.modifierId || record?.id || nestedModifier?.id,
+    );
 
     if (!modifierGroupId || !modifierId) {
       return;
@@ -737,9 +823,15 @@ const buildItemReorderPayload = ({
     return null;
   }
 
-  const explicitModifierSelections = normalizeModifierSelections(item.modifierSelections);
-  const groupedSelectedModifiers = normalizeModifierSelections(item.selectedModifiers);
-  const selectedModifiersByGroup = groupSelectedModifiers(item.selectedModifiers);
+  const explicitModifierSelections = normalizeModifierSelections(
+    item.modifierSelections,
+  );
+  const groupedSelectedModifiers = normalizeModifierSelections(
+    item.selectedModifiers,
+  );
+  const selectedModifiersByGroup = groupSelectedModifiers(
+    item.selectedModifiers,
+  );
   const modifierSelections =
     explicitModifierSelections.length > 0
       ? explicitModifierSelections
@@ -758,15 +850,23 @@ const buildItemReorderPayload = ({
     menuItemId,
     branchId,
     quantity: getNumber(item.quantity, 1),
-    ...(item.restaurantMenuId ? { restaurantMenuId: item.restaurantMenuId } : {}),
+    ...(item.restaurantMenuId
+      ? { restaurantMenuId: item.restaurantMenuId }
+      : {}),
     ...(item.variationId ? { variationId: item.variationId } : {}),
-    ...(parentDealId || item.dealId ? { dealId: parentDealId || item.dealId } : {}),
+    ...(parentDealId || item.dealId
+      ? { dealId: parentDealId || item.dealId }
+      : {}),
     ...(item.note ? { note: item.note } : { note: "" }),
     ...(modifierSelections.length > 0 ? { modifierSelections } : {}),
     ...(modifiers.length > 0 ? { modifiers } : {}),
-    ...(item.snapshotSections?.length ? { sections: item.snapshotSections } : {}),
+    ...(item.snapshotSections?.length
+      ? { sections: item.snapshotSections }
+      : {}),
     ...(item.sections?.length ? { sections: item.sections } : {}),
-    ...(item.selectedSections?.length ? { selectedSections: item.selectedSections } : {}),
+    ...(item.selectedSections?.length
+      ? { selectedSections: item.selectedSections }
+      : {}),
     ...(item.splitPizza ? { splitPizza: item.splitPizza } : {}),
   };
 };
@@ -778,14 +878,17 @@ export const buildReorderCartPayloads = ({
   order: Order;
   branchId: string | number;
 }): ReorderPayload[] => {
-  const sourceItems = Array.isArray(order.items) && order.items.length > 0
-    ? order.items
-    : Array.isArray(order.itemsPreview)
-      ? order.itemsPreview
-      : [];
+  const sourceItems =
+    Array.isArray(order.items) && order.items.length > 0
+      ? order.items
+      : Array.isArray(order.itemsPreview)
+        ? order.itemsPreview
+        : [];
 
   return sourceItems.flatMap((item) => {
-    const includedItems = Array.isArray(item.includedItems) ? item.includedItems : [];
+    const includedItems = Array.isArray(item.includedItems)
+      ? item.includedItems
+      : [];
 
     if (includedItems.length > 0) {
       return includedItems
@@ -794,7 +897,7 @@ export const buildReorderCartPayloads = ({
             branchId,
             item: includedItem,
             parentDealId: item.dealId,
-          })
+          }),
         )
         .filter((payload): payload is ReorderPayload => Boolean(payload));
     }
@@ -834,9 +937,10 @@ export const fetchOrderById = async ({
 
   return {
     response,
-    order: !response || response.success === false || !response.data
-      ? null
-      : normalizeOrderDetail(response.data),
+    order:
+      !response || response.success === false || !response.data
+        ? null
+        : normalizeOrderDetail(response.data),
   };
 };
 
@@ -849,7 +953,10 @@ export const fetchOrdersPage = async ({
   limit: number;
   token?: string | null;
 }) => {
-  const response = await getOrders(`/v1/orders?page=${page}&limit=${limit}`, token);
+  const response = await getOrders(
+    `/v1/orders?page=${page}&limit=${limit}`,
+    token,
+  );
 
   return {
     response,
@@ -877,7 +984,9 @@ export const reorderOrderToCart = ({
   customerId?: string | null;
   token?: string | null;
 }) => {
-  const query = customerId ? `?customerId=${encodeURIComponent(customerId)}` : "";
+  const query = customerId
+    ? `?customerId=${encodeURIComponent(customerId)}`
+    : "";
   return postOrders(`/v1/cart/reorder${query}`, { orderId }, token);
 };
 

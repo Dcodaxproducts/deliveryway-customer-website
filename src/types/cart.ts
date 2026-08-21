@@ -79,6 +79,8 @@ export type CartChargeBreakdown = {
   totalTaxAmount?: number;
   serviceCharges?: CartChargeLine[];
   totalServiceChargeAmount?: number;
+  transactionFees?: CartChargeLine[];
+  totalTransactionFeeAmount?: number;
 };
 
 export type CartDeliveryPolicy = {
@@ -93,6 +95,10 @@ export type CartQuote = {
   serviceChargeType?: ServiceChargeType | null;
   serviceChargeValue?: number | null;
   serviceChargeAmount?: number;
+  transactionFeeType?: ServiceChargeType | null;
+  transactionFeeValue?: number | null;
+  transactionFeeAmount?: number;
+  transactionFeePayer?: "CUSTOMER" | "RESTAURANT" | string | null;
   tipAmount?: number;
   discountAmount?: number;
   hasDiscount?: boolean;
@@ -128,7 +134,5 @@ export type AddCartItemPayload = {
   note?: string;
 };
 
-export type {
-  CartPayload,
-} from "@/components/pages/Items/types";
+export type { CartPayload } from "@/components/pages/Items/types";
 export type { CartUpdatePayload } from "@/services/cart";

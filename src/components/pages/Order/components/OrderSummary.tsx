@@ -157,6 +157,12 @@ export default function OrderSummary({
       label: t("serviceCharge"),
       amount: order?.serviceChargeAmount,
     },
+    {
+      key: "transactionFeeAmount",
+      label: t("onlinePaymentFee"),
+      amount:
+        order?.pricing?.transactionFeeAmount ?? order?.transactionFeeAmount,
+    },
     { key: "tipAmount", label: t("tip"), amount: order?.tipAmount },
   ].filter(
     (line) => line.key === "subtotal" || shouldShowAmountLine(line.amount),

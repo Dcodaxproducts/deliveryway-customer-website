@@ -6,6 +6,7 @@ import {
   getItemPricing,
   getScopedItemDiscountDisplays,
   getServiceChargeAmountFromQuote,
+  getTransactionFeeAmountFromQuote,
   getTotalBeforeDiscount,
   isDealCartItem,
   type CartItem,
@@ -27,16 +28,31 @@ describe("getTotalBeforeDiscount", () => {
     ).toBe(1000);
   });
 
-  it("includes subtotal, deposit, delivery fee, service charge, and tip before discount", () => {
+  it("includes subtotal, deposit, delivery fee, service charge, payment fee, and tip before discount", () => {
     expect(
       getTotalBeforeDiscount({
         subtotal: 24.5,
         deposit: 0.08,
         orderFee: 5,
         serviceCharge: 3,
+        transactionFee: 0.75,
         tipAmount: 0,
       }),
-    ).toBe(32.58);
+    ).toBe(33.33);
+  });
+});
+
+describe("getTransactionFeeAmountFromQuote", () => {
+  it("prefers the customer-visible transaction fee breakdown", () => {
+    expect(
+      getTransactionFeeAmountFromQuote({
+        transactionFeeAmount: 4,
+        chargeBreakdown: {
+          totalTransactionFeeAmount: 2.9,
+          transactionFees: [{ label: "Online payment fee", amount: 2.9 }],
+        },
+      }),
+    ).toBe(2.9);
   });
 });
 
