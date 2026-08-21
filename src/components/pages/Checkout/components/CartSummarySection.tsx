@@ -1402,7 +1402,7 @@ export function CartSummarySection({
 
                     <div className="min-w-0 flex-1 space-y-[8px] pr-10">
                       <div>
-                        <h4 className="text-base font-medium leading-tight text-gray-900">
+                        <h4 className="text-base font-bold leading-tight text-gray-900">
                           {item.name}
                         </h4>
 

@@ -483,11 +483,11 @@ export default function OrderSummary({
                       </div>
                     ) : null}
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-xs font-semibold text-gray-800">
+                      <p className="truncate text-sm font-bold text-gray-800">
                         {getIncludedDealItemName(item, t("itemFallback"))}
                       </p>
                       {modifiers.length > 0 ? (
-                        <p className="mt-0.5 truncate text-[11px] text-gray-500">
+                        <p className="mt-0.5 truncate text-xs text-gray-500">
                           {modifiers.join(", ")}
                         </p>
                       ) : null}
@@ -718,11 +718,11 @@ export default function OrderSummary({
                           </div>
                         ) : null}
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-xs font-semibold text-gray-800">
+                          <p className="truncate text-sm font-bold text-gray-800">
                             {itemName}
                           </p>
                           {modifiers.length > 0 ? (
-                            <p className="mt-0.5 truncate text-[11px] text-gray-500">
+                            <p className="mt-0.5 truncate text-xs text-gray-500">
                               {modifiers.join(", ")}
                             </p>
                           ) : null}

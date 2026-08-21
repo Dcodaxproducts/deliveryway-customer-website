@@ -2461,7 +2461,7 @@ export function RestaurantCard({
         <div className="flex justify-between gap-3 md:gap-4">
           <div className="order-2 min-w-0 flex-1 md:order-1">
             <div className="flex items-start justify-between gap-2">
-              <h3 className="text-sm font-semibold text-gray-900">
+              <h3 className="text-base font-bold leading-5 text-gray-900">
                 {item?.name}
               </h3>
 
@@ -2481,7 +2481,9 @@ export function RestaurantCard({
             </div>
 
             {truncatedDesc ? (
-              <p className="mb-2 text-xs text-gray-500">{truncatedDesc}</p>
+              <p className="mb-2 text-sm leading-5 text-gray-500">
+                {truncatedDesc}
+              </p>
             ) : null}
 
             <div className="mt-2 flex flex-wrap items-center gap-2">
