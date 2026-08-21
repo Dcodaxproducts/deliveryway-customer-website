@@ -3,7 +3,7 @@
 import Image from "next/image";
 import {
   ArrowRight,
-  BadgeDollarSign,
+  Banknote,
   Layers2,
   Loader2,
   Minus,
@@ -669,7 +669,7 @@ export function OrderCartSidebar({
                       {depositUnitAmount > 0 ? (
                         <div className="flex items-center justify-between rounded-[10px] border border-amber-100 bg-amber-50 px-3 py-2 text-xs">
                           <span className="inline-flex items-center gap-1 font-medium text-amber-700">
-                            <BadgeDollarSign size={14} />
+                            <Banknote size={14} />
                             {t("deposit")}
                           </span>
                           <span className="font-semibold text-amber-700">
