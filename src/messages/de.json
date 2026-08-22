@@ -1091,6 +1091,7 @@
       "helper": "Optionaler Betrag für das Restaurantpersonal.",
       "apply": "Trinkgeld anwenden",
       "update": "Trinkgeld aktualisieren",
+      "custom": "Eigener Betrag",
       "applied": "Trinkgeld angewendet: {amount} zum Gesamtbetrag hinzugefügt.",
       "remove": "Entfernen"
     },

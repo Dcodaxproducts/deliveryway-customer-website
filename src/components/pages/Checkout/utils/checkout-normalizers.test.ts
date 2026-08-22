@@ -480,6 +480,10 @@ describe("checkout normalizers", () => {
       serviceChargeType: "PERCENTAGE",
       serviceChargeValue: 10,
       serviceChargeAmount: 100,
+      transactionFeeType: null,
+      transactionFeeValue: null,
+      transactionFeeAmount: 0,
+      transactionFeePayer: null,
       tipAmount: 150,
       discountAmount: 301,
       loyaltyDiscountAmount: 0,
@@ -496,6 +500,7 @@ describe("checkout normalizers", () => {
         discountValue: 999,
         discountAmount: 301,
       },
+      chargeBreakdown: undefined,
     });
   });
 
@@ -688,7 +693,7 @@ describe("checkout normalizers", () => {
     });
   });
 
-  it("quote normalizer preserves service charge tip and payable amount", () => {
+  it("quote normalizer preserves customer transaction fee, service charge, tip and payable amount", () => {
     const { quote } = normalizeCartResponse({
       data: {
         quote: {
@@ -698,6 +703,10 @@ describe("checkout normalizers", () => {
           serviceChargeType: "PERCENTAGE",
           serviceChargeValue: 10,
           serviceChargeAmount: 100,
+          transactionFeeType: "PERCENTAGE",
+          transactionFeeValue: 2.5,
+          transactionFeeAmount: 25,
+          transactionFeePayer: "CUSTOMER",
           tipAmount: 150,
           discountAmount: 0,
           totalAmount: 1400,
@@ -705,8 +714,10 @@ describe("checkout normalizers", () => {
           chargeBreakdown: {
             taxes: [{ code: "STANDARD", label: "Standard tax", percentage: 19, amount: 190 }],
             serviceCharges: [{ code: "SERVICE", label: "Service charge", percentage: 10, amount: 100 }],
+            transactionFees: [{ code: "PAYPAL", label: "Online payment fee", percentage: 2.5, amount: 25 }],
             totalTaxAmount: 190,
             totalServiceChargeAmount: 100,
+            totalTransactionFeeAmount: 25,
           },
         },
       },
@@ -716,6 +727,10 @@ describe("checkout normalizers", () => {
       serviceChargeType: "PERCENTAGE",
       serviceChargeValue: 10,
       serviceChargeAmount: 100,
+      transactionFeeType: "PERCENTAGE",
+      transactionFeeValue: 2.5,
+      transactionFeeAmount: 25,
+      transactionFeePayer: "CUSTOMER",
       tipAmount: 150,
       payableAmount: 1400,
       taxAmount: 0,
@@ -725,8 +740,10 @@ describe("checkout normalizers", () => {
       chargeBreakdown: {
         taxes: [{ code: "STANDARD", label: "Standard tax", percentage: 19, amount: 190 }],
         serviceCharges: [{ code: "SERVICE", label: "Service charge", percentage: 10, amount: 100 }],
+        transactionFees: [{ code: "PAYPAL", label: "Online payment fee", percentage: 2.5, amount: 25 }],
         totalTaxAmount: 190,
         totalServiceChargeAmount: 100,
+        totalTransactionFeeAmount: 25,
       },
     });
   });

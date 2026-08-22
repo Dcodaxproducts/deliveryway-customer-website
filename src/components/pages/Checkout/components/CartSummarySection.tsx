@@ -1063,6 +1063,7 @@ export function CartSummarySection({
       t("totals.serviceChargeWithPercentage", { value }),
   });
   const [tipInput, setTipInput] = useState("");
+  const [showCustomTip, setShowCustomTip] = useState(false);
   const loyaltyPointsValue = Math.max(
     0,
     Math.floor(toNumber(loyaltyPoints, 0)),
@@ -1076,6 +1077,9 @@ export function CartSummarySection({
 
   useEffect(() => {
     setTipInput(quoteTipAmount > 0 ? String(quoteTipAmount) : "");
+    setShowCustomTip(
+      quoteTipAmount > 0 && ![1, 2, 3].includes(quoteTipAmount),
+    );
   }, [quoteTipAmount]);
 
   const checkoutPriceAdjustment = getCheckoutPriceAdjustmentTotal(
@@ -1222,6 +1226,12 @@ export function CartSummarySection({
     if (nextTip < 0) return;
 
     void onApplyTip?.(nextTip);
+  };
+
+  const handlePresetTip = (amount: number) => {
+    setShowCustomTip(false);
+    setTipInput(String(amount));
+    void onApplyTip?.(amount);
   };
 
   const handleRemoveTip = () => {
@@ -1851,50 +1861,84 @@ export function CartSummarySection({
               {t("tip.label")}
             </label>
             <p className="mb-3 text-xs text-gray-500">{t("tip.helper")}</p>
-            <div className="flex gap-2">
-              <input
-                id="checkout-tip"
-                type="number"
-                min="0"
-                value={tipInput}
-                onChange={(event) => setTipInput(event.target.value)}
-                placeholder="0"
-                className="h-[42px] flex-1 rounded-md border border-gray-200 px-3 py-2 text-sm outline-none transition-colors focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
-              />
+            <div className="grid grid-cols-4 gap-2">
+              {[1, 2, 3].map((amount) => (
+                <Button
+                  key={amount}
+                  type="button"
+                  variant="outline"
+                  onClick={() => handlePresetTip(amount)}
+                  disabled={applyingTip}
+                  aria-pressed={tipAmount === amount && !showCustomTip}
+                  className={
+                    tipAmount === amount && !showCustomTip
+                      ? "h-[42px] border-primary bg-primary text-white hover:bg-primary/90"
+                      : "h-[42px]"
+                  }
+                >
+                  {formatCurrency(amount, currency)}
+                </Button>
+              ))}
               <Button
                 type="button"
-                onClick={handleApplyTip}
+                variant="outline"
+                onClick={() => setShowCustomTip(true)}
                 disabled={applyingTip}
-                className="h-[42px] text-white"
+                aria-pressed={showCustomTip}
+                className={
+                  showCustomTip
+                    ? "h-[42px] border-primary bg-primary text-white hover:bg-primary/90"
+                    : "h-[42px]"
+                }
               >
-                {applyingTip
-                  ? t("applying")
-                  : tipAmount > 0
-                    ? t("tip.update")
-                    : t("tip.apply")}
+                {t("tip.custom")}
               </Button>
-              {tipAmount > 0 ? (
+            </div>
+            {showCustomTip ? (
+              <div className="mt-2 flex gap-2">
+                <input
+                  id="checkout-tip"
+                  type="number"
+                  min="0"
+                  value={tipInput}
+                  onChange={(event) => setTipInput(event.target.value)}
+                  placeholder="0"
+                  autoFocus
+                  className="h-[42px] flex-1 rounded-md border border-gray-200 px-3 py-2 text-sm outline-none transition-colors focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
+                />
                 <Button
                   type="button"
+                  onClick={handleApplyTip}
+                  disabled={applyingTip}
+                  className="h-[42px] text-white"
+                >
+                  {applyingTip
+                    ? t("applying")
+                    : tipAmount > 0
+                      ? t("tip.update")
+                      : t("tip.apply")}
+                </Button>
+              </div>
+            ) : null}
+            {tipAmount > 0 ? (
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <p role="status" className="text-xs font-medium text-green-700">
+                  {t("tip.applied", {
+                    amount: formatCurrency(tipAmount, currency),
+                  })}
+                </p>
+                <Button
+                  type="button"
+                  variant="ghost"
                   onClick={handleRemoveTip}
                   disabled={applyingTip}
                   aria-label={t("tip.remove")}
                   title={t("tip.remove")}
-                  className="size-[42px] shrink-0 bg-gray-200 p-0 text-gray-700 hover:bg-gray-300"
+                  className="size-8 shrink-0 p-0 text-gray-500"
                 >
                   <X className="size-4" aria-hidden="true" />
                 </Button>
-              ) : null}
-            </div>
-            {tipAmount > 0 ? (
-              <p
-                role="status"
-                className="mt-2 text-xs font-medium text-green-700"
-              >
-                {t("tip.applied", {
-                  amount: formatCurrency(tipAmount, currency),
-                })}
-              </p>
+              </div>
             ) : null}
           </div>
         ) : null}

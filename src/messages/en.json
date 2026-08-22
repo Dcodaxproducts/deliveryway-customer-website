@@ -1091,6 +1091,7 @@
       "helper": "Optional amount for the restaurant staff.",
       "apply": "Apply Tip",
       "update": "Update Tip",
+      "custom": "Custom",
       "applied": "Tip applied: {amount} added to total.",
       "remove": "Remove"
     },
