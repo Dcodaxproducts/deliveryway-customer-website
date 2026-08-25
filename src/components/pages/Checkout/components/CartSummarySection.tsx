@@ -1259,7 +1259,7 @@ export function CartSummarySection({
               <button
                 type="button"
                 onClick={handleAddMoreItems}
-                className="inline-flex h-9 items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 text-sm font-medium text-primary transition hover:border-primary/25 hover:bg-primary/10"
+                className="inline-flex h-10 items-center gap-2 rounded-full border border-primary bg-primary px-4 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2"
               >
                 <Plus size={14} strokeWidth={2.5} />
                 {t("addMoreItems")}
@@ -2161,7 +2161,7 @@ export function CartSummarySection({
           <button
             type="button"
             onClick={handleAddMoreItems}
-            className="mt-[15px] inline-flex h-[48px] w-full items-center justify-center gap-2 rounded-[10px] border border-primary/15 bg-primary/5 text-base font-medium text-primary transition hover:border-primary/25 hover:bg-primary/10"
+            className="mt-[15px] inline-flex h-[48px] w-full items-center justify-center gap-2 rounded-[10px] border border-primary bg-primary text-base font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2"
           >
             <Plus size={17} strokeWidth={2.5} />
             {t("addMoreItems")}

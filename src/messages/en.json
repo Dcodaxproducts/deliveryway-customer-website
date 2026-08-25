@@ -1269,6 +1269,13 @@
     "walletSubtitle": "Monitor wallet credits & debits.",
     "payments": "Payments",
     "wallet": "Wallet",
+    "paymentMethods": {
+      "COD": "Cash",
+      "CARD_ON_DELIVERY": "Card on delivery",
+      "STRIPE": "Online paid",
+      "PAYPAL": "Online paid",
+      "WALLET": "Online paid"
+    },
     "searchByOrderId": "Search by order id",
     "searchWalletNote": "Search wallet note",
     "allStatus": "All Status",

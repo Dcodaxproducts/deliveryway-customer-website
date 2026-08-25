@@ -29,6 +29,19 @@ export default function PaymentsHistory() {
   const t = useTranslations("payments");
   const orderStatusT = useTranslations("orderStatus");
   const commonT = useTranslations("common");
+  const paymentMethodLabel = (method: string) => {
+    const supportedMethods = [
+      "COD",
+      "CARD_ON_DELIVERY",
+      "STRIPE",
+      "PAYPAL",
+      "WALLET",
+    ] as const;
+    const supportedMethod = supportedMethods.find((value) => value === method);
+    return supportedMethod
+      ? t(`paymentMethods.${supportedMethod}`)
+      : method.replaceAll("_", " ");
+  };
   const { token, restaurantId, user } = useAuth();
   const homeQuery = useHome(restaurantId, user?.branchId, Boolean(restaurantId));
   const { fetchPaymentsPage, fetchWallet: fetchWalletData } = usePayments(token);
@@ -354,7 +367,7 @@ export default function PaymentsHistory() {
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
                             <p className="truncate font-semibold text-[#171717]">
-                              {item.paymentMethod} • {item.type}
+                              {paymentMethodLabel(item.paymentMethod)} • {item.type}
                             </p>
 
                             <span
@@ -365,7 +378,7 @@ export default function PaymentsHistory() {
                                 "bg-zinc-100 text-zinc-700"
                               }`}
                             >
-                              {item.paymentMethod}
+                              {paymentMethodLabel(item.paymentMethod)}
                             </span>
                           </div>
 
