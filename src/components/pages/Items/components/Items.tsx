@@ -56,6 +56,7 @@ type CategoryItemsState = {
   loading: boolean;
   loadingMore: boolean;
   loadedOnce: boolean;
+  failed: boolean;
   totalCount: number | null;
 };
 
@@ -63,14 +64,25 @@ const ITEMS_PAGE_LIMIT = 50;
 const CATEGORY_LOAD_BATCH_SIZE = 2;
 const PUBLIC_ITEMS_REQUEST_ATTEMPTS = 3;
 
-const createEmptyCategoryState = (): CategoryItemsState => ({
+export const createEmptyCategoryState = (): CategoryItemsState => ({
   items: [],
   page: 0,
   hasMore: false,
   loading: false,
   loadingMore: false,
   loadedOnce: false,
+  failed: false,
   totalCount: null,
+});
+
+export const resolveFailedCategoryItemsState = (
+  existing: CategoryItemsState,
+): CategoryItemsState => ({
+  ...existing,
+  loading: false,
+  loadingMore: false,
+  loadedOnce: true,
+  failed: true,
 });
 
 const getSortOrder = (value: unknown) => {
@@ -131,6 +143,15 @@ export function ItemsListing({
     return sections.map((category) => String(category?.id || "")).join("|");
   }, [sections]);
 
+  const requestContextKey = `${restaurantId}:${branchId}`;
+  const requestContextRef = useRef(requestContextKey);
+
+  useEffect(() => {
+    requestContextRef.current = requestContextKey;
+    inFlightRequestsRef.current.clear();
+    setCategoryItemsMap({});
+  }, [requestContextKey]);
+
   const activeCategoryId = useMemo(() => {
     return String(activeSectionId || sections?.[0]?.id || "");
   }, [activeSectionId, sections]);
@@ -153,6 +174,7 @@ export function ItemsListing({
   }) => {
     if (!categoryId || !restaurantId) return;
 
+    const requestContext = requestContextKey;
     const requestKey = `${branchId}:${categoryId}:${page}`;
 
     if (inFlightRequestsRef.current.has(requestKey)) return;
@@ -162,6 +184,8 @@ export function ItemsListing({
 
       queueMicrotask(() => {
         setCategoryItemsMap((prev) => {
+          if (requestContextRef.current !== requestContext) return prev;
+
           const existing = prev[categoryId] || createEmptyCategoryState();
 
           return {
@@ -171,6 +195,7 @@ export function ItemsListing({
               loading: !append,
               loadingMore: append,
               loadedOnce: append ? existing.loadedOnce : false,
+              failed: false,
             },
           };
         });
@@ -194,6 +219,8 @@ export function ItemsListing({
 
         if (!isFailedPublicItemsResponse(pageResult.response)) break;
 
+        if (Number(pageResult.response.status) === 429) break;
+
         if (attempt < PUBLIC_ITEMS_REQUEST_ATTEMPTS) {
           await new Promise((resolve) => {
             window.setTimeout(resolve, attempt * 250);
@@ -212,6 +239,8 @@ export function ItemsListing({
 
       queueMicrotask(() => {
         setCategoryItemsMap((prev) => {
+          if (requestContextRef.current !== requestContext) return prev;
+
           const existing = prev[categoryId] || createEmptyCategoryState();
 
           const nextItems = append
@@ -238,6 +267,7 @@ export function ItemsListing({
               loading: false,
               loadingMore: false,
               loadedOnce: true,
+              failed: false,
               totalCount,
             },
           };
@@ -246,16 +276,13 @@ export function ItemsListing({
     } catch (err) {
       queueMicrotask(() => {
         setCategoryItemsMap((prev) => {
+          if (requestContextRef.current !== requestContext) return prev;
+
           const existing = prev[categoryId] || createEmptyCategoryState();
 
           return {
             ...prev,
-            [categoryId]: {
-              ...existing,
-              loading: false,
-              loadingMore: false,
-              loadedOnce: existing.loadedOnce,
-            },
+            [categoryId]: resolveFailedCategoryItemsState(existing),
           };
         });
       });
@@ -642,6 +669,27 @@ export function ItemsListing({
     emptyLabel?: string;
   }) => {
     const state = categoryItemsMap[categoryId] || createEmptyCategoryState();
+
+    if (state.failed && !state.items.length) {
+      return (
+        <div className="flex min-h-[180px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-red-200 bg-red-50/40 px-6 text-center text-sm text-gray-600">
+          <p>{t("loadItemsFailed")}</p>
+          <button
+            type="button"
+            onClick={() => {
+              void fetchCategoryItems({
+                categoryId,
+                page: 1,
+                append: false,
+              });
+            }}
+            className="inline-flex h-10 items-center justify-center rounded-full border border-primary px-5 text-sm font-semibold text-primary transition hover:bg-primary/5"
+          >
+            {t("retryItems")}
+          </button>
+        </div>
+      );
+    }
 
     if (!state.loadedOnce && !state.items.length) {
       return (

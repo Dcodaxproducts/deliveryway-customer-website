@@ -735,6 +735,8 @@
       "selectCategory": "Wählen Sie eine Kategorie aus, um Artikel anzuzeigen",
       "selectMenu": "Wählen Sie ein Menü aus, um Artikel anzuzeigen",
       "loadingItems": "Artikel werden geladen...",
+      "loadItemsFailed": "Die Menüartikel konnten nicht geladen werden. Bitte versuchen Sie es erneut.",
+      "retryItems": "Erneut versuchen",
       "loadingMore": "Weitere werden geladen...",
       "loadMoreItems": "Weitere Artikel laden"
     },

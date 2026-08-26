@@ -735,6 +735,8 @@
       "selectCategory": "Select a category to view items",
       "selectMenu": "Select a menu to view items",
       "loadingItems": "Loading items...",
+      "loadItemsFailed": "Menu items could not be loaded. Please try again.",
+      "retryItems": "Try again",
       "loadingMore": "Loading more...",
       "loadMoreItems": "Load More Items"
     },
