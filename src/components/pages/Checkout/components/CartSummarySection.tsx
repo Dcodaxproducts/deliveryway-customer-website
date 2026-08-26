@@ -1861,7 +1861,7 @@ export function CartSummarySection({
               {t("tip.label")}
             </label>
             <p className="mb-3 text-xs text-gray-500">{t("tip.helper")}</p>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {[1, 2, 3].map((amount) => (
                 <Button
                   key={amount}
@@ -1872,8 +1872,8 @@ export function CartSummarySection({
                   aria-pressed={tipAmount === amount && !showCustomTip}
                   className={
                     tipAmount === amount && !showCustomTip
-                      ? "h-[42px] border-primary bg-primary text-white hover:bg-primary/90"
-                      : "h-[42px]"
+                      ? "h-10 w-full min-w-0 px-2 text-xs border-primary bg-primary text-white hover:bg-primary/90 sm:text-sm"
+                      : "h-10 w-full min-w-0 px-2 text-xs sm:text-sm"
                   }
                 >
                   {formatCurrency(amount, currency)}
@@ -1887,15 +1887,15 @@ export function CartSummarySection({
                 aria-pressed={showCustomTip}
                 className={
                   showCustomTip
-                    ? "h-[42px] border-primary bg-primary text-white hover:bg-primary/90"
-                    : "h-[42px]"
+                    ? "h-10 w-full min-w-0 px-2 text-xs border-primary bg-primary text-white hover:bg-primary/90 sm:text-sm"
+                    : "h-10 w-full min-w-0 px-2 text-xs sm:text-sm"
                 }
               >
                 {t("tip.custom")}
               </Button>
             </div>
             {showCustomTip ? (
-              <div className="mt-2 flex gap-2">
+              <div className="mt-2 flex flex-col gap-2 sm:flex-row">
                 <input
                   id="checkout-tip"
                   type="number"
@@ -1904,13 +1904,13 @@ export function CartSummarySection({
                   onChange={(event) => setTipInput(event.target.value)}
                   placeholder="0"
                   autoFocus
-                  className="h-[42px] flex-1 rounded-md border border-gray-200 px-3 py-2 text-sm outline-none transition-colors focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
+                  className="h-[42px] w-full min-w-0 flex-1 rounded-md border border-gray-200 px-3 py-2 text-sm outline-none transition-colors focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
                 />
                 <Button
                   type="button"
                   onClick={handleApplyTip}
                   disabled={applyingTip}
-                  className="h-[42px] text-white"
+                  className="h-[42px] w-full text-white sm:w-auto"
                 >
                   {applyingTip
                     ? t("applying")

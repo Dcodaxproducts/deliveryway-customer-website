@@ -83,6 +83,7 @@ describe("checkout validation", () => {
   it("uses translated checkout address messages from schema factories", () => {
     const schema = createCheckoutAddressSchema({
       streetRequired: "Street translated",
+      streetInvalid: "Street name translated",
       houseNumberRequired: "House number translated",
       postalCodeRequired: "Postal translated",
       cityRequired: "City translated",
@@ -131,6 +132,28 @@ describe("checkout validation", () => {
       );
       expect(result.error.flatten().fieldErrors.lng).toContain(
         "Longitude translated",
+      );
+    }
+  });
+
+  it("rejects a numeric-only street address", () => {
+    const result = checkoutAddressSchema.safeParse({
+      street: "40",
+      houseNumber: "40",
+      postalCode: "46047",
+      city: "Oberhausen",
+      state: "Nordrhein-Westfalen",
+      country: "Deutschland",
+      area: "",
+      lat: "51.4965",
+      lng: "6.8510",
+      isDefault: false,
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.flatten().fieldErrors.street).toContain(
+        "Enter a street name, not only a number",
       );
     }
   });

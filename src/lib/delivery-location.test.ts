@@ -88,6 +88,12 @@ describe("delivery location storage", () => {
     expect(
       hasRequiredDeliveryAddress({
         ...complete,
+        address: { ...complete.address, street: "8" },
+      }),
+    ).toBe(false);
+    expect(
+      hasRequiredDeliveryAddress({
+        ...complete,
         address: { ...complete.address, houseNumber: "" },
       }),
     ).toBe(false);

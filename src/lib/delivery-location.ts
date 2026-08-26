@@ -7,6 +7,7 @@ import type {
   GoogleAddressDetails,
   GoogleLatLngLiteral,
 } from "@/types/google-maps";
+import { hasStreetName } from "@/lib/address-validation";
 
 const DELIVERY_LOCATION_STORAGE_KEY = "deliveryway:last-user-location";
 const SELECTED_DELIVERY_ADDRESS_STORAGE_PREFIX =
@@ -28,7 +29,7 @@ export const hasRequiredDeliveryAddress = (
   location: StoredDeliveryLocation | null,
 ) =>
   Boolean(
-    location?.address?.street?.trim() &&
+    hasStreetName(location?.address?.street) &&
       location.address.houseNumber?.trim() &&
       location.address.city?.trim(),
   );

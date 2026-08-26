@@ -45,6 +45,16 @@ describe("parseAddressDetails", () => {
     expect(details.houseNumber).toBe("40");
   });
 
+  it("does not store a standalone house number as the street", () => {
+    const details = parseAddressDetails(
+      [component("40", ["street_number"])],
+      "40, 46047 Oberhausen",
+    );
+
+    expect(details.street).toBe("");
+    expect(details.houseNumber).toBe("40");
+  });
+
   it("does not store a city-level Google result as the street", () => {
     const details = parseAddressDetails(
       [

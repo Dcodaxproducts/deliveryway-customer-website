@@ -1,8 +1,10 @@
 import { z } from "zod";
+import { hasStreetName } from "@/lib/address-validation";
 
 export type CheckoutValidationMessages = {
   emailInvalid: string;
   streetRequired: string;
+  streetInvalid: string;
   houseNumberRequired: string;
   postalCodeRequired: string;
   cityRequired: string;
@@ -16,6 +18,7 @@ export const defaultEnglishCheckoutValidationMessages: CheckoutValidationMessage
   {
     emailInvalid: "Please enter a valid email",
     streetRequired: "Street address is required",
+    streetInvalid: "Enter a street name, not only a number",
     houseNumberRequired: "House number is required",
     postalCodeRequired: "Postal code is required",
     cityRequired: "City is required",
@@ -47,6 +50,7 @@ export const createCheckoutAddressSchema = (
   messages: Pick<
     CheckoutValidationMessages,
     | "streetRequired"
+    | "streetInvalid"
     | "houseNumberRequired"
     | "postalCodeRequired"
     | "cityRequired"
@@ -57,7 +61,11 @@ export const createCheckoutAddressSchema = (
   >,
 ) =>
   z.object({
-    street: z.string().trim().min(1, messages.streetRequired),
+    street: z
+      .string()
+      .trim()
+      .min(1, messages.streetRequired)
+      .refine(hasStreetName, messages.streetInvalid),
     houseNumber: z.string().trim().min(1, messages.houseNumberRequired),
     postalCode: z.string().trim().min(1, messages.postalCodeRequired),
     city: z.string().trim().min(1, messages.cityRequired),

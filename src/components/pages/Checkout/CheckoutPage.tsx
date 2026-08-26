@@ -90,6 +90,7 @@ import {
   getAvailableCheckoutPaymentMethods,
   type CheckoutPaymentMethod,
 } from "@/components/pages/Checkout/utils/payment-methods";
+import { getCheckoutQuotePayload } from "@/components/pages/Checkout/utils/checkout-quote";
 
 const emptyGuestDeliveryAddress: CheckoutAddressValues = {
   street: "",
@@ -478,7 +479,10 @@ function CheckoutPageContent() {
     setBackendError(null);
   };
 
-  const syncCartFromResponse = (res: unknown) => {
+  const syncCartFromResponse = (
+    res: unknown,
+    options: { preserveQuote?: boolean } = {},
+  ) => {
     const { items, quote } = normalizeCartResponse(res);
 
     if (items.length) {
@@ -490,6 +494,10 @@ function CheckoutPageContent() {
 
     if (!quote) {
       return false;
+    }
+
+    if (options.preserveQuote) {
+      return true;
     }
 
     setCartQuote(quote);
@@ -846,26 +854,15 @@ function CheckoutPageContent() {
       syncedOrderTypeRef.current = orderType;
       syncCartFromResponse(orderTypeRes);
 
-      const payload: Record<string, unknown> = {
-        paymentMethod: checkoutPaymentMethod,
-      };
-
-      if (
-        activeTab === "delivery" &&
-        isGuest &&
-        hasGuestDeliveryAddress(guestDeliveryAddress)
-      ) {
-        payload.guestDeliveryAddress =
-          getGuestDeliveryAddressPayload(guestDeliveryAddress);
-      }
-
-      if (activeTab === "delivery" && !isGuest && selectedAddress) {
-        payload.deliveryAddressId = selectedAddress;
-      }
-
       const res = await quoteCustomerCart({
         customerId,
-        payload,
+        payload: getCheckoutQuotePayload({
+          activeTab,
+          checkoutPaymentMethod,
+          guestDeliveryAddress,
+          isGuest,
+          selectedAddress,
+        }),
       });
 
       if (cancelled) return;
@@ -923,6 +920,8 @@ function CheckoutPageContent() {
   }, [activeTab, checkoutBranch, deliveryAllowed, pickupAllowed, router]);
 
   const updateQuantity = async (id: string, type: "inc" | "dec") => {
+    if (!customerId) return;
+
     const currentItem = cartItems.find((item) => String(item.id) === id);
     if (!currentItem) return;
 
@@ -973,7 +972,30 @@ function CheckoutPageContent() {
         ),
       });
 
-      if (!syncCartFromResponse(res)) {
+      syncCartFromResponse(res, { preserveQuote: true });
+
+      const quoteRes = await quoteCustomerCart({
+        customerId,
+        payload: getCheckoutQuotePayload({
+          activeTab,
+          checkoutPaymentMethod,
+          guestDeliveryAddress,
+          isGuest,
+          selectedAddress,
+        }),
+      });
+
+      if (hasBackendError(quoteRes)) {
+        lastQuoteSignatureRef.current = "";
+        reportBackendError(
+          t("toast.quoteFailed"),
+          quoteRes,
+          t("toast.quoteFailed"),
+        );
+        return;
+      }
+
+      if (!syncCartFromResponse(quoteRes)) {
         void fetchCart({ silent: true });
       }
     } catch (err) {

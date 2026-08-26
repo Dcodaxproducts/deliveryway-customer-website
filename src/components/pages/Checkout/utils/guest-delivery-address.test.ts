@@ -24,6 +24,9 @@ describe("guest delivery address", () => {
   it("requires derived administrative fields and coordinates", () => {
     expect(hasGuestDeliveryAddress(completeAddress)).toBe(true);
     expect(
+      hasGuestDeliveryAddress({ ...completeAddress, street: "40" }),
+    ).toBe(false);
+    expect(
       hasGuestDeliveryAddress({ ...completeAddress, houseNumber: "" }),
     ).toBe(false);
     expect(hasGuestDeliveryAddress({ ...completeAddress, state: "" })).toBe(

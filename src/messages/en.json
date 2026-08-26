@@ -2163,6 +2163,7 @@
     "restaurantIdMissing": "Invalid or missing restaurantId",
     "checkoutEmailInvalid": "Please enter a valid email",
     "streetRequired": "Street address is required",
+    "streetInvalid": "Enter a street name, not only a number",
     "houseNumberRequired": "House number is required",
     "postalCodeRequired": "Postal code is required",
     "cityRequired": "City is required",

@@ -1,5 +1,6 @@
 import type { CheckoutAddressValues } from "@/validations/checkout";
 import type { StoredDeliveryLocation } from "@/lib/delivery-location";
+import { hasStreetName } from "@/lib/address-validation";
 
 export const trimGuestDeliveryAddress = (address: CheckoutAddressValues) => ({
   street: address.street.trim(),
@@ -35,7 +36,7 @@ export const hasGuestDeliveryAddress = (address: CheckoutAddressValues) => {
   const trimmed = trimGuestDeliveryAddress(address);
 
   return Boolean(
-    trimmed.street &&
+    hasStreetName(trimmed.street) &&
     trimmed.houseNumber &&
     trimmed.postalCode &&
     trimmed.city &&

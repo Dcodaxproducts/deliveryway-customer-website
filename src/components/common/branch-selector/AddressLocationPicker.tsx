@@ -85,6 +85,14 @@ const stripStreetNumberFromStreet = (street: string, streetNumber: string) => {
 
   if (!streetNumber) return trimmedStreet;
 
+  if (
+    trimmedStreet.localeCompare(streetNumber.trim(), undefined, {
+      sensitivity: "base",
+    }) === 0
+  ) {
+    return "";
+  }
+
   const escapedStreetNumber = escapeRegExp(streetNumber.trim());
 
   return trimmedStreet

@@ -107,6 +107,7 @@ export function AddressModal({
     () =>
       createCheckoutAddressSchema({
         streetRequired: validationT("streetRequired"),
+        streetInvalid: validationT("streetInvalid"),
         houseNumberRequired: validationT("houseNumberRequired"),
         postalCodeRequired: validationT("postalCodeRequired"),
         cityRequired: validationT("cityRequired"),
