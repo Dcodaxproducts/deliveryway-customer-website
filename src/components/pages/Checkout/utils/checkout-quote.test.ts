@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { getCheckoutQuotePayload } from "./checkout-quote";
+import {
+  getCheckoutQuoteDelayMs,
+  getCheckoutQuotePayload,
+} from "./checkout-quote";
 import type { CheckoutAddressValues } from "@/validations/checkout";
 
 const address: CheckoutAddressValues = {
@@ -47,5 +50,25 @@ describe("getCheckoutQuotePayload", () => {
         houseNumber: "12",
       },
     });
+  });
+});
+
+describe("getCheckoutQuoteDelayMs", () => {
+  it("quotes immediately when the payment method changes", () => {
+    expect(
+      getCheckoutQuoteDelayMs({
+        lastPaymentMethod: "COD",
+        nextPaymentMethod: "STRIPE",
+      }),
+    ).toBe(0);
+  });
+
+  it("keeps the debounce for address-driven quote refreshes", () => {
+    expect(
+      getCheckoutQuoteDelayMs({
+        lastPaymentMethod: "STRIPE",
+        nextPaymentMethod: "STRIPE",
+      }),
+    ).toBe(450);
   });
 });

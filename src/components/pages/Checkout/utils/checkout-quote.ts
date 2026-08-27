@@ -4,6 +4,14 @@ import {
   hasGuestDeliveryAddress,
 } from "./guest-delivery-address";
 
+export const getCheckoutQuoteDelayMs = ({
+  lastPaymentMethod,
+  nextPaymentMethod,
+}: {
+  lastPaymentMethod: string;
+  nextPaymentMethod: string;
+}) => (lastPaymentMethod === nextPaymentMethod ? 450 : 0);
+
 export const getCheckoutQuotePayload = ({
   activeTab,
   checkoutPaymentMethod,

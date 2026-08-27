@@ -90,7 +90,10 @@ import {
   getAvailableCheckoutPaymentMethods,
   type CheckoutPaymentMethod,
 } from "@/components/pages/Checkout/utils/payment-methods";
-import { getCheckoutQuotePayload } from "@/components/pages/Checkout/utils/checkout-quote";
+import {
+  getCheckoutQuoteDelayMs,
+  getCheckoutQuotePayload,
+} from "@/components/pages/Checkout/utils/checkout-quote";
 
 const emptyGuestDeliveryAddress: CheckoutAddressValues = {
   street: "",
@@ -435,6 +438,7 @@ function CheckoutPageContent() {
   const [loadingLoyalty, setLoadingLoyalty] = useState(false);
   const loadedCartCustomerIdRef = useRef<string | null>(null);
   const lastQuoteSignatureRef = useRef("");
+  const lastQuotedPaymentMethodRef = useRef("");
   const syncedOrderTypeRef = useRef<string | null>(null);
   const totalPreparationMinutes = useMemo(
     () => getCartPreparationMinutes(cartItems),
@@ -618,10 +622,15 @@ function CheckoutPageContent() {
     if (customerId) {
       if (loadedCartCustomerIdRef.current === customerId) return;
       loadedCartCustomerIdRef.current = customerId;
+      lastQuoteSignatureRef.current = "";
+      lastQuotedPaymentMethodRef.current = "";
+      syncedOrderTypeRef.current = null;
       fetchCart();
     } else {
       loadedCartCustomerIdRef.current = null;
       lastQuoteSignatureRef.current = "";
+      lastQuotedPaymentMethodRef.current = "";
+      syncedOrderTypeRef.current = null;
       setCartItems([]);
       setCartQuote(null);
       setAppliedTipAmount(0);
@@ -817,7 +826,6 @@ function CheckoutPageContent() {
   useEffect(() => {
     if (!customerId || loadingCart) return;
     let cancelled = false;
-    syncedOrderTypeRef.current = null;
 
     const quoteSignature = getCheckoutQuoteSignature({
       activeTab,
@@ -830,29 +838,36 @@ function CheckoutPageContent() {
 
     if (lastQuoteSignatureRef.current === quoteSignature) return;
 
+    const quoteDelayMs = getCheckoutQuoteDelayMs({
+      lastPaymentMethod: lastQuotedPaymentMethodRef.current,
+      nextPaymentMethod: checkoutPaymentMethod,
+    });
     const quoteTimer = window.setTimeout(async () => {
       lastQuoteSignatureRef.current = quoteSignature;
+      lastQuotedPaymentMethodRef.current = checkoutPaymentMethod;
 
       const orderType = getCheckoutOrderType(activeTab);
-      const orderTypeRes = await updateCustomerCartOrderType({
-        customerId,
-        orderType,
-      });
+      if (syncedOrderTypeRef.current !== orderType) {
+        const orderTypeRes = await updateCustomerCartOrderType({
+          customerId,
+          orderType,
+        });
 
-      if (cancelled) return;
+        if (cancelled) return;
 
-      if (hasBackendError(orderTypeRes)) {
-        lastQuoteSignatureRef.current = "";
-        reportBackendError(
-          t("toast.quoteFailed"),
-          orderTypeRes,
-          t("toast.quoteFailed"),
-        );
-        return;
+        if (hasBackendError(orderTypeRes)) {
+          lastQuoteSignatureRef.current = "";
+          reportBackendError(
+            t("toast.quoteFailed"),
+            orderTypeRes,
+            t("toast.quoteFailed"),
+          );
+          return;
+        }
+
+        syncedOrderTypeRef.current = orderType;
+        syncCartFromResponse(orderTypeRes);
       }
-
-      syncedOrderTypeRef.current = orderType;
-      syncCartFromResponse(orderTypeRes);
 
       const res = await quoteCustomerCart({
         customerId,
@@ -878,7 +893,7 @@ function CheckoutPageContent() {
       } else {
         lastQuoteSignatureRef.current = "";
       }
-    }, 450);
+    }, quoteDelayMs);
 
     return () => {
       cancelled = true;
