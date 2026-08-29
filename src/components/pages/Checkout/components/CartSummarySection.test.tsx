@@ -54,6 +54,25 @@ describe("getTransactionFeeAmountFromQuote", () => {
       }),
     ).toBe(2.9);
   });
+
+  it("hides restaurant-paid transaction fees from customer totals", () => {
+    expect(
+      getTransactionFeeAmountFromQuote({
+        transactionFeeAmount: 0.99,
+        transactionFeePayer: "RESTAURANT",
+        chargeBreakdown: { totalTransactionFeeAmount: 0.99 },
+      }),
+    ).toBe(0);
+  });
+
+  it("shows transaction fees when the customer is configured to pay", () => {
+    expect(
+      getTransactionFeeAmountFromQuote({
+        transactionFeeAmount: 0.99,
+        transactionFeePayer: "CUSTOMER",
+      }),
+    ).toBe(0.99);
+  });
 });
 
 describe("getCartBillTotals", () => {

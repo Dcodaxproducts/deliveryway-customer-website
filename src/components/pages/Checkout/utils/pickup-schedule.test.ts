@@ -196,7 +196,10 @@ describe("pickup schedule helpers", () => {
     ]);
   });
 
-  it("falls back to opening hours for delivery when selected delivery day is closed", () => {
+  it("honors a closed delivery day instead of enabling immediate ordering from opening hours", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2030-06-17T09:00:00"));
+
     const branch: BranchRecord = {
       id: "branch-1",
       name: "Main",
@@ -226,17 +229,18 @@ describe("pickup schedule helpers", () => {
         scheduleType: "delivery",
       })
     ).toMatchObject({
-      source: "opening",
+      source: "delivery",
+      schedule: { isClosed: true },
     });
     expect(
       buildDeliveryTimeSlots({
         branch,
         dateValue: "2030-06-17",
       })
-    ).toEqual([
-      { value: "09:00", label: "09:00" },
-      { value: "09:30", label: "09:30" },
-    ]);
+    ).toEqual([]);
+    expect(
+      isImmediateScheduleAvailable({ branch, scheduleType: "delivery" })
+    ).toBe(false);
   });
 
   it("uses holiday opening hours before regular pickup and delivery hours", () => {

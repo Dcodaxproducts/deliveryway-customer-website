@@ -796,6 +796,12 @@ export const getServiceChargeAmountFromQuote = (quote?: CartQuote | null) => {
 };
 
 export const getTransactionFeeAmountFromQuote = (quote?: CartQuote | null) => {
+  const payer = quote?.transactionFeePayer?.trim().toUpperCase();
+
+  if (payer && payer !== "CUSTOMER") {
+    return 0;
+  }
+
   const breakdownTotal = toNullableNumber(
     quote?.chargeBreakdown?.totalTransactionFeeAmount,
   );

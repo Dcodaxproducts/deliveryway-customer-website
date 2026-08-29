@@ -426,14 +426,6 @@ const getHolidayScheduleForDate = ({
     return String(hour?.date || "").trim() === dateValue;
   }) ?? null;
 
-const isUsableSchedule = (schedule: OpeningHours | null | undefined) =>
-  Boolean(
-    schedule &&
-      !schedule.isClosed &&
-      timeToMinutes(schedule.openTime) !== null &&
-      timeToMinutes(schedule.closeTime) !== null
-  );
-
 const getScheduleIntervalMinutes = (
   branch: BranchRecord | null | undefined,
   scheduleType: "pickup" | "delivery"
@@ -551,14 +543,13 @@ export const getBranchScheduleForDate = ({
     }) || null;
 
   if (scheduleType === "delivery") {
-    const schedule = isUsableSchedule(deliverySchedule)
-      ? deliverySchedule
-      : openingSchedule;
+    const hasDeliverySchedule = deliveryHours.length > 0;
+    const schedule = hasDeliverySchedule ? deliverySchedule : openingSchedule;
 
     return {
       schedule,
       hasOpeningHours: openingHours.length > 0 || deliveryHours.length > 0,
-      source: schedule === deliverySchedule ? "delivery" : openingSchedule ? "opening" : null,
+      source: hasDeliverySchedule ? "delivery" : openingSchedule ? "opening" : null,
     };
   }
 
