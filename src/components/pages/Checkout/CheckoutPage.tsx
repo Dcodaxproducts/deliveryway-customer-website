@@ -94,6 +94,7 @@ import {
   getCheckoutQuoteDelayMs,
   getCheckoutQuotePayload,
 } from "@/components/pages/Checkout/utils/checkout-quote";
+import { Button } from "@/components/ui/button";
 
 const emptyGuestDeliveryAddress: CheckoutAddressValues = {
   street: "",
@@ -1667,86 +1668,90 @@ function CheckoutPageContent() {
   };
 
   return (
-    <div className="mx-auto mb-[113px] mt-[63px] max-w-[1400px] px-4 md:px-30">
-      <div className="grid grid-cols-1 gap-16 lg:grid-cols-12">
-        <div className="space-y-[38px] lg:col-span-7">
-          <Tabs
-            activeTab={activeTab}
-            canShowDelivery={deliveryAllowed}
-            canShowPickup={pickupAllowed}
-          />
+    <div className="mx-auto mb-[113px] mt-[63px] max-w-[1400px] px-4 pb-[calc(86px+env(safe-area-inset-bottom))] md:px-30 lg:pb-0">
+      <div className="grid grid-cols-1 gap-y-[38px] lg:grid-cols-12 lg:gap-x-16">
+        <div className="contents lg:col-span-7 lg:block">
+          <div className="order-1">
+            <Tabs
+              activeTab={activeTab}
+              canShowDelivery={deliveryAllowed}
+              canShowPickup={pickupAllowed}
+            />
+          </div>
 
-          {activeTab === "delivery" ? (
-            <DeliverySection
-              contactErrors={contactErrors}
-              onContactFieldChange={(field) =>
-                setContactErrors((current) => {
-                  if (!current[field]) return current;
-                  const next = { ...current };
-                  delete next[field];
-                  return next;
-                })
-              }
-              selectedAddress={selectedAddress}
-              setSelectedAddress={setSelectedAddress}
-              note={note}
-              setNote={setNote}
-              customer={customer}
-              setCustomer={setCustomer}
-              isGuest={isGuest}
-              privacyPolicyAccepted={privacyPolicyAccepted}
-              setPrivacyPolicyAccepted={setPrivacyPolicyAccepted}
-              privacyPolicy={guestPrivacyPolicy}
-              privacyPolicyLoading={privacyPolicyLoading}
-              guestDeliveryAddress={guestDeliveryAddress}
-              setGuestDeliveryAddress={setGuestDeliveryAddress}
-              paymentMethod={checkoutPaymentMethod}
-              setPaymentMethod={setPaymentMethod}
-              allowedPaymentMethods={allowedPaymentMethods}
-              scheduledDeliveryValue={scheduledDeliveryValue}
-              setScheduledDeliveryValue={setScheduledDeliveryValue}
-              deliveryScheduleMode={deliveryScheduleMode}
-              setDeliveryScheduleMode={setDeliveryScheduleMode}
-              selectedBranch={checkoutBranch}
-              totalPreparationMinutes={totalPreparationMinutes}
-            />
-          ) : (
-            <PickupSection
-              contactErrors={contactErrors}
-              onContactFieldChange={(field) =>
-                setContactErrors((current) => {
-                  if (!current[field]) return current;
-                  const next = { ...current };
-                  delete next[field];
-                  return next;
-                })
-              }
-              selectedAddress={selectedAddress}
-              setSelectedAddress={setSelectedAddress}
-              note={note}
-              setNote={setNote}
-              customer={customer}
-              setCustomer={setCustomer}
-              isGuest={isGuest}
-              privacyPolicyAccepted={privacyPolicyAccepted}
-              setPrivacyPolicyAccepted={setPrivacyPolicyAccepted}
-              privacyPolicy={guestPrivacyPolicy}
-              privacyPolicyLoading={privacyPolicyLoading}
-              paymentMethod={checkoutPaymentMethod}
-              setPaymentMethod={setPaymentMethod}
-              allowedPaymentMethods={allowedPaymentMethods}
-              pickupDate={pickupDate}
-              setPickupDate={setPickupDate}
-              pickupTime={pickupTime}
-              setPickupTime={setPickupTime}
-              pickupScheduleMode={pickupScheduleMode}
-              setPickupScheduleMode={setPickupScheduleMode}
-              selectedBranch={checkoutBranch}
-            />
-          )}
+          <div className="order-3 lg:mt-[38px]">
+            {activeTab === "delivery" ? (
+              <DeliverySection
+                contactErrors={contactErrors}
+                onContactFieldChange={(field) =>
+                  setContactErrors((current) => {
+                    if (!current[field]) return current;
+                    const next = { ...current };
+                    delete next[field];
+                    return next;
+                  })
+                }
+                selectedAddress={selectedAddress}
+                setSelectedAddress={setSelectedAddress}
+                note={note}
+                setNote={setNote}
+                customer={customer}
+                setCustomer={setCustomer}
+                isGuest={isGuest}
+                privacyPolicyAccepted={privacyPolicyAccepted}
+                setPrivacyPolicyAccepted={setPrivacyPolicyAccepted}
+                privacyPolicy={guestPrivacyPolicy}
+                privacyPolicyLoading={privacyPolicyLoading}
+                guestDeliveryAddress={guestDeliveryAddress}
+                setGuestDeliveryAddress={setGuestDeliveryAddress}
+                paymentMethod={checkoutPaymentMethod}
+                setPaymentMethod={setPaymentMethod}
+                allowedPaymentMethods={allowedPaymentMethods}
+                scheduledDeliveryValue={scheduledDeliveryValue}
+                setScheduledDeliveryValue={setScheduledDeliveryValue}
+                deliveryScheduleMode={deliveryScheduleMode}
+                setDeliveryScheduleMode={setDeliveryScheduleMode}
+                selectedBranch={checkoutBranch}
+                totalPreparationMinutes={totalPreparationMinutes}
+              />
+            ) : (
+              <PickupSection
+                contactErrors={contactErrors}
+                onContactFieldChange={(field) =>
+                  setContactErrors((current) => {
+                    if (!current[field]) return current;
+                    const next = { ...current };
+                    delete next[field];
+                    return next;
+                  })
+                }
+                selectedAddress={selectedAddress}
+                setSelectedAddress={setSelectedAddress}
+                note={note}
+                setNote={setNote}
+                customer={customer}
+                setCustomer={setCustomer}
+                isGuest={isGuest}
+                privacyPolicyAccepted={privacyPolicyAccepted}
+                setPrivacyPolicyAccepted={setPrivacyPolicyAccepted}
+                privacyPolicy={guestPrivacyPolicy}
+                privacyPolicyLoading={privacyPolicyLoading}
+                paymentMethod={checkoutPaymentMethod}
+                setPaymentMethod={setPaymentMethod}
+                allowedPaymentMethods={allowedPaymentMethods}
+                pickupDate={pickupDate}
+                setPickupDate={setPickupDate}
+                pickupTime={pickupTime}
+                setPickupTime={setPickupTime}
+                pickupScheduleMode={pickupScheduleMode}
+                setPickupScheduleMode={setPickupScheduleMode}
+                selectedBranch={checkoutBranch}
+              />
+            )}
+          </div>
         </div>
 
-        <div className="lg:col-span-5">
+        <div className="order-2 lg:order-none lg:col-span-5">
           <CartSummarySection
             cartItems={cartItems}
             quote={cartQuote}
@@ -1774,7 +1779,26 @@ function CheckoutPageContent() {
             loadingLoyalty={loadingLoyalty}
             isGuest={isGuest}
             currency={currency}
+            hidePlaceOrderOnMobile
           />
+        </div>
+      </div>
+
+      <div
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white/95 px-4 pt-3 shadow-[0_-10px_30px_rgba(15,23,42,0.10)] backdrop-blur lg:hidden"
+        style={{
+          paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
+        }}
+      >
+        <div className="mx-auto max-w-[640px]">
+          <Button
+            onClick={handlePlaceOrder}
+            disabled={placingOrder || loadingCart || cartItems.length === 0}
+            variant="primary"
+            className="h-[54px] w-full cursor-pointer rounded-[10px] text-base font-semibold shadow-lg shadow-primary/20 disabled:opacity-50"
+          >
+            {placingOrder ? t("placingOrder") : t("placeOrder")}
+          </Button>
         </div>
       </div>
 

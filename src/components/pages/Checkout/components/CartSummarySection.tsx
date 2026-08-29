@@ -243,6 +243,7 @@ interface Props {
   loadingLoyalty?: boolean;
   isGuest?: boolean;
   currency?: string | null;
+  hidePlaceOrderOnMobile?: boolean;
 }
 
 export type CheckoutType = "delivery" | "pickup";
@@ -1011,6 +1012,7 @@ export function CartSummarySection({
   loadingLoyalty = false,
   isGuest = false,
   currency,
+  hidePlaceOrderOnMobile = false,
 }: Props) {
   const t = useTranslations("checkout");
   const router = useRouter();
@@ -1246,7 +1248,7 @@ export function CartSummarySection({
   };
 
   return (
-    <div className="sticky top-10 space-y-[42.63px]">
+    <div className="space-y-[42.63px] lg:sticky lg:top-10">
       <section className="space-y-[20.37px]">
         <div className="flex items-center justify-between">
           <div>
@@ -2179,7 +2181,7 @@ export function CartSummarySection({
             onClick={onPlaceOrder}
             disabled={placingOrder || cartItems.length === 0}
             variant="primary"
-            className="mt-[15px] h-[54px] w-full cursor-pointer rounded-[10px] text-base font-medium shadow-lg shadow-primary/20 disabled:opacity-50"
+            className={`mt-[15px] h-[54px] w-full cursor-pointer rounded-[10px] text-base font-medium shadow-lg shadow-primary/20 disabled:opacity-50 ${hidePlaceOrderOnMobile ? "hidden lg:inline-flex" : ""}`}
           >
             {placingOrder ? t("placingOrder") : t("placeOrder")}
           </Button>
