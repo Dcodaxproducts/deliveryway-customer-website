@@ -18,6 +18,7 @@ export const DEFAULT_BRANDING: Branding = {
     coverImage: "/hero.png",
     heroImage: "/hero.png",
     bannerImage: "/hero.png",
+    faviconUrl: "/deliveryway-logo.jpg",
   },
   checkout: {
     accentColor: "#CE181B",

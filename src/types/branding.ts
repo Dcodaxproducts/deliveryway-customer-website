@@ -8,6 +8,7 @@ export type BrandAssets = {
   coverImage?: string | null;
   heroImage?: string | null;
   bannerImage?: string | null;
+  faviconUrl?: string | null;
 };
 
 export type CheckoutBranding = {

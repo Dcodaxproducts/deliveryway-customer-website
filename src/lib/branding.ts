@@ -44,7 +44,9 @@ const getNestedString = (value: unknown, keys: string[]) => {
     currentValue = currentValue[key];
   }
 
-  return typeof currentValue === "string" && currentValue.trim() ? currentValue : undefined;
+  return typeof currentValue === "string" && currentValue.trim()
+    ? currentValue
+    : undefined;
 };
 
 export const normalizeBrandingApiResponse = (homeData: unknown): Branding => {
@@ -64,42 +66,47 @@ export const normalizeBrandingApiResponse = (homeData: unknown): Branding => {
   const assets = getRecord(branding, "assets") ?? {};
   const checkout = getRecord(branding, "checkout") ?? {};
 
-  const primaryColor = getString(
-    theme.primaryColor,
-    branding.primaryColor,
-    data.primaryColor,
-    restaurant.primaryColor,
-    DEFAULT_BRANDING.primaryColor
-  ) ?? DEFAULT_BRANDING.primaryColor;
-  const secondaryColor = getString(
-    theme.secondaryColor,
-    branding.secondaryColor,
-    data.secondaryColor,
-    restaurant.secondaryColor,
-    DEFAULT_BRANDING.secondaryColor
-  ) ?? DEFAULT_BRANDING.secondaryColor;
-  const accentColor = getString(
-    theme.accentColor,
-    checkout.accentColor,
-    branding.accentColor,
-    data.accentColor,
-    restaurant.accentColor,
-    DEFAULT_BRANDING.accentColor
-  ) ?? DEFAULT_BRANDING.accentColor;
-  const backgroundColor = getString(
-    theme.backgroundColor,
-    branding.backgroundColor,
-    data.backgroundColor,
-    restaurant.backgroundColor,
-    DEFAULT_BRANDING.backgroundColor
-  ) ?? DEFAULT_BRANDING.backgroundColor;
-  const textColor = getString(
-    theme.textColor,
-    branding.textColor,
-    data.textColor,
-    restaurant.textColor,
-    DEFAULT_BRANDING.textColor
-  ) ?? DEFAULT_BRANDING.textColor;
+  const primaryColor =
+    getString(
+      theme.primaryColor,
+      branding.primaryColor,
+      data.primaryColor,
+      restaurant.primaryColor,
+      DEFAULT_BRANDING.primaryColor,
+    ) ?? DEFAULT_BRANDING.primaryColor;
+  const secondaryColor =
+    getString(
+      theme.secondaryColor,
+      branding.secondaryColor,
+      data.secondaryColor,
+      restaurant.secondaryColor,
+      DEFAULT_BRANDING.secondaryColor,
+    ) ?? DEFAULT_BRANDING.secondaryColor;
+  const accentColor =
+    getString(
+      theme.accentColor,
+      checkout.accentColor,
+      branding.accentColor,
+      data.accentColor,
+      restaurant.accentColor,
+      DEFAULT_BRANDING.accentColor,
+    ) ?? DEFAULT_BRANDING.accentColor;
+  const backgroundColor =
+    getString(
+      theme.backgroundColor,
+      branding.backgroundColor,
+      data.backgroundColor,
+      restaurant.backgroundColor,
+      DEFAULT_BRANDING.backgroundColor,
+    ) ?? DEFAULT_BRANDING.backgroundColor;
+  const textColor =
+    getString(
+      theme.textColor,
+      branding.textColor,
+      data.textColor,
+      restaurant.textColor,
+      DEFAULT_BRANDING.textColor,
+    ) ?? DEFAULT_BRANDING.textColor;
 
   return {
     primaryColor,
@@ -107,35 +114,64 @@ export const normalizeBrandingApiResponse = (homeData: unknown): Branding => {
     accentColor,
     backgroundColor,
     textColor,
-    radius: getString(theme.radius, branding.radius, data.radius, DEFAULT_BRANDING.radius) ?? DEFAULT_BRANDING.radius,
-    fontFamily: getString(
-      theme.fontFamily,
-      app.fontFamily,
-      branding.fontFamily,
-      data.fontFamily,
-      restaurant.fontFamily,
-      DEFAULT_BRANDING.fontFamily
-    ) ?? DEFAULT_BRANDING.fontFamily,
-    headingFontFamily: getString(
-      theme.headingFontFamily,
-      app.headingFontFamily,
-      branding.headingFontFamily,
-      data.headingFontFamily,
-      DEFAULT_BRANDING.headingFontFamily
-    ) ?? DEFAULT_BRANDING.headingFontFamily,
+    radius:
+      getString(
+        theme.borderRadius,
+        theme.radius,
+        branding.radius,
+        data.radius,
+        DEFAULT_BRANDING.radius,
+      ) ?? DEFAULT_BRANDING.radius,
+    fontFamily:
+      getString(
+        theme.fontFamily,
+        app.fontFamily,
+        branding.fontFamily,
+        data.fontFamily,
+        restaurant.fontFamily,
+        DEFAULT_BRANDING.fontFamily,
+      ) ?? DEFAULT_BRANDING.fontFamily,
+    headingFontFamily:
+      getString(
+        theme.headingFontFamily,
+        app.headingFontFamily,
+        branding.headingFontFamily,
+        data.headingFontFamily,
+        DEFAULT_BRANDING.headingFontFamily,
+      ) ?? DEFAULT_BRANDING.headingFontFamily,
     logo: {
-      light: getString(logo.light, logo.lightUrl, branding.logoLight, app.logoLight, restaurant.logoUrl, DEFAULT_BRANDING.logo.light),
-      dark: getString(logo.dark, logo.darkUrl, branding.logoDark, app.logoDark, restaurant.logoUrl, DEFAULT_BRANDING.logo.dark),
+      light: getString(
+        logo.light,
+        logo.lightUrl,
+        branding.logoLight,
+        app.logoLight,
+        restaurant.logoUrl,
+        DEFAULT_BRANDING.logo.light,
+      ),
+      dark: getString(
+        logo.dark,
+        logo.darkUrl,
+        branding.logoDark,
+        app.logoDark,
+        restaurant.logoUrl,
+        DEFAULT_BRANDING.logo.dark,
+      ),
       default: getString(
         logo.default,
         logo.url,
         branding.logoUrl,
         app.logoUrl,
         restaurant.logoUrl,
-        DEFAULT_BRANDING.logo.default
+        DEFAULT_BRANDING.logo.default,
       ),
     },
     assets: {
+      faviconUrl: getString(
+        assets.faviconUrl,
+        getNestedString(assets, ["logos", "faviconUrl"]),
+        branding.faviconUrl,
+        DEFAULT_BRANDING.assets.faviconUrl,
+      ),
       coverImage: getString(
         assets.coverImage,
         assets.coverImageUrl,
@@ -145,7 +181,7 @@ export const normalizeBrandingApiResponse = (homeData: unknown): Branding => {
         data.coverImage,
         restaurant.coverImage,
         restaurant.coverImageUrl,
-        DEFAULT_BRANDING.assets.coverImage
+        DEFAULT_BRANDING.assets.coverImage,
       ),
       heroImage: getString(
         assets.heroImage,
@@ -156,30 +192,49 @@ export const normalizeBrandingApiResponse = (homeData: unknown): Branding => {
         restaurant.heroImageUrl,
         restaurant.coverImage,
         restaurant.coverImageUrl,
-        DEFAULT_BRANDING.assets.heroImage
+        DEFAULT_BRANDING.assets.heroImage,
       ),
       bannerImage: getString(
         assets.bannerImage,
         assets.bannerImageUrl,
         assets.coverImage,
         assets.coverImageUrl,
-        DEFAULT_BRANDING.assets.bannerImage
+        DEFAULT_BRANDING.assets.bannerImage,
       ),
     },
     checkout: {
       accentColor,
     },
-    restaurantName: getString(restaurant.name, app.restaurantName, branding.restaurantName, DEFAULT_BRANDING.restaurantName) ?? DEFAULT_BRANDING.restaurantName,
-    tagline: getString(
-      restaurant.tagline,
-      app.tagline,
-      branding.tagline,
-      restaurant.description,
-      DEFAULT_BRANDING.tagline
-    ) ?? DEFAULT_BRANDING.tagline,
-    showCategories: getBoolean(DEFAULT_BRANDING.showCategories, app.showCategories, branding.showCategories),
-    showPopularItems: getBoolean(DEFAULT_BRANDING.showPopularItems, app.showPopularItems, branding.showPopularItems),
-    showHeroBanner: getBoolean(DEFAULT_BRANDING.showHeroBanner, app.showHeroBanner, branding.showHeroBanner),
+    restaurantName:
+      getString(
+        restaurant.name,
+        app.restaurantName,
+        branding.restaurantName,
+        DEFAULT_BRANDING.restaurantName,
+      ) ?? DEFAULT_BRANDING.restaurantName,
+    tagline:
+      getString(
+        restaurant.tagline,
+        app.tagline,
+        branding.tagline,
+        restaurant.description,
+        DEFAULT_BRANDING.tagline,
+      ) ?? DEFAULT_BRANDING.tagline,
+    showCategories: getBoolean(
+      DEFAULT_BRANDING.showCategories,
+      app.showCategories,
+      branding.showCategories,
+    ),
+    showPopularItems: getBoolean(
+      DEFAULT_BRANDING.showPopularItems,
+      app.showPopularItems,
+      branding.showPopularItems,
+    ),
+    showHeroBanner: getBoolean(
+      DEFAULT_BRANDING.showHeroBanner,
+      app.showHeroBanner,
+      branding.showHeroBanner,
+    ),
   };
 };
 
