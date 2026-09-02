@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import { DEFAULT_BRANDING } from "../config/default-branding";
-import { getBrandingCssVariables, normalizeBrandingApiResponse } from "./branding";
+import {
+  getBrandingCssVariables,
+  normalizeBrandingApiResponse,
+} from "./branding";
 
 describe("branding normalization", () => {
   it("normalizes nested branding from customer home data", () => {
@@ -17,7 +20,7 @@ describe("branding normalization", () => {
             secondaryColor: "#222222",
             backgroundColor: "#ffffff",
             textColor: "#000000",
-            radius: "12px",
+            borderRadius: "12px",
           },
           app: {
             tagline: "Fresh food",
@@ -30,6 +33,7 @@ describe("branding normalization", () => {
           },
           assets: {
             heroImage: "/hero-demo.png",
+            faviconUrl: "/favicon-demo.png",
           },
           checkout: {
             accentColor: "#333333",
@@ -44,6 +48,8 @@ describe("branding normalization", () => {
     expect(branding.logo.light).toBe("/light.png");
     expect(branding.logo.dark).toBe("/dark.png");
     expect(branding.assets.heroImage).toBe("/hero-demo.png");
+    expect(branding.assets.faviconUrl).toBe("/favicon-demo.png");
+    expect(branding.radius).toBe("12px");
     expect(branding.restaurantName).toBe("Demo Restaurant");
     expect(branding.tagline).toBe("Fresh food");
     expect(branding.showCategories).toBe(false);
@@ -71,7 +77,9 @@ describe("branding normalization", () => {
     expect(branding.restaurantName).toBe("Envelope Restaurant");
     expect(branding.primaryColor).toBe("#abcdef");
     expect(branding.logo.default).toBe("/envelope-logo.png");
-    expect(branding.assets.coverImage).toBe("https://cdn.example.com/cover.png");
+    expect(branding.assets.coverImage).toBe(
+      "https://cdn.example.com/cover.png",
+    );
     expect(branding.assets.heroImage).toBe("https://cdn.example.com/cover.png");
   });
 

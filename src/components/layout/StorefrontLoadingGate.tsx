@@ -15,23 +15,18 @@ export const StorefrontLoadingGate = ({
   const t = useTranslations("common");
   const { isLoading } = useBranding();
 
-  if (!isLoading) {
-    return children;
-  }
-
   return (
-    <main
-      aria-busy="true"
-      aria-label={t("loading")}
-      className="fixed inset-0 z-[100] flex min-h-screen items-center justify-center bg-white"
-    >
-      <div className="flex flex-col items-center gap-4">
+    <>
+      {isLoading ? (
         <div
-          aria-hidden="true"
-          className="h-12 w-12 animate-spin rounded-full border-4 border-primary/15 border-t-primary"
-        />
-        <p className="text-sm font-semibold text-gray-500">{t("loading")}</p>
-      </div>
-    </main>
+          role="status"
+          aria-label={t("loading")}
+          className="pointer-events-none fixed inset-x-0 top-0 z-[100] h-1 overflow-hidden bg-primary/10"
+        >
+          <span className="block h-full w-full animate-pulse bg-primary" />
+        </div>
+      ) : null}
+      {children}
+    </>
   );
 };

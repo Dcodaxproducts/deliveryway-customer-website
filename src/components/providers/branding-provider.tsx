@@ -48,7 +48,7 @@ export const BrandingProvider = ({ children }: BrandingProviderProps) => {
     }
 
     const faviconHref = resolveHttpsImageUrl(
-      branding.logo.default,
+      branding.assets.faviconUrl ?? branding.logo.default,
       "/deliveryway-logo.jpg",
     );
     const iconLinks = document.querySelectorAll<HTMLLinkElement>(
@@ -66,7 +66,11 @@ export const BrandingProvider = ({ children }: BrandingProviderProps) => {
     iconLinks.forEach((link) => {
       link.href = faviconHref;
     });
-  }, [branding.logo.default, hasResolvedRestaurantBranding]);
+  }, [
+    branding.assets.faviconUrl,
+    branding.logo.default,
+    hasResolvedRestaurantBranding,
+  ]);
 
   const value = useMemo(
     () => ({
