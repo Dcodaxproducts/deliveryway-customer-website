@@ -47,6 +47,21 @@ export const hasGuestDeliveryAddress = (address: CheckoutAddressValues) => {
   );
 };
 
+export type GuestDeliveryAddressError =
+  "streetRequired" | "streetInvalid" | "houseNumberRequired" | "incomplete";
+
+export const getGuestDeliveryAddressError = (
+  address: CheckoutAddressValues,
+): GuestDeliveryAddressError | null => {
+  const trimmed = trimGuestDeliveryAddress(address);
+
+  if (!trimmed.street) return "streetRequired";
+  if (!hasStreetName(trimmed.street)) return "streetInvalid";
+  if (!trimmed.houseNumber) return "houseNumberRequired";
+
+  return hasGuestDeliveryAddress(address) ? null : "incomplete";
+};
+
 export const getGuestDeliveryAddressFromStoredLocation = (
   location: StoredDeliveryLocation | null,
 ): CheckoutAddressValues | null => {

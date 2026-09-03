@@ -3,7 +3,10 @@ import { describe, expect, it } from "vitest";
 import {
   getGuestContactPayload,
   getGuestContactErrors,
+  getSavedGuestContact,
   hasGuestContact,
+  mergeSavedGuestContact,
+  saveGuestContactOnUser,
 } from "./guest-contact";
 
 describe("guest checkout contact", () => {
@@ -89,6 +92,91 @@ describe("guest checkout contact", () => {
       email: "guest@example.com",
       phone: "+49 151 23456789",
       privacyPolicyAccepted: true,
+    });
+  });
+
+  it("loads the real guest contact saved on the account profile", () => {
+    expect(
+      getSavedGuestContact({
+        id: "guest-1",
+        email: "guest+1@guest.deliveryways.local",
+        role: "GUEST",
+        tenantId: "tenant-1",
+        isGuest: true,
+        profile: {
+          firstName: "Max Mustermann",
+          lastName: "",
+          avatarUrl: "",
+          phone: "+49 151 23456789",
+          metadata: {
+            guestContact: {
+              email: "max@example.com",
+              phone: "+49 151 23456789",
+            },
+          },
+        },
+      }),
+    ).toEqual({
+      name: "Max Mustermann",
+      phone: "+49 151 23456789",
+      email: "max@example.com",
+    });
+  });
+
+  it("fills only empty or generated guest fields", () => {
+    expect(
+      mergeSavedGuestContact(
+        {
+          name: "Guest Customer",
+          phone: "",
+          email: "guest+1@guest.deliveryways.local",
+        },
+        {
+          name: "Max Mustermann",
+          phone: "+49 151 23456789",
+          email: "max@example.com",
+        },
+      ),
+    ).toEqual({
+      name: "Max Mustermann",
+      phone: "+49 151 23456789",
+      email: "max@example.com",
+    });
+  });
+
+  it("keeps the submitted guest contact in the current account session", () => {
+    const updatedUser = saveGuestContactOnUser(
+      {
+        id: "guest-1",
+        email: "guest+1@guest.deliveryways.local",
+        role: "GUEST",
+        tenantId: "tenant-1",
+        isGuest: true,
+        profile: {
+          firstName: "Guest",
+          lastName: "Customer",
+          avatarUrl: "",
+          metadata: { locale: "de" },
+        },
+      },
+      {
+        name: "Max Mustermann",
+        phone: "+49 151 23456789",
+        email: "Max@Example.com",
+      },
+    );
+
+    expect(updatedUser.profile).toMatchObject({
+      firstName: "Max Mustermann",
+      lastName: "",
+      phone: "+49 151 23456789",
+      metadata: {
+        locale: "de",
+        guestContact: {
+          email: "max@example.com",
+          phone: "+49 151 23456789",
+        },
+      },
     });
   });
 });

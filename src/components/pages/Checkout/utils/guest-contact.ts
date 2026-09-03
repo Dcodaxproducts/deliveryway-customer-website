@@ -1,3 +1,5 @@
+import type { AuthUser } from "@/types/auth";
+
 export type GuestContactValues = {
   name: string;
   phone: string;
@@ -10,6 +12,92 @@ export type GuestContactErrors = Partial<
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_PATTERN = /^[+()\d\s./-]+$/;
+const GENERATED_GUEST_EMAIL_PATTERN = /@guest\.deliveryways?(?:\.local)?$/i;
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  Boolean(value) && typeof value === "object" && !Array.isArray(value);
+
+const getString = (value: unknown) =>
+  typeof value === "string" ? value.trim() : "";
+
+const normalizeGuestName = (value: string) => {
+  const name = value.trim();
+  const normalized = name.toLowerCase();
+
+  return normalized === "guest" || normalized === "guest customer" ? "" : name;
+};
+
+const normalizeGuestEmail = (value: string) => {
+  const email = value.trim();
+
+  return GENERATED_GUEST_EMAIL_PATTERN.test(email) ? "" : email;
+};
+
+export const getSavedGuestContact = (
+  user: AuthUser | null,
+): GuestContactValues => {
+  const metadata = isRecord(user?.profile?.metadata)
+    ? user.profile.metadata
+    : {};
+  const guestContact = isRecord(metadata.guestContact)
+    ? metadata.guestContact
+    : {};
+  const profileName = [user?.profile?.firstName, user?.profile?.lastName]
+    .map(getString)
+    .filter(Boolean)
+    .join(" ");
+
+  return {
+    name: normalizeGuestName(profileName),
+    phone: getString(guestContact.phone) || getString(user?.profile?.phone),
+    email:
+      normalizeGuestEmail(getString(guestContact.email)) ||
+      normalizeGuestEmail(getString(user?.email)),
+  };
+};
+
+export const mergeSavedGuestContact = (
+  current: GuestContactValues,
+  saved: GuestContactValues,
+): GuestContactValues => ({
+  name: normalizeGuestName(current.name) || saved.name,
+  phone: current.phone.trim() || saved.phone,
+  email: normalizeGuestEmail(current.email) || saved.email,
+});
+
+export const saveGuestContactOnUser = (
+  user: AuthUser,
+  contact: GuestContactValues,
+): AuthUser => {
+  const metadata = isRecord(user.profile?.metadata)
+    ? user.profile.metadata
+    : {};
+  const existingGuestContact = isRecord(metadata.guestContact)
+    ? metadata.guestContact
+    : {};
+  const name = contact.name.trim();
+  const phone = contact.phone.trim();
+  const email = contact.email.trim().toLowerCase();
+
+  return {
+    ...user,
+    profile: {
+      ...user.profile,
+      firstName: name,
+      lastName: "",
+      avatarUrl: user.profile?.avatarUrl ?? "",
+      phone,
+      metadata: {
+        ...metadata,
+        guestContact: {
+          ...existingGuestContact,
+          email,
+          phone,
+        },
+      },
+    },
+  };
+};
 
 export const getGuestContactErrors = (
   customer: GuestContactValues,
@@ -35,7 +123,7 @@ export const getGuestContactErrors = (
   if (!email) errors.email = "required";
   else if (
     !EMAIL_PATTERN.test(email) ||
-    /@guest\.deliveryways?(?:\.local)?$/i.test(email)
+    GENERATED_GUEST_EMAIL_PATTERN.test(email)
   ) {
     errors.email = "invalid";
   }

@@ -75,6 +75,7 @@ import {
 import type { LoyaltySummary } from "@/services/loyalty";
 import {
   getGuestDeliveryAddressFromStoredLocation,
+  getGuestDeliveryAddressError,
   getGuestDeliveryAddressPayload,
   hasGuestDeliveryAddress,
   trimGuestDeliveryAddress,
@@ -83,7 +84,10 @@ import { getStoredDeliveryLocation } from "@/lib/delivery-location";
 import {
   getGuestContactErrors,
   getGuestContactPayload,
+  getSavedGuestContact,
   hasGuestContact,
+  mergeSavedGuestContact,
+  saveGuestContactOnUser,
   type GuestContactErrors,
 } from "@/components/pages/Checkout/utils/guest-contact";
 import {
@@ -349,7 +353,7 @@ function CheckoutPageContent() {
   const t = useTranslations("checkout");
   const searchParams = useSearchParams();
   const type = searchParams.get("type");
-  const { user, token } = useAuthContext();
+  const { user, token, updateUser } = useAuthContext();
   const { context: domainContext } = useDomainContext();
   const [storedCheckoutType, setStoredCheckoutType] =
     useState<CheckoutTypePreference | null>(null);
@@ -753,14 +757,11 @@ function CheckoutPageContent() {
     if (!user) return;
 
     if (isGuest) {
-      setCustomer((prev) => ({
-        name:
-          prev.name.trim().toLowerCase() === "guest customer" ? "" : prev.name,
-        phone: prev.phone,
-        email: /@guest\.deliveryways?(?:\.local)?$/i.test(prev.email.trim())
-          ? ""
-          : prev.email,
-      }));
+      const savedGuestContact = getSavedGuestContact(user);
+
+      setCustomer((current) =>
+        mergeSavedGuestContact(current, savedGuestContact),
+      );
       return;
     }
 
@@ -1401,12 +1402,36 @@ function CheckoutPageContent() {
         syncCartFromResponse(orderTypeRes);
       }
 
-      if (
-        activeTab === "delivery" &&
-        isGuest &&
-        !hasGuestDeliveryAddress(guestDeliveryAddress)
-      ) {
-        toast.error(t("toast.enterGuestDeliveryAddress"));
+      const guestDeliveryAddressError =
+        activeTab === "delivery" && isGuest
+          ? getGuestDeliveryAddressError(guestDeliveryAddress)
+          : null;
+
+      if (guestDeliveryAddressError) {
+        const errorMessage =
+          guestDeliveryAddressError === "incomplete"
+            ? t("toast.enterGuestDeliveryAddress")
+            : t(`validation.${guestDeliveryAddressError}`);
+
+        toast.error(errorMessage);
+
+        if (
+          guestDeliveryAddressError === "streetRequired" ||
+          guestDeliveryAddressError === "streetInvalid"
+        ) {
+          document
+            .querySelector<HTMLInputElement>(
+              '[name="checkout-delivery-street"]',
+            )
+            ?.focus();
+        } else if (guestDeliveryAddressError === "houseNumberRequired") {
+          document
+            .querySelector<HTMLInputElement>(
+              '[name="checkout-delivery-house-number"]',
+            )
+            ?.focus();
+        }
+
         return;
       }
 
@@ -1513,6 +1538,12 @@ function CheckoutPageContent() {
       }
 
       clearBackendError();
+
+      if (isGuest) {
+        updateUser((currentUser) =>
+          currentUser ? saveGuestContactOnUser(currentUser, customer) : null,
+        );
+      }
 
       if (
         checkoutPaymentMethod === "STRIPE" ||

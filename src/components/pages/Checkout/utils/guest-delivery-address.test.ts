@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   getGuestDeliveryAddressFromStoredLocation,
+  getGuestDeliveryAddressError,
   getGuestDeliveryAddressPayload,
   hasGuestDeliveryAddress,
 } from "./guest-delivery-address";
@@ -23,9 +24,9 @@ const completeAddress: CheckoutAddressValues = {
 describe("guest delivery address", () => {
   it("requires derived administrative fields and coordinates", () => {
     expect(hasGuestDeliveryAddress(completeAddress)).toBe(true);
-    expect(
-      hasGuestDeliveryAddress({ ...completeAddress, street: "40" }),
-    ).toBe(false);
+    expect(hasGuestDeliveryAddress({ ...completeAddress, street: "40" })).toBe(
+      false,
+    );
     expect(
       hasGuestDeliveryAddress({ ...completeAddress, houseNumber: "" }),
     ).toBe(false);
@@ -41,6 +42,19 @@ describe("guest delivery address", () => {
     expect(hasGuestDeliveryAddress({ ...completeAddress, lng: "" })).toBe(
       false,
     );
+  });
+
+  it("identifies a missing or invalid street and a missing house number", () => {
+    expect(
+      getGuestDeliveryAddressError({ ...completeAddress, street: "" }),
+    ).toBe("streetRequired");
+    expect(
+      getGuestDeliveryAddressError({ ...completeAddress, street: "40" }),
+    ).toBe("streetInvalid");
+    expect(
+      getGuestDeliveryAddressError({ ...completeAddress, houseNumber: "" }),
+    ).toBe("houseNumberRequired");
+    expect(getGuestDeliveryAddressError(completeAddress)).toBeNull();
   });
 
   it("keeps derived fields in the backend payload", () => {
