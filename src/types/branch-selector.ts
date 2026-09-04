@@ -10,6 +10,7 @@ export type BranchRecord = {
   id: string;
   name: string;
   isActive?: boolean;
+  isMain?: boolean;
   restaurantId?: string | null;
   address?: BranchAddress;
   settings?: BranchSettings;

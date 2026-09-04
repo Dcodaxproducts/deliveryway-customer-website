@@ -217,6 +217,7 @@ export const normalizeBranch = (value: unknown): BranchRecord | null => {
     id,
     name,
     isActive: getBoolean(value.isActive),
+    isMain: getBoolean(value.isMain),
     restaurantId: getString(value.restaurantId) ?? null,
     address: normalizeBranchAddress(value.address),
     settings: {

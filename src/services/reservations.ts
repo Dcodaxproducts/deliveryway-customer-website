@@ -53,6 +53,31 @@ const normalizeReservationMeta = (response: ApiResult): ReservationMeta | null =
   return getRecord(meta) as ReservationMeta | null;
 };
 
+export const normalizeReservationBranches = (
+  response: ApiResult,
+): BranchRecord[] => {
+  const dataRecord = getRecord(response.data);
+  const candidate = Array.isArray(response.data)
+    ? response.data
+    : Array.isArray(dataRecord?.data)
+      ? dataRecord.data
+      : Array.isArray(dataRecord?.items)
+        ? dataRecord.items
+        : [];
+
+  return candidate
+    .map((branch) => normalizeBranch(branch))
+    .filter((branch): branch is BranchRecord => Boolean(branch));
+};
+
+export const selectDefaultReservationBranch = (
+  branches: BranchRecord[],
+): BranchRecord | null =>
+  branches.find((branch) => branch.isMain && branch.isActive !== false) ??
+  (branches.length === 1 && branches[0].isActive !== false
+    ? branches[0]
+    : null);
+
 export const normalizeReservationResponse = (response: ApiResult): Reservation | null => {
   const dataRecord = getRecord(response.data);
   const nestedData = getRecord(dataRecord?.data);

@@ -20,7 +20,9 @@ import { getApiErrorMessage } from "@/lib/errors";
 import { createReservationSchema, type ReservationFormValues } from "@/validations/reservations";
 import {
   getReservationStatusLabelKey,
+  normalizeReservationBranches,
   normalizeReservationResponse,
+  selectDefaultReservationBranch,
   type Reservation,
   type ReservationPayload,
 } from "@/services/reservations";
@@ -569,10 +571,20 @@ export function ReserveTablePage() {
 
   useEffect(() => {
     const prefillSelectedBranch = async () => {
-      if (!user?.branchId) return;
+      if (!user?.branchId && !user?.restaurantId) return;
 
       try {
-        const { branch } = await fetchReservationBranch({ branchId: String(user.branchId) });
+        const branchId = user?.branchId ? String(user.branchId) : null;
+        const branch = branchId
+          ? (await fetchReservationBranch({ branchId })).branch
+          : selectDefaultReservationBranch(
+              normalizeReservationBranches(
+                await fetchReservationBranches({
+                  restaurantId: user?.restaurantId,
+                  page: 1,
+                }),
+              ),
+            );
 
         if (branch) {
           setSelectedBranch(branch);
@@ -583,7 +595,13 @@ export function ReserveTablePage() {
     };
 
     prefillSelectedBranch();
-  }, [fetchReservationBranch, setValue, user?.branchId]);
+  }, [
+    fetchReservationBranch,
+    fetchReservationBranches,
+    setValue,
+    user?.branchId,
+    user?.restaurantId,
+  ]);
 
   /* ---------------- FETCH ---------------- */
   const fetchBranches = async ({ search = "", page = 1 }) => {

@@ -3,7 +3,9 @@ import { describe, expect, it } from "vitest";
 import {
   getReservationStatusLabel,
   getReservationStatusLabelKey,
+  normalizeReservationBranches,
   normalizeReservationResponse,
+  selectDefaultReservationBranch,
 } from "./reservations";
 import type { ApiResult } from "./http";
 
@@ -38,5 +40,16 @@ describe("reservation service helpers", () => {
     expect(reservation?.status).toBe("REQUESTED");
     expect(getReservationStatusLabelKey(reservation?.status)).toBe("requested");
     expect(getReservationStatusLabel(reservation?.status)).toBe("Requested");
+  });
+
+  it("selects the active main branch for a new reservation", () => {
+    const branches = normalizeReservationBranches({
+      data: [
+        { id: "branch-1", name: "West", isMain: false, isActive: true },
+        { id: "branch-2", name: "Main", isMain: true, isActive: true },
+      ],
+    } as ApiResult);
+
+    expect(selectDefaultReservationBranch(branches)?.id).toBe("branch-2");
   });
 });
