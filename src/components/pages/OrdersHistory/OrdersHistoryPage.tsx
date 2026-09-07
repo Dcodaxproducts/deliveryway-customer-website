@@ -21,7 +21,7 @@ export function OrdersHistoryPage() {
   const t = useTranslations("ordersHistory");
   const errorT = useTranslations("errors");
   const locale = useLocale();
-  const { token, user } = useAuthContext();
+  const { token, user, loading: authLoading } = useAuthContext();
   const { fetchOrdersPage, reorderOrderToCart } = useOrders(token);
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
@@ -77,7 +77,13 @@ export function OrdersHistoryPage() {
   // ================= FETCH ORDERS =================
   useEffect(() => {
     const fetchOrders = async () => {
+      if (authLoading) {
+        return;
+      }
+
       if (!token) {
+        setLoading(false);
+        setOrders([]);
         return;
       }
       try {
@@ -106,7 +112,7 @@ export function OrdersHistoryPage() {
     };
 
     fetchOrders();
-  }, [fetchOrdersPage, page, token]);
+  }, [authLoading, fetchOrdersPage, page, token]);
 
   // ================= FORMAT DATE =================
   const formatDate = (date: string) => {
