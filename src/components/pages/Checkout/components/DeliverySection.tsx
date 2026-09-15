@@ -49,7 +49,6 @@ type DeliverySectionProps = {
   privacyPolicyLoading?: boolean;
   guestDeliveryAddress: CheckoutAddressValues;
   setGuestDeliveryAddress: (value: CheckoutAddressValues) => void;
-  totalPreparationMinutes?: number;
 };
 
 const buildUpcomingDates = () => {

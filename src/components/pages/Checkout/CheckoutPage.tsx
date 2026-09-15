@@ -299,13 +299,6 @@ const normalizeGuestPrivacyPolicy = (
   };
 };
 
-const getCartPreparationMinutes = (items: CartItem[]) =>
-  items.reduce(
-    (total, item) =>
-      total + Math.max(0, Math.floor(toNumber(item.prepTimeMinutes, 0))),
-    0,
-  );
-
 const getCheckoutQuoteSignature = ({
   activeTab,
   customerId,
@@ -423,11 +416,6 @@ function CheckoutPageContent() {
   const [loadingLoyalty, setLoadingLoyalty] = useState(false);
   const loadedCartCustomerIdRef = useRef<string | null>(null);
   const lastQuoteSignatureRef = useRef("");
-  const totalPreparationMinutes = useMemo(
-    () => getCartPreparationMinutes(cartItems),
-    [cartItems],
-  );
-
   const router = useRouter();
   const customerId = user?.id;
 
@@ -1170,7 +1158,6 @@ function CheckoutPageContent() {
     return getScheduleOrderTimeIso({
       dateValue,
       timeValue,
-      preparationMinutes: totalPreparationMinutes,
       timeZone: getBranchScheduleTimeZone(checkoutBranch),
     });
   };
@@ -1591,7 +1578,6 @@ function CheckoutPageContent() {
               deliveryScheduleMode={deliveryScheduleMode}
               setDeliveryScheduleMode={setDeliveryScheduleMode}
               selectedBranch={checkoutBranch}
-              totalPreparationMinutes={totalPreparationMinutes}
             />
           ) : (
             <PickupSection
