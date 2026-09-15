@@ -50,7 +50,6 @@ type DeliverySectionProps = {
   privacyPolicyLoading?: boolean;
   guestDeliveryAddress: CheckoutAddressValues;
   setGuestDeliveryAddress: (value: CheckoutAddressValues) => void;
-  totalPreparationMinutes?: number;
   contactErrors?: GuestContactErrors;
   onContactFieldChange?: (field: "name" | "phone" | "email") => void;
 };

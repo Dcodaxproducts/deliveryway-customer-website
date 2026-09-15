@@ -240,25 +240,22 @@ const getTimeZoneOffsetMs = (date: Date, timeZone: string) => {
 export const getScheduleOrderTimeIso = ({
   dateValue,
   timeValue,
-  preparationMinutes = 0,
   timeZone = DEFAULT_SCHEDULE_TIME_ZONE,
 }: {
   dateValue: string;
   timeValue: string;
-  preparationMinutes?: number;
   timeZone?: string;
 }) => {
   const parts = parseLocalScheduleDateTimeParts(`${dateValue}T${timeValue}`);
 
   if (!parts) return null;
 
-  const safePreparationMinutes = Math.max(0, Math.floor(preparationMinutes));
   const wallClockUtcMs = Date.UTC(
     parts.year,
     parts.month - 1,
     parts.day,
     parts.hours,
-    parts.minutes + safePreparationMinutes,
+    parts.minutes,
     0,
     0,
   );

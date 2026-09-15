@@ -435,22 +435,14 @@ describe("pickup schedule helpers", () => {
     ]);
   });
 
-  it("converts branch local scheduled times to backend UTC orderTime", () => {
+  it("preserves the customer-selected branch time in backend UTC orderTime", () => {
     expect(
       getScheduleOrderTimeIso({
-        dateValue: "2026-07-01",
-        timeValue: "13:30",
+        dateValue: "2026-09-15",
+        timeValue: "12:00",
         timeZone: "Europe/Berlin",
       })
-    ).toBe("2026-07-01T11:30:00.000Z");
-    expect(
-      getScheduleOrderTimeIso({
-        dateValue: "2026-07-01",
-        timeValue: "13:30",
-        preparationMinutes: 20,
-        timeZone: "Europe/Berlin",
-      })
-    ).toBe("2026-07-01T11:50:00.000Z");
+    ).toBe("2026-09-15T10:00:00.000Z");
   });
 
   it("uses Europe/Berlin as the default schedule timezone unless branch overrides it", () => {
