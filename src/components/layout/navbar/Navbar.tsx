@@ -566,21 +566,21 @@ export const Navbar = () => {
       <div
         ref={navbarWrapRef}
         data-visible={navbarVisible}
-        className={`sticky top-0 z-50 bg-white transition-transform duration-300 ease-out will-change-transform motion-reduce:transition-none ${
+        className={`sticky top-0 z-50 border-b border-black/[0.04] bg-white/90 shadow-[0_8px_24px_rgba(15,23,42,0.04)] backdrop-blur-[8px] transition-transform duration-300 ease-out will-change-transform supports-[backdrop-filter]:bg-white/82 motion-reduce:transition-none ${
           navbarVisible ? "translate-y-0" : "-translate-y-full"
         } ${hideOnMobileHome ? "hidden md:block" : ""}`}
       >
         <CouponPerkBanner coupons={couponsQuery.coupons} currency={currency} />
 
         {/* NAVBAR */}
-        <nav className="mx-auto flex max-w-[1440px] items-center justify-between gap-4 px-5 py-3.5 lg:px-8 xl:gap-10 2xl:gap-14 2xl:px-10">
+        <nav className="mx-auto flex max-w-[1440px] items-center justify-between gap-4 px-5 py-2.5 lg:px-8 xl:gap-10 2xl:gap-14 2xl:px-10">
           {/* LEFT - LOGO */}
           <Link
             href="/"
             aria-label={`${restaurantName} home`}
             className="flex shrink-0 items-center"
           >
-            <span className="relative h-10 w-14 shrink-0 overflow-hidden rounded-lg bg-white">
+            <span className="relative h-9 w-12 shrink-0 overflow-hidden rounded-lg bg-white/80">
               {isRestaurantBrandingLoading ? (
                 <span
                   aria-hidden="true"
@@ -635,18 +635,18 @@ export const Navbar = () => {
                 onClick={handleToggleSearch}
                 aria-label={tNav("searchFood")}
                 title={tNav("searchFood")}
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#F7F7F8] text-[#7A8088] transition-colors hover:bg-[#F1F2F4] hover:text-primary"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F7F7F8]/90 text-[#7A8088] transition-colors hover:bg-[#F1F2F4] hover:text-primary"
               >
                 <Search size={18} className="shrink-0 text-primary" />
               </button>
 
               <BranchSwitcher presentation="navbar" />
-              <LanguageSelector className="h-11 rounded-full border-none bg-[#F7F7F8] px-4 text-[#20242A] shadow-none hover:bg-[#F1F2F4]" />
+              <LanguageSelector className="h-10 rounded-full border-none bg-[#F7F7F8]/90 px-3.5 text-[#20242A] shadow-none hover:bg-[#F1F2F4]" />
 
               {showActiveGroupOrderLink ? (
                 <Link
                   href={activeGroupOrderHref}
-                  className="relative flex h-11 shrink-0 items-center gap-2 rounded-full bg-emerald-50 px-4 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-100"
+                  className="relative flex h-10 shrink-0 items-center gap-2 rounded-full bg-emerald-50 px-3.5 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-100"
                 >
                   <Users size={17} />
                   <span>{tNav("activeGroupOrder")}</span>
@@ -655,7 +655,7 @@ export const Navbar = () => {
 
               <Link
                 href="/checkout"
-                className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#F7F7F8] text-primary transition-colors hover:bg-[#F1F2F4]"
+                className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F7F7F8]/90 text-primary transition-colors hover:bg-[#F1F2F4]"
                 aria-label={tNav("cart")}
               >
                 <ShoppingBag size={19} />
@@ -670,9 +670,9 @@ export const Navbar = () => {
                 <div ref={dropdownRef} className="relative">
                   <button
                     onClick={() => setDropdownOpen(!dropdownOpen)}
-                    className="flex h-11 max-w-[180px] cursor-pointer items-center gap-2 rounded-full bg-[#F7F7F8] pl-2 pr-3 text-[#20242A] transition-colors hover:bg-[#F1F2F4] 2xl:max-w-[220px]"
+                    className="flex h-10 max-w-[180px] cursor-pointer items-center gap-2 rounded-full bg-[#F7F7F8]/90 pl-1.5 pr-3 text-[#20242A] transition-colors hover:bg-[#F1F2F4] 2xl:max-w-[220px]"
                   >
-                    <span className="relative h-8 w-8 overflow-hidden rounded-full bg-white">
+                    <span className="relative h-7 w-7 overflow-hidden rounded-full bg-white">
                       <Image
                         src={
                           user?.profile?.avatarUrl?.startsWith("http")
@@ -859,7 +859,7 @@ export const Navbar = () => {
               ) : (
                 <Link
                   href="/auth/login"
-                  className="flex h-11 items-center gap-2 rounded-full bg-[#F7F7F8] px-4 text-sm font-semibold text-primary transition-colors hover:bg-[#F1F2F4]"
+                  className="flex h-10 items-center gap-2 rounded-full bg-[#F7F7F8]/90 px-3.5 text-sm font-semibold text-primary transition-colors hover:bg-[#F1F2F4]"
                 >
                   <User size={18} />
                   {tNav("login")}
