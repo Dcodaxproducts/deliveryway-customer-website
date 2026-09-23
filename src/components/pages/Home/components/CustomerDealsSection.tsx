@@ -311,14 +311,14 @@ const CustomerDealMenuCard = ({
 
   return (
     <article
-      className={`group relative flex h-[428px] w-full min-w-0 flex-col overflow-hidden rounded-[24px] border p-2.5 transition duration-300 ease-out ${
+      className={`group relative flex h-[366px] w-full min-w-0 flex-col overflow-hidden rounded-[18px] border p-2 transition duration-300 ease-out ${
         isFeatured
           ? "border-[#A33A47]/80 bg-[linear-gradient(155deg,#8B1D2B_0%,#77131F_100%)] text-[#FFF7EF] shadow-[0_14px_30px_rgba(79,24,33,0.13)]"
           : "border-[#EEE4D9] bg-[#FFFDF9] text-[#40312D] shadow-[0_12px_28px_rgba(64,48,33,0.055)] hover:-translate-y-0.5 hover:shadow-[0_17px_34px_rgba(64,48,33,0.08)]"
       }`}
     >
       <div
-        className={`relative h-[188px] shrink-0 overflow-hidden rounded-[17px] border ${
+        className={`relative h-[148px] shrink-0 overflow-hidden rounded-[14px] border ${
           isFeatured
             ? "border-[#A9434E]/70 bg-[#56101A]"
             : "border-white/90 bg-[#F2EBE2]"
@@ -356,7 +356,7 @@ const CustomerDealMenuCard = ({
         )}
       </div>
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col px-2.5 pb-1.5 pt-4">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col px-2.5 pb-1.5 pt-3">
         <p
           className={`line-clamp-1 text-[10px] font-bold uppercase leading-[1.2] tracking-[0.12em] ${
             isFeatured ? "text-[#E2BD72]" : "text-[#A97747]"
@@ -676,7 +676,7 @@ export const CustomerDealsSection = ({
               {activeDeals.map((deal, index) => (
                 <CarouselItem
                   key={deal.id}
-                  className="flex basis-[88%] pl-4 sm:basis-[52%] lg:basis-1/3"
+                  className="flex basis-[84%] pl-4 sm:basis-[47%] lg:basis-[34%] xl:basis-1/4"
                 >
                   <CustomerDealMenuCard
                     deal={deal}

@@ -37,9 +37,9 @@ export function CuisineItemCard({ item, currency }: { item: MenuItem; currency?:
   const badge = getMenuItemPromotionBadge(item, t("badges.promotion"), currency);
 
   return (
-    <article className="group overflow-hidden rounded-[24px] border border-gray-100 bg-white shadow-[0_12px_34px_rgba(17,24,39,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(17,24,39,0.12)]">
+    <article className="group overflow-hidden rounded-[18px] border border-gray-100 bg-white shadow-[0_8px_24px_rgba(17,24,39,0.065)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(17,24,39,0.1)]">
       <Link href={getItemHref(item)} className="flex h-full flex-col text-left">
-        <div className="relative h-[178px] bg-[#F7F3EF]">
+        <div className="relative h-[146px] bg-[#F7F3EF]">
           <Image
             src={getItemImageUrl(item)}
             alt={item.name || t("menuItem")}
@@ -55,8 +55,8 @@ export function CuisineItemCard({ item, currency }: { item: MenuItem; currency?:
           <FavoriteHeartButton menuItemId={item.id} className="absolute right-3 top-3 h-9 w-9" />
         </div>
 
-        <div className="flex flex-1 flex-col p-5">
-          <h3 className="line-clamp-2 text-[18px] font-extrabold leading-[1.25] text-gray-950">
+        <div className="flex flex-1 flex-col p-4">
+          <h3 className="line-clamp-1 text-[16px] font-bold leading-[1.25] text-gray-950">
             {item.name || t("menuItem")}
           </h3>
           <p className="mt-2 line-clamp-2 min-h-10 text-sm leading-5 text-gray-500">

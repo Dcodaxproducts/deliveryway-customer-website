@@ -65,7 +65,7 @@ const PromotionalItemsSkeleton = ({ compact }: { compact?: boolean }) => (
         className={
           compact
             ? "h-[318px] min-w-[238px] animate-pulse rounded-[28px] bg-white"
-            : "h-[360px] animate-pulse rounded-[24px] bg-gray-100"
+            : "h-[316px] animate-pulse rounded-[18px] bg-gray-100"
         }
       />
     ))}
@@ -108,13 +108,13 @@ function PromotionalItemCard({
         className={
           compact
             ? "h-[318px] w-[238px] shrink-0 overflow-hidden rounded-[28px] bg-white shadow-[0_16px_34px_rgba(31,41,55,0.09)]"
-            : `group flex h-[360px] w-full min-w-0 flex-col overflow-hidden rounded-[24px] bg-white shadow-[0_12px_34px_rgba(17,24,39,0.08)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(17,24,39,0.12)] ${
+            : `group flex h-[316px] w-full min-w-0 flex-col overflow-hidden rounded-[18px] bg-white shadow-[0_8px_24px_rgba(17,24,39,0.065)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(17,24,39,0.1)] ${
                 featured ? "border border-primary" : "border border-gray-100"
               }`
         }
       >
       <Link href={getItemHref(item)} className="flex h-full min-w-0 flex-col text-left">
-        <div className={compact ? "relative h-[132px] bg-primary/5" : "relative h-[178px] bg-[#F7F3EF]"}>
+        <div className={compact ? "relative h-[132px] bg-primary/5" : "relative h-[146px] bg-[#F7F3EF]"}>
           <Image
             src={image}
             alt={title}
@@ -134,12 +134,12 @@ function PromotionalItemCard({
           />
         </div>
 
-        <div className={compact ? "flex min-w-0 flex-1 flex-col p-4" : "flex min-w-0 flex-1 flex-col p-5"}>
+        <div className={compact ? "flex min-w-0 flex-1 flex-col p-4" : "flex min-w-0 flex-1 flex-col p-4"}>
           <h3
             className={
               compact
                 ? "line-clamp-1 text-[16px] font-black text-gray-950"
-                : "line-clamp-2 text-[18px] font-extrabold leading-[1.25] text-gray-950"
+                : "line-clamp-1 text-[16px] font-bold leading-[1.25] text-gray-950"
             }
           >
             {title}
@@ -149,7 +149,7 @@ function PromotionalItemCard({
             className={
               compact
                 ? "mt-1 line-clamp-2 min-h-10 text-xs leading-5 text-gray-500"
-                : "mt-2 line-clamp-2 min-h-10 text-sm leading-5 text-gray-500"
+                : "mt-1.5 line-clamp-2 min-h-9 text-[13px] leading-[18px] text-gray-500"
             }
           >
             {description}
@@ -267,7 +267,7 @@ export function PromotionalItemsSection({
           {items.map((item, index) => (
             <CarouselItem
               key={String(item.id)}
-              className="flex basis-[92%] pl-5 sm:basis-[62%] md:basis-[48%] xl:basis-1/3 2xl:basis-1/4"
+          className="flex basis-[86%] pl-4 sm:basis-[48%] lg:basis-1/3 xl:basis-1/4"
             >
               <PromotionalItemCard
                 item={item}

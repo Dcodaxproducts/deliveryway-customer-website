@@ -859,7 +859,7 @@ export const Navbar = () => {
               ) : (
                 <Link
                   href="/auth/login"
-                  className="flex h-10 items-center gap-2 rounded-full bg-[#F7F7F8]/90 px-3.5 text-sm font-semibold text-primary transition-colors hover:bg-[#F1F2F4]"
+                  className="flex h-10 items-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(206,24,27,0.2)] transition hover:-translate-y-px hover:bg-primary/90 hover:shadow-[0_10px_22px_rgba(206,24,27,0.26)] active:translate-y-0"
                 >
                   <User size={18} />
                   {tNav("login")}
@@ -1167,7 +1167,7 @@ export const Navbar = () => {
               <Link
                 href="/auth/login"
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-3"
+                className="flex min-h-11 items-center justify-center gap-3 rounded-xl bg-primary px-4 font-semibold text-white shadow-[0_8px_18px_rgba(206,24,27,0.2)]"
               >
                 <User /> {tNav("login")}
               </Link>

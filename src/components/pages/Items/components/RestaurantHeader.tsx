@@ -409,7 +409,9 @@ export default function RestaurantHeader() {
         text: "text-red-600",
       };
 
-  const title = category?.name ? category.name : t("fullMenu");
+  const title = category?.name
+    ? category.name
+    : restaurant?.name || t("restaurantMenu");
 
   const description = hasText(category?.description)
     ? String(category?.description)

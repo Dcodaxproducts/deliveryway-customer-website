@@ -1701,6 +1701,7 @@
       "featureTogetherDescription": "Checkout as one group.",
       "viewLobby": "View Lobby",
       "startGroupOrder": "Start Group Order",
+      "myGroupOrders": "My group orders",
       "activeDetected": "Active group order detected. Continue from your lobby.",
       "liveGroupLabel": "Live Group",
       "liveGroupText": "4 people adding meals",

@@ -710,7 +710,7 @@ export function ItemsListing({
 
     return (
       <>
-        <div className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2 md:gap-5">
+        <div className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 md:gap-4">
           {state.items.map((item) => (
             <RestaurantCard key={item.id} item={item} currency={currency} />
           ))}
@@ -752,7 +752,7 @@ export function ItemsListing({
     }
 
     return (
-      <div className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2 md:gap-5">
+      <div className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 md:gap-4">
         {items.map((item) => (
           <RestaurantCard key={item.id} item={item} currency={currency} />
         ))}
@@ -762,18 +762,7 @@ export function ItemsListing({
 
   if (viewMode === "onePage") {
     return (
-      <div className="min-w-0 space-y-10">
-        <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-          <h2 className="text-xl font-semibold text-gray-900">
-            {t("fullMenu")}
-          </h2>
-          <p className="mt-1 text-sm text-gray-500">
-            {contentSource === "menu"
-              ? t("menusDescription")
-              : t("menuDescription")}
-          </p>
-        </div>
-
+      <div className="min-w-0 space-y-8">
         {loading && sections.length === 0 ? (
           <div className="flex min-h-48 items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white text-sm text-gray-500">
             <Loader2 className="mr-2 h-4 w-4 animate-spin text-primary" />
