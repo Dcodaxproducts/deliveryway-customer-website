@@ -533,7 +533,7 @@ export const HeroSection = ({
   };
 
   return (
-    <main className="relative flex min-h-[680px] w-full items-center overflow-hidden pb-12 pt-8 md:pb-16 md:pt-10 lg:min-h-[720px]">
+    <main className="relative flex min-h-[620px] w-full items-center overflow-hidden pb-10 pt-7 md:pb-14 md:pt-9 lg:min-h-[660px]">
       <div className="absolute inset-0 z-0">
         <Image
           src={resolvedHeroImage}
@@ -546,19 +546,19 @@ export const HeroSection = ({
       </div>
       <div className="absolute inset-0 z-0 bg-gradient-to-r from-black/70 via-black/38 to-black/12" />
 
-      <div className="relative z-10 mx-auto grid w-full max-w-[1400px] items-center gap-10 px-4 sm:px-6 md:-translate-y-6 lg:grid-cols-[minmax(0,1fr)_520px] lg:-translate-y-8 lg:px-8">
+      <div className="relative z-10 mx-auto grid w-full max-w-[1440px] items-center gap-8 px-5 sm:px-6 md:-translate-y-4 lg:grid-cols-[minmax(0,1fr)_480px] lg:-translate-y-6 lg:px-8 2xl:px-10">
         <div className="max-w-[720px] text-white">
           {/* Restaurant name intentionally hidden from the banner per design request. */}
 
-          <h1 className="max-w-[680px] text-[46px] font-black leading-[0.95] tracking-normal text-white sm:text-[62px] lg:text-[76px]">
+          <h1 className="max-w-[680px] text-[42px] font-black leading-[0.96] tracking-[-0.025em] text-white sm:text-[54px] lg:text-[64px]">
             {title || t("deliveryTitle")}
           </h1>
 
-          <p className="mt-6 max-w-[560px] text-lg font-medium leading-8 text-white/86">
+          <p className="mt-5 max-w-[560px] text-base font-medium leading-7 text-white/86 lg:text-lg">
             {description || t("description")}
           </p>
 
-          <div className="mt-6 grid max-w-[680px] gap-2.5 sm:grid-cols-3">
+          <div className="mt-5 grid max-w-[660px] gap-2.5 sm:grid-cols-3">
             <div className="rounded-[18px] bg-white/13 p-3 ring-1 ring-white/18 backdrop-blur">
               <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-white text-primary">
                 <Clock3 size={16} />
@@ -593,7 +593,7 @@ export const HeroSection = ({
           </div>
         </div>
 
-        <div className="w-full rounded-[30px] bg-white p-5 shadow-[0_24px_80px_rgba(17,24,39,0.22)] ring-1 ring-black/5 md:p-7">
+        <div className="w-full rounded-[26px] bg-white p-5 shadow-[0_24px_80px_rgba(17,24,39,0.22)] ring-1 ring-black/5 md:p-6">
           <div className="mb-5">
             <h2 className="text-2xl font-black tracking-normal text-[#171717]">
               {isSingleBranchRestaurant

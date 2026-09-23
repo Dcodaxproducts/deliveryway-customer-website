@@ -34,6 +34,7 @@ import { useDomainContext } from "@/hooks/useDomainContext";
 import { useHome } from "@/hooks/useHome";
 import { CART_CHANGED_EVENT, type CartChangedDetail } from "@/lib/cart-events";
 import { isCustomerAccountUser } from "@/lib/auth";
+import { resolveNavbarVisibility } from "@/lib/navbar-scroll";
 import {
   GROUP_ORDER_LOBBY_CHANGED_EVENT,
   getStoredGroupOrderCode,
@@ -230,6 +231,7 @@ export const Navbar = () => {
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [navbarVisible, setNavbarVisible] = useState(true);
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
@@ -248,6 +250,8 @@ export const Navbar = () => {
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const cartRefreshRequestRef = useRef(0);
   const pendingCartMutationsRef = useRef(0);
+  const lastScrollYRef = useRef(0);
+  const scrollFrameRef = useRef<number | null>(null);
 
   const router = useRouter();
   const pathname = usePathname();
@@ -262,6 +266,72 @@ export const Navbar = () => {
 
   const isNavLinkDisabled = (href: string) =>
     href === "/reservetable" && !tableReservationsEnabled;
+
+  useEffect(() => {
+    const hasOpenOverlay = dropdownOpen || mobileOpen || searchOpen;
+
+    if (hasOpenOverlay) {
+      setNavbarVisible(true);
+    }
+
+    const handleScroll = () => {
+      if (scrollFrameRef.current !== null) return;
+
+      scrollFrameRef.current = window.requestAnimationFrame(() => {
+        scrollFrameRef.current = null;
+
+        const currentScrollY = Math.max(0, window.scrollY);
+        setNavbarVisible((currentVisible) =>
+          resolveNavbarVisibility({
+            currentScrollY,
+            lastScrollY: lastScrollYRef.current,
+            currentVisible,
+            hasOpenOverlay,
+          }),
+        );
+
+        lastScrollYRef.current = currentScrollY;
+      });
+    };
+
+    lastScrollYRef.current = Math.max(0, window.scrollY);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+
+      if (scrollFrameRef.current !== null) {
+        window.cancelAnimationFrame(scrollFrameRef.current);
+        scrollFrameRef.current = null;
+      }
+    };
+  }, [dropdownOpen, mobileOpen, searchOpen]);
+
+  useEffect(() => {
+    const navbar = navbarWrapRef.current;
+
+    if (!navbar) return;
+
+    const updateStickyOffset = () => {
+      const offset = navbarVisible ? navbar.offsetHeight + 16 : 16;
+      document.documentElement.style.setProperty(
+        "--storefront-sticky-offset",
+        `${offset}px`,
+      );
+    };
+
+    updateStickyOffset();
+
+    const resizeObserver = new ResizeObserver(updateStickyOffset);
+    resizeObserver.observe(navbar);
+
+    return () => {
+      resizeObserver.disconnect();
+      document.documentElement.style.removeProperty(
+        "--storefront-sticky-offset",
+      );
+    };
+  }, [navbarVisible]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -495,19 +565,22 @@ export const Navbar = () => {
     <>
       <div
         ref={navbarWrapRef}
-        className={`relative z-30 ${hideOnMobileHome ? "hidden md:block" : ""}`}
+        data-visible={navbarVisible}
+        className={`sticky top-0 z-50 bg-white transition-transform duration-300 ease-out will-change-transform motion-reduce:transition-none ${
+          navbarVisible ? "translate-y-0" : "-translate-y-full"
+        } ${hideOnMobileHome ? "hidden md:block" : ""}`}
       >
         <CouponPerkBanner coupons={couponsQuery.coupons} currency={currency} />
 
         {/* NAVBAR */}
-        <nav className="mx-auto flex max-w-[1440px] items-center justify-between gap-5 px-5 py-5 lg:px-8 xl:gap-12 2xl:gap-16 2xl:px-10">
+        <nav className="mx-auto flex max-w-[1440px] items-center justify-between gap-4 px-5 py-3.5 lg:px-8 xl:gap-10 2xl:gap-14 2xl:px-10">
           {/* LEFT - LOGO */}
           <Link
             href="/"
             aria-label={`${restaurantName} home`}
             className="flex shrink-0 items-center"
           >
-            <span className="relative h-[42px] w-[58px] shrink-0 overflow-hidden rounded-lg bg-white">
+            <span className="relative h-10 w-14 shrink-0 overflow-hidden rounded-lg bg-white">
               {isRestaurantBrandingLoading ? (
                 <span
                   aria-hidden="true"

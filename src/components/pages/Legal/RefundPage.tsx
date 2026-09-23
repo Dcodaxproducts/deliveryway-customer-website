@@ -2,6 +2,13 @@
 
 import { UploadCloud, Lock } from "lucide-react";
 import { useTranslations } from "next-intl";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const RefundPage = () => {
   const t = useTranslations("legal.refund");
@@ -73,12 +80,22 @@ const RefundPage = () => {
             <label className="text-xs uppercase tracking-wide text-gray-400">
               {t("reasonForRefund")}
             </label>
-            <select className="w-full mt-2 bg-gray-100 rounded-lg px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-orange-500">
-              <option>{t("selectReason")}</option>
-              <option>{t("wrongItem")}</option>
-              <option>{t("qualityIssue")}</option>
-              <option>{t("missingItems")}</option>
-            </select>
+            <Select>
+              <SelectTrigger className="mt-2 h-11 w-full rounded-lg border-0 bg-gray-100 px-4 text-sm shadow-none focus-visible:ring-2 focus-visible:ring-orange-500/25">
+                <SelectValue placeholder={t("selectReason")} />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border-gray-100 shadow-xl">
+                <SelectItem value="wrong-item" className="rounded-lg">
+                  {t("wrongItem")}
+                </SelectItem>
+                <SelectItem value="quality-issue" className="rounded-lg">
+                  {t("qualityIssue")}
+                </SelectItem>
+                <SelectItem value="missing-items" className="rounded-lg">
+                  {t("missingItems")}
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* UPLOAD */}

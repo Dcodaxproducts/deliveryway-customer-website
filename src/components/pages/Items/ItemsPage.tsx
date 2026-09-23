@@ -323,7 +323,7 @@ function ItemsPageContent() {
   };
 
   return (
-    <div className="min-h-screen md:px-35">
+    <div className="min-h-screen">
       {joiningGroupOrder ? (
         <div className="mx-4 mt-4 rounded-2xl border border-primary/10 bg-primary/5 px-4 py-3 text-sm font-medium text-primary md:mx-10">
           {t("joining")}

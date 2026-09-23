@@ -6,6 +6,13 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { OpeningHoursDialog } from "@/components/common/popups/OpeningHoursDialog";
 
 import { useEffect, useMemo, useState } from "react";
@@ -1093,20 +1100,24 @@ export function ReserveTablePage() {
               <div>
                 <label className="text-sm font-medium">{t("time")}</label>
 
-                <select
-                  value={time}
+                <Select
+                  value={time || undefined}
                   disabled={!selectedBranch?.id || !date || Boolean(dateError)}
-                  onChange={(e) => setValue("time", e.target.value, { shouldValidate: true })}
-                  className="mt-2 h-10 w-full rounded-full border border-input bg-[#FAFAF9] px-4 text-sm outline-none transition focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
+                  onValueChange={(value) =>
+                    setValue("time", value, { shouldValidate: true })
+                  }
                 >
-                  <option value="">{timeSelectPlaceholder}</option>
-
-                  {availableTimeSlots.map((slot) => (
-                    <option key={slot} value={slot}>
-                      {formatTimeLabel(slot)}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="mt-2 h-10 w-full rounded-full border-input bg-[#FAFAF9] px-4 text-sm shadow-none focus-visible:border-primary focus-visible:ring-primary/20">
+                    <SelectValue placeholder={timeSelectPlaceholder} />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-gray-100 shadow-xl">
+                    {availableTimeSlots.map((slot) => (
+                      <SelectItem key={slot} value={slot} className="rounded-lg">
+                        {formatTimeLabel(slot)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
                 {timeError ? (
                   <p className="mt-1 text-xs text-red-500">{timeError}</p>

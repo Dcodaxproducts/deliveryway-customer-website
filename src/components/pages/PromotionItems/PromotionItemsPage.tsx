@@ -9,7 +9,6 @@ import {
   BadgePercent,
   CalendarDays,
   Check,
-  ChevronDown,
   Clock3,
   Copy,
   Filter,
@@ -23,6 +22,13 @@ import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { FavoriteHeartButton } from "@/components/common/favorites/FavoriteHeartButton";
 import { useAppLocale } from "@/hooks/useAppLocale";
 import { useAuth } from "@/hooks/useAuth";
@@ -736,19 +742,33 @@ function PromotionItemsPageContent() {
           </div>
 
           <div className="flex items-center gap-3">
-            <label className="relative">
-              <span className="sr-only">{t("sortItems")}</span>
-              <select
+            <div>
+              <span className="sr-only" id="promotion-sort-label">
+                {t("sortItems")}
+              </span>
+              <Select
                 value={sortKey}
-                onChange={(event) => setSortKey(event.target.value as SortKey)}
-                className="h-10 appearance-none rounded-xl border border-gray-100 bg-white pl-4 pr-10 text-sm font-semibold text-gray-700 shadow-sm outline-none transition hover:border-primary/25 focus:border-primary/40"
+                onValueChange={(value) => setSortKey(value as SortKey)}
               >
-                <option value="popular">{t("popular")}</option>
-                <option value="priceAsc">{t("priceLowToHigh")}</option>
-                <option value="priceDesc">{t("priceHighToLow")}</option>
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
-            </label>
+                <SelectTrigger
+                  aria-labelledby="promotion-sort-label"
+                  className="h-10 min-w-[178px] rounded-xl border-gray-100 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm hover:border-primary/25 focus-visible:border-primary/40 focus-visible:ring-primary/15"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-gray-100 shadow-xl">
+                  <SelectItem value="popular" className="rounded-lg">
+                    {t("popular")}
+                  </SelectItem>
+                  <SelectItem value="priceAsc" className="rounded-lg">
+                    {t("priceLowToHigh")}
+                  </SelectItem>
+                  <SelectItem value="priceDesc" className="rounded-lg">
+                    {t("priceHighToLow")}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <button
               type="button"
               className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-100 bg-white text-primary shadow-sm"

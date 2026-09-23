@@ -419,7 +419,7 @@ export default function RestaurantHeader() {
 
   if (loading) {
     return (
-      <div className="mx-4 mt-6 rounded-3xl border border-gray-100 bg-white p-6 shadow-sm md:mx-10">
+      <div className="mx-auto mt-6 w-[calc(100%-2.5rem)] max-w-[1376px] rounded-3xl border border-gray-100 bg-white p-6 shadow-sm lg:w-[calc(100%-4rem)] 2xl:w-[calc(100%-5rem)]">
         <div className="flex min-h-[240px] items-center justify-center">
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
@@ -428,7 +428,7 @@ export default function RestaurantHeader() {
   }
 
   return (
-    <div className="mx-4 mt-6 overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm md:mx-10 md:mt-7">
+    <div className="mx-auto mt-6 w-[calc(100%-2.5rem)] max-w-[1376px] overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm md:mt-7 lg:w-[calc(100%-4rem)] 2xl:w-[calc(100%-5rem)]">
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_480px]">
         {/* LEFT CONTENT */}
         <div className="flex min-w-0 flex-col justify-center bg-white px-5 py-5 md:px-7 md:py-6 lg:px-8">

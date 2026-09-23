@@ -544,9 +544,9 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
   }
 
   return (
-    <div className="hidden min-w-0 flex-col gap-6 px-4 py-6 md:px-10 lg:flex lg:flex-row lg:items-start">
+    <div className="mx-auto hidden w-full max-w-[1440px] min-w-0 flex-col gap-6 px-5 py-6 lg:flex lg:flex-row lg:items-start lg:px-8 2xl:px-10">
       {/* SIDEBAR */}
-      <aside className="w-full min-w-0 shrink-0 lg:sticky lg:top-24 lg:w-[280px] lg:self-start">
+      <aside className="w-full min-w-0 shrink-0 lg:sticky lg:top-[var(--storefront-sticky-offset)] lg:w-[260px] lg:self-start lg:transition-[top] lg:duration-300 lg:ease-out xl:w-[280px] motion-reduce:transition-none">
         <CategorySidebar
           activeCategoryId={activeSectionId}
           categories={activeSections}
