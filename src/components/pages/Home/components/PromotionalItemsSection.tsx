@@ -58,13 +58,13 @@ const getItemHref = (item: MenuItem) => {
 };
 
 const PromotionalItemsSkeleton = ({ compact }: { compact?: boolean }) => (
-  <div className={compact ? "flex gap-4 overflow-hidden" : "grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4"}>
+  <div className={compact ? "storefront-rail storefront-rail--cards overflow-hidden" : "grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4"}>
     {[1, 2, 3, 4].map((item) => (
       <div
         key={item}
         className={
           compact
-            ? "h-[292px] min-w-[calc((100vw-3rem)/2.15)] max-w-[190px] animate-pulse rounded-[24px] bg-white"
+            ? "h-[292px] w-full min-w-0 animate-pulse rounded-[24px] bg-white"
             : "h-[316px] animate-pulse rounded-[18px] bg-gray-100"
         }
       />
@@ -107,7 +107,7 @@ function PromotionalItemCard({
       <article
         className={
           compact
-            ? "h-[292px] w-[calc((100vw-3rem)/2.15)] min-w-[150px] max-w-[190px] shrink-0 overflow-hidden rounded-[24px] bg-white shadow-[0_16px_34px_rgba(31,41,55,0.09)]"
+            ? "h-[292px] w-full min-w-0 shrink-0 overflow-hidden rounded-[24px] bg-white shadow-[0_16px_34px_rgba(31,41,55,0.09)]"
             : `group flex h-[316px] w-full min-w-0 flex-col overflow-hidden rounded-[18px] bg-white shadow-[0_8px_24px_rgba(17,24,39,0.065)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(17,24,39,0.1)] ${
                 featured ? "border border-primary" : "border border-gray-100"
               }`
@@ -119,7 +119,7 @@ function PromotionalItemCard({
             src={image}
             alt={title}
             fill
-            className="object-cover transition duration-500 group-hover:scale-[1.02]"
+            className="object-cover transition duration-500 group-hover:scale-[1.02] motion-reduce:transition-none"
             sizes={compact ? "238px" : "(max-width: 768px) 92vw, 320px"}
             unoptimized
           />
@@ -227,7 +227,7 @@ export function PromotionalItemsSection({
           </Link>
         </div>
 
-        <div className="storefront-rail -mx-4 px-4 pb-3">
+        <div className="storefront-rail storefront-rail--cards -mx-4 px-4 pb-3">
           {items.map((item) => (
             <PromotionalItemCard
               key={String(item.id)}

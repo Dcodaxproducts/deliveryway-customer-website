@@ -316,6 +316,17 @@ button{
   scroll-snap-stop: normal;
 }
 
+.storefront-rail--cards > * {
+  flex: 0 0 calc((100% - 0.625rem) / 2);
+  min-width: 0;
+}
+
+@media (min-width: 640px) {
+  .storefront-rail--cards > * {
+    flex-basis: calc((100% - 1.25rem) / 3);
+  }
+}
+
 .storefront-rail::-webkit-scrollbar { height: 4px; }
 .storefront-rail::-webkit-scrollbar-track { background: transparent; }
 .storefront-rail::-webkit-scrollbar-thumb {
@@ -347,4 +358,10 @@ button{
 
 @media (prefers-reduced-motion: reduce) {
   .storefront-rail { scroll-behavior: auto; }
+  .storefront-rail,
+  .storefront-rail * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

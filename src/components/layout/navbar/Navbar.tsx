@@ -35,6 +35,16 @@ import { useHome } from "@/hooks/useHome";
 import { CART_CHANGED_EVENT, type CartChangedDetail } from "@/lib/cart-events";
 import { isCustomerAccountUser } from "@/lib/auth";
 import {
+  captureBodyScrollStyles,
+  getNavbarStickyOffset,
+  resolveDrawerKeyAction,
+  restoreBodyScrollStyles,
+} from "@/lib/mobile-drawer";
+import {
+  MOBILE_NAVBAR_MEDIA_QUERY,
+  resolveResponsiveNavbarVisibility,
+} from "@/lib/navbar-scroll";
+import {
   GROUP_ORDER_LOBBY_CHANGED_EVENT,
   getStoredGroupOrderCode,
   getStoredGroupOrderLobbyId,
@@ -230,6 +240,7 @@ export const Navbar = () => {
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [navbarVisible, setNavbarVisible] = useState(true);
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
@@ -250,6 +261,8 @@ export const Navbar = () => {
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const cartRefreshRequestRef = useRef(0);
   const pendingCartMutationsRef = useRef(0);
+  const lastScrollYRef = useRef(0);
+  const scrollFrameRef = useRef<number | null>(null);
 
   const router = useRouter();
   const pathname = usePathname();
@@ -265,13 +278,52 @@ export const Navbar = () => {
     href === "/reservetable" && !tableReservationsEnabled;
 
   useEffect(() => {
+    const mobileQuery = window.matchMedia(MOBILE_NAVBAR_MEDIA_QUERY);
+    const hasOpenOverlay = dropdownOpen || mobileOpen || searchOpen;
+
+    const updateVisibility = () => {
+      if (mobileQuery.matches || hasOpenOverlay) setNavbarVisible(true);
+    };
+    const handleScroll = () => {
+      if (scrollFrameRef.current !== null) return;
+      scrollFrameRef.current = window.requestAnimationFrame(() => {
+        scrollFrameRef.current = null;
+        const currentScrollY = Math.max(0, window.scrollY);
+        setNavbarVisible((currentVisible) =>
+          resolveResponsiveNavbarVisibility({
+            isMobileViewport: mobileQuery.matches,
+            currentScrollY,
+            lastScrollY: lastScrollYRef.current,
+            currentVisible,
+            hasOpenOverlay,
+          }),
+        );
+        lastScrollYRef.current = currentScrollY;
+      });
+    };
+
+    lastScrollYRef.current = Math.max(0, window.scrollY);
+    updateVisibility();
+    mobileQuery.addEventListener("change", updateVisibility);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      mobileQuery.removeEventListener("change", updateVisibility);
+      window.removeEventListener("scroll", handleScroll);
+      if (scrollFrameRef.current !== null) {
+        window.cancelAnimationFrame(scrollFrameRef.current);
+        scrollFrameRef.current = null;
+      }
+    };
+  }, [dropdownOpen, mobileOpen, searchOpen]);
+
+  useEffect(() => {
     const navbar = navbarWrapRef.current;
     if (!navbar) return;
 
     const updateStickyOffset = () => {
       document.documentElement.style.setProperty(
         "--storefront-sticky-offset",
-        navbar.offsetHeight + "px",
+        getNavbarStickyOffset(navbar.offsetHeight),
       );
     };
 
@@ -288,8 +340,7 @@ export const Navbar = () => {
   useEffect(() => {
     if (!mobileOpen) return;
 
-    const previousOverflow = document.body.style.overflow;
-    const previousPaddingRight = document.body.style.paddingRight;
+    const previousBodyStyles = captureBodyScrollStyles(document.body.style);
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     const focusableSelector =
       'a[href]:not([aria-disabled="true"]), button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -302,26 +353,30 @@ export const Navbar = () => {
     }, 20);
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
+      const focusable = mobileMenuRef.current
+        ? Array.from(
+            mobileMenuRef.current.querySelectorAll<HTMLElement>(focusableSelector),
+          )
+        : [];
+      const activeIndex = focusable.findIndex(
+        (element) => element === document.activeElement,
+      );
+      const action = resolveDrawerKeyAction({
+        key: event.key,
+        shiftKey: event.shiftKey,
+        activeIndex,
+        focusableCount: focusable.length,
+      });
+
+      if (action === "close") {
         event.preventDefault();
         setMobileOpen(false);
-        return;
-      }
-      if (event.key !== "Tab" || !mobileMenuRef.current) return;
-
-      const focusable = Array.from(
-        mobileMenuRef.current.querySelectorAll<HTMLElement>(focusableSelector),
-      );
-      if (focusable.length === 0) return;
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-
-      if (event.shiftKey && document.activeElement === first) {
+      } else if (action === "focus-first") {
         event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
+        focusable[0]?.focus();
+      } else if (action === "focus-last") {
         event.preventDefault();
-        first.focus();
+        focusable.at(-1)?.focus();
       }
     };
 
@@ -329,8 +384,7 @@ export const Navbar = () => {
     return () => {
       window.clearTimeout(focusTimer);
       document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = previousOverflow;
-      document.body.style.paddingRight = previousPaddingRight;
+      restoreBodyScrollStyles(document.body.style, previousBodyStyles);
       mobileMenuTriggerRef.current?.focus();
     };
   }, [mobileOpen]);
@@ -567,7 +621,10 @@ export const Navbar = () => {
     <>
       <div
         ref={navbarWrapRef}
-        className="sticky top-0 z-50 border-b border-black/[0.06] bg-white/95 shadow-[0_6px_20px_rgba(15,23,42,0.06)] backdrop-blur-[10px] supports-[backdrop-filter]:bg-white/88"
+        data-visible={navbarVisible}
+        className={`sticky top-0 z-50 border-b border-black/[0.06] bg-white/95 shadow-[0_6px_20px_rgba(15,23,42,0.06)] backdrop-blur-[10px] transition-transform duration-300 ease-out will-change-transform supports-[backdrop-filter]:bg-white/88 motion-reduce:transition-none ${
+          navbarVisible ? "translate-y-0" : "max-md:translate-y-0 md:-translate-y-full"
+        }`}
       >
         <CouponPerkBanner coupons={couponsQuery.coupons} currency={currency} />
 

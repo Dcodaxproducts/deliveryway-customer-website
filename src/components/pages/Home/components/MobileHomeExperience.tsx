@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { ResilientImage } from "@/components/common/ResilientImage";
 import Link from "next/link";
 import {
   Bell,
@@ -209,13 +209,13 @@ export function MobileHomeExperience({
                 className="storefront-category-chip"
               >
                 <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-primary/10">
-                  <Image
+                  <ResilientImage
                     src={getCategoryImage(category)}
-                    alt=""
+                    alt={category.name}
                     fill
                     sizes="32px"
                     className="object-cover"
-                    unoptimized
+                    fallback="brand"
                   />
                 </span>
                 <span className="truncate">{category.name}</span>
@@ -250,13 +250,13 @@ export function MobileHomeExperience({
           </div>
 
           <div className="absolute -right-6 bottom-2 h-[150px] w-[150px] overflow-hidden rounded-full border-[10px] border-white/10 bg-white/10">
-            <Image
+            <ResilientImage
               src={bannerImage}
               alt={featuredDeal?.title || t("featuredTitleFallback")}
               fill
               className="object-cover"
               sizes="150px"
-              unoptimized
+              fallback="deal"
             />
           </div>
         </section>

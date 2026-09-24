@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Image from "next/image";
+import { ResilientImage } from "@/components/common/ResilientImage";
 import { ArrowUpRight, BadgePercent } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -50,7 +50,7 @@ type CustomerDealsSectionProps = {
 const CustomerDealsSkeleton = ({ compact = false }: { compact?: boolean }) => (
   <div
     className={
-      compact ? "flex gap-4 overflow-hidden" : "flex gap-5 overflow-hidden"
+      compact ? "storefront-rail storefront-rail--cards overflow-hidden" : "flex gap-5 overflow-hidden"
     }
   >
     {[1, 2, 3, 4].map((item) => (
@@ -58,20 +58,13 @@ const CustomerDealsSkeleton = ({ compact = false }: { compact?: boolean }) => (
         key={item}
         className={
           compact
-            ? "h-[428px] min-w-[270px] animate-pulse rounded-[22px] border border-[#EFE6DB] bg-[#FBFAF6] sm:min-w-[320px]"
+            ? "h-[366px] w-full min-w-0 animate-pulse rounded-[22px] border border-[#EFE6DB] bg-[#FBFAF6] sm:min-w-[320px]"
             : "h-[250px] min-w-[280px] animate-pulse rounded-[22px] bg-gray-100 sm:min-w-[320px]"
         }
       />
     ))}
   </div>
 );
-
-const fallbackDealImages = [
-  "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=960&q=90",
-  "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=960&q=90",
-  "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=960&q=90",
-  "https://images.unsplash.com/photo-1633945274405-b6c8069047b0?auto=format&fit=crop&w=960&q=90",
-] as const;
 
 const toNumber = (value: number | string | null | undefined) => {
   const parsed = Number(value);
@@ -103,11 +96,7 @@ const getDealHighlights = (
   return chips;
 };
 
-const getDealImageForCard = (deal: CustomerDeal, index: number) => {
-  const image = getDealImage(deal);
-
-  return image || fallbackDealImages[index % fallbackDealImages.length];
-};
+const getDealImageForCard = (deal: CustomerDeal) => getDealImage(deal) || null;
 
 const getComparableDealPrice = (deal: CustomerDeal, currency?: string | null) => {
   const scopedTotal = deal.scopeMenuItems.reduce(
@@ -132,7 +121,7 @@ const CustomerDealCard = ({
   onAddDeal?: (deal: CustomerDeal, selectedMenuItemIds?: string[]) => void;
 }) => {
   const t = useTranslations("home.deals");
-  const image = getDealImageForCard(deal, index);
+  const image = getDealImageForCard(deal);
   const itemNames = getDealItemNames(deal.scopeMenuItems);
   const categoryNames = getDealItemNames(deal.scopeCategories);
   const actionLabel = getDealActionLabel(deal);
@@ -229,20 +218,14 @@ const CustomerDealCard = ({
 
         <div className="relative mt-2 h-[124px] w-full self-center sm:h-[138px]">
           <div className="absolute inset-x-3 bottom-1 h-8 rounded-full bg-black/20 blur-xl" />
-          {image ? (
-            <Image
-              src={image}
-              alt={deal.title}
-              fill
-              sizes="(max-width: 640px) 112px, 132px"
-              className="object-contain drop-shadow-[0_18px_18px_rgba(17,24,39,0.22)]"
-              unoptimized
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center rounded-full bg-primary/10 text-primary">
-              <BadgePercent size={42} />
-            </div>
-          )}
+          <ResilientImage
+            src={image}
+            alt={deal.title}
+            fill
+            sizes="(max-width: 640px) 112px, 132px"
+            className="object-contain drop-shadow-[0_18px_18px_rgba(17,24,39,0.22)]"
+            fallback="deal"
+          />
         </div>
       </div>
 
@@ -283,7 +266,7 @@ const CustomerDealMenuCard = ({
   onAddDeal?: (deal: CustomerDeal, selectedMenuItemIds?: string[]) => void;
 }) => {
   const t = useTranslations("home.deals");
-  const image = getDealImageForCard(deal, index);
+  const image = getDealImageForCard(deal);
   const itemNames = getDealItemNames(deal.scopeMenuItems);
   const categoryNames = getDealItemNames(deal.scopeCategories);
   const actionLabel = getDealActionLabel(deal);
@@ -311,7 +294,7 @@ const CustomerDealMenuCard = ({
 
   return (
     <article
-      className={`group relative flex h-[366px] w-full min-w-0 flex-col overflow-hidden rounded-[18px] border p-2 transition duration-300 ease-out ${
+      className={`group relative flex h-[366px] w-full min-w-0 flex-col overflow-hidden rounded-[18px] border p-2 transition duration-300 ease-out motion-reduce:transition-none ${
         isFeatured
           ? "border-[#A33A47]/80 bg-[linear-gradient(155deg,#8B1D2B_0%,#77131F_100%)] text-[#FFF7EF] shadow-[0_14px_30px_rgba(79,24,33,0.13)]"
           : "border-[#EEE4D9] bg-[#FFFDF9] text-[#40312D] shadow-[0_12px_28px_rgba(64,48,33,0.055)] hover:-translate-y-0.5 hover:shadow-[0_17px_34px_rgba(64,48,33,0.08)]"
@@ -340,20 +323,14 @@ const CustomerDealMenuCard = ({
           </span>
         ) : null}
 
-        {image ? (
-          <Image
-            src={image}
-            alt={deal.title}
-            fill
-            sizes="(max-width: 640px) 86vw, (max-width: 1024px) 44vw, 350px"
-            className="object-cover object-center transition duration-500 ease-out group-hover:scale-[1.015]"
-            unoptimized
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center text-primary">
-            <BadgePercent size={42} />
-          </div>
-        )}
+        <ResilientImage
+          src={image}
+          alt={deal.title}
+          fill
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 34vw, 350px"
+          className="object-cover object-center transition duration-500 ease-out group-hover:scale-[1.015] motion-reduce:transition-none"
+          fallback="deal"
+        />
       </div>
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col px-2.5 pb-1.5 pt-3">
@@ -468,7 +445,7 @@ const CustomerDealMenuCard = ({
           <Button
             variant="default"
             size="icon"
-            className={`h-9 w-9 shrink-0 rounded-full border shadow-none transition duration-200 ${
+            className={`h-9 w-9 shrink-0 rounded-full border shadow-none transition duration-200 motion-reduce:transition-none ${
               isFeatured
                 ? "border-[#E1BC73] bg-[#E1BC73] text-[#5B1720] hover:bg-[#E8C985]"
                 : "border-[#EBCFCB] bg-white/40 text-[#A51F30] hover:border-[#A51F30] hover:bg-[#A51F30] hover:text-white"
@@ -668,29 +645,24 @@ export const CustomerDealsSection = ({
             </div>
           </div>
 
-          <Carousel
-            opts={{ align: "start", dragFree: true }}
-            className="relative z-10 min-w-0"
+          <div
+            className="storefront-rail storefront-rail--cards relative z-10 -mx-2 px-2 pb-3"
+            aria-label={t("available")}
           >
-            <CarouselContent className="-ml-4 cursor-grab pb-8 active:cursor-grabbing">
-              {activeDeals.map((deal, index) => (
-                <CarouselItem
-                  key={deal.id}
-                  className="flex basis-[84%] pl-4 sm:basis-[47%] lg:basis-[34%] xl:basis-1/4"
-                >
-                  <CustomerDealMenuCard
-                    deal={deal}
-                    index={index}
-                    isAdding={
-                      addingDealId === deal.id || pendingDeal?.id === deal.id
-                    }
-                    currency={currency}
-                    onAddDeal={handleDealClick}
-                  />
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-          </Carousel>
+            {activeDeals.map((deal, index) => (
+              <div key={deal.id} className="flex">
+                <CustomerDealMenuCard
+                  deal={deal}
+                  index={index}
+                  isAdding={
+                    addingDealId === deal.id || pendingDeal?.id === deal.id
+                  }
+                  currency={currency}
+                  onAddDeal={handleDealClick}
+                />
+              </div>
+            ))}
+          </div>
         </div>
 
         {chooserDrawer}

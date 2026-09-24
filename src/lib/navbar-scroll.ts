@@ -5,6 +5,12 @@ type NavbarVisibilityInput = {
   hasOpenOverlay: boolean;
 };
 
+type ResponsiveNavbarVisibilityInput = NavbarVisibilityInput & {
+  isMobileViewport: boolean;
+};
+
+export const MOBILE_NAVBAR_MEDIA_QUERY = "(max-width: 767px)";
+
 export const resolveNavbarVisibility = ({
   currentScrollY,
   lastScrollY,
@@ -20,3 +26,10 @@ export const resolveNavbarVisibility = ({
 
   return currentVisible;
 };
+
+
+export const resolveResponsiveNavbarVisibility = ({
+  isMobileViewport,
+  ...visibilityInput
+}: ResponsiveNavbarVisibilityInput) =>
+  isMobileViewport ? true : resolveNavbarVisibility(visibilityInput);

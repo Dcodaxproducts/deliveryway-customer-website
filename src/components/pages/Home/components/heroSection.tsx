@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { ResilientImage } from "@/components/common/ResilientImage";
 import {
   BadgePercent,
   Clock3,
@@ -53,7 +53,6 @@ import {
   setStoredSelectedDeliveryAddressId,
 } from "@/lib/delivery-location";
 import {
-  isRemoteHttpsImageUrl,
   resolveHttpsImageUrl,
 } from "@/lib/image-fallback";
 import { fetchAddresses } from "@/services/profile";
@@ -535,13 +534,13 @@ export const HeroSection = ({
   return (
     <main className="relative flex min-h-[620px] w-full items-center overflow-hidden pb-10 pt-7 md:pb-14 md:pt-9 lg:min-h-[660px]">
       <div className="absolute inset-0 z-0">
-        <Image
+        <ResilientImage
           src={resolvedHeroImage}
           alt={t("heroImageAlt")}
           fill
           className="object-cover"
           priority
-          unoptimized={isRemoteHttpsImageUrl(resolvedHeroImage)}
+          fallback="hero"
         />
       </div>
       <div className="absolute inset-0 z-0 bg-gradient-to-r from-black/70 via-black/38 to-black/12" />
