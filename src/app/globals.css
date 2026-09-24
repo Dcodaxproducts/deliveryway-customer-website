@@ -296,3 +296,55 @@ button{
 .time-24-picker .react-time-picker__inputGroup__amPm {
   display: none;
 }
+
+/* Mobile storefront rails share one interaction contract across categories, promotions and deals. */
+.storefront-rail {
+  display: flex;
+  gap: 0.625rem;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: inline mandatory;
+  scroll-padding-inline: 0.25rem;
+  padding: 0.125rem 0.125rem 0.45rem;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--primary) 40%, transparent) transparent;
+  -webkit-overflow-scrolling: touch;
+}
+
+.storefront-rail > * {
+  scroll-snap-align: start;
+  scroll-snap-stop: normal;
+}
+
+.storefront-rail::-webkit-scrollbar { height: 4px; }
+.storefront-rail::-webkit-scrollbar-track { background: transparent; }
+.storefront-rail::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--primary) 38%, transparent);
+  border-radius: 999px;
+}
+
+.storefront-category-chip {
+  display: flex;
+  min-height: 2.75rem;
+  min-width: clamp(7.25rem, 31vw, 8.5rem);
+  max-width: 8.5rem;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid rgb(0 0 0 / 0.04);
+  border-radius: 999px;
+  background: white;
+  padding: 0.3rem 0.7rem 0.3rem 0.35rem;
+  color: rgb(31 41 55);
+  font-size: 0.75rem;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgb(31 41 55 / 0.06);
+}
+
+.storefront-category-chip:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .storefront-rail { scroll-behavior: auto; }
+}

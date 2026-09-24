@@ -43,12 +43,21 @@ export const BrandLogo = ({
   }, [src]);
 
   const fallbackText = branding.restaurantName?.trim() || alt;
+  const fallbackInitials = fallbackText
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase())
+    .join("");
   const shouldShowTextFallback = hasImageError && src !== "/deliveryway-logo.jpg";
 
   if (shouldShowTextFallback) {
     return (
-      <span aria-label={alt} className={className}>
-        {fallbackText}
+      <span
+        aria-label={alt}
+        className={`flex h-full w-full items-center justify-center overflow-hidden px-1 text-center text-xs font-bold leading-none ${className}`}
+      >
+        {fallbackInitials}
       </span>
     );
   }

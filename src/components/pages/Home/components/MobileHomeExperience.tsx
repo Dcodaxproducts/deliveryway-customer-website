@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   Bell,
-  ChevronRight,
   MapPin,
   Search,
   ShoppingBag,
@@ -14,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
+import { BrandLogo } from "@/components/common/BrandLogo";
 import { getDealImage } from "@/components/pages/Home/utils/customer-deal-cart";
 import { isDealActive } from "@/components/pages/Home/utils/customer-deals-formatters";
 import { PromotionalItemsSection } from "@/components/pages/Home/components/PromotionalItemsSection";
@@ -93,11 +93,6 @@ export function MobileHomeExperience({
   );
   const branchLabel = branch?.name || restaurantName;
   const visibleCategories = categories.slice(0, 10);
-  const logoUrl = resolveHttpsImageUrl(
-    branding.logo.light || branding.logo.default,
-    "/deliveryway-logo.jpg",
-  );
-
   return (
     <div className="min-h-screen bg-[#f7f3ef] pb-8 md:hidden">
       <section className="relative overflow-hidden rounded-b-[34px] bg-primary px-5 pb-8 pt-5 text-white shadow-[0_18px_45px_rgba(206,24,27,0.24)]">
@@ -126,13 +121,11 @@ export function MobileHomeExperience({
 
         <div className="relative z-10 mt-6 flex items-center gap-3">
           <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl bg-white shadow-sm">
-            <Image
-              src={logoUrl}
+            <BrandLogo
+              restaurantLogoUrl={branding.logo.light || branding.logo.default}
               alt={t("restaurantLogo", { restaurant: restaurantName })}
               fill
-              sizes="56px"
               className="object-contain"
-              unoptimized
             />
           </div>
           <div className="min-w-0">
@@ -145,22 +138,28 @@ export function MobileHomeExperience({
           </div>
         </div>
 
+      </section>
+
+      <section
+        className="sticky z-40 border-b border-black/5 bg-[#f7f3ef]/95 px-4 pb-3 pt-3 shadow-[0_8px_22px_rgba(31,23,18,0.08)] backdrop-blur-xl supports-[backdrop-filter]:bg-[#f7f3ef]/88"
+        style={{ top: "var(--storefront-sticky-offset, 64px)" }}
+        aria-label={heroT("orderPanelTitle")}
+      >
         <button
           type="button"
           onClick={() => router.push("/items")}
-          className="relative z-10 mt-6 flex h-12 w-full items-center gap-3 rounded-full bg-white px-4 text-left text-sm font-semibold text-gray-500 shadow-[0_16px_38px_rgba(31,41,55,0.18)]"
+          className="flex h-12 w-full items-center gap-3 rounded-2xl border border-black/[0.04] bg-white px-4 text-left text-sm font-semibold text-gray-500 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
-          <Search className="h-5 w-5 text-primary" />
+          <Search className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
           <span className="truncate">{t("searchPlaceholder")}</span>
         </button>
 
         {availableCheckoutTypes.length > 0 ? (
           <div
-            className="relative z-10 mt-4 grid gap-2 rounded-2xl bg-black/10 p-1.5"
+            className="mt-2 grid gap-1 rounded-2xl bg-primary/[0.07] p-1"
             style={{
               gridTemplateColumns: `repeat(${availableCheckoutTypes.length}, minmax(0, 1fr))`,
             }}
-            aria-label={heroT("orderPanelTitle")}
           >
             {availableCheckoutTypes.map((option) => {
               const isSelected = selectedCheckoutType === option;
@@ -175,10 +174,10 @@ export function MobileHomeExperience({
                     setSelectedCheckoutType(option);
                     onCheckoutTypeChange?.(option);
                   }}
-                  className={`flex h-11 items-center justify-center gap-2 rounded-xl text-sm font-bold transition ${
+                  className={`flex min-h-11 items-center justify-center gap-2 rounded-xl px-3 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none ${
                     isSelected
                       ? "bg-white text-primary shadow-sm"
-                      : "text-white/85 hover:bg-white/10"
+                      : "text-gray-600 hover:bg-white/60"
                   }`}
                 >
                   <Icon className="h-4 w-4" aria-hidden="true" />
@@ -190,9 +189,43 @@ export function MobileHomeExperience({
             })}
           </div>
         ) : null}
+
+        {categoriesLoading ? (
+          <div className="storefront-rail mt-2" aria-hidden="true">
+            {[1, 2, 3].map((item) => (
+              <span key={item} className="h-10 min-w-[118px] animate-pulse rounded-full bg-white" />
+            ))}
+          </div>
+        ) : visibleCategories.length > 0 ? (
+          <div
+            className="storefront-rail mt-2"
+            aria-label={t("categories")}
+          >
+            {visibleCategories.map((category) => (
+              <button
+                key={category.id}
+                type="button"
+                onClick={() => router.push(`/items?categoryId=${category.id}`)}
+                className="storefront-category-chip"
+              >
+                <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-primary/10">
+                  <Image
+                    src={getCategoryImage(category)}
+                    alt=""
+                    fill
+                    sizes="32px"
+                    className="object-cover"
+                    unoptimized
+                  />
+                </span>
+                <span className="truncate">{category.name}</span>
+              </button>
+            ))}
+          </div>
+        ) : null}
       </section>
 
-      <main className="-mt-3 space-y-8 px-4">
+      <main className="space-y-8 px-4 pt-4">
         <section className="relative z-10 overflow-hidden rounded-[28px] bg-[#2b1714] p-5 text-white shadow-[0_18px_45px_rgba(31,23,18,0.18)]">
           <div className="relative z-10 max-w-[60%]">
             <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-white/80">
@@ -226,63 +259,6 @@ export function MobileHomeExperience({
               unoptimized
             />
           </div>
-        </section>
-
-        <section>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-black text-gray-950">
-              {t("categories")}
-            </h2>
-            <Link
-              href="/items"
-              className="flex items-center gap-1 text-sm font-bold text-primary"
-            >
-              {t("viewAll")}
-              <ChevronRight className="h-4 w-4" />
-            </Link>
-          </div>
-
-          {categoriesLoading ? (
-            <div className="flex gap-3 overflow-hidden">
-              {[1, 2, 3, 4].map((item) => (
-                <div
-                  key={item}
-                  className="h-[98px] min-w-[78px] animate-pulse rounded-[24px] bg-white"
-                />
-              ))}
-            </div>
-          ) : visibleCategories.length > 0 ? (
-            <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {visibleCategories.map((category) => (
-                <button
-                  key={category.id}
-                  type="button"
-                  onClick={() =>
-                    router.push(`/items?categoryId=${category.id}`)
-                  }
-                  className="flex min-w-[84px] flex-col items-center gap-2 rounded-[24px] bg-white px-3 py-3 shadow-[0_12px_26px_rgba(31,41,55,0.07)]"
-                >
-                  <span className="relative h-[49px] w-[49px] overflow-hidden rounded-full bg-primary/10">
-                    <Image
-                      src={getCategoryImage(category)}
-                      alt={category.name}
-                      fill
-                      className="object-cover"
-                      sizes="48px"
-                      unoptimized
-                    />
-                  </span>
-                  <span className="line-clamp-2 text-center text-[12px] font-medium leading-4 text-gray-900">
-                    {category.name}
-                  </span>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-[24px] bg-white px-4 py-5 text-sm font-medium text-gray-500">
-              {t("categoriesEmpty")}
-            </div>
-          )}
         </section>
 
         <PromotionalItemsSection

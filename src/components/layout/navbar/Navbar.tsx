@@ -34,7 +34,6 @@ import { useDomainContext } from "@/hooks/useDomainContext";
 import { useHome } from "@/hooks/useHome";
 import { CART_CHANGED_EVENT, type CartChangedDetail } from "@/lib/cart-events";
 import { isCustomerAccountUser } from "@/lib/auth";
-import { resolveNavbarVisibility } from "@/lib/navbar-scroll";
 import {
   GROUP_ORDER_LOBBY_CHANGED_EVENT,
   getStoredGroupOrderCode,
@@ -231,7 +230,6 @@ export const Navbar = () => {
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [navbarVisible, setNavbarVisible] = useState(true);
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
@@ -246,18 +244,17 @@ export const Navbar = () => {
 
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const navbarWrapRef = useRef<HTMLDivElement | null>(null);
+  const mobileMenuRef = useRef<HTMLDivElement | null>(null);
+  const mobileMenuTriggerRef = useRef<HTMLButtonElement | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const cartRefreshRequestRef = useRef(0);
   const pendingCartMutationsRef = useRef(0);
-  const lastScrollYRef = useRef(0);
-  const scrollFrameRef = useRef<number | null>(null);
 
   const router = useRouter();
   const pathname = usePathname();
   const tNav = useTranslations("navigation");
   const tCommon = useTranslations("common");
-  const hideOnMobileHome = pathname === "/";
 
   const isNavLinkActive = (href: string) => {
     if (href === "/") return pathname === "/";
@@ -268,70 +265,75 @@ export const Navbar = () => {
     href === "/reservetable" && !tableReservationsEnabled;
 
   useEffect(() => {
-    const hasOpenOverlay = dropdownOpen || mobileOpen || searchOpen;
-
-    if (hasOpenOverlay) {
-      setNavbarVisible(true);
-    }
-
-    const handleScroll = () => {
-      if (scrollFrameRef.current !== null) return;
-
-      scrollFrameRef.current = window.requestAnimationFrame(() => {
-        scrollFrameRef.current = null;
-
-        const currentScrollY = Math.max(0, window.scrollY);
-        setNavbarVisible((currentVisible) =>
-          resolveNavbarVisibility({
-            currentScrollY,
-            lastScrollY: lastScrollYRef.current,
-            currentVisible,
-            hasOpenOverlay,
-          }),
-        );
-
-        lastScrollYRef.current = currentScrollY;
-      });
-    };
-
-    lastScrollYRef.current = Math.max(0, window.scrollY);
-    window.addEventListener("scroll", handleScroll, { passive: true });
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-
-      if (scrollFrameRef.current !== null) {
-        window.cancelAnimationFrame(scrollFrameRef.current);
-        scrollFrameRef.current = null;
-      }
-    };
-  }, [dropdownOpen, mobileOpen, searchOpen]);
-
-  useEffect(() => {
     const navbar = navbarWrapRef.current;
-
     if (!navbar) return;
 
     const updateStickyOffset = () => {
-      const offset = navbarVisible ? navbar.offsetHeight + 16 : 16;
       document.documentElement.style.setProperty(
         "--storefront-sticky-offset",
-        `${offset}px`,
+        navbar.offsetHeight + "px",
       );
     };
 
     updateStickyOffset();
-
     const resizeObserver = new ResizeObserver(updateStickyOffset);
     resizeObserver.observe(navbar);
 
     return () => {
       resizeObserver.disconnect();
-      document.documentElement.style.removeProperty(
-        "--storefront-sticky-offset",
-      );
+      document.documentElement.style.removeProperty("--storefront-sticky-offset");
     };
-  }, [navbarVisible]);
+  }, []);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const previousPaddingRight = document.body.style.paddingRight;
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    const focusableSelector =
+      'a[href]:not([aria-disabled="true"]), button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+    document.body.style.overflow = "hidden";
+    if (scrollbarWidth > 0) document.body.style.paddingRight = scrollbarWidth + "px";
+
+    const focusTimer = window.setTimeout(() => {
+      mobileMenuRef.current?.querySelector<HTMLElement>(focusableSelector)?.focus();
+    }, 20);
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setMobileOpen(false);
+        return;
+      }
+      if (event.key !== "Tab" || !mobileMenuRef.current) return;
+
+      const focusable = Array.from(
+        mobileMenuRef.current.querySelectorAll<HTMLElement>(focusableSelector),
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.clearTimeout(focusTimer);
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+      document.body.style.paddingRight = previousPaddingRight;
+      mobileMenuTriggerRef.current?.focus();
+    };
+  }, [mobileOpen]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -565,10 +567,7 @@ export const Navbar = () => {
     <>
       <div
         ref={navbarWrapRef}
-        data-visible={navbarVisible}
-        className={`sticky top-0 z-50 border-b border-black/[0.04] bg-white/90 shadow-[0_8px_24px_rgba(15,23,42,0.04)] backdrop-blur-[8px] transition-transform duration-300 ease-out will-change-transform supports-[backdrop-filter]:bg-white/82 motion-reduce:transition-none ${
-          navbarVisible ? "translate-y-0" : "-translate-y-full"
-        } ${hideOnMobileHome ? "hidden md:block" : ""}`}
+        className="sticky top-0 z-50 border-b border-black/[0.06] bg-white/95 shadow-[0_6px_20px_rgba(15,23,42,0.06)] backdrop-blur-[10px] supports-[backdrop-filter]:bg-white/88"
       >
         <CouponPerkBanner coupons={couponsQuery.coupons} currency={currency} />
 
@@ -869,8 +868,16 @@ export const Navbar = () => {
           </div>
 
           {/* MOBILE BUTTON */}
-          <button onClick={() => setMobileOpen(true)} className="xl:hidden">
-            <Menu />
+          <button
+            ref={mobileMenuTriggerRef}
+            type="button"
+            onClick={() => setMobileOpen(true)}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-gray-800 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary xl:hidden"
+            aria-label={tNav("openMenu")}
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-navigation"
+          >
+            <Menu className="h-6 w-6" />
           </button>
         </nav>
 
@@ -1019,22 +1026,38 @@ export const Navbar = () => {
         </div>
       </div>
 
-      {hideOnMobileHome ? (
+      {/* MOBILE MENU */}
+      <div
+        className={`fixed inset-0 z-[70] transition-opacity duration-300 motion-reduce:transition-none ${
+          mobileOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+        }`}
+        aria-hidden={!mobileOpen}
+        inert={!mobileOpen}
+      >
         <button
           type="button"
-          onClick={() => setMobileOpen(true)}
-          className="fixed right-16 top-5 z-40 flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white ring-1 ring-white/20 md:hidden"
-          aria-label={tNav("openMenu")}
-        >
-          <Menu className="h-5 w-5" />
-        </button>
-      ) : null}
-
-      {/* MOBILE MENU */}
-      {mobileOpen && (
-        <div className="fixed inset-0 bg-black/40 z-50">
-          <div className="fixed right-0 top-0 h-full w-[280px] bg-white p-6 shadow-lg flex flex-col gap-6">
-            <button onClick={() => setMobileOpen(false)} className="self-end">
+          className="absolute inset-0 h-full w-full cursor-default bg-black/45 backdrop-blur-[2px]"
+          onClick={() => setMobileOpen(false)}
+          aria-label={tCommon("close")}
+          tabIndex={mobileOpen ? 0 : -1}
+        />
+          <div
+            id="mobile-navigation"
+            ref={mobileMenuRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label={tNav("openMenu")}
+            className={`fixed right-0 top-0 flex h-[100dvh] w-[min(88vw,360px)] flex-col gap-5 overflow-y-auto overscroll-contain bg-white px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-[calc(1.25rem+env(safe-area-inset-top))] shadow-[-20px_0_60px_rgba(15,23,42,0.2)] transition-transform duration-300 ease-out motion-reduce:transition-none ${
+              mobileOpen ? "translate-x-0" : "translate-x-full"
+            }`}
+          >
+            <button
+              type="button"
+              onClick={() => setMobileOpen(false)}
+              className="flex h-11 w-11 shrink-0 items-center justify-center self-end rounded-full bg-gray-100 text-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              aria-label={tCommon("close")}
+              tabIndex={mobileOpen ? 0 : -1}
+            >
               <X />
             </button>
 
@@ -1174,7 +1197,6 @@ export const Navbar = () => {
             )}
           </div>
         </div>
-      )}
     </>
   );
 };
