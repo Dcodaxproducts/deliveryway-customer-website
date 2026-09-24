@@ -1359,7 +1359,15 @@ function CheckoutPageContent() {
     void updateCustomerCart({
       customerId,
       payload: { orderTime: null },
-    }).catch(() => undefined);
+    })
+      .then((response) => {
+        if (hasBackendError(response)) {
+          clearedPreorderCustomerRef.current = null;
+        }
+      })
+      .catch(() => {
+        clearedPreorderCustomerRef.current = null;
+      });
   }, [customerId, preorderEnabled, updateCustomerCart]);
 
   useEffect(() => {
