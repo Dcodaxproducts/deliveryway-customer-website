@@ -9,6 +9,7 @@ import {
   normalizePromotions,
 } from "../lib/home";
 import { getMeta } from "../lib/response";
+import { normalizeHomeOrderingConfig } from "../types/home";
 import type {
   CustomerHomeData,
   CustomerHomeResponse,
@@ -48,6 +49,7 @@ const normalizeHomeConfig = (value: unknown): HomeConfig | null => {
   return {
     currency: typeof value.currency === "string" ? value.currency : null,
     branding: isRecord(value.branding) ? value.branding : undefined,
+    ordering: normalizeHomeOrderingConfig(value.ordering),
   };
 };
 

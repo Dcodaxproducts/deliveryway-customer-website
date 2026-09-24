@@ -699,6 +699,7 @@
       "closedNow": "Jetzt geschlossen",
       "closesAt": "Schließt um {time}",
       "opensAt": "Öffnet um {time}",
+      "breakUntil": "Pause bis {time}",
       "noBreakToday": "Heute keine Pause",
       "hoursPopupTitle": "Zeiten und Pausen",
       "hoursPopupSubtitle": "Aktueller Zeitplan für {branch}.",

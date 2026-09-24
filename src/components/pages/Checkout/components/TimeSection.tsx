@@ -24,6 +24,7 @@ interface Props {
   pickupScheduleMode: "now" | "schedule";
   setPickupScheduleMode: (value: "now" | "schedule") => void;
   selectedBranch?: BranchRecord | null;
+  preorderEnabled?: boolean;
 }
 
 const activeGradientClass =
@@ -55,6 +56,7 @@ export function SelectPickupTimeSection({
   pickupScheduleMode,
   setPickupScheduleMode,
   selectedBranch,
+  preorderEnabled = true,
 }: Props) {
   const t = useTranslations("checkout");
   const dateValue = pickupDate ? getDateValue(pickupDate) : "";
@@ -93,10 +95,24 @@ export function SelectPickupTimeSection({
   }, [hasOpeningHours, pickupTime, selectedTimeAvailable, setPickupTime]);
 
   useEffect(() => {
+    if (!preorderEnabled) {
+      setPickupScheduleMode("now");
+      setPickupDate(null);
+      setPickupTime(null);
+      return;
+    }
+
     if (!immediateAvailable && pickupScheduleMode === "now") {
       setPickupScheduleMode("schedule");
     }
-  }, [immediateAvailable, pickupScheduleMode, setPickupScheduleMode]);
+  }, [
+    immediateAvailable,
+    pickupScheduleMode,
+    preorderEnabled,
+    setPickupDate,
+    setPickupScheduleMode,
+    setPickupTime,
+  ]);
 
   return (
     <section className="max-w-[520px] space-y-[22px]">
@@ -126,24 +142,28 @@ export function SelectPickupTimeSection({
               {immediateAvailable ? t("pickupNowDescription") : t("pickupNowUnavailable")}
             </span>
           </button>
-          <button
-            type="button"
-            onClick={() => setPickupScheduleMode("schedule")}
-            className={`rounded-2xl border px-4 py-4 text-left transition-all duration-200 ${
-              pickupScheduleMode === "schedule"
+          {preorderEnabled ? (
+            <button
+              type="button"
+              onClick={() => setPickupScheduleMode("schedule")}
+              className={`rounded-2xl border px-4 py-4 text-left transition-all duration-200 ${
+                pickupScheduleMode === "schedule"
                 ? activeGradientClass
                 : interactiveTileClass
-            }`}
-          >
-            <span className="block text-base font-semibold">{t("scheduleOrder")}</span>
-            <span className="mt-1 block text-xs leading-5 text-gray-500">
-              {t("schedulePickupDescription")}
-            </span>
-          </button>
+              }`}
+            >
+              <span className="block text-base font-semibold">
+                {t("scheduleOrder")}
+              </span>
+              <span className="mt-1 block text-xs leading-5 text-gray-500">
+                {t("schedulePickupDescription")}
+              </span>
+            </button>
+          ) : null}
         </div>
       </div>
 
-      {pickupScheduleMode === "schedule" ? (
+      {preorderEnabled && pickupScheduleMode === "schedule" ? (
         <>
 
       {/* DATE */}

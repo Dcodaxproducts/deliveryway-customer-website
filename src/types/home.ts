@@ -81,9 +81,33 @@ export type HomeFooter = {
   socialMediaLinks?: Record<string, string | null | undefined> | null;
 };
 
+export type HomeOrderingConfig = {
+  preorderEnabled: boolean;
+  tipsEnabled: boolean;
+};
+
+export const normalizeHomeOrderingConfig = (
+  value: unknown,
+): HomeOrderingConfig => {
+  const ordering =
+    typeof value === "object" && value !== null && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : {};
+
+  return {
+    preorderEnabled:
+      typeof ordering.preorderEnabled === "boolean"
+        ? ordering.preorderEnabled
+        : true,
+    tipsEnabled:
+      typeof ordering.tipsEnabled === "boolean" ? ordering.tipsEnabled : true,
+  };
+};
+
 export type HomeConfig = {
   currency?: string | null;
   branding?: Record<string, unknown>;
+  ordering: HomeOrderingConfig;
 };
 
 export type LandingPopup = {

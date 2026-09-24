@@ -39,6 +39,7 @@ type DeliverySectionProps = {
   deliveryScheduleMode: "now" | "schedule";
   setDeliveryScheduleMode: (value: "now" | "schedule") => void;
   selectedBranch?: BranchRecord | null;
+  preorderEnabled?: boolean;
   isGuest?: boolean;
   privacyPolicyAccepted?: boolean;
   setPrivacyPolicyAccepted?: (value: boolean) => void;
@@ -81,6 +82,7 @@ export function DeliverySection(props: DeliverySectionProps) {
   const t = useTranslations("checkout");
   const {
     deliveryScheduleMode,
+    preorderEnabled = true,
     setDeliveryScheduleMode,
     setScheduledDeliveryValue,
   } = props;
@@ -132,10 +134,22 @@ export function DeliverySection(props: DeliverySectionProps) {
   }, [selectedDateValue, setScheduledDeliveryValue]);
 
   useEffect(() => {
+    if (!preorderEnabled) {
+      setDeliveryScheduleMode("now");
+      setScheduledDeliveryValue("");
+      return;
+    }
+
     if (!immediateAvailable && deliveryScheduleMode === "now") {
       setDeliveryScheduleMode("schedule");
     }
-  }, [deliveryScheduleMode, immediateAvailable, setDeliveryScheduleMode]);
+  }, [
+    deliveryScheduleMode,
+    immediateAvailable,
+    preorderEnabled,
+    setDeliveryScheduleMode,
+    setScheduledDeliveryValue,
+  ]);
 
   return (
     <div className="space-y-[38px]">
@@ -170,25 +184,27 @@ export function DeliverySection(props: DeliverySectionProps) {
                   : t("orderNowUnavailable")}
               </span>
             </button>
-            <button
-              type="button"
-              onClick={() => props.setDeliveryScheduleMode("schedule")}
-              className={`rounded-2xl border px-4 py-4 text-left transition-all duration-200 ${
-                props.deliveryScheduleMode === "schedule"
+            {preorderEnabled ? (
+              <button
+                type="button"
+                onClick={() => props.setDeliveryScheduleMode("schedule")}
+                className={`rounded-2xl border px-4 py-4 text-left transition-all duration-200 ${
+                  props.deliveryScheduleMode === "schedule"
                   ? activeGradientClass
                   : interactiveTileClass
-              }`}
-            >
-              <span className="block text-base font-semibold">
-                {t("scheduleOrder")}
-              </span>
-              <span className="mt-1 block text-xs leading-5 text-gray-500">
-                {t("scheduleOrderDescription")}
-              </span>
-            </button>
+                }`}
+              >
+                <span className="block text-base font-semibold">
+                  {t("scheduleOrder")}
+                </span>
+                <span className="mt-1 block text-xs leading-5 text-gray-500">
+                  {t("scheduleOrderDescription")}
+                </span>
+              </button>
+            ) : null}
           </div>
 
-          {props.deliveryScheduleMode === "schedule" ? (
+          {preorderEnabled && props.deliveryScheduleMode === "schedule" ? (
             <ScheduleRail ariaLabel={t("chooseDate")} className="mt-5">
               {dates.map((date) => {
                 const nextDateValue = getDateValue(date);
@@ -242,7 +258,7 @@ export function DeliverySection(props: DeliverySectionProps) {
             </ScheduleRail>
           ) : null}
 
-          {props.deliveryScheduleMode === "schedule" &&
+          {preorderEnabled && props.deliveryScheduleMode === "schedule" &&
           selectedDateValue &&
           scheduleLabel ? (
             <p className="mt-3 flex items-center gap-2 text-xs text-gray-500">
@@ -252,7 +268,7 @@ export function DeliverySection(props: DeliverySectionProps) {
                 ? ` ${t("usingOpeningHours")}`
                 : ""}
             </p>
-          ) : props.deliveryScheduleMode === "schedule" &&
+          ) : preorderEnabled && props.deliveryScheduleMode === "schedule" &&
             selectedDateValue &&
             !scheduleState.hasOpeningHours ? (
             <p className="mt-3 flex items-center gap-2 text-xs text-gray-500">
@@ -261,7 +277,7 @@ export function DeliverySection(props: DeliverySectionProps) {
             </p>
           ) : null}
 
-          {props.deliveryScheduleMode === "schedule" &&
+          {preorderEnabled && props.deliveryScheduleMode === "schedule" &&
           selectedDateValue &&
           breakLabels.length > 0 ? (
             <div className="mt-3 rounded-[18px] border border-orange-100 bg-orange-50/80 p-4">
@@ -292,7 +308,7 @@ export function DeliverySection(props: DeliverySectionProps) {
             </div>
           ) : null}
 
-          {props.deliveryScheduleMode === "schedule" && selectedDateValue ? (
+          {preorderEnabled && props.deliveryScheduleMode === "schedule" && selectedDateValue ? (
             <ScheduleRail ariaLabel={t("deliveryTime")} className="mt-4">
               {scheduleState.hasOpeningHours ? (
                 timeSlots.length > 0 ? (
@@ -339,7 +355,7 @@ export function DeliverySection(props: DeliverySectionProps) {
             </ScheduleRail>
           ) : null}
         </div>
-        {props.deliveryScheduleMode === "schedule" ? (
+        {preorderEnabled && props.deliveryScheduleMode === "schedule" ? (
           <p className="mt-2 text-sm text-gray-500">
             {t("scheduledDeliveryRequired")}
           </p>

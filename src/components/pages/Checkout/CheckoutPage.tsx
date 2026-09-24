@@ -72,6 +72,10 @@ import {
   isPastDateValue,
   isScheduleTimeAvailable,
 } from "@/components/pages/Checkout/utils/pickup-schedule";
+import {
+  getCheckoutOrderTime,
+  getCheckoutTipAmount,
+} from "@/components/pages/Checkout/utils/checkout-ordering-controls";
 import type { LoyaltySummary } from "@/services/loyalty";
 import {
   getGuestDeliveryAddressFromStoredLocation,
@@ -387,6 +391,10 @@ function CheckoutPageContent() {
     checkoutBranchId,
     Boolean(restaurantId && checkoutBranchId),
   );
+  const preorderEnabled =
+    homeQuery.data?.data.config?.ordering.preorderEnabled ?? true;
+  const tipsEnabled =
+    homeQuery.data?.data.config?.ordering.tipsEnabled ?? true;
   const homeBranch = useMemo(
     () => normalizeBranch(homeQuery.data?.data.branch),
     [homeQuery.data?.data.branch],
@@ -438,6 +446,8 @@ function CheckoutPageContent() {
   const lastQuoteSignatureRef = useRef("");
   const lastQuotedPaymentMethodRef = useRef("");
   const syncedOrderTypeRef = useRef<string | null>(null);
+  const clearedPreorderCustomerRef = useRef<string | null>(null);
+  const clearedTipsCustomerRef = useRef<string | null>(null);
   const router = useRouter();
   const customerId = user?.id;
 
@@ -1191,6 +1201,15 @@ function CheckoutPageContent() {
   };
 
   const getScheduledDeliveryAt = () => {
+    if (!preorderEnabled) {
+      return isImmediateScheduleAvailable({
+        branch: checkoutBranch,
+        scheduleType: activeTab,
+      })
+        ? undefined
+        : null;
+    }
+
     if (activeTab === "pickup") {
       return getOrderTime();
     }
@@ -1275,7 +1294,7 @@ function CheckoutPageContent() {
   };
 
   const applyTip = async (tipAmount: number) => {
-    if (!customerId) return;
+    if (!customerId || !tipsEnabled) return;
 
     const normalizedTip = normalizeCheckoutTipAmount(tipAmount);
 
@@ -1319,6 +1338,63 @@ function CheckoutPageContent() {
       setApplyingTip(false);
     }
   };
+
+  useEffect(() => {
+    if (preorderEnabled) {
+      clearedPreorderCustomerRef.current = null;
+      return;
+    }
+
+    setDeliveryScheduleMode("now");
+    setPickupScheduleMode("now");
+    setScheduledDeliveryValue("");
+    setPickupDate(null);
+    setPickupTime(null);
+
+    if (!customerId || clearedPreorderCustomerRef.current === customerId) {
+      return;
+    }
+
+    clearedPreorderCustomerRef.current = customerId;
+    void updateCustomerCart({
+      customerId,
+      payload: { orderTime: null },
+    }).catch(() => undefined);
+  }, [customerId, preorderEnabled, updateCustomerCart]);
+
+  useEffect(() => {
+    if (tipsEnabled) {
+      clearedTipsCustomerRef.current = null;
+      return;
+    }
+
+    setAppliedTipAmount(0);
+    applyTipToCurrentQuote(0);
+
+    if (!customerId || clearedTipsCustomerRef.current === customerId) {
+      return;
+    }
+
+    clearedTipsCustomerRef.current = customerId;
+    void updateCustomerCart({
+      customerId,
+      payload: { tipAmount: 0 },
+    })
+      .then((response) => {
+        if (hasBackendError(response)) {
+          clearedTipsCustomerRef.current = null;
+          return;
+        }
+
+        const { quote } = normalizeCartResponse(response);
+        if (quote) {
+          setCartQuote(quote);
+        }
+      })
+      .catch(() => {
+        clearedTipsCustomerRef.current = null;
+      });
+  }, [customerId, tipsEnabled, updateCustomerCart]);
 
   const handlePlaceOrder = async () => {
     try {
@@ -1438,12 +1514,15 @@ function CheckoutPageContent() {
         return;
       }
 
-      const cartOrderTime =
-        scheduledDeliveryAt === undefined ? null : scheduledDeliveryAt;
-      const checkoutTipAmount = Math.max(
-        0,
-        toNumber(cartQuote?.tipAmount, appliedTipAmount),
-      );
+      const cartOrderTime = getCheckoutOrderTime({
+        preorderEnabled,
+        orderTime:
+          scheduledDeliveryAt === undefined ? null : scheduledDeliveryAt,
+      });
+      const checkoutTipAmount = getCheckoutTipAmount({
+        tipsEnabled,
+        tipAmount: toNumber(cartQuote?.tipAmount, appliedTipAmount),
+      });
       const checkoutLoyaltyPoints = Math.max(
         0,
         Math.floor(toNumber(loyaltyPoints, 0)),
@@ -1477,7 +1556,9 @@ function CheckoutPageContent() {
           ...(activeTab === "delivery" && !isGuest
             ? { deliveryAddressId: selectedAddress }
             : {}),
-          ...(checkoutTipAmount > 0 ? { tipAmount: checkoutTipAmount } : {}),
+          ...(!tipsEnabled || checkoutTipAmount > 0
+            ? { tipAmount: checkoutTipAmount }
+            : {}),
           ...(checkoutLoyaltyPoints > 0
             ? { loyaltyPoints: checkoutLoyaltyPoints }
             : {}),
@@ -1730,6 +1811,7 @@ function CheckoutPageContent() {
                 deliveryScheduleMode={deliveryScheduleMode}
                 setDeliveryScheduleMode={setDeliveryScheduleMode}
                 selectedBranch={checkoutBranch}
+                preorderEnabled={preorderEnabled}
               />
             ) : (
               <PickupSection
@@ -1763,6 +1845,7 @@ function CheckoutPageContent() {
                 pickupScheduleMode={pickupScheduleMode}
                 setPickupScheduleMode={setPickupScheduleMode}
                 selectedBranch={checkoutBranch}
+                preorderEnabled={preorderEnabled}
               />
             )}
           </div>
@@ -1790,6 +1873,7 @@ function CheckoutPageContent() {
             loadingCart={loadingCart}
             onApplyTip={applyTip}
             applyingTip={applyingTip}
+            tipsEnabled={tipsEnabled}
             loyalty={loyalty}
             loyaltyPoints={loyaltyPoints}
             setLoyaltyPoints={setLoyaltyPoints}

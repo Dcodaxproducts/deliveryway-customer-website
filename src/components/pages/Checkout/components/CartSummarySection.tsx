@@ -237,6 +237,7 @@ interface Props {
   appliedTipAmount?: number;
   onApplyTip?: (amount: number) => Promise<void> | void;
   applyingTip?: boolean;
+  tipsEnabled?: boolean;
   loyalty?: LoyaltySummary | null;
   loyaltyPoints?: string;
   setLoyaltyPoints?: (value: string) => void;
@@ -1006,6 +1007,7 @@ export function CartSummarySection({
   appliedTipAmount = 0,
   onApplyTip,
   applyingTip = false,
+  tipsEnabled = true,
   loyalty,
   loyaltyPoints = "",
   setLoyaltyPoints,
@@ -1110,7 +1112,7 @@ export function CartSummarySection({
       ? checkoutPriceAdjustment
       : 0;
   const selectedOrderFee = checkoutType === "pickup" ? pickupFee : deliveryFee;
-  const tipAmount = Math.max(0, quoteTipAmount);
+  const tipAmount = tipsEnabled ? Math.max(0, quoteTipAmount) : 0;
 
   const appliedPromotion = resolvedQuote?.appliedPromotion ?? null;
   const hasAppliedPromotion = Boolean(
@@ -1860,7 +1862,7 @@ export function CartSummarySection({
           ) : null}
         </div>
 
-        {canEditCart ? (
+        {canEditCart && tipsEnabled ? (
           <div className="rounded-md border border-gray-100 bg-gray-50 p-3">
             <label
               htmlFor="checkout-tip"
