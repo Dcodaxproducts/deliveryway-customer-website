@@ -18,16 +18,9 @@ import {
   getMenuItemPromotion,
 } from "@/components/pages/Cuisines/components/cuisine-display";
 import { Button } from "@/components/ui/button";
-import {
-  getItemImageUrl,
-  toNumber,
-} from "@/components/pages/Items/utils/restaurant-card-utils";
+import { getItemImageUrl, toNumber } from "@/components/pages/Items/utils/restaurant-card-utils";
 import { formatMoney } from "@/lib/money";
-import type {
-  CheckoutType,
-  MenuItem,
-  PromotionInfo,
-} from "@/components/pages/Items/types";
+import type { CheckoutType, MenuItem, PromotionInfo } from "@/components/pages/Items/types";
 
 type PromotionalItemsSectionProps = {
   items: MenuItem[];
@@ -62,36 +55,26 @@ const getItemHref = (item: MenuItem) => {
   const itemId = String(item.id ?? "");
   const slug = item.slug ? `&slug=${encodeURIComponent(item.slug)}` : "";
 
-  return itemId
-    ? `/items/details?itemId=${encodeURIComponent(itemId)}${slug}`
-    : "/items";
+  return itemId ? `/items/details?itemId=${encodeURIComponent(itemId)}${slug}` : "/items";
 };
 
 const PromotionalItemsSkeleton = ({ compact }: { compact?: boolean }) => {
   const skeletons = [1, 2, 3, 4].map((item) => (
-    <div
-      key={item}
-      className={
-        compact
-          ? "h-[292px] w-full min-w-0 animate-pulse rounded-[24px] bg-white"
-          : "h-[316px] animate-pulse rounded-[18px] bg-gray-100"
-      }
-    />
-  ));
+      <div
+        key={item}
+        className={
+          compact
+            ? "h-[292px] w-full min-w-0 animate-pulse rounded-[24px] bg-white"
+            : "h-[316px] animate-pulse rounded-[18px] bg-gray-100"
+        }
+      />
+    ));
 
   if (compact) {
-    return (
-      <MobileStorefrontRail className="overflow-hidden">
-        {skeletons}
-      </MobileStorefrontRail>
-    );
+    return <MobileStorefrontRail className="overflow-hidden">{skeletons}</MobileStorefrontRail>;
   }
 
-  return (
-    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-      {skeletons}
-    </div>
-  );
+  return <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">{skeletons}</div>;
 };
 
 function PromotionalItemCard({
@@ -116,9 +99,7 @@ function PromotionalItemCard({
   const image = getItemImageUrl(item);
   const title = item.name?.trim() || t("menuItem");
   const description =
-    item.description?.trim() ||
-    promotion?.description?.trim() ||
-    t("fallbackDescription");
+    item.description?.trim() || promotion?.description?.trim() || t("fallbackDescription");
 
   return (
     <div className={compact ? "" : "relative flex h-full w-full pt-4"}>
@@ -137,100 +118,73 @@ function PromotionalItemCard({
               }`
         }
       >
-        <Link
-          href={getItemHref(item)}
-          className="flex h-full min-w-0 flex-col text-left"
-        >
-          <div
+      <Link href={getItemHref(item)} className="flex h-full min-w-0 flex-col text-left">
+        <div className={compact ? "relative h-[116px] bg-primary/5" : "relative h-[146px] bg-[#F7F3EF]"}>
+          <Image
+            src={image}
+            alt={title}
+            fill
+            className="object-cover transition duration-500 group-hover:scale-[1.02] motion-reduce:transition-none"
+            sizes={compact ? "238px" : "(max-width: 768px) 92vw, 320px"}
+            unoptimized
+          />
+
+          <span className="absolute left-3 top-3 max-w-[calc(100%-64px)] truncate rounded-full bg-white px-3 py-1 text-[11px] font-black text-primary shadow-sm">
+            {badgeText}
+          </span>
+
+          <FavoriteHeartButton
+            menuItemId={item.id}
+            className="absolute right-3 top-3 h-9 w-9"
+          />
+        </div>
+
+        <div className={compact ? "flex min-w-0 flex-1 flex-col p-4" : "flex min-w-0 flex-1 flex-col p-4"}>
+          <h3
             className={
               compact
-                ? "relative h-[116px] bg-primary/5"
-                : "relative h-[146px] bg-[#F7F3EF]"
+                ? "line-clamp-1 text-[16px] font-black text-gray-950"
+                : "line-clamp-1 text-[16px] font-bold leading-[1.25] text-gray-950"
             }
           >
-            <Image
-              src={image}
-              alt={title}
-              fill
-              className="object-cover transition duration-500 group-hover:scale-[1.02] motion-reduce:transition-none"
-              sizes={compact ? "238px" : "(max-width: 768px) 92vw, 320px"}
-              unoptimized
-            />
+            {title}
+          </h3>
 
-            <span className="absolute left-3 top-3 max-w-[calc(100%-64px)] truncate rounded-full bg-white px-3 py-1 text-[11px] font-black text-primary shadow-sm">
-              {badgeText}
-            </span>
-
-            <FavoriteHeartButton
-              menuItemId={item.id}
-              className="absolute right-3 top-3 h-9 w-9"
-            />
-          </div>
-
-          <div
+          <p
             className={
               compact
-                ? "flex min-w-0 flex-1 flex-col p-4"
-                : "flex min-w-0 flex-1 flex-col p-4"
+                ? "mt-1 line-clamp-2 min-h-10 text-xs leading-5 text-gray-500"
+                : "mt-1.5 line-clamp-2 min-h-9 text-[13px] leading-[18px] text-gray-500"
             }
           >
-            <h3
-              className={
-                compact
-                  ? "line-clamp-1 text-[16px] font-black text-gray-950"
-                  : "line-clamp-1 text-[16px] font-bold leading-[1.25] text-gray-950"
-              }
-            >
-              {title}
-            </h3>
+            {description}
+          </p>
 
-            <p
-              className={
-                compact
-                  ? "mt-1 line-clamp-2 min-h-10 text-xs leading-5 text-gray-500"
-                  : "mt-1.5 line-clamp-2 min-h-9 text-[13px] leading-[18px] text-gray-500"
-              }
-            >
-              {description}
-            </p>
-
-            <div
-              className={
-                compact
-                  ? "mt-auto flex min-w-0 items-center justify-between gap-2 pt-4"
-                  : "mt-auto flex min-w-0 items-end justify-between gap-3 pt-5"
-              }
-            >
-              <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
-                {oldPrice ? (
-                  <span className="text-xs font-semibold text-gray-400 line-through">
-                    {formatMoney(oldPrice, currency)}
-                  </span>
-                ) : null}
-                <span
-                  className={
-                    compact
-                      ? "truncate text-base font-black text-primary"
-                      : "text-[22px] font-black leading-none text-primary"
-                  }
-                >
-                  {formatMoney(finalPrice, currency)}
+          <div className={compact ? "mt-auto flex min-w-0 items-center justify-between gap-2 pt-4" : "mt-auto flex min-w-0 items-end justify-between gap-3 pt-5"}>
+            <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
+              {oldPrice ? (
+                <span className="text-xs font-semibold text-gray-400 line-through">
+                  {formatMoney(oldPrice, currency)}
                 </span>
-              </div>
-
-              {compact ? (
-                <span className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-gray-400">
-                  <Clock3 className="h-4 w-4" />
-                  {t("quickOrder")}
-                </span>
-              ) : (
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-primary/20 text-primary transition group-hover:bg-primary group-hover:text-white">
-                  <ArrowUpRight size={17} aria-hidden="true" />
-                </span>
-              )}
+              ) : null}
+              <span className={compact ? "truncate text-base font-black text-primary" : "text-[22px] font-black leading-none text-primary"}>
+                {formatMoney(finalPrice, currency)}
+              </span>
             </div>
+
+            {compact ? (
+              <span className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-gray-400">
+                <Clock3 className="h-4 w-4" />
+                {t("quickOrder")}
+              </span>
+            ) : (
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-primary/20 text-primary transition group-hover:bg-primary group-hover:text-white">
+                <ArrowUpRight size={17} aria-hidden="true" />
+              </span>
+            )}
           </div>
-        </Link>
+        </div>
+      </Link>
       </article>
     </div>
   );
@@ -247,13 +201,7 @@ export function PromotionalItemsSection({
 
   if (isLoading) {
     return (
-      <section
-        className={
-          compact
-            ? "my-12 min-w-0"
-            : "mx-auto max-w-[1400px] px-4 pb-[30px] pt-[30px] sm:px-6 sm:pb-[50px] sm:pt-[50px]"
-        }
-      >
+      <section className={compact ? "my-12 min-w-0" : "mx-auto max-w-[1400px] px-4 pb-[30px] pt-[30px] sm:px-6 sm:pb-[50px] sm:pt-[50px]"}>
         <PromotionalItemsSkeleton compact={compact} />
       </section>
     );
@@ -311,11 +259,7 @@ export function PromotionalItemsSection({
           </h2>
         </div>
 
-        <Button
-          asChild
-          variant="link"
-          className="p-0 text-sm font-semibold text-primary"
-        >
+        <Button asChild variant="link" className="p-0 text-sm font-semibold text-primary">
           <Link href="/items">
             {t("exploreMenu")}
             <ArrowUpRight size={16} />
@@ -328,7 +272,7 @@ export function PromotionalItemsSection({
           {items.map((item, index) => (
             <CarouselItem
               key={String(item.id)}
-              className="flex basis-[86%] pl-4 sm:basis-[48%] lg:basis-1/3 xl:basis-1/4"
+          className="flex basis-[86%] pl-4 sm:basis-[48%] lg:basis-1/3 xl:basis-1/4"
             >
               <PromotionalItemCard
                 item={item}

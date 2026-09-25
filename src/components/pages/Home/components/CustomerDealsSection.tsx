@@ -50,22 +50,18 @@ type CustomerDealsSectionProps = {
 
 const CustomerDealsSkeleton = ({ compact = false }: { compact?: boolean }) => {
   const skeletons = [1, 2, 3, 4].map((item) => (
-    <div
-      key={item}
-      className={
-        compact
-          ? "h-[366px] w-full min-w-0 animate-pulse rounded-[22px] border border-[#EFE6DB] bg-[#FBFAF6] sm:min-w-[320px]"
-          : "h-[250px] min-w-[280px] animate-pulse rounded-[22px] bg-gray-100 sm:min-w-[320px]"
-      }
-    />
-  ));
+      <div
+        key={item}
+        className={
+          compact
+            ? "h-[366px] w-full min-w-0 animate-pulse rounded-[22px] border border-[#EFE6DB] bg-[#FBFAF6] sm:min-w-[320px]"
+            : "h-[250px] min-w-[280px] animate-pulse rounded-[22px] bg-gray-100 sm:min-w-[320px]"
+        }
+      />
+    ));
 
   if (compact) {
-    return (
-      <MobileStorefrontRail className="overflow-hidden">
-        {skeletons}
-      </MobileStorefrontRail>
-    );
+    return <MobileStorefrontRail className="overflow-hidden">{skeletons}</MobileStorefrontRail>;
   }
 
   return <div className="flex gap-5 overflow-hidden">{skeletons}</div>;
@@ -103,18 +99,13 @@ const getDealHighlights = (
 
 const getDealImageForCard = (deal: CustomerDeal) => getDealImage(deal) || null;
 
-const getComparableDealPrice = (
-  deal: CustomerDeal,
-  currency?: string | null,
-) => {
+const getComparableDealPrice = (deal: CustomerDeal, currency?: string | null) => {
   const scopedTotal = deal.scopeMenuItems.reduce(
     (total, item) => total + toNumber(item.basePrice),
     0,
   );
 
-  return scopedTotal > deal.discountValue
-    ? formatDealPrice(scopedTotal, currency)
-    : "";
+  return scopedTotal > deal.discountValue ? formatDealPrice(scopedTotal, currency) : "";
 };
 
 const CustomerDealCard = ({
@@ -211,10 +202,7 @@ const CustomerDealCard = ({
             )
               .slice(0, 3)
               .map((highlight) => (
-                <li
-                  key={highlight.id}
-                  className="flex min-w-0 items-start gap-2"
-                >
+                <li key={highlight.id} className="flex min-w-0 items-start gap-2">
                   <span className="mt-[9px] h-1 w-1 shrink-0 rounded-full bg-gray-700" />
                   <span className="line-clamp-2 min-w-0 break-words">
                     {highlight.label}
@@ -417,9 +405,7 @@ const CustomerDealMenuCard = ({
                 }
               >
                 {highlight.label}
-                {highlight.variationLabel
-                  ? ` · ${highlight.variationLabel}`
-                  : ""}
+                {highlight.variationLabel ? ` · ${highlight.variationLabel}` : ""}
               </span>
             ))}
         </div>
@@ -649,31 +635,31 @@ export const CustomerDealsSection = ({
     return (
       <section className={sectionClassName}>
         <div className="mb-5 flex items-end justify-between gap-4 sm:mb-6">
-          <div className="min-w-0">
-            <p className="mb-2.5 text-[11px] font-bold uppercase leading-[1.25] tracking-[0.18em] text-[#A51F30] sm:text-[12px]">
-              {t("specialMenusLimited")}
-            </p>
-            <h3 className={headingClassName}>{t("available")}</h3>
+            <div className="min-w-0">
+              <p className="mb-2.5 text-[11px] font-bold uppercase leading-[1.25] tracking-[0.18em] text-[#A51F30] sm:text-[12px]">
+                {t("specialMenusLimited")}
+              </p>
+              <h3 className={headingClassName}>{t("available")}</h3>
+            </div>
           </div>
-        </div>
 
         <MobileStorefrontRail
           className="-mx-4 px-4 pb-3"
           aria-label={t("available")}
         >
-          {activeDeals.map((deal, index) => (
-            <div key={deal.id} className="flex">
-              <CustomerDealMenuCard
-                deal={deal}
-                index={index}
-                isAdding={
-                  addingDealId === deal.id || pendingDeal?.id === deal.id
-                }
-                currency={currency}
-                onAddDeal={handleDealClick}
-              />
-            </div>
-          ))}
+            {activeDeals.map((deal, index) => (
+              <div key={deal.id} className="flex">
+                <CustomerDealMenuCard
+                  deal={deal}
+                  index={index}
+                  isAdding={
+                    addingDealId === deal.id || pendingDeal?.id === deal.id
+                  }
+                  currency={currency}
+                  onAddDeal={handleDealClick}
+                />
+              </div>
+            ))}
         </MobileStorefrontRail>
 
         {chooserDrawer}
