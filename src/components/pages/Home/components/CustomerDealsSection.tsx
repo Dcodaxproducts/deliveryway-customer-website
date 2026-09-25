@@ -13,6 +13,7 @@ import {
   CarouselItem,
 } from "@/components/ui/carousel";
 import { DealChooserDrawer } from "@/components/pages/Home/components/deals/DealChooserDrawer";
+import { MobileStorefrontRail } from "@/components/pages/Home/components/MobileStorefrontRail";
 import {
   getDealImage,
   getDealActionLabel,
@@ -633,10 +634,7 @@ export const CustomerDealsSection = ({
   if (compact) {
     return (
       <section className={sectionClassName}>
-        <div className="relative overflow-hidden rounded-[36px] border border-[#F0E8DF] bg-[linear-gradient(108deg,#FAF7F2_0%,#FCFAF7_56%,#F6F0E9_100%)] px-5 pb-8 pt-7 shadow-[0_20px_54px_rgba(64,48,33,0.09)] sm:px-7 sm:pb-10 lg:px-9 lg:pb-[54px] lg:pt-8">
-          <div className="pointer-events-none absolute -right-[98px] -top-[111px] hidden h-[232px] w-[232px] rounded-full border border-[#DDCDBD]/50 bg-white/[0.04] shadow-[0_0_0_22px_rgba(231,220,208,0.14)] md:block" />
-
-          <div className="relative z-10 mb-5 flex items-end justify-between gap-4 sm:mb-6">
+        <div className="mb-5 flex items-end justify-between gap-4 sm:mb-6">
             <div className="min-w-0">
               <p className="mb-2.5 text-[11px] font-bold uppercase leading-[1.25] tracking-[0.18em] text-[#A51F30] sm:text-[12px]">
                 {t("specialMenusLimited")}
@@ -645,10 +643,10 @@ export const CustomerDealsSection = ({
             </div>
           </div>
 
-          <div
-            className="storefront-rail storefront-rail--cards relative z-10 -mx-2 px-2 pb-3"
-            aria-label={t("available")}
-          >
+        <MobileStorefrontRail
+          className="-mx-4 px-4 pb-3"
+          aria-label={t("available")}
+        >
             {activeDeals.map((deal, index) => (
               <div key={deal.id} className="flex">
                 <CustomerDealMenuCard
@@ -662,8 +660,7 @@ export const CustomerDealsSection = ({
                 />
               </div>
             ))}
-          </div>
-        </div>
+        </MobileStorefrontRail>
 
         {chooserDrawer}
       </section>

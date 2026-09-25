@@ -317,14 +317,8 @@ button{
 }
 
 .storefront-rail--cards > * {
-  flex: 0 0 calc((100% - 0.625rem) / 2);
+  flex: 0 0 calc(100% - 2.75rem);
   min-width: 0;
-}
-
-@media (min-width: 640px) {
-  .storefront-rail--cards > * {
-    flex-basis: calc((100% - 1.25rem) / 3);
-  }
 }
 
 .storefront-rail::-webkit-scrollbar { height: 4px; }

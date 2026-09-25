@@ -5,6 +5,7 @@ import { ArrowUpRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { CuisineCard } from "@/components/pages/Cuisines/components/CuisineCard";
+import { MobileStorefrontRail } from "@/components/pages/Home/components/MobileStorefrontRail";
 import {
   Carousel,
   CarouselContent,
@@ -12,7 +13,10 @@ import {
 } from "@/components/ui/carousel";
 import { useAppLocale } from "@/hooks/useAppLocale";
 import { useAuth } from "@/hooks/useAuth";
-import { useCustomerCuisines, usePromotionalCuisines } from "@/hooks/useCuisines";
+import {
+  useCustomerCuisines,
+  usePromotionalCuisines,
+} from "@/hooks/useCuisines";
 import { useDomainContext } from "@/hooks/useDomainContext";
 import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
 import type { CustomerCuisine } from "@/services/cuisines";
@@ -28,7 +32,10 @@ const CuisineSkeleton = () => (
   </div>
 );
 
-const mergeCuisines = (featured: CustomerCuisine[], regular: CustomerCuisine[]) => {
+const mergeCuisines = (
+  featured: CustomerCuisine[],
+  regular: CustomerCuisine[],
+) => {
   const seen = new Set<string>();
   const merged: CustomerCuisine[] = [];
 
@@ -49,8 +56,15 @@ export function CuisineSection() {
   const restaurantId = resolveHomeRestaurantId(user, authRestaurantId, context);
   const branchId = resolveHomeBranchId(user, context);
   const params = { restaurantId, branchId, locale, limit: 8 };
-  const cuisinesQuery = useCustomerCuisines({ ...params, enabled: Boolean(restaurantId) });
-  const promotionalQuery = usePromotionalCuisines({ ...params, limit: 4, enabled: Boolean(restaurantId) });
+  const cuisinesQuery = useCustomerCuisines({
+    ...params,
+    enabled: Boolean(restaurantId),
+  });
+  const promotionalQuery = usePromotionalCuisines({
+    ...params,
+    limit: 4,
+    enabled: Boolean(restaurantId),
+  });
   const cuisines = mergeCuisines(
     promotionalQuery.data?.cuisines ?? [],
     cuisinesQuery.data?.cuisines ?? [],
@@ -60,41 +74,76 @@ export function CuisineSection() {
   if (!loading && cuisines.length === 0) return null;
 
   return (
-    <section id="cuisines" className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 sm:py-14">
+    <section
+      id="cuisines"
+      className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 sm:py-14"
+    >
       <div className="mb-6 flex items-end justify-between gap-4">
         <div>
           <p className="text-sm font-semibold uppercase tracking-wide text-primary">
             {t("eyebrow")}
           </p>
-          <h2 className="mt-1 text-2xl font-bold text-gray-900">{t("title")}</h2>
+          <h2 className="mt-1 text-2xl font-bold text-gray-900">
+            {t("title")}
+          </h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-500">
             {t("description")}
           </p>
         </div>
-        <Link href="/cuisines" className="hidden items-center gap-1 text-sm font-semibold text-primary sm:flex">
+        <Link
+          href="/cuisines"
+          className="hidden items-center gap-1 text-sm font-semibold text-primary sm:flex"
+        >
           {t("viewAll")}
           <ArrowUpRight size={16} />
         </Link>
       </div>
 
       {loading ? (
-        <CuisineSkeleton />
-      ) : (
-        <Carousel opts={{ align: "start", dragFree: true }} className="min-w-0">
-          <CarouselContent className="-ml-5 cursor-grab pb-8 active:cursor-grabbing">
-            {cuisines.map((cuisine) => (
-              <CarouselItem
-                key={cuisine.id}
-                className="flex min-w-0 basis-[86%] pl-4 sm:basis-[48%] lg:basis-1/3 xl:basis-1/4"
-              >
-                <CuisineCard cuisine={cuisine} />
-              </CarouselItem>
+        <>
+          <MobileStorefrontRail className="md:hidden" aria-hidden="true">
+            {[1, 2, 3, 4].map((item) => (
+              <div
+                key={item}
+                className="h-[340px] animate-pulse rounded-[26px] bg-gray-100"
+              />
             ))}
-          </CarouselContent>
-        </Carousel>
+          </MobileStorefrontRail>
+          <div className="hidden md:block">
+            <CuisineSkeleton />
+          </div>
+        </>
+      ) : (
+        <>
+          <MobileStorefrontRail className="md:hidden" aria-label={t("title")}>
+            {cuisines.map((cuisine) => (
+              <div key={cuisine.id} className="flex min-w-0">
+                <CuisineCard cuisine={cuisine} />
+              </div>
+            ))}
+          </MobileStorefrontRail>
+          <Carousel
+            opts={{ align: "start", dragFree: true }}
+            className="hidden min-w-0 md:block"
+          >
+            <CarouselContent className="-ml-5 cursor-grab pb-8 active:cursor-grabbing">
+              {cuisines.map((cuisine) => (
+                <CarouselItem
+                  key={cuisine.id}
+                  className="flex min-w-0 basis-[86%] pl-4 sm:basis-[48%] lg:basis-1/3 xl:basis-1/4"
+                >
+                  <CuisineCard cuisine={cuisine} />
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+          </Carousel>
+        </>
       )}
 
-      <Link href="/cuisines" className="mt-5 flex items-center justify-center gap-1 text-sm font-semibold text-primary sm:hidden">
+      <Link
+        href="/cuisines"
+        className="mt-5 flex items-center justify-center gap-1 text-sm font-semibold text-primary sm:hidden"
+      >
         {t("viewAll")}
         <ArrowUpRight size={16} />
       </Link>

@@ -11,6 +11,7 @@ import {
   CarouselItem,
 } from "@/components/ui/carousel";
 import { FavoriteHeartButton } from "@/components/common/favorites/FavoriteHeartButton";
+import { MobileStorefrontRail } from "@/components/pages/Home/components/MobileStorefrontRail";
 import {
   getMenuItemBasePrice,
   getMenuItemFinalPrice,
@@ -196,7 +197,7 @@ export function PromotionalItemsSection({
 
   if (isLoading) {
     return (
-      <section className={compact ? "mb-8 min-w-0" : "mx-auto max-w-[1400px] px-4 pb-[30px] pt-[30px] sm:px-6 sm:pb-[50px] sm:pt-[50px]"}>
+      <section className={compact ? "my-12 min-w-0" : "mx-auto max-w-[1400px] px-4 pb-[30px] pt-[30px] sm:px-6 sm:pb-[50px] sm:pt-[50px]"}>
         <PromotionalItemsSkeleton compact={compact} />
       </section>
     );
@@ -208,7 +209,7 @@ export function PromotionalItemsSection({
 
   if (compact) {
     return (
-      <section className="mb-8 min-w-0">
+      <section className="my-12 min-w-0">
         <div className="mb-4 flex items-center justify-between">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">
@@ -227,7 +228,7 @@ export function PromotionalItemsSection({
           </Link>
         </div>
 
-        <div className="storefront-rail storefront-rail--cards -mx-4 px-4 pb-3">
+        <MobileStorefrontRail className="-mx-4 px-4 pb-3">
           {items.map((item) => (
             <PromotionalItemCard
               key={String(item.id)}
@@ -237,7 +238,7 @@ export function PromotionalItemsSection({
               checkoutType={checkoutType}
             />
           ))}
-        </div>
+        </MobileStorefrontRail>
       </section>
     );
   }

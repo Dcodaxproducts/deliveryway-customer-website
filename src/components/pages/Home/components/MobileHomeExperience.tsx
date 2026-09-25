@@ -2,13 +2,7 @@
 
 import { ResilientImage } from "@/components/common/ResilientImage";
 import Link from "next/link";
-import {
-  Bell,
-  MapPin,
-  Search,
-  ShoppingBag,
-  Truck,
-} from "lucide-react";
+import { Bell, MapPin, Search, ShoppingBag, Truck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
@@ -18,6 +12,7 @@ import { getDealImage } from "@/components/pages/Home/utils/customer-deal-cart";
 import { isDealActive } from "@/components/pages/Home/utils/customer-deals-formatters";
 import { PromotionalItemsSection } from "@/components/pages/Home/components/PromotionalItemsSection";
 import { CustomerDealsSection } from "@/components/pages/Home/components/CustomerDealsSection";
+import { MobileStorefrontRail } from "@/components/pages/Home/components/MobileStorefrontRail";
 import { Button } from "@/components/ui/button";
 import { resolveHttpsImageUrl } from "@/lib/image-fallback";
 import type { Branding } from "@/types/branding";
@@ -137,7 +132,6 @@ export function MobileHomeExperience({
             </h1>
           </div>
         </div>
-
       </section>
 
       <section
@@ -150,7 +144,10 @@ export function MobileHomeExperience({
           onClick={() => router.push("/items")}
           className="flex h-12 w-full items-center gap-3 rounded-2xl border border-black/[0.04] bg-white px-4 text-left text-sm font-semibold text-gray-500 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
-          <Search className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+          <Search
+            className="h-5 w-5 shrink-0 text-primary"
+            aria-hidden="true"
+          />
           <span className="truncate">{t("searchPlaceholder")}</span>
         </button>
 
@@ -189,16 +186,23 @@ export function MobileHomeExperience({
             })}
           </div>
         ) : null}
+      </section>
 
-        {categoriesLoading ? (
-          <div className="storefront-rail mt-2" aria-hidden="true">
+      {categoriesLoading ? (
+        <section className="px-4 pt-4" aria-hidden="true">
+          <MobileStorefrontRail variant="categories">
             {[1, 2, 3].map((item) => (
-              <span key={item} className="h-10 min-w-[118px] animate-pulse rounded-full bg-white" />
+              <span
+                key={item}
+                className="h-11 min-w-[118px] animate-pulse rounded-full bg-white"
+              />
             ))}
-          </div>
-        ) : visibleCategories.length > 0 ? (
-          <div
-            className="storefront-rail mt-2"
+          </MobileStorefrontRail>
+        </section>
+      ) : visibleCategories.length > 0 ? (
+        <section className="px-4 pt-4">
+          <MobileStorefrontRail
+            variant="categories"
             aria-label={t("categories")}
           >
             {visibleCategories.map((category) => (
@@ -221,9 +225,9 @@ export function MobileHomeExperience({
                 <span className="truncate">{category.name}</span>
               </button>
             ))}
-          </div>
-        ) : null}
-      </section>
+          </MobileStorefrontRail>
+        </section>
+      ) : null}
 
       <main className="space-y-8 px-4 pt-4">
         <section className="relative z-10 overflow-hidden rounded-[28px] bg-[#2b1714] p-5 text-white shadow-[0_18px_45px_rgba(31,23,18,0.18)]">
