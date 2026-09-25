@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/carousel";
 import { DealChooserDrawer } from "@/components/pages/Home/components/deals/DealChooserDrawer";
 import { MobileStorefrontRail } from "@/components/pages/Home/components/MobileStorefrontRail";
+import { StorefrontSection } from "@/components/pages/Home/components/StorefrontSection";
 import {
   getDealImage,
   getDealActionLabel,
@@ -488,12 +489,6 @@ export const CustomerDealsSection = ({
 
     return compact ? visibleDeals : visibleDeals.slice(0, 6);
   }, [compact, deals]);
-  const sectionClassName = compact
-    ? "mb-8 min-w-0"
-    : "mx-auto max-w-[1400px] px-4 pb-[30px] pt-[30px] sm:px-6 sm:pb-[60px] sm:pt-[60px]";
-  const headingClassName = compact
-    ? "text-[25px] font-bold leading-[1.06] tracking-[-0.035em] text-[#3E2C28] sm:text-[33px]"
-    : "text-2xl font-extrabold text-gray-950";
   const [selectedChooserDeal, setSelectedChooserDeal] =
     useState<CustomerDeal | null>(null);
   const [pendingDeal, setPendingDeal] = useState<CustomerDeal | null>(null);
@@ -607,9 +602,9 @@ export const CustomerDealsSection = ({
 
   if (isLoading) {
     return (
-      <section className={sectionClassName}>
+      <StorefrontSection>
         <CustomerDealsSkeleton compact={compact} />
-      </section>
+      </StorefrontSection>
     );
   }
 
@@ -633,18 +628,11 @@ export const CustomerDealsSection = ({
 
   if (compact) {
     return (
-      <section className={sectionClassName}>
-        <div className="mb-5 flex items-end justify-between gap-4 sm:mb-6">
-            <div className="min-w-0">
-              <p className="mb-2.5 text-[11px] font-bold uppercase leading-[1.25] tracking-[0.18em] text-[#A51F30] sm:text-[12px]">
-                {t("specialMenusLimited")}
-              </p>
-              <h3 className={headingClassName}>{t("available")}</h3>
-            </div>
-          </div>
-
+      <StorefrontSection
+        eyebrow={t("specialMenusLimited")}
+        title={t("available")}
+      >
         <MobileStorefrontRail
-          className="-mx-4 px-4 pb-3"
           aria-label={t("available")}
         >
             {activeDeals.map((deal, index) => (
@@ -663,18 +651,12 @@ export const CustomerDealsSection = ({
         </MobileStorefrontRail>
 
         {chooserDrawer}
-      </section>
+      </StorefrontSection>
     );
   }
 
   return (
-    <section className={sectionClassName}>
-      <div className="mb-4 flex items-end justify-between gap-4">
-        <div>
-          <h3 className={headingClassName}>{t("available")}</h3>
-        </div>
-      </div>
-
+    <StorefrontSection title={t("available")}>
       <Carousel opts={{ align: "start", dragFree: true }} className="min-w-0">
         <CarouselContent className="-ml-5 cursor-grab pb-8 active:cursor-grabbing">
           {activeDeals.map((deal, index) => (
@@ -697,6 +679,6 @@ export const CustomerDealsSection = ({
       </Carousel>
 
       {chooserDrawer}
-    </section>
+    </StorefrontSection>
   );
 };

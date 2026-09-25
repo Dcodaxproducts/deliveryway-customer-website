@@ -191,11 +191,11 @@ export function MobileHomeExperience({
       {categoriesLoading ? (
         <section className="px-4 pt-4" aria-hidden="true">
           <MobileStorefrontRail variant="categories">
-            {[1, 2, 3].map((item) => (
-              <span
-                key={item}
-                className="h-11 min-w-[118px] animate-pulse rounded-full bg-white"
-              />
+            {[1, 2, 3, 4].map((item) => (
+              <span key={item} className="flex w-20 flex-col items-center gap-2">
+                <span className="h-16 w-16 animate-pulse rounded-full bg-white" />
+                <span className="h-3 w-14 animate-pulse rounded bg-white" />
+              </span>
             ))}
           </MobileStorefrontRail>
         </section>
@@ -210,27 +210,27 @@ export function MobileHomeExperience({
                 key={category.id}
                 type="button"
                 onClick={() => router.push(`/items?categoryId=${category.id}`)}
-                className="storefront-category-chip"
+                className="storefront-category-tile"
               >
-                <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-primary/10">
+                <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full bg-primary/10">
                   <ResilientImage
                     src={getCategoryImage(category)}
                     alt={category.name}
                     fill
-                    sizes="32px"
+                    sizes="64px"
                     className="object-cover"
                     fallback="brand"
                   />
                 </span>
-                <span className="truncate">{category.name}</span>
+                <span className="line-clamp-2 text-center">{category.name}</span>
               </button>
             ))}
           </MobileStorefrontRail>
         </section>
       ) : null}
 
-      <main className="space-y-8 px-4 pt-4">
-        <section className="relative z-10 overflow-hidden rounded-[28px] bg-[#2b1714] p-5 text-white shadow-[0_18px_45px_rgba(31,23,18,0.18)]">
+      <main className="pt-4">
+        <section className="relative z-10 mx-4 overflow-hidden rounded-[28px] bg-[#2b1714] p-5 text-white shadow-[0_18px_45px_rgba(31,23,18,0.18)]">
           <div className="relative z-10 max-w-[60%]">
             <span className="inline-flex rounded-full bg-white/12 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-white/80">
               {t("todayOnly")}

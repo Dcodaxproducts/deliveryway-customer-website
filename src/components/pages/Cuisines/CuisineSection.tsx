@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 
 import { CuisineCard } from "@/components/pages/Cuisines/components/CuisineCard";
 import { MobileStorefrontRail } from "@/components/pages/Home/components/MobileStorefrontRail";
+import { StorefrontSection } from "@/components/pages/Home/components/StorefrontSection";
 import {
   Carousel,
   CarouselContent,
@@ -74,31 +75,21 @@ export function CuisineSection() {
   if (!loading && cuisines.length === 0) return null;
 
   return (
-    <section
+    <StorefrontSection
       id="cuisines"
-      className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 sm:py-14"
-    >
-      <div className="mb-6 flex items-end justify-between gap-4">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-            {t("eyebrow")}
-          </p>
-          <h2 className="mt-1 text-2xl font-bold text-gray-900">
-            {t("title")}
-          </h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-500">
-            {t("description")}
-          </p>
-        </div>
+      eyebrow={t("eyebrow")}
+      title={t("title")}
+      description={t("description")}
+      action={
         <Link
           href="/cuisines"
-          className="hidden items-center gap-1 text-sm font-semibold text-primary sm:flex"
+          className="flex items-center gap-1 text-sm font-semibold text-primary"
         >
           {t("viewAll")}
           <ArrowUpRight size={16} />
         </Link>
-      </div>
-
+      }
+    >
       {loading ? (
         <>
           <MobileStorefrontRail className="md:hidden" aria-hidden="true">
@@ -140,13 +131,6 @@ export function CuisineSection() {
         </>
       )}
 
-      <Link
-        href="/cuisines"
-        className="mt-5 flex items-center justify-center gap-1 text-sm font-semibold text-primary sm:hidden"
-      >
-        {t("viewAll")}
-        <ArrowUpRight size={16} />
-      </Link>
-    </section>
+    </StorefrontSection>
   );
 }
