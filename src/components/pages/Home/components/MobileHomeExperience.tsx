@@ -215,7 +215,7 @@ export function MobileHomeExperience({
                 <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full bg-primary/10">
                   <ResilientImage
                     src={getCategoryImage(category)}
-                    alt={category.name}
+                    alt=""
                     fill
                     sizes="64px"
                     className="object-cover"

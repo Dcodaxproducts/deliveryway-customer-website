@@ -200,9 +200,17 @@ export function PromotionalItemsSection({
   const t = useTranslations("home.promotionalItems");
 
   if (isLoading) {
+    if (!compact) {
+      return (
+        <section className="mx-auto max-w-[1400px] px-4 pb-[30px] pt-[30px] sm:px-6 sm:pb-[50px] sm:pt-[50px]">
+          <PromotionalItemsSkeleton />
+        </section>
+      );
+    }
+
     return (
       <StorefrontSection>
-        <PromotionalItemsSkeleton compact={compact} />
+        <PromotionalItemsSkeleton compact />
       </StorefrontSection>
     );
   }
@@ -242,18 +250,23 @@ export function PromotionalItemsSection({
   }
 
   return (
-    <StorefrontSection
-      eyebrow={t("eyebrow")}
-      title={t("title")}
-      action={
+    <section className="mx-auto max-w-[1400px] px-4 pb-[34px] pt-[42px] sm:px-6 sm:pb-[58px] sm:pt-[58px]">
+      <div className="mb-4 flex items-end justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-wide text-primary">
+            {t("eyebrow")}
+          </p>
+          <h2 className="mt-1 text-2xl font-bold text-gray-900">
+            {t("title")}
+          </h2>
+        </div>
         <Button asChild variant="link" className="p-0 text-sm font-semibold text-primary">
           <Link href="/items">
             {t("exploreMenu")}
             <ArrowUpRight size={16} />
           </Link>
         </Button>
-      }
-    >
+      </div>
       <Carousel opts={{ align: "start", dragFree: true }} className="min-w-0">
         <CarouselContent className="-ml-5 cursor-grab pb-8 active:cursor-grabbing">
           {items.map((item, index) => (
@@ -271,6 +284,6 @@ export function PromotionalItemsSection({
           ))}
         </CarouselContent>
       </Carousel>
-    </StorefrontSection>
+    </section>
   );
 }

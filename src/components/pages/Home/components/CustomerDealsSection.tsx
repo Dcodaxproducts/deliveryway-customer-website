@@ -489,6 +489,8 @@ export const CustomerDealsSection = ({
 
     return compact ? visibleDeals : visibleDeals.slice(0, 6);
   }, [compact, deals]);
+  const desktopSectionClassName =
+    "mx-auto max-w-[1400px] px-4 pb-[30px] pt-[30px] sm:px-6 sm:pb-[60px] sm:pt-[60px]";
   const [selectedChooserDeal, setSelectedChooserDeal] =
     useState<CustomerDeal | null>(null);
   const [pendingDeal, setPendingDeal] = useState<CustomerDeal | null>(null);
@@ -601,9 +603,17 @@ export const CustomerDealsSection = ({
   ]);
 
   if (isLoading) {
+    if (!compact) {
+      return (
+        <section className={desktopSectionClassName}>
+          <CustomerDealsSkeleton />
+        </section>
+      );
+    }
+
     return (
       <StorefrontSection>
-        <CustomerDealsSkeleton compact={compact} />
+        <CustomerDealsSkeleton compact />
       </StorefrontSection>
     );
   }
@@ -656,7 +666,14 @@ export const CustomerDealsSection = ({
   }
 
   return (
-    <StorefrontSection title={t("available")}>
+    <section className={desktopSectionClassName}>
+      <div className="mb-4 flex items-end justify-between gap-4">
+        <div>
+          <h3 className="text-2xl font-extrabold text-gray-950">
+            {t("available")}
+          </h3>
+        </div>
+      </div>
       <Carousel opts={{ align: "start", dragFree: true }} className="min-w-0">
         <CarouselContent className="-ml-5 cursor-grab pb-8 active:cursor-grabbing">
           {activeDeals.map((deal, index) => (
@@ -679,6 +696,6 @@ export const CustomerDealsSection = ({
       </Carousel>
 
       {chooserDrawer}
-    </StorefrontSection>
+    </section>
   );
 };

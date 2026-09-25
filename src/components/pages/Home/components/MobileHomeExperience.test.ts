@@ -55,6 +55,7 @@ describe("mobile storefront layout contract", () => {
       "h-16 w-16 shrink-0 overflow-hidden rounded-full",
     );
     expect(homeSource).toContain('sizes="64px"');
+    expect(homeSource).toContain('alt=""');
     expect(homeSource).toContain("line-clamp-2 text-center");
     expect(homeSource).not.toContain("storefront-category-chip");
   });
@@ -89,6 +90,15 @@ describe("mobile storefront layout contract", () => {
     expect(customerDealsSource).not.toContain("-mx-4 px-4");
     expect(customerDealsSource).not.toContain("rounded-[36px]");
     expect(customerDealsSource).not.toContain("bg-[linear-gradient(108deg");
+    expect(promotionSource).toContain(
+      "mx-auto max-w-[1400px] px-4 pb-[34px] pt-[42px]",
+    );
+    expect(customerDealsSource).toContain(
+      "mx-auto max-w-[1400px] px-4 pb-[30px] pt-[30px]",
+    );
+    expect(customerDealsSource).toContain(
+      "text-2xl font-extrabold text-gray-950",
+    );
   });
 
   it("matches compact promotional card proportions to the cuisine card language", () => {
