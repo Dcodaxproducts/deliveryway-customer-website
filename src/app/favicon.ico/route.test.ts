@@ -9,6 +9,7 @@ const apiResponse = (restaurantId: string, faviconUrl: string | null, version: s
         restaurantId,
         branding: { assets: { faviconUrl } },
         brandingVersion: version,
+        faviconUrl,
       },
     }),
     { status: 200, headers: { "content-type": "application/json" } },
@@ -57,6 +58,8 @@ describe("tenant favicon route", () => {
 
     expect(Array.from(new Uint8Array(await first.arrayBuffer()))).toEqual([1, 2, 3]);
     expect(first.headers.get("content-type")).toBe("image/webp");
+    expect(first.headers.get("etag")).toMatch(/^"[a-f0-9]{64}"$/);
+    expect(first.headers.get("vary")).toBe("Host, X-Forwarded-Host");
     expect(Array.from(new Uint8Array(await second.arrayBuffer()))).toEqual([4, 5, 6]);
     expect(second.headers.get("content-type")).toBe("image/png");
     expect(fetchMock).toHaveBeenCalledWith(
@@ -67,6 +70,50 @@ describe("tenant favicon route", () => {
       expect.stringContaining("host=tenant-b.example"),
       expect.any(Object),
     );
+  });
+
+  it("returns a conditional 304 for unchanged favicon bytes", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        apiResponse(
+          "restaurant-a",
+          "https://cdn.example.test/a.webp",
+          "version-a",
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(new Uint8Array([1, 2, 3]), {
+          headers: { "content-type": "image/webp" },
+        }),
+      )
+      .mockResolvedValueOnce(
+        apiResponse(
+          "restaurant-a",
+          "https://cdn.example.test/a.webp",
+          "version-a",
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(new Uint8Array([1, 2, 3]), {
+          headers: { "content-type": "image/webp" },
+        }),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const first = await GET(
+      new Request("https://tenant-a.example/favicon.ico?v=version-a"),
+    );
+    const etag = first.headers.get("etag");
+    const conditional = await GET(
+      new Request("https://tenant-a.example/favicon.ico?v=version-a", {
+        headers: { "if-none-match": etag ?? "" },
+      }),
+    );
+
+    expect(conditional.status).toBe(304);
+    expect(conditional.headers.get("etag")).toBe(etag);
+    expect((await conditional.arrayBuffer()).byteLength).toBe(0);
   });
 
   it("uses the product fallback when branding is cleared or invalid", async () => {

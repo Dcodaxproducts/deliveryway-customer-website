@@ -1,9 +1,8 @@
-import { getTenantFaviconUrl } from "@/lib/favicon";
-
 export type TenantBrandingContext = {
   restaurantId: string;
   branding: unknown;
   brandingVersion: string | null;
+  faviconUrl: string | null;
 };
 
 type Fetcher = typeof fetch;
@@ -18,15 +17,16 @@ const getApiBaseUrl = (): string | null => {
 
 export const fetchTenantBrandingContext = async (
   host: string,
-  fetcher: Fetcher = fetch,
+  fetcher?: Fetcher,
 ): Promise<TenantBrandingContext | null> => {
   const apiBaseUrl = getApiBaseUrl();
+  const requestFetcher = fetcher ?? globalThis.fetch;
   if (!apiBaseUrl || !host) {
     return null;
   }
 
   try {
-    const response = await fetcher(
+    const response = await requestFetcher(
       `${apiBaseUrl}/customer-app/domain-context?host=${encodeURIComponent(host)}`,
       {
         cache: "no-store",
@@ -48,6 +48,7 @@ export const fetchTenantBrandingContext = async (
       branding: data.branding,
       brandingVersion:
         typeof data.brandingVersion === "string" ? data.brandingVersion : null,
+      faviconUrl: typeof data.faviconUrl === "string" ? data.faviconUrl : null,
     };
   } catch {
     return null;
@@ -57,6 +58,15 @@ export const fetchTenantBrandingContext = async (
 export const getCustomTenantFaviconUrl = (
   context: TenantBrandingContext | null,
 ): string | null => {
-  const value = getTenantFaviconUrl(context?.branding);
-  return value?.startsWith("https://") ? value : null;
+  const value = context?.faviconUrl?.trim();
+  if (!value) return null;
+
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && !url.username && !url.password
+      ? url.toString()
+      : null;
+  } catch {
+    return null;
+  }
 };

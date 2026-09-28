@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
@@ -21,18 +22,35 @@ const ALLOWED_CONTENT_TYPES = new Set([
 
 export const dynamic = "force-dynamic";
 
-const responseHeaders = (contentType: string) => ({
+const responseHeaders = (contentType: string, etag: string) => ({
   "Cache-Control": "public, max-age=31536000, immutable",
   "Content-Type": contentType,
+  ETag: etag,
+  Vary: "Host, X-Forwarded-Host",
   "X-Content-Type-Options": "nosniff",
 });
 
-const fallbackResponse = async () => {
-  const body = await readFile(join(process.cwd(), "public", FALLBACK_FILE));
-  return new Response(body, {
-    status: 200,
-    headers: responseHeaders(FALLBACK_CONTENT_TYPE),
-  });
+const imageResponse = (
+  request: Request,
+  body: ArrayBuffer,
+  contentType: string,
+) => {
+  const etag = `"${createHash("sha256")
+    .update(new Uint8Array(body))
+    .digest("hex")}"`;
+  const responseInit = { headers: responseHeaders(contentType, etag) };
+  if (request.headers.get("if-none-match")?.split(",").includes(etag)) {
+    return new Response(null, { ...responseInit, status: 304 });
+  }
+
+  return new Response(body, { ...responseInit, status: 200 });
+};
+
+const fallbackResponse = async (request: Request) => {
+  const file = await readFile(join(process.cwd(), "public", FALLBACK_FILE));
+  const body = new ArrayBuffer(file.byteLength);
+  new Uint8Array(body).set(file);
+  return imageResponse(request, body, FALLBACK_CONTENT_TYPE);
 };
 
 export async function GET(request: Request): Promise<Response> {
@@ -41,13 +59,13 @@ export async function GET(request: Request): Promise<Response> {
   const customFaviconUrl = getCustomTenantFaviconUrl(context);
 
   if (!customFaviconUrl) {
-    return fallbackResponse();
+    return fallbackResponse(request);
   }
 
   try {
     const assetResponse = await fetch(customFaviconUrl, {
       cache: "no-store",
-      redirect: "follow",
+      redirect: "error",
       signal: AbortSignal.timeout(5_000),
     });
     const contentType = assetResponse.headers.get("content-type")
@@ -62,19 +80,16 @@ export async function GET(request: Request): Promise<Response> {
       !ALLOWED_CONTENT_TYPES.has(contentType) ||
       (Number.isFinite(contentLength) && contentLength > MAX_FAVICON_BYTES)
     ) {
-      return fallbackResponse();
+      return fallbackResponse(request);
     }
 
     const body = await assetResponse.arrayBuffer();
     if (body.byteLength > MAX_FAVICON_BYTES) {
-      return fallbackResponse();
+      return fallbackResponse(request);
     }
 
-    return new Response(body, {
-      status: 200,
-      headers: responseHeaders(contentType),
-    });
+    return imageResponse(request, body, contentType);
   } catch {
-    return fallbackResponse();
+    return fallbackResponse(request);
   }
 }
