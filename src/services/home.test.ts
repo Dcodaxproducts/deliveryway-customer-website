@@ -25,6 +25,7 @@ describe("getHome", () => {
         config: {
           currency: "USD",
           branding: { theme: { primaryColor: "#111111" } },
+          brandingVersion: "brand-v2",
         },
         giftCards: {
           isEnabled: true,
@@ -50,6 +51,7 @@ describe("getHome", () => {
     expect(response.data.restaurant?.name).toBe("Demo");
     expect(response.data.config?.currency).toBe("USD");
     expect(response.data.branding.primaryColor).toBe("#111111");
+    expect(response.data.config?.brandingVersion).toBe("brand-v2");
     expect(response.data.giftCards?.isEnabled).toBe(true);
     expect(response.data.giftCards?.items[0].amount).toBe(2500);
     expect(response.data.cuisines).toHaveLength(1);

@@ -84,6 +84,7 @@ export type HomeFooter = {
 export type HomeConfig = {
   currency?: string | null;
   branding?: Record<string, unknown>;
+  brandingVersion?: string | null;
 };
 
 export type LandingPopup = {

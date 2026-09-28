@@ -48,6 +48,10 @@ const normalizeHomeConfig = (value: unknown): HomeConfig | null => {
   return {
     currency: typeof value.currency === "string" ? value.currency : null,
     branding: isRecord(value.branding) ? value.branding : undefined,
+    brandingVersion:
+      typeof value.brandingVersion === "string"
+        ? value.brandingVersion
+        : null,
   };
 };
 
