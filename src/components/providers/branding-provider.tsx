@@ -8,7 +8,7 @@ import { BrandingContext } from "@/hooks/useBranding";
 import { useDomainContext } from "@/hooks/useDomainContext";
 import { useHome } from "@/hooks/useHome";
 import { getBrandingCssVariables } from "@/lib/branding";
-import { resolveHttpsImageUrl } from "@/lib/image-fallback";
+import { getVersionedFaviconHref } from "@/lib/favicon";
 
 const getUserRestaurantId = (user: ReturnType<typeof useAuthContext>["user"]) =>
   user?.restaurantId ?? user?.branch?.restaurantId ?? null;
@@ -32,6 +32,10 @@ export const BrandingProvider = ({ children }: BrandingProviderProps) => {
   );
   const branding = homeQuery.data?.data.branding ?? DEFAULT_BRANDING;
   const hasResolvedRestaurantBranding = Boolean(homeQuery.data?.data);
+  const brandingVersion =
+    homeQuery.data?.data.config?.brandingVersion ??
+    domainContext?.brandingVersion ??
+    null;
 
   useEffect(() => {
     const root = document.documentElement;
@@ -47,12 +51,9 @@ export const BrandingProvider = ({ children }: BrandingProviderProps) => {
       return;
     }
 
-    const faviconHref = resolveHttpsImageUrl(
-      branding.assets.faviconUrl ?? branding.logo.default,
-      "/deliveryway-logo.jpg",
-    );
+    const faviconHref = getVersionedFaviconHref(brandingVersion);
     const iconLinks = document.querySelectorAll<HTMLLinkElement>(
-      "link[rel='icon'], link[rel='shortcut icon'], link[rel='apple-touch-icon']",
+      "link[rel='icon'], link[rel='shortcut icon']",
     );
 
     if (iconLinks.length === 0) {
@@ -66,11 +67,7 @@ export const BrandingProvider = ({ children }: BrandingProviderProps) => {
     iconLinks.forEach((link) => {
       link.href = faviconHref;
     });
-  }, [
-    branding.assets.faviconUrl,
-    branding.logo.default,
-    hasResolvedRestaurantBranding,
-  ]);
+  }, [brandingVersion, hasResolvedRestaurantBranding]);
 
   const value = useMemo(
     () => ({

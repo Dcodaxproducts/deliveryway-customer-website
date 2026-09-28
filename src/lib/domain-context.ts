@@ -10,6 +10,7 @@ export type DomainContext = {
   customDomain?: string | null;
   logoUrl?: string | null;
   branding?: unknown;
+  brandingVersion?: string | null;
 };
 
 const STORAGE_KEY = "deliveryway-domain-context";
@@ -67,6 +68,7 @@ export const normalizeDomainContext = (value: unknown): DomainContext | null => 
     customDomain: getString(data.customDomain),
     logoUrl: getString(data.logoUrl),
     branding: data.branding,
+    brandingVersion: getString(data.brandingVersion),
   };
 };
 

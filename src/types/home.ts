@@ -108,6 +108,7 @@ export type HomeConfig = {
   currency?: string | null;
   branding?: Record<string, unknown>;
   ordering: HomeOrderingConfig;
+  brandingVersion?: string | null;
 };
 
 export type LandingPopup = {

@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import "./globals.css";
 import { onest } from "@/lib/fonts";
 import { Toaster } from "sonner";
 import { Providers } from "@/app/providers";
+import { getFaviconMetadata, getRequestHost } from "@/lib/favicon";
+import { fetchTenantBrandingContext } from "@/lib/server-favicon";
 
 const siteUrl = new URL(
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://deliveryway.dcodax.co",
@@ -11,7 +14,7 @@ const siteTitle = "DeliveryWay | Frische Essenslieferung";
 const siteDescription =
   "Bestellen Sie mit DeliveryWay frische Gerichte bei Ihrem Restaurant vor Ort. Entdecken Sie Angebote, Favoriten, Lieferung, Abholung, Reservierungen und Geschenkkarten.";
 
-export const metadata: Metadata = {
+const baseMetadata: Metadata = {
   metadataBase: siteUrl,
   title: {
     default: siteTitle,
@@ -62,6 +65,17 @@ export const metadata: Metadata = {
     },
   },
 };
+
+export async function generateMetadata(): Promise<Metadata> {
+  const requestHeaders = await headers();
+  const host = getRequestHost(requestHeaders);
+  const context = await fetchTenantBrandingContext(host);
+
+  return {
+    ...baseMetadata,
+    icons: getFaviconMetadata(context?.brandingVersion),
+  };
+}
 
 export default function RootLayout({
   children,

@@ -50,6 +50,10 @@ const normalizeHomeConfig = (value: unknown): HomeConfig | null => {
     currency: typeof value.currency === "string" ? value.currency : null,
     branding: isRecord(value.branding) ? value.branding : undefined,
     ordering: normalizeHomeOrderingConfig(value.ordering),
+    brandingVersion:
+      typeof value.brandingVersion === "string"
+        ? value.brandingVersion
+        : null,
   };
 };
 
