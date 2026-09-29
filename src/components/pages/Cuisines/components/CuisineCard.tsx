@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, Sparkles, Utensils } from "lucide-react";
 import { useTranslations } from "next-intl";
 
+import { ResilientImage } from "@/components/common/ResilientImage";
 import type { CustomerCuisine } from "@/services/cuisines";
 import { getCuisineBadge } from "@/components/pages/Cuisines/components/cuisine-display";
 import { useStableCuisineImage } from "@/hooks/useStableCuisineImage";
@@ -20,13 +20,13 @@ export function CuisineCard({ cuisine }: { cuisine: CustomerCuisine }) {
       className="group flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[26px] border border-gray-100 bg-white shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition-shadow hover:shadow-[0_20px_48px_rgba(15,23,42,0.12)]"
     >
       <div className="relative h-44 bg-primary/5">
-        <Image
+        <ResilientImage
           src={imageUrl}
           alt={cuisine.name}
           fill
+          fallback="cuisine"
           className="object-cover transition duration-500 group-hover:scale-[1.03]"
           sizes="(max-width: 640px) 92vw, (max-width: 1280px) 48vw, 350px"
-          unoptimized
           onError={handleImageError}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />

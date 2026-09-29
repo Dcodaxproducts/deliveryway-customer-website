@@ -354,6 +354,7 @@ button{
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
   .storefront-rail { scroll-behavior: auto; }
   .storefront-rail,
   .storefront-rail * {

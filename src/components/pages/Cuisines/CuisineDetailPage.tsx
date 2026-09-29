@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { ArrowLeft, Sparkles, Utensils } from "lucide-react";
 import { useTranslations } from "next-intl";
 
+import { ResilientImage } from "@/components/common/ResilientImage";
 import { CuisineItemCard } from "@/components/pages/Cuisines/components/CuisineItemCard";
 import { getCuisineBadge } from "@/components/pages/Cuisines/components/cuisine-display";
 import { useAppLocale } from "@/hooks/useAppLocale";
@@ -71,13 +71,13 @@ function CuisineDetailContent({ cuisineId }: { cuisineId: string }) {
         </div>
 
         <div className="relative min-h-[320px] overflow-hidden bg-[#F7F0E8] lg:min-h-[430px]">
-          <Image
+          <ResilientImage
             src={imageUrl}
             alt={cuisine?.name || t("title")}
             fill
+            fallback="cuisine"
             className="object-cover"
             sizes="(max-width: 1024px) 100vw, 720px"
-            unoptimized
             priority
             onError={handleImageError}
           />

@@ -7,11 +7,6 @@ import { useTranslations } from "next-intl";
 import { CuisineCard } from "@/components/pages/Cuisines/components/CuisineCard";
 import { MobileStorefrontRail } from "@/components/pages/Home/components/MobileStorefrontRail";
 import { StorefrontSection } from "@/components/pages/Home/components/StorefrontSection";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-} from "@/components/ui/carousel";
 import { useAppLocale } from "@/hooks/useAppLocale";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -23,11 +18,11 @@ import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
 import type { CustomerCuisine } from "@/services/cuisines";
 
 const CuisineSkeleton = () => (
-  <div className="flex gap-5 overflow-hidden pb-8">
+  <div className="grid grid-cols-[repeat(auto-fill,minmax(16rem,20rem))] gap-5 pb-8">
     {[1, 2, 3, 4].map((item) => (
       <div
         key={item}
-        className="h-[340px] min-w-[92%] animate-pulse rounded-[26px] bg-gray-100 sm:min-w-[62%] md:min-w-[48%] xl:min-w-[33.333%] 2xl:min-w-[25%]"
+        className="h-[340px] min-w-0 animate-pulse rounded-[26px] bg-gray-100"
       />
     ))}
   </div>
@@ -113,21 +108,13 @@ export function CuisineSection() {
               </div>
             ))}
           </MobileStorefrontRail>
-          <Carousel
-            opts={{ align: "start", dragFree: true }}
-            className="hidden min-w-0 md:block"
-          >
-            <CarouselContent className="-ml-5 cursor-grab pb-8 active:cursor-grabbing">
-              {cuisines.map((cuisine) => (
-                <CarouselItem
-                  key={cuisine.id}
-                  className="flex min-w-0 basis-[86%] pl-4 sm:basis-[48%] lg:basis-1/3 xl:basis-1/4"
-                >
-                  <CuisineCard cuisine={cuisine} />
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-          </Carousel>
+          <div className="hidden grid-cols-[repeat(auto-fill,minmax(16rem,20rem))] gap-5 pb-8 md:grid">
+            {cuisines.map((cuisine) => (
+              <div key={cuisine.id} className="flex min-w-0">
+                <CuisineCard cuisine={cuisine} />
+              </div>
+            ))}
+          </div>
         </>
       )}
 

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { BadgePercent, Store } from "lucide-react";
+import { BadgePercent, Store, Utensils } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { isRemoteHttpsImageUrl } from "@/lib/image-fallback";
@@ -15,7 +15,8 @@ type ResilientImageProps = {
   sizes?: string;
   className?: string;
   priority?: boolean;
-  fallback?: "brand" | "deal" | "hero";
+  fallback?: "brand" | "cuisine" | "deal" | "hero";
+  onError?: () => void;
 };
 
 export const shouldRenderImage = (src: string | null | undefined, failed: boolean) =>
@@ -31,13 +32,14 @@ export const ResilientImage = ({
   className,
   priority = false,
   fallback = "brand",
+  onError,
 }: ResilientImageProps) => {
   const [failed, setFailed] = useState(false);
 
   useEffect(() => setFailed(false), [src]);
 
   if (!shouldRenderImage(src, failed)) {
-    const Icon = fallback === "deal" ? BadgePercent : Store;
+    const Icon = fallback === "deal" ? BadgePercent : fallback === "cuisine" ? Utensils : Store;
     return (
       <span
         role="img"
@@ -60,7 +62,10 @@ export const ResilientImage = ({
     priority,
     sizes,
     unoptimized: isRemoteHttpsImageUrl(src),
-    onError: () => setFailed(true),
+    onError: () => {
+      setFailed(true);
+      onError?.();
+    },
   };
 
   return fill ? <Image {...common} fill /> : <Image {...common} width={width} height={height} />;
