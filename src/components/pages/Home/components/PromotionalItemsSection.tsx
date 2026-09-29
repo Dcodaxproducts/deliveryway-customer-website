@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, Star } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -11,6 +10,7 @@ import {
   CarouselItem,
 } from "@/components/ui/carousel";
 import { FavoriteHeartButton } from "@/components/common/favorites/FavoriteHeartButton";
+import { ResilientImage } from "@/components/common/ResilientImage";
 import { MobileStorefrontRail } from "@/components/pages/Home/components/MobileStorefrontRail";
 import { StorefrontSection } from "@/components/pages/Home/components/StorefrontSection";
 import {
@@ -121,13 +121,13 @@ function PromotionalItemCard({
       >
       <Link href={getItemHref(item)} className="flex h-full min-w-0 flex-col text-left">
         <div className={compact ? "relative h-44 shrink-0 bg-primary/5" : "relative h-[146px] bg-[#F7F3EF]"}>
-          <Image
+          <ResilientImage
             src={image}
             alt={title}
             fill
             className="object-cover transition duration-500 group-hover:scale-[1.02] motion-reduce:transition-none"
             sizes={compact ? "238px" : "(max-width: 768px) 92vw, 320px"}
-            unoptimized
+            fallback="deal"
           />
 
           <span className="absolute left-3 top-3 max-w-[calc(100%-64px)] truncate rounded-full bg-white px-3 py-1 text-[11px] font-black text-primary shadow-sm">

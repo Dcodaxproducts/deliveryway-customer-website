@@ -9,6 +9,10 @@ const promotionSource = readFileSync(
   new URL("./PromotionalItemsSection.tsx", import.meta.url),
   "utf8",
 );
+const resilientImageSource = readFileSync(
+  new URL("../../../common/ResilientImage.tsx", import.meta.url),
+  "utf8",
+);
 const customerDealsSource = readFileSync(
   new URL("./CustomerDealsSection.tsx", import.meta.url),
   "utf8",
@@ -73,6 +77,10 @@ describe("mobile storefront layout contract", () => {
 
   it("shows one primary mobile card with a peek and bounds sparse desktop cuisine rows", () => {
     expect(cssSource).toContain("flex: 0 0 calc(100% - 2.75rem)");
+    expect(cuisineSource.match(/<div className="md:hidden">/g)).toHaveLength(2);
+    expect(cuisineSource).not.toContain(
+      '<MobileStorefrontRail className="md:hidden"',
+    );
     expect(cuisineSource).toContain(
       'className="hidden grid-cols-[repeat(auto-fill,minmax(16rem,20rem))] gap-5 pb-8 md:grid"',
     );
@@ -117,6 +125,17 @@ describe("mobile storefront layout contract", () => {
     expect(promotionSource).toContain(
       "border-t border-dashed border-gray-100 pt-4",
     );
+  });
+
+  it("replaces failed promotional item images with the canonical deal fallback", () => {
+    expect(promotionSource).toContain(
+      'import { ResilientImage } from "@/components/common/ResilientImage"',
+    );
+    expect(promotionSource).toContain("<ResilientImage");
+    expect(promotionSource).toContain('fallback="deal"');
+    expect(promotionSource).not.toContain('import Image from "next/image"');
+    expect(resilientImageSource).toContain("onError: () =>");
+    expect(resilientImageSource).toContain("setFailed(true)");
   });
 
   it("keeps the deal sheet viewport bounded with internal scrolling", () => {
