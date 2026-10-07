@@ -23,6 +23,7 @@ import {
 } from "@/lib/checkout-type-preference";
 import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
 import { createLatestRequestCoordinator } from "@/lib/latest-request";
+import { shouldShowFloatingCart } from "@/lib/cart-reliability";
 import { resolveCustomerCurrency } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import {
@@ -102,6 +103,7 @@ export function SiteFloatingCart() {
 
       if (!response || response.error || response.success === false) {
         setCartLoadState("error");
+        setIsOpen(true);
         return;
       }
 
@@ -116,6 +118,7 @@ export function SiteFloatingCart() {
     } catch {
       if (cartRequestRef.current.isCurrent(request)) {
         setCartLoadState("error");
+        setIsOpen(true);
       }
     }
   }, [checkoutType, checkoutTypeReady, customerId, loading, token]);
@@ -191,7 +194,12 @@ export function SiteFloatingCart() {
     };
   }, [refreshCart]);
 
-  if (loading || !customerId || isHiddenRoute || !hasCartItems) {
+  if (
+    loading ||
+    !customerId ||
+    isHiddenRoute ||
+    !shouldShowFloatingCart(hasCartItems, cartLoadState)
+  ) {
     return null;
   }
 

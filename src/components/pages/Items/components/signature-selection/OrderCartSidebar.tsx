@@ -49,7 +49,15 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
 import { normalizeCartQuote, normalizeCustomerCartData } from "@/services/cart";
-import { createLatestRequestCoordinator, type LatestRequest } from "@/lib/latest-request";
+import {
+  createLatestRequestCoordinator,
+  type LatestRequest,
+} from "@/lib/latest-request";
+import {
+  createCartMutationCoordinator,
+  resolveDeliveryQuoteResult,
+  type DeliveryQuoteResult,
+} from "@/lib/cart-reliability";
 import { cn } from "@/lib/utils";
 import { getStoredDeliveryLocation } from "@/lib/delivery-location";
 import {
@@ -99,14 +107,21 @@ export function OrderCartSidebar({
   const [cartLoadError, setCartLoadError] = useState(false);
   const [actionId, setActionId] = useState<string | null>(null);
   const cartRequestRef = useRef(createLatestRequestCoordinator());
+  const cartMutationRef = useRef(createCartMutationCoordinator());
 
-  const fetchStoredLocationQuote = async (signal: AbortSignal) => {
-    if (!customerId || checkoutType !== "delivery") return null;
+  const fetchStoredLocationQuote = async (
+    signal: AbortSignal,
+  ): Promise<DeliveryQuoteResult> => {
+    if (!customerId || checkoutType !== "delivery") {
+      return resolveDeliveryQuoteResult(false, null, normalizeCartQuote);
+    }
 
     const address = getGuestDeliveryAddressFromStoredLocation(
       getStoredDeliveryLocation(),
     );
-    if (!address || !hasGuestDeliveryAddress(address)) return null;
+    if (!address || !hasGuestDeliveryAddress(address)) {
+      return resolveDeliveryQuoteResult(false, null, normalizeCartQuote);
+    }
 
     const response = await quoteCustomerCart({
       customerId,
@@ -116,9 +131,7 @@ export function OrderCartSidebar({
       signal,
     });
 
-    if (!response || response.error || response.success === false) return null;
-
-    return normalizeCartQuote(response.data);
+    return resolveDeliveryQuoteResult(true, response, normalizeCartQuote);
   };
 
   const applyCartSnapshot = async (
@@ -131,7 +144,17 @@ export function OrderCartSidebar({
     if (!cartRequestRef.current.isCurrent(request)) return;
 
     setCartItems(items.map((item) => normalizeCartItem(item)));
-    setCartQuote((locationQuote ?? quote) as ApiRecord | null);
+    if (locationQuote.status === "error") {
+      setCartQuote(null);
+      setCartLoadError(true);
+      return;
+    }
+
+    setCartQuote(
+      (locationQuote.status === "success"
+        ? locationQuote.quote
+        : quote) as ApiRecord | null,
+    );
     setCartLoadError(false);
   };
 
@@ -143,6 +166,7 @@ export function OrderCartSidebar({
     try {
       setLoadingCart(true);
       setCartLoadError(false);
+      setCartQuote(null);
 
       const {
         response: res,
@@ -165,7 +189,17 @@ export function OrderCartSidebar({
       if (!cartRequestRef.current.isCurrent(request)) return;
 
       setCartItems(items.map((item) => normalizeCartItem(item)));
-      setCartQuote((locationQuote ?? quote) as ApiRecord | null);
+      if (locationQuote.status === "error") {
+        setCartQuote(null);
+        setCartLoadError(true);
+        return;
+      }
+
+      setCartQuote(
+        (locationQuote.status === "success"
+          ? locationQuote.quote
+          : quote) as ApiRecord | null,
+      );
     } catch {
       if (cartRequestRef.current.isCurrent(request)) {
         setCartLoadError(true);
@@ -369,14 +403,23 @@ export function OrderCartSidebar({
   const shouldShowTotalBeforeDiscount = hasActualDiscount;
 
   const updateQuantity = async (id: string, type: "inc" | "dec") => {
+    const mutationToken = cartMutationRef.current.start();
+    if (!mutationToken) return;
+
     const item = cartItems.find((cartItem) => String(cartItem.id) === id);
-    if (!item || !customerId) return;
+    if (!item || !customerId) {
+      cartMutationRef.current.finish(mutationToken);
+      return;
+    }
 
     const currentQty = Math.max(1, toNumber(item.quantity, 1));
     const newQty =
       type === "inc" ? currentQty + 1 : Math.max(1, currentQty - 1);
 
-    if (newQty === currentQty) return;
+    if (newQty === currentQty) {
+      cartMutationRef.current.finish(mutationToken);
+      return;
+    }
 
     try {
       setActionId(id);
@@ -414,12 +457,17 @@ export function OrderCartSidebar({
       toast.error(cartT("failedUpdateQuantity"));
       await fetchCart();
     } finally {
-      setActionId(null);
+      if (cartMutationRef.current.finish(mutationToken)) {
+        setActionId(null);
+      }
     }
   };
 
   const deleteItem = async (id: string) => {
     if (!customerId) return;
+    const mutationToken = cartMutationRef.current.start();
+    if (!mutationToken) return;
+
     const item = cartItems.find((cartItem) => String(cartItem.id) === id);
 
     try {
@@ -442,7 +490,9 @@ export function OrderCartSidebar({
     } catch (err) {
       toast.error(cartT("failedRemoveItem"));
     } finally {
-      setActionId(null);
+      if (cartMutationRef.current.finish(mutationToken)) {
+        setActionId(null);
+      }
     }
   };
 
@@ -584,7 +634,7 @@ export function OrderCartSidebar({
                         <button
                           type="button"
                           onClick={() => void deleteItem(String(item.id))}
-                          disabled={actionId === String(item.id)}
+                          disabled={actionId !== null}
                           className="mt-0.5 shrink-0 rounded-md bg-red-50 p-1 text-red-500 transition hover:bg-red-100 disabled:opacity-50"
                           aria-label={t("removeItem", { name: item.name })}
                         >
@@ -819,7 +869,7 @@ export function OrderCartSidebar({
                             onClick={() =>
                               void updateQuantity(String(item.id), "dec")
                             }
-                            disabled={actionId === String(item.id)}
+                            disabled={actionId !== null}
                             className="flex h-6 w-6 items-center justify-center rounded-full text-[#666] transition hover:bg-white hover:text-[#222] disabled:opacity-50"
                             aria-label={`Decrease ${item.name} quantity`}
                           >
@@ -833,7 +883,7 @@ export function OrderCartSidebar({
                             onClick={() =>
                               void updateQuantity(String(item.id), "inc")
                             }
-                            disabled={actionId === String(item.id)}
+                            disabled={actionId !== null}
                             className="flex h-6 w-6 items-center justify-center rounded-full text-[#666] transition hover:bg-white hover:text-[#222] disabled:opacity-50"
                             aria-label={`Increase ${item.name} quantity`}
                           >

@@ -75,8 +75,15 @@ const getOptimisticCartQuantity = (payload: CartMutationPayload) => {
 };
 
 export type CartApi = DomainApiHook & {
-  ensureCustomerSession: () => Promise<{ customerId: string; token: string }>;
-  fetchCustomerCart: (args: { customerId: string; signal?: AbortSignal }) => Promise<{
+  ensureCustomerSession: () => Promise<{
+    customerId: string;
+    token: string;
+    isGuest: boolean;
+  }>;
+  fetchCustomerCart: (args: {
+    customerId: string;
+    signal?: AbortSignal;
+  }) => Promise<{
     response: ApiResult;
     items: CartItemRecord[];
     quote: CartQuote | null;
@@ -538,7 +545,8 @@ export const useCart = (token: string | null): CartApi => {
 
 export const useAddDealToCart = (branchId?: string | null) => {
   const t = useTranslations("cart");
-  const { token, user } = useAuthContext();
+  const { token, user, renewGuestSession } = useAuthContext();
+  const { context: domainContext } = useDomainContext();
   const { ensureCustomerSession } = useCart(token);
   const customerId = user?.id ?? "";
 
@@ -549,9 +557,10 @@ export const useAddDealToCart = (branchId?: string | null) => {
       eligibleMenuItems,
       cartItemPayloads,
     }: AddDealToCartInput) => {
-      const session = customerId
-        ? { customerId, token }
-        : await ensureCustomerSession();
+      const session =
+        customerId && token
+          ? { customerId, token, isGuest: user?.isGuest === true }
+          : await ensureCustomerSession();
 
       if (!branchId) {
         throw new Error(t("selectBranchFirst"));
@@ -597,10 +606,28 @@ export const useAddDealToCart = (branchId?: string | null) => {
         throw new Error(t("dealNoItems"));
       }
 
-      const response = await addCustomerCartDealItems({
-        customerId: session.customerId,
-        payloads,
-        token: session.token,
+      const response = await runWithGuestSessionRecovery({
+        session,
+        request: (activeSession) =>
+          addCustomerCartDealItems({
+            customerId: activeSession.customerId,
+            payloads,
+            token: activeSession.token,
+          }),
+        renewSession: async () => {
+          const restaurantId =
+            user?.restaurantId ?? domainContext?.restaurantId;
+          if (!restaurantId) {
+            throw new Error("Restaurant context is unavailable");
+          }
+
+          const renewedSession = await renewGuestSession(restaurantId);
+          return {
+            customerId: renewedSession.user.id,
+            token: renewedSession.accessToken,
+            isGuest: true,
+          };
+        },
       });
 
       if (!response || response.error || response.success === false) {

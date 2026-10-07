@@ -1,6 +1,6 @@
 import { buildApiUrl } from "@/lib/api-endpoint";
 import { getRequestLocale, type AppLocale } from "@/config/i18n";
-import { API_BASE_URL } from "@/lib/axios";
+import { API_BASE_URL, createApiRequestSignal } from "@/lib/axios";
 import { isAuthSession, isAuthUser } from "@/lib/auth";
 import type {
   AuthSession,
@@ -45,6 +45,7 @@ export const isUnauthorizedAuthError = (error: unknown) =>
 const requestAuth = async (endpoint: string, init: RequestInit = {}) => {
   const res = await fetch(buildApiUrl(API_BASE_URL, endpoint), {
     ...init,
+    signal: createApiRequestSignal(init.signal ?? undefined),
     headers: {
       "Content-Type": "application/json",
       "Accept-Language": getRequestLocale(),

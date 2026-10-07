@@ -22,6 +22,11 @@ export const normalizeApiEndpoint = (endpoint: string, baseUrl = API_BASE_URL) =
 
 export const API_REQUEST_TIMEOUT_MS = 15_000;
 
+export const createApiRequestSignal = (signal?: AbortSignal) => {
+  const timeoutSignal = AbortSignal.timeout(API_REQUEST_TIMEOUT_MS);
+  return signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
+};
+
 export const httpClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: API_REQUEST_TIMEOUT_MS,
