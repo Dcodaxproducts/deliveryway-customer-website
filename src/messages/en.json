@@ -904,6 +904,8 @@
     "dealIncludes": "Deal includes",
     "failedAddDealItem": "Failed to add deal item to cart",
     "failedRefreshQuote": "Failed to refresh cart quote",
+    "failedLoad": "We could not load your cart.",
+    "retry": "Try again",
     "dealItemsAdded": "Deal items added to cart",
     "failedAddDeal": "Failed to add deal to cart",
     "transactionFee": "Transaction fee",

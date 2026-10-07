@@ -84,6 +84,30 @@ describe("createGuestSessionCoordinator", () => {
     });
   });
 
+  it("does not retry a renewed guest request more than once", async () => {
+    const request = vi.fn().mockResolvedValue({ status: 401 });
+    const renewSession = vi.fn().mockResolvedValue({
+      customerId: "guest-2",
+      token: "fresh-token",
+      isGuest: true,
+    });
+
+    await expect(
+      runWithGuestSessionRecovery({
+        session: {
+          customerId: "guest-1",
+          token: "expired-token",
+          isGuest: true,
+        },
+        request,
+        renewSession,
+      }),
+    ).resolves.toEqual({ status: 401 });
+
+    expect(renewSession).toHaveBeenCalledTimes(1);
+    expect(request).toHaveBeenCalledTimes(2);
+  });
+
   it("does not replace an unauthorized signed-in customer with a guest", async () => {
     const request = vi.fn().mockResolvedValue({ status: 401 });
     const renewSession = vi.fn();

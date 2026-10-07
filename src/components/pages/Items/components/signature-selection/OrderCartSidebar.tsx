@@ -10,7 +10,7 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -49,6 +49,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
 import { normalizeCartQuote, normalizeCustomerCartData } from "@/services/cart";
+import { createLatestRequestCoordinator, type LatestRequest } from "@/lib/latest-request";
 import { cn } from "@/lib/utils";
 import { getStoredDeliveryLocation } from "@/lib/delivery-location";
 import {
@@ -61,6 +62,8 @@ type OrderCartSidebarProps = {
   customerId?: string;
   cartRefreshKey: number;
   cartSnapshot?: unknown;
+  cartLoadState?: "idle" | "loading" | "ready" | "error";
+  onCartRetry?: () => void;
   onCartRefresh?: () => void;
   presentation?: "embedded" | "floating";
   checkoutType?: CheckoutType;
@@ -71,6 +74,8 @@ export function OrderCartSidebar({
   customerId,
   cartRefreshKey,
   cartSnapshot,
+  cartLoadState,
+  onCartRetry,
   presentation = "embedded",
   checkoutType = "delivery",
   currency,
@@ -91,9 +96,11 @@ export function OrderCartSidebar({
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cartQuote, setCartQuote] = useState<ApiRecord | null>(null);
   const [loadingCart, setLoadingCart] = useState(false);
+  const [cartLoadError, setCartLoadError] = useState(false);
   const [actionId, setActionId] = useState<string | null>(null);
+  const cartRequestRef = useRef(createLatestRequestCoordinator());
 
-  const fetchStoredLocationQuote = async () => {
+  const fetchStoredLocationQuote = async (signal: AbortSignal) => {
     if (!customerId || checkoutType !== "delivery") return null;
 
     const address = getGuestDeliveryAddressFromStoredLocation(
@@ -106,6 +113,7 @@ export function OrderCartSidebar({
       payload: {
         guestDeliveryAddress: getGuestDeliveryAddressPayload(address),
       },
+      signal,
     });
 
     if (!response || response.error || response.success === false) return null;
@@ -113,11 +121,28 @@ export function OrderCartSidebar({
     return normalizeCartQuote(response.data);
   };
 
+  const applyCartSnapshot = async (
+    responseData: unknown,
+    request: LatestRequest,
+  ) => {
+    const { items, quote } = normalizeCustomerCartData(responseData);
+    const locationQuote = await fetchStoredLocationQuote(request.signal);
+
+    if (!cartRequestRef.current.isCurrent(request)) return;
+
+    setCartItems(items.map((item) => normalizeCartItem(item)));
+    setCartQuote((locationQuote ?? quote) as ApiRecord | null);
+    setCartLoadError(false);
+  };
+
   const fetchCart = async () => {
     if (!customerId) return;
 
+    const request = cartRequestRef.current.start();
+
     try {
       setLoadingCart(true);
+      setCartLoadError(false);
 
       const {
         response: res,
@@ -126,40 +151,86 @@ export function OrderCartSidebar({
       } = await fetchCustomerCartForOrderType({
         customerId,
         orderType: checkoutType === "pickup" ? "TAKEAWAY" : "DELIVERY",
+        signal: request.signal,
       });
 
-      if (!res || res.error) {
-        setCartItems([]);
-        setCartQuote(null);
+      if (!cartRequestRef.current.isCurrent(request)) return;
+
+      if (!res || res.error || res.success === false) {
+        setCartLoadError(!res?.aborted);
         return;
       }
 
+      const locationQuote = await fetchStoredLocationQuote(request.signal);
+      if (!cartRequestRef.current.isCurrent(request)) return;
+
       setCartItems(items.map((item) => normalizeCartItem(item)));
-      const locationQuote = await fetchStoredLocationQuote();
       setCartQuote((locationQuote ?? quote) as ApiRecord | null);
-    } catch (err) {
-      setCartItems([]);
-      setCartQuote(null);
+    } catch {
+      if (cartRequestRef.current.isCurrent(request)) {
+        setCartLoadError(true);
+      }
     } finally {
-      setLoadingCart(false);
+      if (cartRequestRef.current.isCurrent(request)) {
+        setLoadingCart(false);
+      }
     }
   };
 
   const syncCartFromMutationResponse = async (responseData: unknown) => {
-    const { items, quote } = normalizeCustomerCartData(responseData);
-    setCartItems(items.map((item) => normalizeCartItem(item)));
-    const locationQuote = await fetchStoredLocationQuote();
-    setCartQuote((locationQuote ?? quote) as ApiRecord | null);
+    const request = cartRequestRef.current.start();
+
+    try {
+      await applyCartSnapshot(responseData, request);
+    } finally {
+      if (cartRequestRef.current.isCurrent(request)) {
+        setLoadingCart(false);
+      }
+    }
   };
 
   useEffect(() => {
-    if (cartSnapshot !== undefined && cartSnapshot !== null) {
-      void syncCartFromMutationResponse(cartSnapshot);
+    if (!customerId) {
+      cartRequestRef.current.cancel();
+      setLoadingCart(false);
+      setCartLoadError(false);
+      setCartItems([]);
+      setCartQuote(null);
       return;
     }
 
-    void fetchCart();
-  }, [customerId, cartRefreshKey, checkoutType, cartSnapshot]);
+    if (presentation === "floating") {
+      if (cartLoadState === "loading") {
+        cartRequestRef.current.cancel();
+        setLoadingCart(true);
+        setCartLoadError(false);
+        return;
+      }
+
+      if (cartLoadState === "error") {
+        cartRequestRef.current.cancel();
+        setLoadingCart(false);
+        setCartLoadError(true);
+        return;
+      }
+
+      if (cartSnapshot !== undefined && cartSnapshot !== null) {
+        setLoadingCart(true);
+        void syncCartFromMutationResponse(cartSnapshot);
+      }
+    } else {
+      void fetchCart();
+    }
+
+    return () => cartRequestRef.current.cancel();
+  }, [
+    customerId,
+    cartRefreshKey,
+    checkoutType,
+    cartSnapshot,
+    cartLoadState,
+    presentation,
+  ]);
 
   const splitLabels = useMemo(
     () => ({
@@ -336,7 +407,9 @@ export function OrderCartSidebar({
         return;
       }
 
-      await syncCartFromMutationResponse(res.data);
+      if (presentation !== "floating") {
+        await syncCartFromMutationResponse(res.data);
+      }
     } catch (err) {
       toast.error(cartT("failedUpdateQuantity"));
       await fetchCart();
@@ -363,7 +436,9 @@ export function OrderCartSidebar({
       }
 
       toast.success(cartT("itemRemoved"));
-      await syncCartFromMutationResponse(res.data);
+      if (presentation !== "floating") {
+        await syncCartFromMutationResponse(res.data);
+      }
     } catch (err) {
       toast.error(cartT("failedRemoveItem"));
     } finally {
@@ -401,6 +476,26 @@ export function OrderCartSidebar({
         {loadingCart ? (
           <div className="flex flex-1 items-center justify-center py-12">
             <Loader2 className="h-5 w-5 animate-spin text-primary" />
+          </div>
+        ) : cartLoadError ? (
+          <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50/70 p-5 text-center">
+            <p className="text-sm font-medium text-gray-700">
+              {cartT("failedLoad")}
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                if (presentation === "floating") {
+                  onCartRetry?.();
+                } else {
+                  void fetchCart();
+                }
+              }}
+              className="mt-3"
+            >
+              {cartT("retry")}
+            </Button>
           </div>
         ) : cartItems.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50/70 p-5 text-center">

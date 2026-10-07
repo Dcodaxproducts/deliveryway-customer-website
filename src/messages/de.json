@@ -904,6 +904,8 @@
     "dealIncludes": "Angebot enthält",
     "failedAddDealItem": "Angebotsartikel konnte nicht zum Warenkorb hinzugefügt werden",
     "failedRefreshQuote": "Warenkorbangebot konnte nicht aktualisiert werden",
+    "failedLoad": "Ihr Warenkorb konnte nicht geladen werden.",
+    "retry": "Erneut versuchen",
     "dealItemsAdded": "Angebotsartikel zum Warenkorb hinzugefügt",
     "failedAddDeal": "Angebot konnte nicht zum Warenkorb hinzugefügt werden",
     "transactionFee": "Transaktionsgebühr",

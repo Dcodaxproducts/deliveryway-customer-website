@@ -10,6 +10,10 @@ export type CartChangedDetail = {
   cartData?: unknown;
 };
 
+export const shouldFetchCartAfterChange = (detail?: CartChangedDetail) =>
+  detail?.cartData === undefined &&
+  (typeof detail?.itemCount !== "number" || detail.refreshCart === true);
+
 export const dispatchCartChanged = (detail?: CartChangedDetail) => {
   if (typeof window === "undefined") return;
 

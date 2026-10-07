@@ -20,8 +20,11 @@ export const CHAT_BASE_URL = new URL("/chat", API_BASE_URL).toString().replace(/
 export const normalizeApiEndpoint = (endpoint: string, baseUrl = API_BASE_URL) =>
   normalizeEndpointForBase(endpoint, baseUrl);
 
+export const API_REQUEST_TIMEOUT_MS = 15_000;
+
 export const httpClient = axios.create({
   baseURL: API_BASE_URL,
+  timeout: API_REQUEST_TIMEOUT_MS,
   headers: {
     "Content-Type": "application/json",
   },
