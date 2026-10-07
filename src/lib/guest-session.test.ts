@@ -108,6 +108,45 @@ describe("createGuestSessionCoordinator", () => {
     expect(request).toHaveBeenCalledTimes(2);
   });
 
+  it("replays one deal batch exactly once after guest renewal", async () => {
+    const payloads = [
+      { menuItemId: "pizza-1", dealId: "deal-1", quantity: 1 },
+      { menuItemId: "drink-1", dealId: "deal-1", quantity: 1 },
+    ];
+    const addBatch = vi
+      .fn()
+      .mockResolvedValueOnce({ status: 401 })
+      .mockResolvedValueOnce({ status: 201, success: true });
+    const renewSession = vi.fn().mockResolvedValue({
+      customerId: "guest-2",
+      token: "fresh-token",
+      isGuest: true,
+    });
+
+    await runWithGuestSessionRecovery({
+      session: {
+        customerId: "guest-1",
+        token: "expired-token",
+        isGuest: true,
+      },
+      request: (activeSession) =>
+        addBatch({
+          customerId: activeSession.customerId,
+          token: activeSession.token,
+          payloads,
+        }),
+      renewSession,
+    });
+
+    expect(renewSession).toHaveBeenCalledTimes(1);
+    expect(addBatch).toHaveBeenCalledTimes(2);
+    expect(addBatch).toHaveBeenNthCalledWith(2, {
+      customerId: "guest-2",
+      token: "fresh-token",
+      payloads,
+    });
+  });
+
   it("does not replace an unauthorized signed-in customer with a guest", async () => {
     const request = vi.fn().mockResolvedValue({ status: 401 });
     const renewSession = vi.fn();
