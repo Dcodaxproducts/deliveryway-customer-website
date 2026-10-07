@@ -76,7 +76,7 @@ const getOptimisticCartQuantity = (payload: CartMutationPayload) => {
 
 export type CartApi = DomainApiHook & {
   ensureCustomerSession: () => Promise<{ customerId: string; token: string }>;
-  fetchCustomerCart: (args: { customerId: string }) => Promise<{
+  fetchCustomerCart: (args: { customerId: string; signal?: AbortSignal }) => Promise<{
     response: ApiResult;
     items: CartItemRecord[];
     quote: CartQuote | null;
@@ -84,6 +84,7 @@ export type CartApi = DomainApiHook & {
   fetchCustomerCartForOrderType: (args: {
     customerId: string;
     orderType: "DELIVERY" | "TAKEAWAY";
+    signal?: AbortSignal;
   }) => Promise<{
     response: ApiResult;
     items: CartItemRecord[];
@@ -100,6 +101,7 @@ export type CartApi = DomainApiHook & {
   quoteCustomerCart: (args: {
     customerId: string;
     payload?: Record<string, unknown>;
+    signal?: AbortSignal;
   }) => Promise<ApiResult>;
   updateCustomerCart: (args: {
     customerId: string;
@@ -180,22 +182,25 @@ export const useCart = (token: string | null): CartApi => {
   );
 
   const fetchCart = useCallback(
-    ({ customerId }: { customerId: string }) =>
-      fetchCustomerCart({ customerId, token }),
+    ({ customerId, signal }: { customerId: string; signal?: AbortSignal }) =>
+      fetchCustomerCart({ customerId, token, signal }),
     [token],
   );
   const fetchCartForOrderType = useCallback(
     ({
       customerId,
       orderType,
+      signal,
     }: {
       customerId: string;
       orderType: "DELIVERY" | "TAKEAWAY";
+      signal?: AbortSignal;
     }) =>
       fetchCustomerCartForOrderType({
         customerId,
         orderType,
         token,
+        signal,
       }),
     [token],
   );
@@ -273,15 +278,18 @@ export const useCart = (token: string | null): CartApi => {
     async ({
       customerId,
       payload,
+      signal,
     }: {
       customerId: string;
       payload?: Record<string, unknown>;
+      signal?: AbortSignal;
     }) => {
       const session = await resolveCustomerSession(customerId);
       return quoteCustomerCart({
         customerId: session.customerId,
         payload,
         token: session.token,
+        signal,
       });
     },
     [resolveCustomerSession],
@@ -326,7 +334,8 @@ export const useCart = (token: string | null): CartApi => {
       if (response && !response.error && response.success !== false) {
         dispatchCartChanged({
           itemCount: getCustomerCartItemCount(response.data),
-          refreshCart: true,
+          refreshCart: false,
+          cartData: response.data,
         });
       }
 
@@ -344,7 +353,7 @@ export const useCart = (token: string | null): CartApi => {
       });
 
       if (response && !response.error && response.success !== false) {
-        dispatchCartChanged({ itemCount: 0 });
+        dispatchCartChanged({ itemCount: 0, cartData: response.data });
       }
 
       return response;
@@ -372,6 +381,7 @@ export const useCart = (token: string | null): CartApi => {
       if (response && !response.error && response.success !== false) {
         dispatchCartChanged({
           itemCount: getCustomerCartItemCount(response.data),
+          cartData: response.data,
         });
       }
 
@@ -400,6 +410,7 @@ export const useCart = (token: string | null): CartApi => {
       if (response && !response.error && response.success !== false) {
         dispatchCartChanged({
           itemCount: getCustomerCartItemCount(response.data),
+          cartData: response.data,
         });
       }
 
@@ -425,6 +436,7 @@ export const useCart = (token: string | null): CartApi => {
       if (response && !response.error && response.success !== false) {
         dispatchCartChanged({
           itemCount: getCustomerCartItemCount(response.data),
+          cartData: response.data,
         });
       }
 
@@ -450,6 +462,7 @@ export const useCart = (token: string | null): CartApi => {
       if (response && !response.error && response.success !== false) {
         dispatchCartChanged({
           itemCount: getCustomerCartItemCount(response.data),
+          cartData: response.data,
         });
       }
 

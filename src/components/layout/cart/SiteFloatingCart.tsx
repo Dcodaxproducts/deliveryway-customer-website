@@ -11,16 +11,24 @@ import { useAuth } from "@/hooks/useAuth";
 import { useDomainContext } from "@/hooks/useDomainContext";
 import { useHome } from "@/hooks/useHome";
 import { getSelectedOrderType } from "@/lib/branch-selector";
-import { CART_CHANGED_EVENT, type CartChangedDetail } from "@/lib/cart-events";
+import {
+  CART_CHANGED_EVENT,
+  shouldFetchCartAfterChange,
+  type CartChangedDetail,
+} from "@/lib/cart-events";
 import {
   getStoredCheckoutTypePreference,
   resolveSelectedCheckoutType,
   type CheckoutTypePreference,
 } from "@/lib/checkout-type-preference";
 import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
+import { createLatestRequestCoordinator } from "@/lib/latest-request";
 import { resolveCustomerCurrency } from "@/lib/money";
 import { cn } from "@/lib/utils";
-import { fetchCustomerCart } from "@/services/cart";
+import {
+  fetchCustomerCartForOrderType,
+  getCustomerCartItemCount,
+} from "@/services/cart";
 
 const HIDDEN_CART_PATHS = ["/checkout", "/menu"];
 
@@ -31,11 +39,16 @@ export function SiteFloatingCart() {
   const { context: domainContext } = useDomainContext();
   const [cartRefreshKey, setCartRefreshKey] = useState(0);
   const [cartSnapshot, setCartSnapshot] = useState<unknown>(null);
+  const [cartLoadState, setCartLoadState] = useState<
+    "idle" | "loading" | "ready" | "error"
+  >("idle");
   const [isOpen, setIsOpen] = useState(false);
   const [hasCartItems, setHasCartItems] = useState(false);
   const pendingCartMutationsRef = useRef(0);
+  const cartRequestRef = useRef(createLatestRequestCoordinator());
   const [storedCheckoutType, setStoredCheckoutType] =
     useState<CheckoutTypePreference | null>(null);
+  const [checkoutTypeReady, setCheckoutTypeReady] = useState(false);
 
   const isHiddenRoute = HIDDEN_CART_PATHS.some(
     (path) => pathname === path || pathname.startsWith(`${path}/`),
@@ -62,47 +75,60 @@ export function SiteFloatingCart() {
     storedCheckoutType,
   );
 
-  const refreshCart = useCallback(() => {
-    setCartSnapshot(null);
-    setCartRefreshKey((current) => current + 1);
-  }, []);
+  const refreshCart = useCallback(async () => {
+    if (!checkoutTypeReady) return;
 
-  const refreshCartPresence = useCallback(
-    async () => {
-      if (pendingCartMutationsRef.current > 0) {
-        setHasCartItems(true);
+    if (loading || !customerId) {
+      cartRequestRef.current.cancel();
+      setCartSnapshot(null);
+      setCartLoadState("idle");
+      setHasCartItems(false);
+      setIsOpen(false);
+      return;
+    }
+
+    const request = cartRequestRef.current.start();
+    setCartLoadState("loading");
+
+    try {
+      const { response, items, quote } = await fetchCustomerCartForOrderType({
+        customerId,
+        orderType: checkoutType === "pickup" ? "TAKEAWAY" : "DELIVERY",
+        token,
+        signal: request.signal,
+      });
+
+      if (!cartRequestRef.current.isCurrent(request)) return;
+
+      if (!response || response.error || response.success === false) {
+        setCartLoadState("error");
         return;
       }
 
-      if (loading || !customerId) {
-        setHasCartItems(false);
-        setIsOpen(false);
-        return;
+      const nextSnapshot = { items, quote };
+      const nextHasCartItems = items.length > 0;
+      setCartSnapshot(nextSnapshot);
+      setHasCartItems(nextHasCartItems);
+      setCartLoadState("ready");
+      setCartRefreshKey((current) => current + 1);
+
+      if (!nextHasCartItems) setIsOpen(false);
+    } catch {
+      if (cartRequestRef.current.isCurrent(request)) {
+        setCartLoadState("error");
       }
-
-      try {
-        const { items } = await fetchCustomerCart({ customerId, token });
-        const nextHasCartItems = items.length > 0;
-
-        setHasCartItems(nextHasCartItems);
-
-        if (nextHasCartItems) return;
-
-        setIsOpen(false);
-      } catch {
-        setHasCartItems(false);
-        setIsOpen(false);
-      }
-    },
-    [customerId, loading, token],
-  );
+    }
+  }, [checkoutType, checkoutTypeReady, customerId, loading, token]);
 
   useEffect(() => {
-    void refreshCartPresence();
-  }, [refreshCartPresence]);
+    void refreshCart();
+
+    return () => cartRequestRef.current.cancel();
+  }, [refreshCart]);
 
   useEffect(() => {
     setStoredCheckoutType(getStoredCheckoutTypePreference());
+    setCheckoutTypeReady(true);
 
     const handleCartChanged = (event: Event) => {
       const detail =
@@ -133,21 +159,29 @@ export function SiteFloatingCart() {
       setStoredCheckoutType(getStoredCheckoutTypePreference());
 
       if (detail?.cartData !== undefined) {
+        cartRequestRef.current.cancel();
         setCartSnapshot(detail.cartData);
+        setCartLoadState("ready");
+        setCartRefreshKey((current) => current + 1);
       }
 
-      if (typeof detail?.itemCount === "number") {
-        const nextHasCartItems = detail.itemCount > 0;
+      const itemCount =
+        typeof detail?.itemCount === "number"
+          ? detail.itemCount
+          : detail?.cartData !== undefined
+            ? getCustomerCartItemCount(detail.cartData)
+            : null;
 
+      if (itemCount !== null) {
+        const nextHasCartItems = itemCount > 0;
         setHasCartItems(nextHasCartItems);
-        if (detail.refreshCart) {
-          refreshCart();
-        }
+        if (!nextHasCartItems) setIsOpen(false);
+
+        if (shouldFetchCartAfterChange(detail)) void refreshCart();
         return;
       }
 
-      refreshCart();
-      void refreshCartPresence();
+      if (shouldFetchCartAfterChange(detail)) void refreshCart();
     };
 
     window.addEventListener(CART_CHANGED_EVENT, handleCartChanged);
@@ -155,7 +189,7 @@ export function SiteFloatingCart() {
     return () => {
       window.removeEventListener(CART_CHANGED_EVENT, handleCartChanged);
     };
-  }, [refreshCart, refreshCartPresence]);
+  }, [refreshCart]);
 
   if (loading || !customerId || isHiddenRoute || !hasCartItems) {
     return null;
@@ -184,7 +218,9 @@ export function SiteFloatingCart() {
             customerId={customerId}
             cartRefreshKey={cartRefreshKey}
             cartSnapshot={cartSnapshot}
-            onCartRefresh={refreshCart}
+            cartLoadState={cartLoadState}
+            onCartRetry={() => void refreshCart()}
+            onCartRefresh={() => void refreshCart()}
             presentation="floating"
             checkoutType={checkoutType}
             currency={currency}

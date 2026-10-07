@@ -297,11 +297,16 @@ export const getCustomerCartItemCount = (responseData: unknown) =>
 export const fetchCustomerCart = async ({
   customerId,
   token,
+  signal,
 }: {
   customerId: string;
   token?: string | null;
+  signal?: AbortSignal;
 }) => {
-  const response = await getCart(`/v1/cart?customerId=${customerId}`, token);
+  const endpoint = `/v1/cart?customerId=${customerId}`;
+  const response = signal
+    ? await getCart(endpoint, token, { signal })
+    : await getCart(endpoint, token);
 
   if (!response || response.error) {
     return {
@@ -488,26 +493,45 @@ export const updateCustomerCartOrderType = ({
   customerId,
   orderType,
   token,
+  signal,
 }: {
   customerId: string;
   orderType: CartOrderType;
   token?: string | null;
-}) => patchCart(`/v1/cart?customerId=${customerId}`, { orderType }, token);
+  signal?: AbortSignal;
+}) => {
+  const endpoint = `/v1/cart?customerId=${customerId}`;
+
+  return signal
+    ? patchCart(endpoint, { orderType }, token, { signal })
+    : patchCart(endpoint, { orderType }, token);
+};
 
 export const fetchCustomerCartForOrderType = async ({
   customerId,
   orderType,
   token,
+  signal,
 }: {
   customerId: string;
   orderType: CartOrderType;
   token?: string | null;
+  signal?: AbortSignal;
 }) => {
   const response = await updateCustomerCartOrderType({
     customerId,
     orderType,
     token,
+    signal,
   });
+
+  if (response?.aborted || response?.timedOut || signal?.aborted) {
+    return {
+      response,
+      items: [] as CartItemRecord[],
+      quote: null as CartQuote | null,
+    };
+  }
 
   if (response && !response.error && response.success !== false) {
     const cart = normalizeCustomerCartData(response.data);
@@ -520,23 +544,27 @@ export const fetchCustomerCartForOrderType = async ({
     }
   }
 
-  return fetchCustomerCart({ customerId, token });
+  return fetchCustomerCart({ customerId, token, signal });
 };
 
 export const quoteCustomerCart = ({
   customerId,
   payload = {},
   token,
+  signal,
 }: {
   customerId: string;
   payload?: CartQuotePayload;
   token?: string | null;
-}) =>
-  postCart(
-    `/v1/cart/quote?customerId=${customerId}`,
-    normalizeCartQuotePayload(payload),
-    token,
-  );
+  signal?: AbortSignal;
+}) => {
+  const endpoint = `/v1/cart/quote?customerId=${customerId}`;
+  const normalizedPayload = normalizeCartQuotePayload(payload);
+
+  return signal
+    ? postCart(endpoint, normalizedPayload, token, { signal })
+    : postCart(endpoint, normalizedPayload, token);
+};
 
 export const cleanUpdateCartItemPayload = (
   payload: CartMutationPayload,

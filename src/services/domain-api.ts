@@ -1,15 +1,22 @@
-import { deleteRequest, getRequest, patchRequest, postRequest, type ApiResult } from "@/services/http";
+import {
+  deleteRequest,
+  getRequest,
+  patchRequest,
+  postRequest,
+  type ApiRequestOptions,
+  type ApiResult,
+} from "@/services/http";
 
 export type DomainApiService = {
-  get: (endpoint: string, token?: string | null) => Promise<ApiResult>;
-  post: (endpoint: string, body: unknown, token?: string | null) => Promise<ApiResult>;
-  patch: (endpoint: string, body: unknown, token?: string | null) => Promise<ApiResult>;
-  del: (endpoint: string, token?: string | null) => Promise<ApiResult>;
+  get: (endpoint: string, token?: string | null, options?: ApiRequestOptions) => Promise<ApiResult>;
+  post: (endpoint: string, body: unknown, token?: string | null, options?: ApiRequestOptions) => Promise<ApiResult>;
+  patch: (endpoint: string, body: unknown, token?: string | null, options?: ApiRequestOptions) => Promise<ApiResult>;
+  del: (endpoint: string, token?: string | null, options?: ApiRequestOptions) => Promise<ApiResult>;
 };
 
 export const createDomainApiService = (): DomainApiService => ({
-  get: (endpoint, token) => getRequest(endpoint, token),
-  post: (endpoint, body, token) => postRequest(endpoint, body, token),
-  patch: (endpoint, body, token) => patchRequest(endpoint, body, token),
-  del: (endpoint, token) => deleteRequest(endpoint, token),
+  get: (endpoint, token, options) => getRequest(endpoint, token, options),
+  post: (endpoint, body, token, options) => postRequest(endpoint, body, token, options),
+  patch: (endpoint, body, token, options) => patchRequest(endpoint, body, token, options),
+  del: (endpoint, token, options) => deleteRequest(endpoint, token, options),
 });
