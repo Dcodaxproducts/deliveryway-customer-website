@@ -69,6 +69,10 @@ import {
   isRequiredModifierSelectionError,
 } from "@/components/pages/Items/utils/product-cart";
 import { runOptimisticMutation } from "@/lib/optimistic-mutation";
+import {
+  createOptimisticCartItem,
+  type OptimisticCartItem,
+} from "@/lib/optimistic-cart";
 
 const isApiErrorResponse = (res: ApiRecord | null | undefined) => {
   return !res || res?.success === false || Boolean(res?.error);
@@ -2077,6 +2081,7 @@ export function RestaurantCard({
   const addCartItemWithBranchRetry = async (
     payload: CartPayload & Record<string, unknown>,
     activeCustomerId: string,
+    optimisticItem?: OptimisticCartItem,
   ) => {
     const cartPayload = {
       ...payload,
@@ -2086,6 +2091,7 @@ export function RestaurantCard({
     const firstRes = await addCustomerCartItem({
       customerId: activeCustomerId,
       payload: cartPayload,
+      optimisticItem,
     });
 
     if (!isCartBranchConflictResponse(firstRes)) {
@@ -2108,6 +2114,7 @@ export function RestaurantCard({
     return addCustomerCartItem({
       customerId: activeCustomerId,
       payload: cartPayload,
+      optimisticItem,
     });
   };
 
@@ -2201,19 +2208,28 @@ export function RestaurantCard({
 
       if (storedGroupOrderCompleted || (!groupCode && !groupOrderId)) {
         cartMutationPendingRef.current = true;
+        const optimisticItem = createOptimisticCartItem({
+          menuItem: item,
+          payload: basePayload,
+          selectedVariation,
+        });
 
         runOptimisticMutation({
           mutation: () =>
-            addCartItemWithBranchRetry(basePayload, activeCustomerId),
+            addCartItemWithBranchRetry(
+              basePayload,
+              activeCustomerId,
+              optimisticItem,
+            ),
           isFailure: isApiErrorResponse,
           onOptimistic: () => {
-            toast.success(t("addedToCart"));
             setAnimateCart(true);
             setTimeout(() => setAnimateCart(false), 700);
             setOpen(false);
           },
           onCommitted: () => {
             cartMutationPendingRef.current = false;
+            toast.success(t("addedToCart"));
           },
           onRolledBack: async (response) => {
             cartMutationPendingRef.current = false;

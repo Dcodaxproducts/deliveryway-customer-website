@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { shouldFetchCartAfterChange } from "./cart-events";
+import {
+  shouldCancelCartFetchAfterChange,
+  shouldFetchCartAfterChange,
+} from "./cart-events";
 
 describe("cart event fetch policy", () => {
   it("reuses a mutation snapshot without a follow-up GET", () => {
@@ -16,5 +19,15 @@ describe("cart event fetch policy", () => {
     expect(shouldFetchCartAfterChange()).toBe(true);
     expect(shouldFetchCartAfterChange({ refreshCart: true })).toBe(true);
     expect(shouldFetchCartAfterChange({ itemCount: 1 })).toBe(false);
+  });
+
+  it("cancels stale fetches before applying optimistic or authoritative data", () => {
+    expect(
+      shouldCancelCartFetchAfterChange({ mutationStatus: "pending" }),
+    ).toBe(true);
+    expect(
+      shouldCancelCartFetchAfterChange({ cartData: { items: [] } }),
+    ).toBe(true);
+    expect(shouldCancelCartFetchAfterChange({ itemCount: 1 })).toBe(false);
   });
 });

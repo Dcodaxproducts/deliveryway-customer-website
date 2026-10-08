@@ -1,5 +1,7 @@
 "use client";
 
+import type { OptimisticCartItem } from "@/lib/optimistic-cart";
+
 export const CART_CHANGED_EVENT = "deliveryway:cart-changed";
 
 export type CartChangedDetail = {
@@ -8,11 +10,16 @@ export type CartChangedDetail = {
   mutationStatus?: "pending" | "committed" | "rolled-back";
   refreshCart?: boolean;
   cartData?: unknown;
+  optimisticItem?: OptimisticCartItem;
+  optimisticItemId?: string;
 };
 
 export const shouldFetchCartAfterChange = (detail?: CartChangedDetail) =>
   detail?.cartData === undefined &&
   (typeof detail?.itemCount !== "number" || detail.refreshCart === true);
+
+export const shouldCancelCartFetchAfterChange = (detail?: CartChangedDetail) =>
+  detail?.mutationStatus === "pending" || detail?.cartData !== undefined;
 
 export const dispatchCartChanged = (detail?: CartChangedDetail) => {
   if (typeof window === "undefined") return;

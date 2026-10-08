@@ -13,6 +13,7 @@ import { useHome } from "@/hooks/useHome";
 import { getSelectedOrderType } from "@/lib/branch-selector";
 import {
   CART_CHANGED_EVENT,
+  shouldCancelCartFetchAfterChange,
   shouldFetchCartAfterChange,
   type CartChangedDetail,
 } from "@/lib/cart-events";
@@ -24,6 +25,12 @@ import {
 import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
 import { createLatestRequestCoordinator } from "@/lib/latest-request";
 import { shouldShowFloatingCart } from "@/lib/cart-reliability";
+import {
+  addPendingCartItem,
+  reconcileCartSnapshot,
+  removePendingCartItem,
+  type OptimisticCartItem,
+} from "@/lib/optimistic-cart";
 import { resolveCustomerCurrency } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import {
@@ -45,7 +52,7 @@ export function SiteFloatingCart() {
   >("idle");
   const [isOpen, setIsOpen] = useState(false);
   const [hasCartItems, setHasCartItems] = useState(false);
-  const pendingCartMutationsRef = useRef(0);
+  const pendingCartItemsRef = useRef(new Map<string, OptimisticCartItem>());
   const cartRequestRef = useRef(createLatestRequestCoordinator());
   const [storedCheckoutType, setStoredCheckoutType] =
     useState<CheckoutTypePreference | null>(null);
@@ -81,6 +88,7 @@ export function SiteFloatingCart() {
 
     if (loading || !customerId) {
       cartRequestRef.current.cancel();
+      pendingCartItemsRef.current.clear();
       setCartSnapshot(null);
       setCartLoadState("idle");
       setHasCartItems(false);
@@ -139,22 +147,43 @@ export function SiteFloatingCart() {
           ? (event.detail as CartChangedDetail | undefined)
           : undefined;
 
+      if (shouldCancelCartFetchAfterChange(detail)) {
+        cartRequestRef.current.cancel();
+      }
+
       if (detail?.mutationStatus === "pending") {
-        pendingCartMutationsRef.current += 1;
+        if (detail.optimisticItem) {
+          pendingCartItemsRef.current.set(
+            detail.optimisticItem.id,
+            detail.optimisticItem,
+          );
+          setCartSnapshot((current: unknown) =>
+            addPendingCartItem(
+              current,
+              detail.optimisticItem as OptimisticCartItem,
+            ),
+          );
+          setCartLoadState("ready");
+          setIsOpen(true);
+          setCartRefreshKey((current) => current + 1);
+        }
         setHasCartItems(true);
         return;
       }
 
-      if (
-        detail?.mutationStatus === "committed" ||
-        detail?.mutationStatus === "rolled-back"
-      ) {
-        pendingCartMutationsRef.current = Math.max(
-          0,
-          pendingCartMutationsRef.current - 1,
-        );
+      if (detail?.optimisticItemId) {
+        pendingCartItemsRef.current.delete(detail.optimisticItemId);
 
-        if (pendingCartMutationsRef.current > 0) {
+        if (detail.mutationStatus === "rolled-back") {
+          setCartSnapshot((current: unknown) =>
+            removePendingCartItem(current, detail.optimisticItemId as string),
+          );
+          setCartLoadState("ready");
+          setCartRefreshKey((current) => current + 1);
+
+          if (pendingCartItemsRef.current.size === 0) {
+            void refreshCart();
+          }
           return;
         }
       }
@@ -162,18 +191,22 @@ export function SiteFloatingCart() {
       setStoredCheckoutType(getStoredCheckoutTypePreference());
 
       if (detail?.cartData !== undefined) {
-        cartRequestRef.current.cancel();
-        setCartSnapshot(detail.cartData);
+        const nextSnapshot = reconcileCartSnapshot(
+          detail.cartData,
+          pendingCartItemsRef.current.values(),
+        );
+        setCartSnapshot(nextSnapshot);
         setCartLoadState("ready");
         setCartRefreshKey((current) => current + 1);
+        const itemCount = getCustomerCartItemCount(nextSnapshot);
+        const nextHasCartItems = itemCount > 0;
+        setHasCartItems(nextHasCartItems);
+        if (!nextHasCartItems) setIsOpen(false);
+        return;
       }
 
       const itemCount =
-        typeof detail?.itemCount === "number"
-          ? detail.itemCount
-          : detail?.cartData !== undefined
-            ? getCustomerCartItemCount(detail.cartData)
-            : null;
+        typeof detail?.itemCount === "number" ? detail.itemCount : null;
 
       if (itemCount !== null) {
         const nextHasCartItems = itemCount > 0;

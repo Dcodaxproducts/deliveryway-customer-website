@@ -887,6 +887,7 @@
     "failedUpdateQuantity": "Menge konnte nicht aktualisiert werden",
     "failedRemoveItem": "Artikel konnte nicht entfernt werden",
     "itemRemoved": "Artikel entfernt",
+    "addingItem": "Wird hinzugefügt…",
     "yourOrder": "Ihre Bestellung",
     "itemCount": "{count, plural, one {# Artikel} other {# Artikel}}",
     "empty": "Ihr Warenkorb ist leer.",

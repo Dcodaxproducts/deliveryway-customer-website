@@ -76,6 +76,7 @@ import {
   getModifierPriceForVariation,
 } from "@/components/pages/Items/utils/modifier-pricing";
 import { runOptimisticMutation } from "@/lib/optimistic-mutation";
+import { createOptimisticCartItem } from "@/lib/optimistic-cart";
 
 type SignatureSelectionContentProps = {
   restaurantId?: string | null;
@@ -2029,12 +2030,18 @@ export function SignatureSelectionContent({
 
         const itemId = String(item.id);
         pendingCartItemIdsRef.current.add(itemId);
+        const optimisticItem = createOptimisticCartItem({
+          menuItem: item,
+          payload,
+          selectedVariation: variation,
+        });
 
         runOptimisticMutation({
           mutation: async () => {
             let response = await addCustomerCartItem({
               customerId: activeCustomerId,
               payload,
+              optimisticItem,
             });
 
             if (!isBranchCartConflictResponse(response)) {
@@ -2053,17 +2060,18 @@ export function SignatureSelectionContent({
             response = await addCustomerCartItem({
               customerId: activeCustomerId,
               payload,
+              optimisticItem,
             });
 
             return response;
           },
           isFailure: (response) => !response || Boolean(response.error),
           onOptimistic: () => {
-            toast.success(tProduct("addedToCart"));
             setModalOpen(false);
           },
           onCommitted: () => {
             pendingCartItemIdsRef.current.delete(itemId);
+            toast.success(tProduct("addedToCart"));
             onCartRefresh?.();
           },
           onRolledBack: (response) => {

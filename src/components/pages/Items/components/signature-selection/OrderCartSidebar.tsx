@@ -60,6 +60,7 @@ import {
 } from "@/lib/cart-reliability";
 import { cn } from "@/lib/utils";
 import { getStoredDeliveryLocation } from "@/lib/delivery-location";
+import { isPendingCartItem } from "@/lib/optimistic-cart";
 import {
   getGuestDeliveryAddressFromStoredLocation,
   getGuestDeliveryAddressPayload,
@@ -139,11 +140,12 @@ export function OrderCartSidebar({
     request: LatestRequest,
   ) => {
     const { items, quote } = normalizeCustomerCartData(responseData);
+    setCartItems(items.map((item) => normalizeCartItem(item)));
+    setLoadingCart(false);
     const locationQuote = await fetchStoredLocationQuote(request.signal);
 
     if (!cartRequestRef.current.isCurrent(request)) return;
 
-    setCartItems(items.map((item) => normalizeCartItem(item)));
     if (locationQuote.status === "error") {
       setCartQuote(null);
       setCartLoadError(true);
@@ -185,10 +187,11 @@ export function OrderCartSidebar({
         return;
       }
 
+      setCartItems(items.map((item) => normalizeCartItem(item)));
+      setLoadingCart(false);
       const locationQuote = await fetchStoredLocationQuote(request.signal);
       if (!cartRequestRef.current.isCurrent(request)) return;
 
-      setCartItems(items.map((item) => normalizeCartItem(item)));
       if (locationQuote.status === "error") {
         setCartQuote(null);
         setCartLoadError(true);
@@ -291,6 +294,10 @@ export function OrderCartSidebar({
         (acc, item) => acc + Math.max(1, toNumber(item.quantity, 1)),
         0,
       ),
+    [cartItems],
+  );
+  const hasPendingItems = useMemo(
+    () => cartItems.some(isPendingCartItem),
     [cartItems],
   );
 
@@ -407,7 +414,7 @@ export function OrderCartSidebar({
     if (!mutationToken) return;
 
     const item = cartItems.find((cartItem) => String(cartItem.id) === id);
-    if (!item || !customerId) {
+    if (!item || !customerId || isPendingCartItem(item)) {
       cartMutationRef.current.finish(mutationToken);
       return;
     }
@@ -469,6 +476,10 @@ export function OrderCartSidebar({
     if (!mutationToken) return;
 
     const item = cartItems.find((cartItem) => String(cartItem.id) === id);
+    if (isPendingCartItem(item)) {
+      cartMutationRef.current.finish(mutationToken);
+      return;
+    }
 
     try {
       setActionId(id);
@@ -523,7 +534,7 @@ export function OrderCartSidebar({
           </span>
         </div>
 
-        {loadingCart ? (
+        {loadingCart && cartItems.length === 0 ? (
           <div className="flex flex-1 items-center justify-center py-12">
             <Loader2 className="h-5 w-5 animate-spin text-primary" />
           </div>
@@ -587,11 +598,13 @@ export function OrderCartSidebar({
                 String(item.id || item.menuItemId || ""),
               );
               const itemImage = String(getItemImage(item) || "");
+              const isPending = isPendingCartItem(item);
 
               return (
                 <div
                   key={String(item.id)}
                   className="rounded-2xl border border-gray-100 bg-white p-3 shadow-sm"
+                  aria-busy={isPending}
                 >
                   <div className="flex items-start gap-3">
                     {itemImage ? (
@@ -618,6 +631,19 @@ export function OrderCartSidebar({
                             {item.name}
                           </h3>
 
+                          {isPending ? (
+                            <p
+                              className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary"
+                              role="status"
+                            >
+                              <Loader2
+                                className="h-3 w-3 animate-spin"
+                                aria-hidden="true"
+                              />
+                              {cartT("addingItem")}
+                            </p>
+                          ) : null}
+
                           {isDealItem && item.deal?.code ? (
                             <p className="mt-1 text-xs font-medium text-primary">
                               {String(item.deal.code)}
@@ -634,7 +660,7 @@ export function OrderCartSidebar({
                         <button
                           type="button"
                           onClick={() => void deleteItem(String(item.id))}
-                          disabled={actionId !== null}
+                          disabled={actionId !== null || isPending}
                           className="mt-0.5 shrink-0 rounded-md bg-red-50 p-1 text-red-500 transition hover:bg-red-100 disabled:opacity-50"
                           aria-label={t("removeItem", { name: item.name })}
                         >
@@ -869,7 +895,7 @@ export function OrderCartSidebar({
                             onClick={() =>
                               void updateQuantity(String(item.id), "dec")
                             }
-                            disabled={actionId !== null}
+                            disabled={actionId !== null || isPending}
                             className="flex h-6 w-6 items-center justify-center rounded-full text-[#666] transition hover:bg-white hover:text-[#222] disabled:opacity-50"
                             aria-label={`Decrease ${item.name} quantity`}
                           >
@@ -883,7 +909,7 @@ export function OrderCartSidebar({
                             onClick={() =>
                               void updateQuantity(String(item.id), "inc")
                             }
-                            disabled={actionId !== null}
+                            disabled={actionId !== null || isPending}
                             className="flex h-6 w-6 items-center justify-center rounded-full text-[#666] transition hover:bg-white hover:text-[#222] disabled:opacity-50"
                             aria-label={`Increase ${item.name} quantity`}
                           >
@@ -1012,7 +1038,7 @@ export function OrderCartSidebar({
           <Button
             type="button"
             onClick={() => router.push(`/checkout?type=${checkoutType}`)}
-            disabled={!cartItems.length}
+            disabled={!cartItems.length || hasPendingItems}
             className="mt-5 flex h-[50px] w-full items-center justify-center gap-2 rounded-full bg-primary px-5 text-[14px] font-medium text-primary-foreground shadow-[0_10px_24px_rgba(0,0,0,0.10)] transition-all duration-200 hover:-translate-y-0.5 hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {cartT("proceedToCheckout")}

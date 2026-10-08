@@ -17,6 +17,7 @@ import { useDomainContext } from "@/hooks/useDomainContext";
 import { dispatchCartChanged } from "@/lib/cart-events";
 import { getApiErrorMessage } from "@/lib/errors";
 import { runWithGuestSessionRecovery } from "@/lib/guest-session";
+import type { OptimisticCartItem } from "@/lib/optimistic-cart";
 import {
   addCustomerCartItem,
   addCustomerCartDealItems,
@@ -104,6 +105,7 @@ export type CartApi = DomainApiHook & {
   addCustomerCartItem: (args: {
     customerId: string;
     payload: CartMutationPayload;
+    optimisticItem?: OptimisticCartItem;
   }) => Promise<ApiResult>;
   quoteCustomerCart: (args: {
     customerId: string;
@@ -222,14 +224,18 @@ export const useCart = (token: string | null): CartApi => {
     async ({
       customerId,
       payload,
+      optimisticItem,
     }: {
       customerId: string;
       payload: CartMutationPayload;
+      optimisticItem?: OptimisticCartItem;
     }) => {
       const optimisticQuantity = getOptimisticCartQuantity(payload);
       dispatchCartChanged({
         itemCountDelta: optimisticQuantity,
         mutationStatus: "pending",
+        optimisticItem,
+        optimisticItemId: optimisticItem?.id,
       });
 
       try {
@@ -261,11 +267,13 @@ export const useCart = (token: string | null): CartApi => {
             mutationStatus: "committed",
             refreshCart: false,
             cartData: response.data,
+            optimisticItemId: optimisticItem?.id,
           });
         } else {
           dispatchCartChanged({
             itemCountDelta: -optimisticQuantity,
             mutationStatus: "rolled-back",
+            optimisticItemId: optimisticItem?.id,
           });
         }
 
@@ -274,6 +282,7 @@ export const useCart = (token: string | null): CartApi => {
         dispatchCartChanged({
           itemCountDelta: -optimisticQuantity,
           mutationStatus: "rolled-back",
+          optimisticItemId: optimisticItem?.id,
         });
         throw error;
       }
