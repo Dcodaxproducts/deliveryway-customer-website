@@ -5,6 +5,7 @@ import { RestaurantCard } from "./RestaurantCard";
 import useItems from "@/hooks/useItems";
 import { useAuth } from "@/hooks/useAuth";
 import { useDomainContext } from "@/hooks/useDomainContext";
+import { getStorefrontRequestIdentity } from "@/lib/storefront-request-identity";
 import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
 import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -122,18 +123,24 @@ export function ItemsListing({
   loading = false,
 }: ItemsListingProps) {
   const t = useTranslations("items.common");
-  const { restaurantId: authRestaurantId, user } = useAuth();
+  const { restaurantId: authRestaurantId, token, user } = useAuth();
   const { context: domainContext } = useDomainContext();
   const { fetchMenuItemsPage } = useItems(null);
 
   const [categoryItemsMap, setCategoryItemsMap] = useState<
     Record<string, CategoryItemsState>
   >({});
+  const [supportsIntersectionObserver, setSupportsIntersectionObserver] =
+    useState(false);
   const categoryItemsMapRef = useRef(categoryItemsMap);
 
   useEffect(() => {
     categoryItemsMapRef.current = categoryItemsMap;
   }, [categoryItemsMap]);
+
+  useEffect(() => {
+    setSupportsIntersectionObserver("IntersectionObserver" in window);
+  }, []);
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const inFlightRequestsRef = useRef<Set<string>>(new Set());
@@ -153,7 +160,11 @@ export function ItemsListing({
     return sections.map((category) => String(category?.id || "")).join("|");
   }, [sections]);
 
-  const requestContextKey = `${restaurantId}:${branchId}`;
+  const storefrontRequestIdentity = getStorefrontRequestIdentity({
+    token,
+    userId: user?.id,
+  });
+  const requestContextKey = `${storefrontRequestIdentity}:${restaurantId}:${branchId}`;
   const requestContextRef = useRef(requestContextKey);
 
   useEffect(() => {
@@ -161,6 +172,7 @@ export function ItemsListing({
     requestControllersRef.current.clear();
     requestContextRef.current = requestContextKey;
     inFlightRequestsRef.current.clear();
+    categoryItemsMapRef.current = {};
     setCategoryItemsMap({});
 
     return () => {
@@ -339,6 +351,7 @@ export function ItemsListing({
     activeCategoryId,
     restaurantId,
     branchId,
+    requestContextKey,
   ]);
 
   const activeCategoryState = categoryItemsMap[activeCategoryId];
@@ -379,7 +392,7 @@ export function ItemsListing({
         load: async (categoryId) => {
           if (cancelled) return;
 
-          const state = categoryItemsMap[categoryId];
+          const state = categoryItemsMapRef.current[categoryId];
 
           if (state?.loadedOnce || state?.loading) return;
 
@@ -402,12 +415,13 @@ export function ItemsListing({
     branchId,
     categoryIdsKey,
     scrollTarget?.id,
+    requestContextKey,
   ]);
 
   useEffect(() => {
     if (contentSource !== "category" || viewMode !== "onePage") return;
     if (!restaurantId || !sections.length) return;
-    if (!("IntersectionObserver" in window)) return;
+    if (!supportsIntersectionObserver) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -443,7 +457,69 @@ export function ItemsListing({
     });
 
     return () => observer.disconnect();
-  }, [contentSource, viewMode, restaurantId, branchId, categoryIdsKey]);
+  }, [
+    contentSource,
+    viewMode,
+    restaurantId,
+    branchId,
+    categoryIdsKey,
+    supportsIntersectionObserver,
+    requestContextKey,
+  ]);
+
+  useEffect(() => {
+    if (contentSource !== "category" || viewMode !== "onePage") return;
+    if (!restaurantId || !sections.length || supportsIntersectionObserver) return;
+
+    let frameId: number | null = null;
+
+    const loadNearestVisibleCategory = () => {
+      frameId = null;
+      const viewportHeight =
+        window.innerHeight || document.documentElement.clientHeight || 0;
+      const nextCategoryId = sections
+        .map((section) => String(section.id || ""))
+        .find((id) => {
+          if (!id) return false;
+          const state = categoryItemsMapRef.current[id];
+          if (state?.loadedOnce || state?.loading) return false;
+
+          const rect = sectionRefs.current[id]?.getBoundingClientRect();
+          return Boolean(rect && rect.top <= viewportHeight + 400 && rect.bottom >= -400);
+        });
+
+      if (nextCategoryId) {
+        void fetchCategoryItems({
+          categoryId: nextCategoryId,
+          page: 1,
+          append: false,
+        });
+      }
+    };
+
+    const scheduleFallbackLoad = () => {
+      if (frameId !== null) return;
+      frameId = window.requestAnimationFrame(loadNearestVisibleCategory);
+    };
+
+    window.addEventListener("scroll", scheduleFallbackLoad, { passive: true });
+    window.addEventListener("resize", scheduleFallbackLoad);
+
+    return () => {
+      window.removeEventListener("scroll", scheduleFallbackLoad);
+      window.removeEventListener("resize", scheduleFallbackLoad);
+      if (frameId !== null) window.cancelAnimationFrame(frameId);
+    };
+  }, [
+    contentSource,
+    viewMode,
+    restaurantId,
+    branchId,
+    categoryIdsKey,
+    sections,
+    supportsIntersectionObserver,
+    requestContextKey,
+  ]);
 
   /* ================= PRUNE OLD CATEGORY STATES AFTER SEARCH ================= */
 
@@ -759,6 +835,27 @@ export function ItemsListing({
     }
 
     if (!state.loadedOnce && !state.items.length) {
+      if (!state.loading && !supportsIntersectionObserver) {
+        return (
+          <div className="flex min-h-[180px] items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white">
+            <button
+              type="button"
+              data-testid={`load-category-${categoryId}`}
+              onClick={() => {
+                void fetchCategoryItems({
+                  categoryId,
+                  page: 1,
+                  append: false,
+                });
+              }}
+              className="inline-flex h-11 items-center justify-center rounded-full border border-primary px-6 text-sm font-semibold text-primary transition hover:bg-primary/5"
+            >
+              {t("loadCategoryItems")}
+            </button>
+          </div>
+        );
+      }
+
       return (
         <div className="flex min-h-[180px] items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white text-sm text-gray-500">
           <Loader2 size={18} className="mr-2 animate-spin text-primary" />

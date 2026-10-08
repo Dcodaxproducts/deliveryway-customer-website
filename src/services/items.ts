@@ -9,6 +9,7 @@ import type {
   MenuItem,
 } from "@/components/pages/Items/types";
 import { createRequestCoordinator } from "@/lib/request-coordinator";
+import { getStorefrontRequestIdentity } from "@/lib/storefront-request-identity";
 
 const itemsService = createDomainApiService();
 const menuPageRequestCoordinator = createRequestCoordinator<
@@ -61,6 +62,7 @@ export const fetchMenuItemsPage = async ({
   limit,
   token,
   signal,
+  requestIdentity,
 }: {
   restaurantId: string;
   branchId?: string | number | null;
@@ -69,6 +71,7 @@ export const fetchMenuItemsPage = async ({
   limit: number;
   token?: string | null;
   signal?: AbortSignal;
+  requestIdentity?: string;
 }) => {
   const safeLimit = Math.min(50, Math.max(1, Math.floor(limit)));
   const params = new URLSearchParams({
@@ -89,7 +92,7 @@ export const fetchMenuItemsPage = async ({
 
   const endpoint = `/customer-app/items?${params.toString()}`;
   const response = await menuPageRequestCoordinator.run(
-    `items:${token ?? "guest"}:${endpoint}`,
+    `items:${requestIdentity ?? getStorefrontRequestIdentity({ token })}:${endpoint}`,
     signal,
     (requestSignal) =>
       signal
@@ -109,11 +112,13 @@ export const fetchMenuItemDetails = async ({
   branchId,
   identifier,
   token,
+  requestIdentity,
 }: {
   restaurantId: string;
   branchId?: string | number | null;
   identifier: string;
   token?: string | null;
+  requestIdentity?: string;
 }) => {
   const params = new URLSearchParams({ restaurantId });
 
@@ -122,7 +127,7 @@ export const fetchMenuItemDetails = async ({
   }
 
   const endpoint = `/customer-app/items/${encodeURIComponent(identifier)}?${params.toString()}`;
-  const cacheKey = `${token ?? "guest"}:${endpoint}`;
+  const cacheKey = `${requestIdentity ?? getStorefrontRequestIdentity({ token })}:${endpoint}`;
   const cached = menuItemDetailsCache.get(cacheKey);
 
   if (cached && cached.expiresAt > Date.now()) {
@@ -319,6 +324,7 @@ export const fetchMenuCategoriesPage = async ({
   search,
   token,
   signal,
+  requestIdentity,
 }: {
   restaurantId: string;
   page: number;
@@ -326,6 +332,7 @@ export const fetchMenuCategoriesPage = async ({
   search?: string;
   token?: string | null;
   signal?: AbortSignal;
+  requestIdentity?: string;
 }) => {
   const params = new URLSearchParams({
     restaurantId,
@@ -341,7 +348,7 @@ export const fetchMenuCategoriesPage = async ({
 
   const endpoint = `/customer-app/categories?${params.toString()}`;
   const response = await menuPageRequestCoordinator.run(
-    `categories:${token ?? "guest"}:${endpoint}`,
+    `categories:${requestIdentity ?? getStorefrontRequestIdentity({ token })}:${endpoint}`,
     signal,
     (requestSignal) =>
       signal

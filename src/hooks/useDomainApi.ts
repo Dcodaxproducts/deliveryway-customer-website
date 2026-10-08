@@ -14,6 +14,7 @@ type MutationArgs = {
 type DomainApiHookConfig = {
   service: DomainApiService;
   requestKey: (endpoint: string) => QueryKey;
+  requestIdentity?: string;
 };
 
 export type DomainApiHook = {
@@ -26,7 +27,7 @@ export type DomainApiHook = {
 
 export const useDomainApi = (
   token: string | null,
-  { service, requestKey }: DomainApiHookConfig
+  { service, requestKey, requestIdentity = "default" }: DomainApiHookConfig
 ): DomainApiHook => {
   const queryClient = useQueryClient();
   const [queryLoading, setQueryLoading] = useState(false);
@@ -46,7 +47,7 @@ export const useDomainApi = (
       setQueryLoading(true);
       try {
         return await queryClient.fetchQuery({
-          queryKey: requestKey(endpoint),
+          queryKey: [...requestKey(endpoint), requestIdentity],
           queryFn: () => service.get(endpoint, token),
           staleTime: 0,
         });
@@ -54,7 +55,7 @@ export const useDomainApi = (
         setQueryLoading(false);
       }
     },
-    [queryClient, requestKey, service, token]
+    [queryClient, requestIdentity, requestKey, service, token]
   );
 
   const loading = queryLoading || postMutation.isPending || patchMutation.isPending || deleteMutation.isPending;

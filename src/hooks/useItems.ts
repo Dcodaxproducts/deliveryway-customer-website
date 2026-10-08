@@ -4,6 +4,8 @@ import { useCallback, useMemo } from "react";
 
 import { queryKeys } from "@/config/query-keys";
 import { useDomainApi, type DomainApiHook } from "@/hooks/useDomainApi";
+import { useAuth } from "@/hooks/useAuth";
+import { getStorefrontRequestIdentity } from "@/lib/storefront-request-identity";
 import { deleteItems, fetchMenuCategoriesPage, fetchMenuItemDetails, fetchMenuItems, fetchMenuItemsPage, fetchSplitPizzaMenuItems, getItems, patchItems, postItems } from "@/services/items";
 import type { ApiResult } from "@/services/http";
 import type { ApiMeta, ItemsCategory, MenuItem } from "@/components/pages/Items/types";
@@ -24,7 +26,16 @@ export type ItemsApi = DomainApiHook & {
 };
 
 export const useItems = (token: string | null): ItemsApi => {
-  const api = useDomainApi(token, { service, requestKey: queryKeys.items.request });
+  const auth = useAuth();
+  const requestIdentity = getStorefrontRequestIdentity({
+    token: auth.token,
+    userId: auth.user?.id,
+  });
+  const api = useDomainApi(token, {
+    service,
+    requestKey: queryKeys.items.request,
+    requestIdentity,
+  });
 
   const fetchMenuItemList = useCallback(
     (endpoint: string) => fetchMenuItems(endpoint, token),
@@ -33,14 +44,14 @@ export const useItems = (token: string | null): ItemsApi => {
 
   const fetchMenuItemPage = useCallback(
     (args: { restaurantId: string; branchId?: string | number | null; categoryId?: string; page: number; limit: number; signal?: AbortSignal }) =>
-      fetchMenuItemsPage({ ...args, token }),
-    [token]
+      fetchMenuItemsPage({ ...args, token, requestIdentity }),
+    [requestIdentity, token]
   );
 
   const fetchMenuItem = useCallback(
     (args: { restaurantId: string; branchId?: string | number | null; identifier: string }) =>
-      fetchMenuItemDetails({ ...args, token }),
-    [token]
+      fetchMenuItemDetails({ ...args, token, requestIdentity }),
+    [requestIdentity, token]
   );
 
   const fetchSplitPizzaItems = useCallback(
@@ -51,8 +62,8 @@ export const useItems = (token: string | null): ItemsApi => {
 
   const fetchMenuCategoryPage = useCallback(
     (args: { restaurantId: string; page: number; limit: number; search?: string; signal?: AbortSignal }) =>
-      fetchMenuCategoriesPage({ ...args, token }),
-    [token]
+      fetchMenuCategoriesPage({ ...args, token, requestIdentity }),
+    [requestIdentity, token]
   );
 
   return useMemo(

@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 
 import { queryKeys } from "@/config/query-keys";
 import { getHome } from "@/services/home";
+import { useAuth } from "@/hooks/useAuth";
+import { getStorefrontRequestIdentity } from "@/lib/storefront-request-identity";
 
 type UseHomeOptions = {
   staleTime?: number;
@@ -18,9 +20,12 @@ export const useHome = (
   branchId?: string | null,
   enabled = true,
   options?: UseHomeOptions
-) =>
-  useQuery({
-    queryKey: queryKeys.home.detail(restaurantId, branchId),
+) => {
+  const { token, user } = useAuth();
+  const requestIdentity = getStorefrontRequestIdentity({ token, userId: user?.id });
+
+  return useQuery({
+    queryKey: [...queryKeys.home.detail(restaurantId, branchId), requestIdentity],
     queryFn: ({ signal }) => getHome(restaurantId, branchId, signal),
     enabled,
     staleTime: options?.staleTime ?? 5 * 60 * 1000,
@@ -30,3 +35,4 @@ export const useHome = (
     refetchOnWindowFocus: options?.refetchOnWindowFocus,
     retry: false,
   });
+};

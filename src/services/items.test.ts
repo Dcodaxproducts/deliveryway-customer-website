@@ -236,6 +236,68 @@ describe("fetchMenuItemDetailsByIds", () => {
       "token-1",
     );
   });
+  it("does not coalesce item or category requests across storefront identities", async () => {
+    getItemsMock.mockResolvedValue({ data: [], meta: { page: 1 } });
+
+    await Promise.all([
+      fetchMenuItemsPage({
+        restaurantId: "restaurant-1",
+        page: 1,
+        limit: 50,
+        requestIdentity: "domain:a.example|auth:anonymous",
+      }),
+      fetchMenuItemsPage({
+        restaurantId: "restaurant-1",
+        page: 1,
+        limit: 50,
+        requestIdentity: "domain:b.example|auth:anonymous",
+      }),
+      fetchMenuCategoriesPage({
+        restaurantId: "restaurant-1",
+        page: 1,
+        limit: 50,
+        requestIdentity: "domain:a.example|auth:anonymous",
+      }),
+      fetchMenuCategoriesPage({
+        restaurantId: "restaurant-1",
+        page: 1,
+        limit: 50,
+        requestIdentity: "domain:b.example|auth:anonymous",
+      }),
+    ]);
+
+    expect(getItemsMock).toHaveBeenCalledTimes(4);
+  });
+
+  it("does not reuse item detail cache across auth or domain identities", async () => {
+    getItemsMock
+      .mockResolvedValueOnce({ data: { id: "item-1", name: "Storefront A" } })
+      .mockResolvedValueOnce({ data: { id: "item-1", name: "Storefront B" } })
+      .mockResolvedValueOnce({ data: { id: "item-1", name: "Signed in" } });
+
+    const request = {
+      restaurantId: "restaurant-1",
+      identifier: "item-1",
+    };
+    const storefrontA = await fetchMenuItemDetails({
+      ...request,
+      requestIdentity: "domain:a.example|auth:anonymous",
+    });
+    const storefrontB = await fetchMenuItemDetails({
+      ...request,
+      requestIdentity: "domain:b.example|auth:anonymous",
+    });
+    const signedIn = await fetchMenuItemDetails({
+      ...request,
+      requestIdentity: "domain:a.example|auth:session:next",
+    });
+
+    expect(getItemsMock).toHaveBeenCalledTimes(3);
+    expect(storefrontA.item?.name).toBe("Storefront A");
+    expect(storefrontB.item?.name).toBe("Storefront B");
+    expect(signedIn.item?.name).toBe("Signed in");
+  });
+
   it("fetches menu categories on items page with ascending sort order", async () => {
     getItemsMock.mockResolvedValueOnce({ data: [], meta: { page: 1 } });
 
