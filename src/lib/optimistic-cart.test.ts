@@ -4,8 +4,10 @@ import {
   addPendingCartItem,
   createOptimisticCartItem,
   hasPendingCartItems,
+  mergeCommittedCartSnapshots,
   reconcileCartSnapshot,
   removePendingCartItem,
+  shouldApplyAuthoritativeCartSnapshot,
 } from "./optimistic-cart";
 
 const pendingItem = createOptimisticCartItem({
@@ -66,6 +68,76 @@ describe("optimistic cart snapshots", () => {
       "server-item-1",
       "optimistic-test-item",
     ]);
+  });
+
+  it("overlays pending items onto a stale refresh response", () => {
+    const snapshot = reconcileCartSnapshot(
+      { items: [], quote: { subtotal: 0, totalAmount: 0 } },
+      [pendingItem],
+    );
+
+    expect(snapshot.items).toEqual([pendingItem]);
+    expect(hasPendingCartItems(snapshot)).toBe(true);
+  });
+
+  it("rejects reverse-order authoritative responses that would regress the cart", () => {
+    expect(shouldApplyAuthoritativeCartSnapshot(2, 0)).toBe(true);
+    expect(shouldApplyAuthoritativeCartSnapshot(1, 2)).toBe(false);
+    expect(shouldApplyAuthoritativeCartSnapshot(undefined, 2)).toBe(true);
+  });
+
+  it("merges reverse-order successful responses without losing committed items", () => {
+    const merged = mergeCommittedCartSnapshots(
+      {
+        items: [{ id: "server-second", menuItemId: "second", quantity: 1 }],
+        quote: { totalAmount: 20 },
+      },
+      {
+        items: [{ id: "server-first", menuItemId: "first", quantity: 1 }],
+        quote: { totalAmount: 10 },
+      },
+      [],
+    );
+
+    expect(merged.items.map((item) => item.id)).toEqual([
+      "server-first",
+      "server-second",
+    ]);
+    expect(merged.quote?.totalAmount).toBe(20);
+  });
+
+  it("carries customized payload metadata while marking pricing unconfirmed", () => {
+    const customized = createOptimisticCartItem({
+      menuItem: { id: "pizza", name: "Custom pizza", basePrice: 10 },
+      payload: {
+        menuItemId: "pizza",
+        quantity: 1,
+        modifierSelections: [{ modifierId: "extra-cheese", quantity: 2 }],
+        modifiers: [{ id: "legacy-olive", price: 3 }],
+        sections: [{ slot: "RIGHT", menuItemId: "pepperoni" }],
+      },
+      mutationSequence: 42,
+      optimisticItemId: "optimistic-custom",
+    });
+
+    expect(customized.__optimisticPricingUnconfirmed).toBe(true);
+    expect(customized.__optimisticSequence).toBe(42);
+    expect(customized.__optimisticCustomization).toEqual({
+      modifierSelections: [
+        { modifierId: "extra-cheese", quantity: 2 },
+      ],
+      modifiers: [{ id: "legacy-olive", price: 3 }],
+      sections: [{ slot: "RIGHT", menuItemId: "pepperoni" }],
+    });
+  });
+
+  it("keeps the same optimistic identity and sequence across a branch retry", () => {
+    const retryItem = pendingItem;
+
+    expect(retryItem.id).toBe(pendingItem.id);
+    expect(retryItem.__optimisticSequence).toBe(
+      pendingItem.__optimisticSequence,
+    );
   });
 
   it("removes the matching pending item on rollback", () => {

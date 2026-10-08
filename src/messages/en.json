@@ -888,6 +888,7 @@
     "failedRemoveItem": "Failed to remove item",
     "itemRemoved": "Item removed",
     "addingItem": "Adding…",
+    "totalPending": "Final details and total are being confirmed…",
     "yourOrder": "Your Order",
     "itemCount": "{count, plural, one {# Item} other {# Items}}",
     "empty": "Your cart is empty.",

@@ -12,6 +12,7 @@ export type CartChangedDetail = {
   cartData?: unknown;
   optimisticItem?: OptimisticCartItem;
   optimisticItemId?: string;
+  mutationSequence?: number;
 };
 
 export const shouldFetchCartAfterChange = (detail?: CartChangedDetail) =>

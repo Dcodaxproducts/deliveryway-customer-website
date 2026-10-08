@@ -25,10 +25,13 @@ import {
 import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
 import { createLatestRequestCoordinator } from "@/lib/latest-request";
 import { shouldShowFloatingCart } from "@/lib/cart-reliability";
+import { publishCartSnapshotState } from "@/lib/cart-snapshot-store";
 import {
   addPendingCartItem,
+  mergeCommittedCartSnapshots,
   reconcileCartSnapshot,
   removePendingCartItem,
+  shouldApplyAuthoritativeCartSnapshot,
   type OptimisticCartItem,
 } from "@/lib/optimistic-cart";
 import { resolveCustomerCurrency } from "@/lib/money";
@@ -53,6 +56,7 @@ export function SiteFloatingCart() {
   const [isOpen, setIsOpen] = useState(false);
   const [hasCartItems, setHasCartItems] = useState(false);
   const pendingCartItemsRef = useRef(new Map<string, OptimisticCartItem>());
+  const latestAppliedMutationSequenceRef = useRef(0);
   const cartRequestRef = useRef(createLatestRequestCoordinator());
   const [storedCheckoutType, setStoredCheckoutType] =
     useState<CheckoutTypePreference | null>(null);
@@ -115,8 +119,11 @@ export function SiteFloatingCart() {
         return;
       }
 
-      const nextSnapshot = { items, quote };
-      const nextHasCartItems = items.length > 0;
+      const nextSnapshot = reconcileCartSnapshot(
+        { items, quote },
+        pendingCartItemsRef.current.values(),
+      );
+      const nextHasCartItems = getCustomerCartItemCount(nextSnapshot) > 0;
       setCartSnapshot(nextSnapshot);
       setHasCartItems(nextHasCartItems);
       setCartLoadState("ready");
@@ -136,6 +143,14 @@ export function SiteFloatingCart() {
 
     return () => cartRequestRef.current.cancel();
   }, [refreshCart]);
+
+  useEffect(() => {
+    publishCartSnapshotState({
+      cartSnapshot,
+      cartLoadState,
+      cartRefreshKey,
+    });
+  }, [cartLoadState, cartRefreshKey, cartSnapshot]);
 
   useEffect(() => {
     setStoredCheckoutType(getStoredCheckoutTypePreference());
@@ -186,6 +201,34 @@ export function SiteFloatingCart() {
           }
           return;
         }
+      }
+
+      const mutationSequence = detail?.mutationSequence;
+      if (
+        detail?.mutationStatus === "committed" &&
+        !shouldApplyAuthoritativeCartSnapshot(
+          mutationSequence,
+          latestAppliedMutationSequenceRef.current,
+        )
+      ) {
+        if (detail.optimisticItemId) {
+          setCartSnapshot((current: unknown) =>
+            detail.cartData === undefined
+              ? removePendingCartItem(current, detail.optimisticItemId as string)
+              : mergeCommittedCartSnapshots(
+                  current,
+                  detail.cartData,
+                  pendingCartItemsRef.current.values(),
+                ),
+          );
+          setCartRefreshKey((current) => current + 1);
+        }
+        void refreshCart();
+        return;
+      }
+
+      if (detail?.mutationStatus === "committed" && mutationSequence !== undefined) {
+        latestAppliedMutationSequenceRef.current = mutationSequence;
       }
 
       setStoredCheckoutType(getStoredCheckoutTypePreference());

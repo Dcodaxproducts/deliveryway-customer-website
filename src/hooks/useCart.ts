@@ -236,6 +236,7 @@ export const useCart = (token: string | null): CartApi => {
         mutationStatus: "pending",
         optimisticItem,
         optimisticItemId: optimisticItem?.id,
+        mutationSequence: optimisticItem?.__optimisticSequence,
       });
 
       try {
@@ -268,12 +269,14 @@ export const useCart = (token: string | null): CartApi => {
             refreshCart: false,
             cartData: response.data,
             optimisticItemId: optimisticItem?.id,
+            mutationSequence: optimisticItem?.__optimisticSequence,
           });
         } else {
           dispatchCartChanged({
             itemCountDelta: -optimisticQuantity,
             mutationStatus: "rolled-back",
             optimisticItemId: optimisticItem?.id,
+            mutationSequence: optimisticItem?.__optimisticSequence,
           });
         }
 
@@ -283,6 +286,7 @@ export const useCart = (token: string | null): CartApi => {
           itemCountDelta: -optimisticQuantity,
           mutationStatus: "rolled-back",
           optimisticItemId: optimisticItem?.id,
+          mutationSequence: optimisticItem?.__optimisticSequence,
         });
         throw error;
       }

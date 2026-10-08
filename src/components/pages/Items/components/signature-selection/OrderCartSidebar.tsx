@@ -72,6 +72,7 @@ type OrderCartSidebarProps = {
   cartRefreshKey: number;
   cartSnapshot?: unknown;
   cartLoadState?: "idle" | "loading" | "ready" | "error";
+  managedSnapshot?: boolean;
   onCartRetry?: () => void;
   onCartRefresh?: () => void;
   presentation?: "embedded" | "floating";
@@ -84,6 +85,7 @@ export function OrderCartSidebar({
   cartRefreshKey,
   cartSnapshot,
   cartLoadState,
+  managedSnapshot = false,
   onCartRetry,
   presentation = "embedded",
   checkoutType = "delivery",
@@ -236,7 +238,7 @@ export function OrderCartSidebar({
       return;
     }
 
-    if (presentation === "floating") {
+    if (presentation === "floating" || managedSnapshot) {
       if (cartLoadState === "loading") {
         cartRequestRef.current.cancel();
         setLoadingCart(true);
@@ -266,6 +268,7 @@ export function OrderCartSidebar({
     checkoutType,
     cartSnapshot,
     cartLoadState,
+    managedSnapshot,
     presentation,
   ]);
 
@@ -858,7 +861,11 @@ export function OrderCartSidebar({
 
                       <div className="flex items-end justify-between gap-3 pt-1">
                         <div>
-                          {itemDiscountDisplay ? (
+                          {isPending ? (
+                            <p className="text-xs font-medium text-gray-500">
+                              {cartT("totalPending")}
+                            </p>
+                          ) : itemDiscountDisplay ? (
                             <div className="flex flex-wrap items-baseline gap-2">
                               <span className="text-xs font-medium text-gray-400 line-through decoration-gray-400">
                                 {formatCurrency(lineTotal, currency)}
@@ -926,7 +933,20 @@ export function OrderCartSidebar({
         )}
 
         <div className="mt-auto pt-8">
-          <div className="space-y-3 border-t border-black/5 pt-5 text-sm text-gray-500">
+          {hasPendingItems ? (
+            <p
+              className="border-t border-black/5 pt-5 text-sm font-medium text-gray-500"
+              role="status"
+            >
+              {cartT("totalPending")}
+            </p>
+          ) : null}
+          <div
+            className={cn(
+              "space-y-3 border-t border-black/5 pt-5 text-sm text-gray-500",
+              hasPendingItems && "hidden",
+            )}
+          >
             <div className="flex items-center justify-between">
               <span>{t("itemTotal")}</span>
               <span>{formatCurrency(itemTotal, currency)}</span>

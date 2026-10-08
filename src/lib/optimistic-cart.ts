@@ -6,6 +6,13 @@ export const OPTIMISTIC_CART_ITEM_FLAG = "__optimisticPending";
 export type OptimisticCartItem = CartItemRecord & {
   id: string;
   __optimisticPending: true;
+  __optimisticSequence: number;
+  __optimisticPricingUnconfirmed: true;
+  __optimisticCustomization: {
+    modifierSelections?: unknown;
+    modifiers?: unknown;
+    sections?: unknown;
+  };
 };
 
 type OptimisticMenuItemInput = {
@@ -31,7 +38,12 @@ type OptimisticCartPayloadInput = {
   quantity: string | number;
   note?: unknown;
   branchId?: string | null;
+  modifierSelections?: unknown;
+  modifiers?: unknown;
+  sections?: unknown;
 };
+
+let nextOptimisticSequence = 0;
 
 const createTemporaryCartItemId = () =>
   `optimistic-${
@@ -44,11 +56,13 @@ export const createOptimisticCartItem = ({
   payload,
   selectedVariation,
   optimisticItemId = createTemporaryCartItemId(),
+  mutationSequence = ++nextOptimisticSequence,
 }: {
   menuItem: OptimisticMenuItemInput;
   payload: OptimisticCartPayloadInput;
   selectedVariation?: OptimisticVariationInput | null;
   optimisticItemId?: string;
+  mutationSequence?: number;
 }): OptimisticCartItem => {
   const quantity = Math.max(1, Math.floor(Number(payload.quantity) || 1));
   const unitPrice = Number(
@@ -73,6 +87,13 @@ export const createOptimisticCartItem = ({
       selectedVariation: selectedVariation ?? undefined,
     },
     [OPTIMISTIC_CART_ITEM_FLAG]: true,
+    __optimisticSequence: mutationSequence,
+    __optimisticPricingUnconfirmed: true,
+    __optimisticCustomization: {
+      modifierSelections: payload.modifierSelections,
+      modifiers: payload.modifiers,
+      sections: payload.sections,
+    },
   } as OptimisticCartItem;
 };
 
@@ -85,6 +106,13 @@ export const isPendingCartItem = (item: unknown): item is OptimisticCartItem =>
 
 export const hasPendingCartItems = (cartData: unknown) =>
   normalizeCustomerCartData(cartData).items.some(isPendingCartItem);
+
+export const shouldApplyAuthoritativeCartSnapshot = (
+  mutationSequence: number | undefined,
+  latestAppliedMutationSequence: number,
+) =>
+  mutationSequence === undefined ||
+  mutationSequence >= latestAppliedMutationSequence;
 
 export const addPendingCartItem = (
   cartData: unknown,
@@ -124,4 +152,26 @@ export const reconcileCartSnapshot = (
   }
 
   return snapshot;
+};
+
+export const mergeCommittedCartSnapshots = (
+  latestCartData: unknown,
+  staleCommittedCartData: unknown,
+  pendingItems: Iterable<OptimisticCartItem>,
+) => {
+  const latest = normalizeCustomerCartData(latestCartData);
+  const stale = normalizeCustomerCartData(staleCommittedCartData);
+  const itemsById = new Map<string, CartItemRecord>();
+
+  for (const item of stale.items) {
+    if (!isPendingCartItem(item)) itemsById.set(String(item.id), item);
+  }
+  for (const item of latest.items) {
+    if (!isPendingCartItem(item)) itemsById.set(String(item.id), item);
+  }
+
+  return reconcileCartSnapshot(
+    { ...latest, items: [...itemsById.values()] },
+    pendingItems,
+  );
 };
