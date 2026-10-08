@@ -34,13 +34,9 @@ export const getCategoryLoadOrder = (
     ? categoryIds.indexOf(String(targetId))
     : -1;
 
-  if (targetIndex <= 0) return categoryIds;
+  if (!categoryIds.length) return [];
 
-  return [
-    categoryIds[targetIndex],
-    ...categoryIds.slice(0, targetIndex),
-    ...categoryIds.slice(targetIndex + 1),
-  ];
+  return [targetIndex >= 0 ? categoryIds[targetIndex] : categoryIds[0]];
 };
 
 export const loadCategoryIdsInBatches = async ({

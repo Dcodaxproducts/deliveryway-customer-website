@@ -35,6 +35,7 @@ import {
   setStoredGroupOrderLobbyId,
 } from "@/lib/group-order";
 import type { GroupOrder } from "@/types/group-order";
+import type { ItemsCategory } from "@/components/pages/Items/types";
 
 function ItemsPageContent() {
   const t = useTranslations("items.groupOrder");
@@ -63,6 +64,9 @@ function ItemsPageContent() {
   const [joiningGroupOrder, setJoiningGroupOrder] = useState(false);
   const [hasAddedGroupOrderItem, setHasAddedGroupOrderItem] = useState(false);
   const [markingDone, setMarkingDone] = useState(false);
+  const [headerCategory, setHeaderCategory] = useState<ItemsCategory | null>(
+    null,
+  );
 
   const handledInviteCodeRef = useRef<string | null>(null);
 
@@ -386,9 +390,12 @@ function ItemsPageContent() {
       ) : null}
 
       <div className={categoryId ? "hidden lg:block" : undefined}>
-        <RestaurantHeader />
+        <RestaurantHeader category={headerCategory} />
       </div>
-      <ItemsLayout categoryId={categoryId} />
+      <ItemsLayout
+        categoryId={categoryId}
+        onCategoryResolved={setHeaderCategory}
+      />
     </div>
   );
 }

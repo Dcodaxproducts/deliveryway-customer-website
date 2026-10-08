@@ -269,6 +269,7 @@ export const getPromotionalItems = async ({
 export const getHome = async (
   restaurantId?: string | null,
   branchId?: string | null,
+  signal?: AbortSignal,
 ): Promise<CustomerHomeResponse> => {
   const params = new URLSearchParams();
 
@@ -281,9 +282,10 @@ export const getHome = async (
   }
 
   const query = params.toString();
-  const response = await getRequest(
-    `/customer-app/home${query ? `?${query}` : ""}`,
-  );
+  const endpoint = `/customer-app/home${query ? `?${query}` : ""}`;
+  const response = signal
+    ? await getRequest(endpoint, undefined, { signal })
+    : await getRequest(endpoint);
 
   if (response.error) {
     throw new Error(response.error);

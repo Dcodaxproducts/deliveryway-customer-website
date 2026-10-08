@@ -16,8 +16,9 @@ export const useCustomerDeals = (params: CustomerDealsParams) => {
 
   const query = useQuery({
     queryKey: queryKeys.customerDeals.list(resolvedParams),
-    queryFn: () => getCustomerDeals(resolvedParams),
+    queryFn: ({ signal }) => getCustomerDeals(resolvedParams, signal),
     enabled: Boolean(resolvedParams.restaurantId),
+    retry: false,
   });
 
   return {

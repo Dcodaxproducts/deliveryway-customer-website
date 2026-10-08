@@ -52,12 +52,12 @@ type ItemsSectionForListing = Omit<ItemsCategory, "items"> & {
   items?: ItemsMenu["items"];
 };
 
-const CATEGORY_PAGE_LIMIT = 20;
-const PUBLIC_CATEGORIES_REQUEST_ATTEMPTS = 3;
+const CATEGORY_PAGE_LIMIT = 50;
 const MOBILE_ITEMS_QUERY = "(max-width: 1023px)";
 
 type ItemsLayoutProps = {
   categoryId?: string;
+  onCategoryResolved?: (category: ItemsCategory | null) => void;
 };
 
 const subscribeToMobileItemsViewport = (onStoreChange: () => void) => {
@@ -79,7 +79,10 @@ const isFailedPublicCategoriesResponse = (response: {
   error?: unknown;
 }) => response.success === false || Boolean(response.error);
 
-export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
+export function ItemsLayout({
+  categoryId,
+  onCategoryResolved,
+}: ItemsLayoutProps) {
   const isMobileItemsViewport = useSyncExternalStore(
     subscribeToMobileItemsViewport,
     getMobileItemsViewportSnapshot,
@@ -118,6 +121,7 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
 
   const requestInFlightRef = useRef(false);
   const latestCategoryRequestRef = useRef(0);
+  const categoryRequestControllerRef = useRef<AbortController | null>(null);
 
   const restaurantId = useMemo(() => {
     return resolveHomeRestaurantId(user, authRestaurantId, domainContext);
@@ -243,6 +247,10 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
     if (!restaurantId) return;
     if (append && requestInFlightRef.current) return;
 
+    categoryRequestControllerRef.current?.abort();
+    const controller = new AbortController();
+    categoryRequestControllerRef.current = controller;
+
     const requestId = latestCategoryRequestRef.current + 1;
     latestCategoryRequestRef.current = requestId;
 
@@ -257,30 +265,13 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
         }
       }
 
-      let pageResult: Awaited<
-        ReturnType<typeof fetchMenuCategoriesPage>
-      > | null = null;
-
-      for (
-        let attempt = 1;
-        attempt <= PUBLIC_CATEGORIES_REQUEST_ATTEMPTS;
-        attempt += 1
-      ) {
-        pageResult = await fetchMenuCategoriesPage({
-          restaurantId: String(restaurantId),
-          page,
-          limit: CATEGORY_PAGE_LIMIT,
-          search: searchValue,
-        });
-
-        if (!isFailedPublicCategoriesResponse(pageResult.response)) break;
-
-        if (attempt < PUBLIC_CATEGORIES_REQUEST_ATTEMPTS) {
-          await new Promise((resolve) => {
-            window.setTimeout(resolve, attempt * 250);
-          });
-        }
-      }
+      const pageResult = await fetchMenuCategoriesPage({
+        restaurantId: String(restaurantId),
+        page,
+        limit: CATEGORY_PAGE_LIMIT,
+        search: searchValue,
+        signal: controller.signal,
+      });
 
       if (
         !pageResult ||
@@ -320,6 +311,8 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
         }),
       );
     } catch (err) {
+      if (controller.signal.aborted) return;
+
       if (requestId !== latestCategoryRequestRef.current) return;
 
       if (!append) {
@@ -332,6 +325,10 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
         requestInFlightRef.current = false;
         setLoadingCategories(false);
         if (!background) setLoadingMoreCategories(false);
+      }
+
+      if (categoryRequestControllerRef.current === controller) {
+        categoryRequestControllerRef.current = null;
       }
     }
   };
@@ -362,22 +359,19 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
       searchValue: debouncedSearch,
       append: false,
     });
+
+    return () => categoryRequestControllerRef.current?.abort();
   }, [restaurantId, debouncedSearch]);
 
   useEffect(() => {
-    if (!hasMoreCategories || requestInFlightRef.current) return;
+    const resolvedCategory = categoryId
+      ? categories.find(
+          (category) => String(category.id) === String(categoryId),
+        ) ?? null
+      : null;
 
-    const timer = window.setTimeout(() => {
-      void fetchCategories({
-        page: currentPage + 1,
-        searchValue: debouncedSearch,
-        append: true,
-        background: true,
-      });
-    }, 120);
-
-    return () => window.clearTimeout(timer);
-  }, [currentPage, debouncedSearch, hasMoreCategories]);
+    onCategoryResolved?.(resolvedCategory);
+  }, [categories, categoryId, onCategoryResolved]);
 
   useEffect(() => {
     if (!token || !restaurantId) return;

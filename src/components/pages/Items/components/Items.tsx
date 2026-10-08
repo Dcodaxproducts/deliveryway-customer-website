@@ -15,7 +15,6 @@ import {
 } from "@/components/pages/Items/utils/restaurant-card-utils";
 import {
   getCategoryLoadOrder,
-  getCategoryIdsThroughTarget,
   isProgrammaticCategoryTargetReached,
   loadCategoryIdsInBatches,
 } from "@/components/pages/Items/utils/category-scroll";
@@ -61,8 +60,7 @@ type CategoryItemsState = {
 };
 
 const ITEMS_PAGE_LIMIT = 50;
-const CATEGORY_LOAD_BATCH_SIZE = 2;
-const PUBLIC_ITEMS_REQUEST_ATTEMPTS = 3;
+const CATEGORY_LOAD_BATCH_SIZE = 1;
 
 export const createEmptyCategoryState = (): CategoryItemsState => ({
   items: [],
@@ -84,6 +82,12 @@ export const resolveFailedCategoryItemsState = (
   loadedOnce: true,
   failed: true,
 });
+
+export const canCommitCategoryItemsRequest = (
+  activeContext: string,
+  requestContext: string,
+  aborted = false,
+) => !aborted && activeContext === requestContext;
 
 const getSortOrder = (value: unknown) => {
   const parsed = Number(value);
@@ -125,9 +129,15 @@ export function ItemsListing({
   const [categoryItemsMap, setCategoryItemsMap] = useState<
     Record<string, CategoryItemsState>
   >({});
+  const categoryItemsMapRef = useRef(categoryItemsMap);
+
+  useEffect(() => {
+    categoryItemsMapRef.current = categoryItemsMap;
+  }, [categoryItemsMap]);
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const inFlightRequestsRef = useRef<Set<string>>(new Set());
+  const requestControllersRef = useRef<Map<string, AbortController>>(new Map());
   const handledScrollNonceRef = useRef<number | null>(null);
   const programmaticScrollTargetRef = useRef<string | null>(null);
 
@@ -147,9 +157,16 @@ export function ItemsListing({
   const requestContextRef = useRef(requestContextKey);
 
   useEffect(() => {
+    requestControllersRef.current.forEach((controller) => controller.abort());
+    requestControllersRef.current.clear();
     requestContextRef.current = requestContextKey;
     inFlightRequestsRef.current.clear();
     setCategoryItemsMap({});
+
+    return () => {
+      requestControllersRef.current.forEach((controller) => controller.abort());
+      requestControllersRef.current.clear();
+    };
   }, [requestContextKey]);
 
   const activeCategoryId = useMemo(() => {
@@ -175,16 +192,26 @@ export function ItemsListing({
     if (!categoryId || !restaurantId) return;
 
     const requestContext = requestContextKey;
-    const requestKey = `${branchId}:${categoryId}:${page}`;
+    const requestKey = `items:${restaurantId}:${branchId}:${categoryId}:${page}`;
 
     if (inFlightRequestsRef.current.has(requestKey)) return;
 
+    const controller = new AbortController();
+
     try {
       inFlightRequestsRef.current.add(requestKey);
+      requestControllersRef.current.set(requestKey, controller);
 
       queueMicrotask(() => {
         setCategoryItemsMap((prev) => {
-          if (requestContextRef.current !== requestContext) return prev;
+          if (
+            !canCommitCategoryItemsRequest(
+              requestContextRef.current,
+              requestContext,
+              controller.signal.aborted,
+            )
+          )
+            return prev;
 
           const existing = prev[categoryId] || createEmptyCategoryState();
 
@@ -201,32 +228,14 @@ export function ItemsListing({
         });
       });
 
-      let pageResult: Awaited<ReturnType<typeof fetchMenuItemsPage>> | null =
-        null;
-
-      for (
-        let attempt = 1;
-        attempt <= PUBLIC_ITEMS_REQUEST_ATTEMPTS;
-        attempt += 1
-      ) {
-        pageResult = await fetchMenuItemsPage({
-          restaurantId: String(restaurantId),
-          branchId,
-          categoryId: String(categoryId),
-          page,
-          limit: ITEMS_PAGE_LIMIT,
-        });
-
-        if (!isFailedPublicItemsResponse(pageResult.response)) break;
-
-        if (Number(pageResult.response.status) === 429) break;
-
-        if (attempt < PUBLIC_ITEMS_REQUEST_ATTEMPTS) {
-          await new Promise((resolve) => {
-            window.setTimeout(resolve, attempt * 250);
-          });
-        }
-      }
+      const pageResult = await fetchMenuItemsPage({
+        restaurantId: String(restaurantId),
+        branchId,
+        categoryId: String(categoryId),
+        page,
+        limit: ITEMS_PAGE_LIMIT,
+        signal: controller.signal,
+      });
 
       if (
         !pageResult ||
@@ -239,7 +248,14 @@ export function ItemsListing({
 
       queueMicrotask(() => {
         setCategoryItemsMap((prev) => {
-          if (requestContextRef.current !== requestContext) return prev;
+          if (
+            !canCommitCategoryItemsRequest(
+              requestContextRef.current,
+              requestContext,
+              controller.signal.aborted,
+            )
+          )
+            return prev;
 
           const existing = prev[categoryId] || createEmptyCategoryState();
 
@@ -274,9 +290,18 @@ export function ItemsListing({
         });
       });
     } catch (err) {
+      if (controller.signal.aborted) return;
+
       queueMicrotask(() => {
         setCategoryItemsMap((prev) => {
-          if (requestContextRef.current !== requestContext) return prev;
+          if (
+            !canCommitCategoryItemsRequest(
+              requestContextRef.current,
+              requestContext,
+              controller.signal.aborted,
+            )
+          )
+            return prev;
 
           const existing = prev[categoryId] || createEmptyCategoryState();
 
@@ -288,6 +313,9 @@ export function ItemsListing({
       });
     } finally {
       inFlightRequestsRef.current.delete(requestKey);
+      if (requestControllersRef.current.get(requestKey) === controller) {
+        requestControllersRef.current.delete(requestKey);
+      }
     }
   };
 
@@ -376,6 +404,47 @@ export function ItemsListing({
     scrollTarget?.id,
   ]);
 
+  useEffect(() => {
+    if (contentSource !== "category" || viewMode !== "onePage") return;
+    if (!restaurantId || !sections.length) return;
+    if (!("IntersectionObserver" in window)) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visibleIds = entries
+          .filter((entry) => entry.isIntersecting)
+          .map((entry) =>
+            String((entry.target as HTMLElement).dataset.categoryId || ""),
+          )
+          .filter(Boolean);
+
+        void loadCategoryIdsInBatches({
+          categoryIds: visibleIds,
+          batchSize: CATEGORY_LOAD_BATCH_SIZE,
+          load: async (visibleCategoryId) => {
+            const state = categoryItemsMapRef.current[visibleCategoryId];
+            if (state?.loadedOnce || state?.loading) return;
+
+            await fetchCategoryItems({
+              categoryId: visibleCategoryId,
+              page: 1,
+              append: false,
+            });
+          },
+        });
+      },
+      { rootMargin: "400px 0px", threshold: 0.01 },
+    );
+
+    sections.forEach((section) => {
+      const id = String(section.id || "");
+      const element = sectionRefs.current[id];
+      if (element) observer.observe(element);
+    });
+
+    return () => observer.disconnect();
+  }, [contentSource, viewMode, restaurantId, branchId, categoryIdsKey]);
+
   /* ================= PRUNE OLD CATEGORY STATES AFTER SEARCH ================= */
 
   useEffect(() => {
@@ -410,10 +479,8 @@ export function ItemsListing({
     programmaticScrollTargetRef.current = targetId;
 
     if (contentSource === "category") {
-      const categoryIdsToLoad = getCategoryIdsThroughTarget(sections, targetId);
-      const targetPositionIsStable = categoryIdsToLoad.every(
-        (categoryId) => categoryItemsMap[categoryId]?.loadedOnce,
-      );
+      const targetPositionIsStable =
+        categoryItemsMap[targetId]?.loadedOnce === true;
 
       if (!targetPositionIsStable) return;
     }

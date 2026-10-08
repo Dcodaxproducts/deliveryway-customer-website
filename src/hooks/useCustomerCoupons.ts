@@ -14,8 +14,9 @@ export const useCustomerCoupons = (params: CustomerCouponsParams) => {
 
   const query = useQuery({
     queryKey: queryKeys.customerCoupons.list(resolvedParams),
-    queryFn: () => getCustomerCoupons(resolvedParams),
+    queryFn: ({ signal }) => getCustomerCoupons(resolvedParams, signal),
     enabled: Boolean(resolvedParams.restaurantId),
+    retry: false,
   });
 
   return {

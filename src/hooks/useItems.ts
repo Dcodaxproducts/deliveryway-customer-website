@@ -18,9 +18,9 @@ const service = {
 export type ItemsApi = DomainApiHook & {
   fetchMenuItems: (endpoint: string) => Promise<{ response: ApiResult; items: MenuItem[] }>;
   fetchMenuItemDetails: (args: { restaurantId: string; branchId?: string | number | null; identifier: string }) => Promise<{ response: ApiResult; item: MenuItem | null }>;
-  fetchMenuItemsPage: (args: { restaurantId: string; branchId?: string | number | null; categoryId?: string; page: number; limit: number }) => Promise<{ response: ApiResult; items: MenuItem[]; meta: ApiMeta }>;
+  fetchMenuItemsPage: (args: { restaurantId: string; branchId?: string | number | null; categoryId?: string; page: number; limit: number; signal?: AbortSignal }) => Promise<{ response: ApiResult; items: MenuItem[]; meta: ApiMeta }>;
   fetchSplitPizzaMenuItems: (args: { restaurantId?: string | number | null; branchId?: string | number | null; search: string; page: number }) => Promise<{ data: MenuItem[]; meta?: ApiMeta }>;
-  fetchMenuCategoriesPage: (args: { restaurantId: string; page: number; limit: number; search?: string }) => Promise<{ response: ApiResult; categories: ItemsCategory[]; meta: ApiMeta }>;
+  fetchMenuCategoriesPage: (args: { restaurantId: string; page: number; limit: number; search?: string; signal?: AbortSignal }) => Promise<{ response: ApiResult; categories: ItemsCategory[]; meta: ApiMeta }>;
 };
 
 export const useItems = (token: string | null): ItemsApi => {
@@ -32,7 +32,7 @@ export const useItems = (token: string | null): ItemsApi => {
   );
 
   const fetchMenuItemPage = useCallback(
-    (args: { restaurantId: string; branchId?: string | number | null; categoryId?: string; page: number; limit: number }) =>
+    (args: { restaurantId: string; branchId?: string | number | null; categoryId?: string; page: number; limit: number; signal?: AbortSignal }) =>
       fetchMenuItemsPage({ ...args, token }),
     [token]
   );
@@ -50,7 +50,7 @@ export const useItems = (token: string | null): ItemsApi => {
   );
 
   const fetchMenuCategoryPage = useCallback(
-    (args: { restaurantId: string; page: number; limit: number; search?: string }) =>
+    (args: { restaurantId: string; page: number; limit: number; search?: string; signal?: AbortSignal }) =>
       fetchMenuCategoriesPage({ ...args, token }),
     [token]
   );

@@ -8,8 +8,12 @@ import type {
   ItemsCategory,
   MenuItem,
 } from "@/components/pages/Items/types";
+import { createRequestCoordinator } from "@/lib/request-coordinator";
 
 const itemsService = createDomainApiService();
+const menuPageRequestCoordinator = createRequestCoordinator<
+  Awaited<ReturnType<typeof getItems>>
+>();
 const MENU_ITEM_DETAILS_CACHE_TTL_MS = 60_000;
 const MENU_ITEM_DETAILS_CACHE_MAX_ENTRIES = 100;
 
@@ -56,6 +60,7 @@ export const fetchMenuItemsPage = async ({
   page,
   limit,
   token,
+  signal,
 }: {
   restaurantId: string;
   branchId?: string | number | null;
@@ -63,6 +68,7 @@ export const fetchMenuItemsPage = async ({
   page: number;
   limit: number;
   token?: string | null;
+  signal?: AbortSignal;
 }) => {
   const safeLimit = Math.min(50, Math.max(1, Math.floor(limit)));
   const params = new URLSearchParams({
@@ -81,9 +87,14 @@ export const fetchMenuItemsPage = async ({
     params.set("branchId", String(branchId));
   }
 
-  const response = await getItems(
-    `/customer-app/items?${params.toString()}`,
-    token,
+  const endpoint = `/customer-app/items?${params.toString()}`;
+  const response = await menuPageRequestCoordinator.run(
+    `items:${token ?? "guest"}:${endpoint}`,
+    signal,
+    (requestSignal) =>
+      signal
+        ? getItems(endpoint, token, { signal: requestSignal })
+        : getItems(endpoint, token),
   );
 
   return {
@@ -307,12 +318,14 @@ export const fetchMenuCategoriesPage = async ({
   limit,
   search,
   token,
+  signal,
 }: {
   restaurantId: string;
   page: number;
   limit: number;
   search?: string;
   token?: string | null;
+  signal?: AbortSignal;
 }) => {
   const params = new URLSearchParams({
     restaurantId,
@@ -326,9 +339,14 @@ export const fetchMenuCategoriesPage = async ({
     params.set("search", search);
   }
 
-  const response = await getItems(
-    `/customer-app/categories?${params.toString()}`,
-    token,
+  const endpoint = `/customer-app/categories?${params.toString()}`;
+  const response = await menuPageRequestCoordinator.run(
+    `categories:${token ?? "guest"}:${endpoint}`,
+    signal,
+    (requestSignal) =>
+      signal
+        ? getItems(endpoint, token, { signal: requestSignal })
+        : getItems(endpoint, token),
   );
 
   return {

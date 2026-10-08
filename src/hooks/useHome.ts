@@ -21,11 +21,12 @@ export const useHome = (
 ) =>
   useQuery({
     queryKey: queryKeys.home.detail(restaurantId, branchId),
-    queryFn: () => getHome(restaurantId, branchId),
+    queryFn: ({ signal }) => getHome(restaurantId, branchId, signal),
     enabled,
     staleTime: options?.staleTime ?? 5 * 60 * 1000,
     refetchInterval: options?.refetchInterval,
     refetchOnMount: options?.refetchOnMount,
     refetchOnReconnect: options?.refetchOnReconnect,
     refetchOnWindowFocus: options?.refetchOnWindowFocus,
+    retry: false,
   });
