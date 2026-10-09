@@ -96,9 +96,10 @@ export function ItemsLayout({
 
   const [categories, setCategories] = useState<ItemsCategory[]>([]);
   const [menus, setMenus] = useState<ItemsMenu[]>([]);
-  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [categoryLoadFailed, setCategoryLoadFailed] = useState(false);
   const [loadingMoreCategories, setLoadingMoreCategories] = useState(false);
-  const [loadingMenus, setLoadingMenus] = useState(false);
+  const [loadingMenus, setLoadingMenus] = useState(true);
 
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -264,6 +265,7 @@ export function ItemsLayout({
           setLoadingCategories(true);
         }
       }
+      if (!append) setCategoryLoadFailed(false);
 
       const pageResult = await fetchMenuCategoriesPage({
         restaurantId: String(restaurantId),
@@ -317,6 +319,7 @@ export function ItemsLayout({
 
       if (!append) {
         setCategories([]);
+        setCategoryLoadFailed(true);
       }
 
       setHasMoreCategories(false);
@@ -430,6 +433,14 @@ export function ItemsLayout({
     });
   };
 
+  const handleRetryCategories = () => {
+    void fetchCategories({
+      page: 1,
+      searchValue: debouncedSearch,
+      append: false,
+    });
+  };
+
   const activeCategoryId = useMemo(() => {
     if (viewMode === "onePage") {
       return activeOnePageCategoryId || String(categories?.[0]?.id || "");
@@ -510,6 +521,7 @@ export function ItemsLayout({
       <div className="pb-[max(2.5rem,env(safe-area-inset-bottom))]">
         <MobileCategoryTabs
           categories={categories}
+          loading={loadingCategories}
           activeCategoryId={activeCategoryId}
           onCategorySelect={(id) => {
             if (id === activeCategoryId) return;
@@ -531,6 +543,8 @@ export function ItemsLayout({
             onActiveCategoryChange={setActiveOnePageCategoryId}
             currency={currency}
             loading={loadingCategories}
+            sectionLoadFailed={categoryLoadFailed}
+            onRetrySections={handleRetryCategories}
           />
         </main>
       </div>
@@ -545,6 +559,8 @@ export function ItemsLayout({
           activeCategoryId={activeSectionId}
           categories={activeSections}
           loading={loadingSections}
+          loadFailed={contentSource === "category" && categoryLoadFailed}
+          onRetry={handleRetryCategories}
           loadingMore={loadingMoreSections}
           hasMore={hasMoreSections}
           search={search}
@@ -590,6 +606,10 @@ export function ItemsLayout({
           }
           currency={currency}
           loading={loadingSections}
+          sectionLoadFailed={
+            contentSource === "category" && categoryLoadFailed
+          }
+          onRetrySections={handleRetryCategories}
         />
       </main>
     </div>

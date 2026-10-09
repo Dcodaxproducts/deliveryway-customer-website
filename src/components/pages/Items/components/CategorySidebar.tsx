@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 
 type MenuViewMode = "multiple" | "onePage";
 type ItemsContentSource = "category" | "menu";
@@ -24,6 +25,8 @@ type CategorySidebarProps = {
   activeCategoryId?: string;
   categories?: CategorySidebarItem[];
   loading?: boolean;
+  loadFailed?: boolean;
+  onRetry?: () => void;
   loadingMore?: boolean;
   hasMore?: boolean;
   search?: string;
@@ -41,6 +44,8 @@ export function CategorySidebar({
   activeCategoryId,
   categories = [],
   loading,
+  loadFailed,
+  onRetry,
   loadingMore,
   hasMore,
   search,
@@ -199,9 +204,21 @@ export function CategorySidebar({
       {/* LIST */}
       <div className="space-y-2">
         {loading ? (
-          <div className="flex items-center justify-center gap-2 py-6 text-sm text-gray-400">
-            <Loader2 size={16} className="animate-spin" />
-            {tSidebar("loadingCategories")}
+          <div aria-busy="true" role="status" className="space-y-2 py-1">
+            {Array.from({ length: 6 }, (_, index) => (
+              <LoadingSkeleton key={index} className="h-11 w-full rounded-full" />
+            ))}
+          </div>
+        ) : loadFailed ? (
+          <div className="space-y-3 py-5 text-center text-sm text-gray-500">
+            <p>{tCommon("loadCategoriesFailed")}</p>
+            <button
+              type="button"
+              onClick={onRetry}
+              className="inline-flex h-10 items-center justify-center rounded-full border border-primary px-5 text-sm font-semibold text-primary transition hover:bg-primary/5"
+            >
+              {tCommon("retryCategories")}
+            </button>
           </div>
         ) : categories.length === 0 ? (
           <p className="py-6 text-center text-sm text-gray-400">

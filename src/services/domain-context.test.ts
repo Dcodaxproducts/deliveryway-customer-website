@@ -59,6 +59,38 @@ describe("resolveDomainContext", () => {
     expect(laterContext).toMatchObject({ restaurantId: "restaurant-1" });
   });
 
+  it("refreshes context before signed media URLs can remain stale", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-10-09T12:00:00.000Z"));
+    fetchMock
+      .mockResolvedValueOnce(
+        createResponse({
+          data: {
+            restaurantId: "restaurant-signed-media",
+            host: "signed-media.example.com",
+            logoUrl: "https://media.example/logo.webp?X-Amz-Signature=first",
+          },
+        }),
+      )
+      .mockResolvedValueOnce(
+        createResponse({
+          data: {
+            restaurantId: "restaurant-signed-media",
+            host: "signed-media.example.com",
+            logoUrl: "https://media.example/logo.webp?X-Amz-Signature=second",
+          },
+        }),
+      );
+
+    const first = await resolveDomainContext("signed-media.example.com");
+    vi.setSystemTime(Date.now() + DOMAIN_CONTEXT_CACHE_TTL_MS + 1);
+    const refreshed = await resolveDomainContext("signed-media.example.com");
+
+    expect(first.logoUrl).toContain("Signature=first");
+    expect(refreshed.logoUrl).toContain("Signature=second");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it("evicts failed requests so a later consumer can retry", async () => {
     fetchMock
       .mockResolvedValueOnce(

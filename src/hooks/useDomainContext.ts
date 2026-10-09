@@ -42,18 +42,21 @@ const applyPublicBranchSelection = (
 
 export const useDomainContext = (): DomainContextState => {
   const [state, setState] = useState<DomainContextState>(() => ({
-    context: applyPublicBranchSelection(
-      readStoredDomainContext(
-        typeof window !== "undefined" ? window.location.host : null,
-      ),
-    ),
-    loading: typeof window !== "undefined",
+    context: null,
+    loading: true,
     error: null,
   }));
 
   useEffect(() => {
     let cancelled = false;
     const host = window.location.host;
+    const storedContext = applyPublicBranchSelection(
+      readStoredDomainContext(host),
+    );
+
+    if (storedContext) {
+      setState({ context: storedContext, loading: true, error: null });
+    }
     const handlePublicBranchChange = (event: Event) => {
       const selection = (event as CustomEvent<PublicBranchSelection>).detail;
 

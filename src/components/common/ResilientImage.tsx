@@ -5,6 +5,7 @@ import { BadgePercent, Store } from "lucide-react";
 import { useState } from "react";
 
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
+import { isTimeLimitedImageUrl } from "@/lib/image-fallback";
 import { cn } from "@/lib/utils";
 
 type ResilientImageProps = {
@@ -84,6 +85,7 @@ export const ResilientImage = ({
     priority,
     sizes,
     quality,
+    unoptimized: isTimeLimitedImageUrl(normalizedSource),
     onLoad: (event: React.SyntheticEvent<HTMLImageElement>) => {
       const loadedImage = event.currentTarget;
 

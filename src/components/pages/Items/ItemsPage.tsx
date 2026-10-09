@@ -15,6 +15,8 @@ import { CheckCircle2, Loader2, Users } from "lucide-react";
 
 import RestaurantHeader from "@/components/pages/Items/components/RestaurantHeader";
 import { ItemsLayout } from "@/components/pages/Items/components/ItemsLayout";
+import { ItemsGridSkeleton } from "@/components/pages/Items/components/Items";
+import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import useBranches from "@/hooks/useBranches";
 import { useGroupOrder, useGroupOrderApi } from "@/hooks/useGroupOrder";
 import { useAuth } from "@/hooks/useAuth";
@@ -402,7 +404,20 @@ function ItemsPageContent() {
 
 export function ItemsPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen" />}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen" aria-busy="true" role="status">
+          <LoadingSkeleton className="h-[260px] w-full rounded-none md:h-[340px]" />
+          <div className="mx-auto grid w-full max-w-[1440px] grid-cols-1 gap-6 px-4 py-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:px-8">
+            <LoadingSkeleton className="hidden h-[calc(100dvh-8rem)] rounded-2xl lg:block" />
+            <div className="space-y-4">
+              <LoadingSkeleton className="h-7 w-44 rounded-lg" />
+              <ItemsGridSkeleton />
+            </div>
+          </div>
+        </div>
+      }
+    >
       <ItemsPageContent />
     </Suspense>
   );

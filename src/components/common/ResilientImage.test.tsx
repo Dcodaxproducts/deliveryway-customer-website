@@ -14,16 +14,19 @@ vi.mock("next/image", () => ({
     fill: _fill,
     priority,
     quality,
+    unoptimized,
     ...props
   }: ImgHTMLAttributes<HTMLImageElement> & {
     fill?: boolean;
     priority?: boolean;
     quality?: number;
+    unoptimized?: boolean;
   }) => (
     <img
       {...props}
       data-priority={String(Boolean(priority))}
       data-quality={quality}
+      data-unoptimized={String(Boolean(unoptimized))}
     />
   ),
 }));
@@ -111,6 +114,38 @@ describe("ResilientImage", () => {
     expect(screen.getByTestId("image-loading-skeleton").className).toContain(
       "opacity-100",
     );
+  });
+
+  it("does not put time-limited signed URLs into the shared optimizer cache", () => {
+    render(
+      <ResilientImage
+        src="https://deliveryway-production-media.s3.eu-north-1.amazonaws.com/uploads/item.webp?X-Amz-Signature=private&X-Amz-Expires=300"
+        alt="Signed meal"
+        fill
+      />,
+    );
+
+    expect(
+      screen.getByRole("img", { name: "Signed meal" }).getAttribute(
+        "data-unoptimized",
+      ),
+    ).toBe("true");
+  });
+
+  it("keeps stable public media eligible for optimization", () => {
+    render(
+      <ResilientImage
+        src="https://deliveryway-production-media.s3.eu-north-1.amazonaws.com/uploads/item.webp"
+        alt="Public meal"
+        fill
+      />,
+    );
+
+    expect(
+      screen.getByRole("img", { name: "Public meal" }).getAttribute(
+        "data-unoptimized",
+      ),
+    ).toBe("false");
   });
 
   it("uses explicit dimensions and stays lazy by default", () => {

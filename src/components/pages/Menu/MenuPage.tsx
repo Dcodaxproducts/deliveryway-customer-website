@@ -1,9 +1,9 @@
 "use client";
 
 import { Suspense, useEffect, useState, useSyncExternalStore } from "react";
-import { useTranslations } from "next-intl";
 import { SignatureSelectionContent } from "@/components/pages/Items/components/signature-selection/SignatureSelectionContent";
 import { OrderCartSidebar } from "@/components/pages/Items/components/signature-selection/OrderCartSidebar";
+import { MenuPageSkeleton } from "@/components/pages/Menu/MenuLoadingSkeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { getSelectedOrderType } from "@/lib/branch-selector";
 import {
@@ -19,7 +19,6 @@ import {
 } from "@/lib/cart-snapshot-store";
 
 function MenuPageContent() {
-  const t = useTranslations("menu");
   const { restaurantId, user, loading } = useAuth();
   const cartState = useSyncExternalStore(
     subscribeCartSnapshotState,
@@ -40,11 +39,7 @@ function MenuPageContent() {
   const handleCartRefresh = () => dispatchCartChanged({ refreshCart: true });
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-sm text-[#777]">{t("loading")}</p>
-      </div>
-    );
+    return <MenuPageSkeleton />;
   }
 
   return (
@@ -80,7 +75,7 @@ function MenuPageContent() {
 
 export function MenuPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen overflow-x-hidden" />}>
+    <Suspense fallback={<MenuPageSkeleton />}>
       <MenuPageContent />
     </Suspense>
   );

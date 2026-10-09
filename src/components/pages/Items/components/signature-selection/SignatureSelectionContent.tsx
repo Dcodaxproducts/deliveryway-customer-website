@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronLeft,
@@ -17,6 +16,8 @@ import {
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { FavoriteHeartButton } from "@/components/common/favorites/FavoriteHeartButton";
+import { ResilientImage } from "@/components/common/ResilientImage";
+import { MenuItemsSkeleton } from "@/components/pages/Menu/MenuLoadingSkeleton";
 import { useCart } from "@/hooks/useCart";
 import { useGroupOrderApi } from "@/hooks/useGroupOrder";
 import { useHome } from "@/hooks/useHome";
@@ -633,7 +634,8 @@ export function SignatureSelectionContent({
   const [menus, setMenus] = useState<MenuRecord[]>([]);
   const [activeMenuId, setActiveMenuId] = useState<string>("");
   const [activeOnePageMenuId, setActiveOnePageMenuId] = useState<string>("");
-  const [loadingMenus, setLoadingMenus] = useState(false);
+  const [loadingMenus, setLoadingMenus] = useState(true);
+  const [menuLoadFailed, setMenuLoadFailed] = useState(false);
 
   const [viewMode, setViewMode] = useState<MenuViewMode>(() => {
     return getSignatureMenuViewMode();
@@ -704,17 +706,22 @@ export function SignatureSelectionContent({
   };
 
   const fetchMenus = async () => {
-    if (!restaurantId || !token) return;
+    if (!restaurantId || !token) {
+      setLoadingMenus(false);
+      setMenuLoadFailed(true);
+      return;
+    }
 
     try {
       setLoadingMenus(true);
+      setMenuLoadFailed(false);
 
       const { menus: collected, error } = await fetchSignatureMenus({
         restaurantId: String(restaurantId),
       });
 
       if (error) {
-        toast.error(error);
+        throw new Error(error);
       }
 
       const menuData = normalizeMenuRecords(collected);
@@ -737,7 +744,9 @@ export function SignatureSelectionContent({
         setActiveMenuId("");
         setActiveOnePageMenuId("");
       }
-    } catch (error) {
+    } catch {
+      setMenus([]);
+      setMenuLoadFailed(true);
       toast.error(tSignature("failedFetchMenus"));
     } finally {
       setLoadingMenus(false);
@@ -2783,12 +2792,12 @@ export function SignatureSelectionContent({
         className="group min-w-0 overflow-hidden rounded-[20px] border border-black/5 bg-white shadow-[-12px_0_32px_0_rgba(26,28,28,0.09)] transition-all duration-300 hover:shadow-[0_16px_40px_rgba(15,23,42,0.08)]"
       >
         <div className="relative h-[210px] w-full overflow-hidden bg-[#f5f5f5]">
-          <Image
+          <ResilientImage
             src={product.image}
             alt={product.name}
             fill
+            sizes="(max-width: 767px) calc(100vw - 32px), (max-width: 1535px) 50vw, 33vw"
             className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-            unoptimized
           />
 
           {hasInfoContent(product.raw) ? (
@@ -2936,8 +2945,19 @@ export function SignatureSelectionContent({
           </div>
 
           {loadingMenus ? (
-            <div className="flex min-h-[300px] items-center justify-center">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            <MenuItemsSkeleton />
+          ) : menuLoadFailed ? (
+            <div className="flex min-h-[300px] flex-col items-center justify-center gap-3 rounded-[20px] border border-dashed border-red-200 bg-red-50/40 px-6 text-center">
+              <p className="text-sm text-[#666]">
+                {tSignature("failedFetchMenus")}
+              </p>
+              <button
+                type="button"
+                onClick={() => void fetchMenus()}
+                className="inline-flex h-10 items-center justify-center rounded-full border border-primary px-5 text-sm font-semibold text-primary transition hover:bg-primary/5"
+              >
+                {tSignature("retryMenus")}
+              </button>
             </div>
           ) : menus.length === 0 ? (
             <div className="rounded-[20px] border border-dashed border-black/10 bg-[#fafafa] p-8 text-center">
