@@ -150,7 +150,7 @@ describe("resolveDomainContext", () => {
         createResponse({
           data: {
             restaurantId: "restaurant-signed-media",
-            host: "signed-media.example.com",
+            host: "short-lived-signed-media.example.com",
             logoUrl: "https://media.example.com/logo.webp?signature=first",
           },
         }),
@@ -159,15 +159,15 @@ describe("resolveDomainContext", () => {
         createResponse({
           data: {
             restaurantId: "restaurant-signed-media",
-            host: "signed-media.example.com",
+            host: "short-lived-signed-media.example.com",
             logoUrl: "https://media.example.com/logo.webp?signature=second",
           },
         }),
       );
 
-    const first = await resolveDomainContext("signed-media.example.com");
+    const first = await resolveDomainContext("short-lived-signed-media.example.com");
     vi.setSystemTime(Date.now() + DOMAIN_CONTEXT_CACHE_TTL_MS + 1);
-    const refreshed = await resolveDomainContext("signed-media.example.com");
+    const refreshed = await resolveDomainContext("short-lived-signed-media.example.com");
 
     expect(first.logoUrl).toContain("signature=first");
     expect(refreshed.logoUrl).toContain("signature=second");
