@@ -132,6 +132,47 @@ describe("ItemsListing mounted progressive loading", () => {
     expect(await screen.findByText("category-18 item 1")).toBeTruthy();
   });
 
+  it("keeps Pizza as the latest target after rapid Pizza to Hamburger to Pizzabrötchen to Pizza switching", async () => {
+    globalThis.IntersectionObserver = TestIntersectionObserver;
+    const scrollIntoView = vi.fn();
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+      configurable: true,
+      value: scrollIntoView,
+    });
+    const rapidSections = [
+      { id: "pizza", name: "Pizza" },
+      { id: "hamburger", name: "Hamburger" },
+      { id: "pizzabrotchen", name: "Pizzabrötchen" },
+    ];
+    testState.fetchMenuItemsPage.mockImplementation(
+      async ({ categoryId, page }: { categoryId: string; page: number }) =>
+        makePage(categoryId, page),
+    );
+    const { rerender } = render(
+      <ItemsListing
+        sections={rapidSections}
+        contentSource="category"
+        viewMode="onePage"
+        scrollTarget={{ id: "pizza", nonce: 1 }}
+      />,
+    );
+
+    rerender(
+      <ItemsListing sections={rapidSections} contentSource="category" viewMode="onePage" scrollTarget={{ id: "hamburger", nonce: 2 }} />,
+    );
+    rerender(
+      <ItemsListing sections={rapidSections} contentSource="category" viewMode="onePage" scrollTarget={{ id: "pizzabrotchen", nonce: 3 }} />,
+    );
+    rerender(
+      <ItemsListing sections={rapidSections} contentSource="category" viewMode="onePage" scrollTarget={{ id: "pizza", nonce: 4 }} />,
+    );
+
+    await screen.findByText("pizza item 1");
+    await waitFor(() => expect(scrollIntoView).toHaveBeenCalled());
+    const lastScrolledElement = scrollIntoView.mock.instances.at(-1) as HTMLElement;
+    expect(lastScrolledElement.dataset.categoryId).toBe("pizza");
+  });
+
   it("loads only the active category in multiple mode", async () => {
     testState.fetchMenuItemsPage.mockImplementation(
       async ({ categoryId, page }: { categoryId: string; page: number }) =>

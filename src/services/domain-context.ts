@@ -9,6 +9,11 @@ import {
 } from "@/lib/domain-context";
 
 const domainContextRequests = new Map<string, Promise<DomainContext>>();
+const domainContextCache = new Map<
+  string,
+  { context: DomainContext; expiresAt: number }
+>();
+export const DOMAIN_CONTEXT_CACHE_TTL_MS = 4 * 60 * 1000;
 
 const getMessage = (value: unknown, fallback: string) => {
   if (typeof value === "object" && value !== null && !Array.isArray(value)) {
@@ -55,14 +60,28 @@ export const resolveDomainContext = (host: string): Promise<DomainContext> => {
 
   if (localContext) return Promise.resolve(localContext);
 
+  const cached = domainContextCache.get(normalizedHost);
+
+  if (cached && cached.expiresAt > Date.now()) {
+    return Promise.resolve(cached.context);
+  }
+  domainContextCache.delete(normalizedHost);
+
   const existingRequest = domainContextRequests.get(normalizedHost);
 
   if (existingRequest) return existingRequest;
 
-  const request = fetchDomainContext(normalizedHost).catch((error: unknown) => {
-    domainContextRequests.delete(normalizedHost);
-    throw error;
-  });
+  const request = fetchDomainContext(normalizedHost)
+    .then((context) => {
+      domainContextCache.set(normalizedHost, {
+        context,
+        expiresAt: Date.now() + DOMAIN_CONTEXT_CACHE_TTL_MS,
+      });
+      return context;
+    })
+    .finally(() => {
+      domainContextRequests.delete(normalizedHost);
+    });
 
   domainContextRequests.set(normalizedHost, request);
 

@@ -114,6 +114,79 @@ describe("product cart helpers", () => {
     expect(payload).not.toHaveProperty("dealId");
   });
 
+  it("builds the Pizzeria Four Star Pizza Schinken L payload with nine add-ons", () => {
+    const crustGroup = {
+      id: "pizzeria-crust",
+      name: "Ihre Pizzarand wunsch! (pflicht)",
+      selectionType: "MULTIPLE" as const,
+      minSelect: 1,
+      maxSelect: 1,
+      modifiers: Array.from({ length: 2 }, (_, index) => ({
+        id: `crust-${index + 1}`,
+        name: `Crust ${index + 1}`,
+      })),
+    };
+    const extrasGroup = {
+      id: "pizzeria-extras",
+      name: "Ihre Zutaten! (Optional)",
+      selectionType: "MULTIPLE" as const,
+      minSelect: 0,
+      maxSelect: 9,
+      modifiers: Array.from({ length: 41 }, (_, index) => ({
+        id: `extra-${index + 1}`,
+        name: `Extra ${index + 1}`,
+      })),
+    };
+    const selectedExtras = extrasGroup.modifiers.slice(0, 9).map((modifier) => ({
+      ...modifier,
+      selectedQuantity: 1,
+    }));
+    const payload = buildCartPayload({
+      item: {
+        id: "pizza-schinken",
+        name: "05. Pizza Schinken",
+        variations: Array.from({ length: 5 }, (_, index) => ({
+          id: `size-${index + 1}`,
+          name: ["S 24 cm ø", "M 28 cm ø", "L 32 cm ø", "XL 33 x 46 cm", "Jumbo 40 x 60 cm"][index],
+        })),
+        modifierGroups: [crustGroup, extrasGroup],
+      },
+      branchId: "pizzeria-main",
+      selectedVariation: { id: "size-3", name: "L 32 cm ø" },
+      qty: 1,
+      selectedModifiers: {
+        "pizzeria-crust": [{ ...crustGroup.modifiers[1], selectedQuantity: 1 }],
+        "pizzeria-extras": selectedExtras,
+      },
+      modifierGroups: [crustGroup, extrasGroup],
+      splitPizzaEnabled: false,
+      splitPizzaItem: null,
+      includeMenuItem: true,
+      includeBranch: true,
+      clearSectionsWhenEmpty: false,
+    });
+
+    expect(payload).toMatchObject({
+      branchId: "pizzeria-main",
+      menuItemId: "pizza-schinken",
+      variationId: "size-3",
+      quantity: 1,
+    });
+    expect(payload.modifierSelections).toEqual([
+      {
+        modifierGroupId: "pizzeria-crust",
+        modifiers: [{ modifierId: "crust-2", quantity: 1 }],
+      },
+      {
+        modifierGroupId: "pizzeria-extras",
+        modifiers: selectedExtras.map((modifier) => ({
+          modifierId: modifier.id,
+          quantity: 1,
+        })),
+      },
+    ]);
+  });
+
   it("does not include query dealId unless explicitly allowed", () => {
     const payload = buildCartPayload({
       item: { id: "burger-1" },

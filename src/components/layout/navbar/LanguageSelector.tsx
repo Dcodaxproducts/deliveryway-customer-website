@@ -36,7 +36,7 @@ export function LanguageSelector({ className }: LanguageSelectorProps) {
 
   return (
     <Select
-      value={isLocaleReady ? locale : undefined}
+      value={isLocaleReady ? locale : "en"}
       onValueChange={handleValueChange}
     >
       <SelectTrigger
