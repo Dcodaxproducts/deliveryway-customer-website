@@ -1,14 +1,37 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  getCategoryPlaceholderCount,
   getCategoryLoadOrder,
   getCategoryIdsThroughTarget,
+  getProgressiveCategoryLoadCandidates,
   isProgrammaticCategoryTargetReached,
   loadCategoryIdsInBatches,
   resolveCategoryNavigation,
 } from "./category-scroll";
 
 describe("category scrolling", () => {
+  it("reserves first-page geometry from category metadata", () => {
+    expect(getCategoryPlaceholderCount({ itemCount: 82 })).toBe(50);
+    expect(getCategoryPlaceholderCount({ itemsCount: 14 })).toBe(14);
+    expect(getCategoryPlaceholderCount({ _count: { items: 9 } })).toBe(9);
+    expect(getCategoryPlaceholderCount({ id: "unknown" })).toBe(6);
+  });
+
+  it("suppresses observer fan-out while programmatic navigation owns scroll", () => {
+    expect(
+      getProgressiveCategoryLoadCandidates({
+        visibleCategoryIds: ["pizza", "hamburger", "rolls"],
+        programmaticTargetId: "rolls",
+      }),
+    ).toEqual([]);
+    expect(
+      getProgressiveCategoryLoadCandidates({
+        visibleCategoryIds: ["hamburger", "rolls"],
+      }),
+    ).toEqual(["hamburger"]);
+  });
+
   it("keeps category deep links in the continuous one-page menu", () => {
     expect(resolveCategoryNavigation("vegan-pizza")).toEqual({
       activeCategoryId: "vegan-pizza",
