@@ -9,6 +9,7 @@ import { getStorefrontRequestIdentity } from "@/lib/storefront-request-identity"
 import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
 import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import type { ItemsCategory, MenuItem } from "@/components/pages/Items/types";
 import {
   mergeUniqueById,
@@ -47,6 +48,8 @@ type ItemsListingProps = {
   currency?: string | null;
   hideSectionHeading?: boolean;
   loading?: boolean;
+  sectionLoadFailed?: boolean;
+  onRetrySections?: () => void;
 };
 
 type CategoryItemsState = {
@@ -90,6 +93,36 @@ export const canCommitCategoryItemsRequest = (
   aborted = false,
 ) => !aborted && activeContext === requestContext;
 
+export function ItemsGridSkeleton() {
+  return (
+    <div
+      aria-busy="true"
+      aria-label="Loading menu items"
+      role="status"
+      className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 md:gap-4"
+    >
+      {Array.from({ length: 6 }, (_, index) => (
+        <div
+          key={index}
+          data-testid="item-card-skeleton"
+          className="overflow-hidden rounded-[20px] border border-black/5 bg-white shadow-[-12px_0_32px_0_rgba(26,28,28,0.06)]"
+        >
+          <LoadingSkeleton className="h-[210px] w-full" />
+          <div className="space-y-3 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <LoadingSkeleton className="h-5 w-3/5 rounded-md" />
+              <LoadingSkeleton className="h-5 w-16 rounded-md" />
+            </div>
+            <LoadingSkeleton className="h-4 w-full rounded-md" />
+            <LoadingSkeleton className="h-4 w-4/5 rounded-md" />
+            <LoadingSkeleton className="h-11 w-full rounded-full" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 const getSortOrder = (value: unknown) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
@@ -121,6 +154,8 @@ export function ItemsListing({
   currency,
   hideSectionHeading = false,
   loading = false,
+  sectionLoadFailed = false,
+  onRetrySections,
 }: ItemsListingProps) {
   const t = useTranslations("items.common");
   const { restaurantId: authRestaurantId, token, user } = useAuth();
@@ -856,12 +891,7 @@ export function ItemsListing({
         );
       }
 
-      return (
-        <div className="flex min-h-[180px] items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white text-sm text-gray-500">
-          <Loader2 size={18} className="mr-2 animate-spin text-primary" />
-          {t("loadingItems")}
-        </div>
-      );
+      return <ItemsGridSkeleton />;
     }
 
     if (state.loadedOnce && state.items.length === 0) {
@@ -928,9 +958,20 @@ export function ItemsListing({
     return (
       <div className="min-w-0 space-y-8">
         {loading && sections.length === 0 ? (
-          <div className="flex min-h-48 items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white text-sm text-gray-500">
-            <Loader2 className="mr-2 h-4 w-4 animate-spin text-primary" />
-            {t("loadingItems")}
+          <div className="space-y-4">
+            <LoadingSkeleton className="h-7 w-44 rounded-lg" />
+            <ItemsGridSkeleton />
+          </div>
+        ) : sectionLoadFailed ? (
+          <div className="flex min-h-48 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-red-200 bg-red-50/40 px-6 text-center text-sm text-gray-600">
+            <p>{t("loadCategoriesFailed")}</p>
+            <button
+              type="button"
+              onClick={onRetrySections}
+              className="inline-flex h-10 items-center justify-center rounded-full border border-primary px-5 text-sm font-semibold text-primary transition hover:bg-primary/5"
+            >
+              {t("retryCategories")}
+            </button>
           </div>
         ) : sections.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-400">
@@ -1008,9 +1049,17 @@ export function ItemsListing({
       ) : null}
 
       {loading && !activeCategoryId ? (
-        <div className="flex min-h-48 items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white text-sm text-gray-500">
-          <Loader2 className="mr-2 h-4 w-4 animate-spin text-primary" />
-          {t("loadingItems")}
+        <ItemsGridSkeleton />
+      ) : sectionLoadFailed ? (
+        <div className="flex min-h-48 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-red-200 bg-red-50/40 px-6 text-center text-sm text-gray-600">
+          <p>{t("loadCategoriesFailed")}</p>
+          <button
+            type="button"
+            onClick={onRetrySections}
+            className="inline-flex h-10 items-center justify-center rounded-full border border-primary px-5 text-sm font-semibold text-primary transition hover:bg-primary/5"
+          >
+            {t("retryCategories")}
+          </button>
         </div>
       ) : !activeCategoryId ? (
         <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-400">

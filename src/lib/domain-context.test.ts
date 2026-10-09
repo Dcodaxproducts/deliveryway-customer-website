@@ -5,6 +5,8 @@ import {
   normalizeDomainContext,
   normalizeDomainHost,
   readStoredDomainContext,
+  writeStoredDomainContext,
+  DOMAIN_CONTEXT_STORAGE_TTL_MS,
 } from "./domain-context";
 
 describe("domain context helpers", () => {
@@ -50,17 +52,59 @@ describe("domain context helpers", () => {
   });
 
   it("does not hydrate domain context stored for another restaurant host", () => {
+    const removeItem = vi.fn();
     vi.stubGlobal("window", {
       localStorage: {
         getItem: () =>
           JSON.stringify({
-            restaurantId: "restaurant-1",
-            branchId: "branch-1",
-            host: "first.delivery-way.de",
+            context: {
+              restaurantId: "restaurant-1",
+              branchId: "branch-1",
+              host: "first.delivery-way.de",
+            },
+            cachedAt: 100,
           }),
+        removeItem,
       },
     });
 
-    expect(readStoredDomainContext("second.delivery-way.de")).toBeNull();
+    expect(readStoredDomainContext("second.delivery-way.de", 101)).toBeNull();
+    expect(removeItem).toHaveBeenCalled();
+  });
+
+  it("expires stored signed media context instead of persisting private URLs", () => {
+    let storedValue: string | null = null;
+    const removeItem = vi.fn(() => {
+      storedValue = null;
+    });
+    vi.stubGlobal("window", {
+      localStorage: {
+        getItem: () => storedValue,
+        setItem: (_key: string, value: string) => {
+          storedValue = value;
+        },
+        removeItem,
+      },
+    });
+
+    writeStoredDomainContext(
+      {
+        restaurantId: "restaurant-1",
+        host: "pizza.delivery-way.de",
+        logoUrl: "https://media.example/logo.webp?X-Amz-Signature=private",
+      },
+      1_000,
+    );
+
+    expect(readStoredDomainContext("pizza.delivery-way.de", 1_001)?.logoUrl).toContain(
+      "X-Amz-Signature",
+    );
+    expect(
+      readStoredDomainContext(
+        "pizza.delivery-way.de",
+        1_000 + DOMAIN_CONTEXT_STORAGE_TTL_MS + 1,
+      ),
+    ).toBeNull();
+    expect(removeItem).toHaveBeenCalled();
   });
 });

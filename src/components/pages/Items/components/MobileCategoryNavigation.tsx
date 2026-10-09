@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
 
 import type { ItemsCategory } from "@/components/pages/Items/types";
+import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { getImageUrl } from "@/components/pages/Items/utils/restaurant-card-utils";
 
 type MobileCategoryBrowserProps = {
@@ -27,6 +28,7 @@ type MobileCategoryTabsProps = {
   categories: ItemsCategory[];
   activeCategoryId: string;
   onCategorySelect: (categoryId: string) => void;
+  loading?: boolean;
 };
 
 export function MobileCategoryBrowser({
@@ -166,6 +168,7 @@ export function MobileCategoryTabs({
   categories,
   activeCategoryId,
   onCategorySelect,
+  loading = false,
 }: MobileCategoryTabsProps) {
   const t = useTranslations("items.common");
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -184,6 +187,14 @@ export function MobileCategoryTabs({
       className="sticky top-0 z-30 overflow-x-auto border-b border-gray-100 bg-white/95 px-4 py-3 shadow-sm backdrop-blur [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
       <div className="flex w-max min-w-full gap-2">
+        {loading && categories.length === 0
+          ? Array.from({ length: 4 }, (_, index) => (
+              <LoadingSkeleton
+                key={index}
+                className="h-10 w-28 shrink-0 rounded-xl"
+              />
+            ))
+          : null}
         {categories.map((category) => {
           const id = String(category.id || "");
           const isActive = id === activeCategoryId;

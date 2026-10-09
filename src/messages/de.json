@@ -743,6 +743,8 @@
       "loadCategoryItems": "Kategorieartikel laden",
       "loadItemsFailed": "Die Menüartikel konnten nicht geladen werden. Bitte versuchen Sie es erneut.",
       "retryItems": "Erneut versuchen",
+      "loadCategoriesFailed": "Die Kategorien konnten nicht geladen werden. Bitte versuchen Sie es erneut.",
+      "retryCategories": "Kategorien erneut laden",
       "loadingMore": "Weitere werden geladen...",
       "loadMoreItems": "Weitere Artikel laden"
     },
@@ -773,6 +775,7 @@
     },
     "signature": {
       "failedFetchMenus": "Menüs konnten nicht geladen werden",
+      "retryMenus": "Menüs erneut laden",
       "cartBranchConflict": "Ihr Warenkorb enthält Artikel aus einer anderen Filiale. Warenkorb wird geleert...",
       "failedClearCart": "Warenkorb konnte nicht geleert werden",
       "noMenus": "Keine Menüs gefunden.",

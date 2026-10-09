@@ -743,6 +743,8 @@
       "loadCategoryItems": "Load category items",
       "loadItemsFailed": "Menu items could not be loaded. Please try again.",
       "retryItems": "Try again",
+      "loadCategoriesFailed": "Categories could not be loaded. Please try again.",
+      "retryCategories": "Retry categories",
       "loadingMore": "Loading more...",
       "loadMoreItems": "Load More Items"
     },
@@ -773,6 +775,7 @@
     },
     "signature": {
       "failedFetchMenus": "Failed to fetch menus",
+      "retryMenus": "Retry menus",
       "cartBranchConflict": "Your cart had items from another branch. Clearing cart...",
       "failedClearCart": "Failed to clear cart",
       "noMenus": "No menus found.",

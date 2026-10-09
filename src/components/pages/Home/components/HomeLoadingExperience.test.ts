@@ -37,7 +37,10 @@ describe("home loading experience contract", () => {
     expect(heroSource).toContain("priority");
     expect(categoriesSource).toContain('sizes="81px"');
     expect(categoriesSource).not.toMatch(/sizes="81px"[\s\S]{0,120}priority/);
-    expect(imageSource).not.toContain("unoptimized:");
+    expect(imageSource).toContain(
+      "unoptimized: isTimeLimitedImageUrl(normalizedSource)",
+    );
+    expect(imageSource).not.toContain("unoptimized: true");
     expect(nextConfigSource).not.toContain("unoptimized: true");
     expect(nextConfigSource).toContain("remotePatterns");
     expect(nextConfigSource).toContain("qualities: [75, 78, 82]");

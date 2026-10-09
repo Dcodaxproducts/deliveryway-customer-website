@@ -13,6 +13,7 @@ export type DomainContext = {
 };
 
 const STORAGE_KEY = "deliveryway-domain-context";
+export const DOMAIN_CONTEXT_STORAGE_TTL_MS = 4 * 60 * 1000;
 const DEFAULT_LOCAL_RESTAURANT_ID = "cmp0t09gu0024t7ilmt3x4diu";
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1"]);
 
@@ -72,20 +73,27 @@ export const normalizeDomainContext = (value: unknown): DomainContext | null => 
 
 export const readStoredDomainContext = (
   currentHost?: string | null,
+  now = Date.now(),
 ): DomainContext | null => {
   if (typeof window === "undefined") return null;
 
   try {
-    const context = normalizeDomainContext(
-      JSON.parse(window.localStorage.getItem(STORAGE_KEY) || "null"),
-    );
+    const storedValue = JSON.parse(
+      window.localStorage.getItem(STORAGE_KEY) || "null",
+    ) as unknown;
+    const storedRecord = isRecord(storedValue) ? storedValue : null;
+    const context = normalizeDomainContext(storedRecord?.context);
+    const cachedAt = storedRecord?.cachedAt;
     const normalizedCurrentHost = normalizeDomainHost(currentHost ?? "");
 
     if (
-      context &&
-      normalizedCurrentHost &&
-      normalizeDomainHost(context.host ?? "") !== normalizedCurrentHost
+      !context ||
+      typeof cachedAt !== "number" ||
+      now - cachedAt > DOMAIN_CONTEXT_STORAGE_TTL_MS ||
+      (normalizedCurrentHost &&
+        normalizeDomainHost(context.host ?? "") !== normalizedCurrentHost)
     ) {
+      window.localStorage.removeItem(STORAGE_KEY);
       return null;
     }
 
@@ -95,7 +103,10 @@ export const readStoredDomainContext = (
   }
 };
 
-export const writeStoredDomainContext = (context: DomainContext | null) => {
+export const writeStoredDomainContext = (
+  context: DomainContext | null,
+  cachedAt = Date.now(),
+) => {
   if (typeof window === "undefined") return;
 
   if (!context) {
@@ -103,5 +114,8 @@ export const writeStoredDomainContext = (context: DomainContext | null) => {
     return;
   }
 
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(context));
+  window.localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({ context, cachedAt }),
+  );
 };

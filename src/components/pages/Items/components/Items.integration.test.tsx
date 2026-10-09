@@ -154,6 +154,38 @@ describe("ItemsListing mounted progressive loading", () => {
     );
   });
 
+  it("shows geometry-preserving cards instead of a false empty state while loading", () => {
+    render(
+      <ItemsListing
+        sections={[]}
+        contentSource="category"
+        viewMode="onePage"
+        loading
+      />,
+    );
+
+    expect(screen.getAllByTestId("item-card-skeleton")).toHaveLength(6);
+    expect(screen.queryByText("noCategories")).toBeNull();
+  });
+
+  it("renders a distinct category error with retry before the empty state", () => {
+    const retry = vi.fn();
+    render(
+      <ItemsListing
+        sections={[]}
+        contentSource="category"
+        viewMode="onePage"
+        sectionLoadFailed
+        onRetrySections={retry}
+      />,
+    );
+
+    expect(screen.getByText("loadCategoriesFailed")).toBeTruthy();
+    expect(screen.queryByText("noCategories")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "retryCategories" }));
+    expect(retry).toHaveBeenCalledOnce();
+  });
+
   it("aborts a stale storefront context and never commits its late response", async () => {
     let resolveStale: ((value: ReturnType<typeof makePage>) => void) | undefined;
     let staleSignal: AbortSignal | undefined;

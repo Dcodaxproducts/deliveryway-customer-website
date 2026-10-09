@@ -41,7 +41,12 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "deliveryway.s3.eu-west-2.amazonaws.com",
-        pathname: "/**",
+        pathname: "/uploads/**",
+      },
+      {
+        protocol: "https",
+        hostname: "deliveryway-production-media.s3.eu-north-1.amazonaws.com",
+        pathname: "/uploads/**",
       },
       
       
