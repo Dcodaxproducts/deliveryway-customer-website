@@ -14,6 +14,7 @@ import { PromotionalItemsSection } from "@/components/pages/Home/components/Prom
 import { CustomerDealsSection } from "@/components/pages/Home/components/CustomerDealsSection";
 import { MobileStorefrontRail } from "@/components/pages/Home/components/MobileStorefrontRail";
 import { Button } from "@/components/ui/button";
+import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { resolveHttpsImageUrl } from "@/lib/image-fallback";
 import type { Branding } from "@/types/branding";
 import type { HomeCategory } from "@/types/home";
@@ -29,6 +30,8 @@ type MobileHomeExperienceProps = {
   branch: { name?: string | null } | null;
   categories: HomeCategory[];
   categoriesLoading: boolean;
+  categoriesError?: boolean;
+  onRetryCategories?: () => void;
   promotionalItems: MenuItem[];
   promotionalItemsLoading: boolean;
   deals: CustomerDeal[];
@@ -58,6 +61,8 @@ export function MobileHomeExperience({
   branch,
   categories,
   categoriesLoading,
+  categoriesError = false,
+  onRetryCategories,
   promotionalItems,
   promotionalItemsLoading,
   deals,
@@ -193,11 +198,30 @@ export function MobileHomeExperience({
           <MobileStorefrontRail variant="categories">
             {[1, 2, 3, 4].map((item) => (
               <span key={item} className="flex w-20 flex-col items-center gap-2">
-                <span className="h-16 w-16 animate-pulse rounded-full bg-white" />
-                <span className="h-3 w-14 animate-pulse rounded bg-white" />
+                <LoadingSkeleton className="h-16 w-16 rounded-full bg-white" />
+                <LoadingSkeleton className="h-3 w-14 rounded bg-white" />
               </span>
             ))}
           </MobileStorefrontRail>
+        </section>
+      ) : categoriesError ? (
+        <section className="px-4 pt-4">
+          <div
+            role="status"
+            className="flex min-h-24 items-center justify-between gap-4 rounded-2xl bg-white px-4 py-4 shadow-sm"
+          >
+            <p className="text-sm font-medium text-gray-600">
+              {t("categoriesError")}
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-9 shrink-0 rounded-full px-4 text-sm"
+              onClick={onRetryCategories}
+            >
+              {t("retry")}
+            </Button>
+          </div>
         </section>
       ) : visibleCategories.length > 0 ? (
         <section className="px-4 pt-4">
@@ -227,7 +251,13 @@ export function MobileHomeExperience({
             ))}
           </MobileStorefrontRail>
         </section>
-      ) : null}
+      ) : (
+        <section className="px-4 pt-4">
+          <p className="rounded-2xl bg-white px-4 py-5 text-sm text-gray-500 shadow-sm">
+            {t("categoriesEmpty")}
+          </p>
+        </section>
+      )}
 
       <main className="pt-4">
         <section className="relative z-10 mx-4 overflow-hidden rounded-[28px] bg-[#2b1714] p-5 text-white shadow-[0_18px_45px_rgba(31,23,18,0.18)]">

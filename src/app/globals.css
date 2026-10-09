@@ -247,6 +247,31 @@ button{
   cursor: pointer;
 }
 
+@keyframes loading-skeleton-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.loading-skeleton {
+  isolation: isolate;
+  overflow: hidden;
+  position: relative;
+}
+
+.loading-skeleton::after {
+  animation: loading-skeleton-shimmer 1.6s ease-in-out infinite;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgb(255 255 255 / 0.48) 48%,
+    transparent 100%
+  );
+  content: "";
+  inset: 0;
+  position: absolute;
+  transform: translateX(-100%);
+}
+
 
 .time-24-picker,
 .time-24-picker .react-time-picker__wrapper {
@@ -354,6 +379,7 @@ button{
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .loading-skeleton::after { animation: none; }
   .storefront-rail { scroll-behavior: auto; }
   .storefront-rail,
   .storefront-rail * {

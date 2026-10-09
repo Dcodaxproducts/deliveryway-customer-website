@@ -15,6 +15,7 @@ import { GiftCardsSection } from "@/components/pages/Home/components/GiftCardsSe
 import { MobileHomeExperience } from "@/components/pages/Home/components/MobileHomeExperience";
 import { PromotionalItemsSection } from "@/components/pages/Home/components/PromotionalItemsSection";
 import { CuisineSection } from "@/components/pages/Cuisines/CuisineSection";
+import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 
 import { DEFAULT_BRANDING } from "@/config/default-branding";
 import { useAuth } from "@/hooks/useAuth";
@@ -284,14 +285,49 @@ const HomePage = () => {
     return (
       <main
         aria-busy="true"
-        aria-label="Loading restaurant"
-        className="mx-auto min-h-screen max-w-[1440px] animate-pulse px-5 py-8 lg:px-8"
+        aria-describedby="restaurant-loading-status"
+        className="min-h-screen bg-white"
       >
-        <div className="h-[320px] rounded-[28px] bg-gray-100 md:h-[520px]" />
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: 4 }, (_, index) => (
-            <div key={index} className="h-36 rounded-2xl bg-gray-100" />
-          ))}
+        <span id="restaurant-loading-status" className="sr-only" role="status">
+          Loading restaurant
+        </span>
+
+        <div className="relative min-h-[620px] overflow-hidden md:min-h-[620px] lg:min-h-[660px]">
+          <LoadingSkeleton className="absolute inset-0 h-full w-full rounded-none bg-[#351b1d]" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/35 to-black/10" />
+          <div className="relative mx-auto grid min-h-[620px] w-full max-w-[1440px] items-center gap-8 px-5 py-10 sm:px-6 lg:min-h-[660px] lg:grid-cols-[minmax(0,1fr)_480px] lg:px-8">
+            <div aria-hidden="true" className="max-w-[680px] space-y-5">
+              <LoadingSkeleton className="h-14 w-[min(100%,620px)] rounded-2xl bg-white/20" />
+              <LoadingSkeleton className="h-6 w-[min(82%,520px)] rounded-xl bg-white/15" />
+              <div className="grid gap-3 pt-2 sm:grid-cols-3">
+                {Array.from({ length: 3 }, (_, index) => (
+                  <LoadingSkeleton
+                    key={index}
+                    className="h-[118px] rounded-[18px] bg-white/12"
+                  />
+                ))}
+              </div>
+            </div>
+            <LoadingSkeleton className="h-[360px] rounded-[26px] bg-white/85" />
+          </div>
+        </div>
+
+        <div className="relative z-20 mx-auto -mt-15 max-w-[1400px] px-4 sm:-mt-20 sm:px-6">
+          <div className="rounded-[30px] bg-white px-4 py-5 shadow-sm sm:px-6 sm:py-6">
+            <LoadingSkeleton className="mb-5 h-7 w-44 rounded-lg" />
+            <div className="grid grid-cols-2 gap-3 overflow-hidden sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
+              {Array.from({ length: 8 }, (_, index) => (
+                <div
+                  key={index}
+                  aria-hidden="true"
+                  className="flex min-h-[132px] flex-col items-center justify-center gap-3"
+                >
+                  <LoadingSkeleton className="h-[81px] w-[81px] rounded-full" />
+                  <LoadingSkeleton className="h-4 w-20 rounded" />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </main>
     );
@@ -309,6 +345,8 @@ const HomePage = () => {
         branch={resolvedBranch}
         categories={categoriesQuery.data ?? []}
         categoriesLoading={categoriesQuery.isLoading}
+        categoriesError={categoriesQuery.isError}
+        onRetryCategories={() => void categoriesQuery.refetch()}
         promotionalItems={promotionalItemsQuery.data ?? []}
         promotionalItemsLoading={promotionalItemsQuery.isLoading}
         deals={dealsQuery.deals}

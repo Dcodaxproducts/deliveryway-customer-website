@@ -257,6 +257,8 @@
       "categories": "Categories",
       "viewAll": "View all",
       "categoriesEmpty": "Categories will appear here once available.",
+      "categoriesError": "Categories could not be loaded.",
+      "retry": "Try again",
       "browseMenu": "Browse the menu",
       "recommendationsEmpty": "Fresh recommendations will appear here when deals are available.",
       "exploreFood": "Explore food"
@@ -269,6 +271,8 @@
       "previous": "Previous categories",
       "next": "Next categories",
       "empty": "No categories found",
+      "error": "Categories could not be loaded.",
+      "retry": "Try again",
       "groupOrder": "Group Order",
       "menu": "Menu",
       "orderNow": "Order Now"

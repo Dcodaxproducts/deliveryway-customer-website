@@ -14,6 +14,8 @@ import {
   Utensils,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ResilientImage } from "@/components/common/ResilientImage";
+import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import {
   Carousel,
   CarouselContent,
@@ -136,11 +138,14 @@ const getPromotionImage = (promotion: PromotionCampaign) => {
 
 const PromotionBannerSkeleton = () => {
   return (
-    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
+    <div
+      className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3"
+      aria-hidden="true"
+    >
       {[1, 2, 3].map((item) => (
-        <div
+        <LoadingSkeleton
           key={item}
-          className="h-[250px] animate-pulse rounded-[24px] bg-gray-100"
+          className="h-[250px] rounded-[24px] bg-gray-100"
         />
       ))}
     </div>
@@ -426,16 +431,36 @@ export function FoodCategorySection() {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-2 gap-3 overflow-hidden sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
+          <div
+            className="grid grid-cols-2 gap-3 overflow-hidden sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8"
+            aria-hidden="true"
+          >
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
               <div
                 key={i}
                 className="flex min-h-[128px] flex-col items-center justify-center gap-3 rounded-[24px]"
               >
-                <div className="h-16 w-16 animate-pulse rounded-full bg-gray-200" />
-                <div className="h-4 w-20 animate-pulse rounded bg-gray-200" />
+                <LoadingSkeleton className="h-[81px] w-[81px] rounded-full" />
+                <LoadingSkeleton className="h-4 w-20 rounded" />
               </div>
             ))}
+          </div>
+        ) : categoriesQuery.isError ? (
+          <div
+            role="status"
+            className="flex min-h-[132px] flex-col items-center justify-center gap-3 rounded-2xl bg-[#FAFAFA] px-4 py-6 text-center"
+          >
+            <p className="text-sm font-medium text-gray-600">
+              {tCategories("error")}
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-9 rounded-full px-4 text-sm"
+              onClick={() => void categoriesQuery.refetch()}
+            >
+              {tCategories("retry")}
+            </Button>
           </div>
         ) : categories.length === 0 ? (
           <p className="rounded-2xl bg-[#FAFAFA] px-4 py-6 text-sm text-gray-400">
@@ -474,13 +499,14 @@ export function FoodCategorySection() {
                       }
                     >
                       <div className="group flex min-h-[132px] cursor-pointer flex-col items-center justify-center gap-3 rounded-[22px] px-2 py-3 text-center transition hover:-translate-y-1">
-                        <div className="relative h-[81px] w-[81px] overflow-hidden rounded-full transition group-hover:scale-105">
-                          <Image
+                        <div className="relative h-[81px] w-[81px] overflow-hidden rounded-full bg-gray-100 ring-1 ring-black/5 transition group-hover:scale-105 motion-reduce:transition-none">
+                          <ResilientImage
                             src={image}
                             alt={item.name}
                             fill
-                            className="object-cover object-top"
-                            unoptimized
+                            sizes="81px"
+                            className="object-cover object-center"
+                            fallback="brand"
                           />
                         </div>
 

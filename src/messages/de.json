@@ -257,6 +257,8 @@
       "categories": "Kategorien",
       "viewAll": "Alle anzeigen",
       "categoriesEmpty": "Kategorien werden hier angezeigt, sobald sie verfügbar sind.",
+      "categoriesError": "Kategorien konnten nicht geladen werden.",
+      "retry": "Erneut versuchen",
       "browseMenu": "Menü ansehen",
       "recommendationsEmpty": "Frische Empfehlungen werden hier angezeigt, sobald Angebote verfügbar sind.",
       "exploreFood": "Gerichte entdecken"
@@ -269,6 +271,8 @@
       "previous": "Vorherige Kategorien",
       "next": "Nächste Kategorien",
       "empty": "Keine Kategorien gefunden",
+      "error": "Kategorien konnten nicht geladen werden.",
+      "retry": "Erneut versuchen",
       "groupOrder": "Gruppenbestellung",
       "menu": "Menü",
       "orderNow": "Jetzt bestellen"

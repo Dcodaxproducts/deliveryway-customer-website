@@ -539,6 +539,8 @@ export const HeroSection = ({
           alt={t("heroImageAlt")}
           fill
           className="object-cover"
+          sizes="100vw"
+          quality={82}
           priority
           fallback="hero"
         />

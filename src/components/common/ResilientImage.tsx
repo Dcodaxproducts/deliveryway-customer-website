@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import { BadgePercent, Store } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-import { isRemoteHttpsImageUrl } from "@/lib/image-fallback";
+import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
+import { cn } from "@/lib/utils";
 
 type ResilientImageProps = {
   src?: string | null;
@@ -16,6 +17,13 @@ type ResilientImageProps = {
   className?: string;
   priority?: boolean;
   fallback?: "brand" | "deal" | "hero";
+  quality?: number;
+  skeletonClassName?: string;
+};
+
+type ImageState = {
+  source: string;
+  status: "loading" | "loaded" | "failed";
 };
 
 export const shouldRenderImage = (src: string | null | undefined, failed: boolean) =>
@@ -31,10 +39,22 @@ export const ResilientImage = ({
   className,
   priority = false,
   fallback = "brand",
+  quality = 78,
+  skeletonClassName,
 }: ResilientImageProps) => {
-  const [failed, setFailed] = useState(false);
+  const normalizedSource = src?.trim() ?? "";
+  const [imageState, setImageState] = useState<ImageState>({
+    source: normalizedSource,
+    status: "loading",
+  });
+  const status =
+    imageState.source === normalizedSource ? imageState.status : "loading";
+  const failed = status === "failed";
+  const loaded = status === "loaded";
 
-  useEffect(() => setFailed(false), [src]);
+  const updateStatus = (nextStatus: ImageState["status"]) => {
+    setImageState({ source: normalizedSource, status: nextStatus });
+  };
 
   if (!shouldRenderImage(src, failed)) {
     const Icon = fallback === "deal" ? BadgePercent : Store;
@@ -54,14 +74,62 @@ export const ResilientImage = ({
   }
 
   const common = {
-    src: src as string,
+    src: normalizedSource,
     alt,
-    className,
+    className: cn(
+      "transition-opacity duration-300 motion-reduce:transition-none",
+      loaded ? "opacity-100" : "opacity-0",
+      className,
+    ),
     priority,
     sizes,
-    unoptimized: isRemoteHttpsImageUrl(src),
-    onError: () => setFailed(true),
+    quality,
+    onLoad: (event: React.SyntheticEvent<HTMLImageElement>) => {
+      const loadedImage = event.currentTarget;
+
+      void loadedImage
+        .decode()
+        .then(() => updateStatus("loaded"))
+        .catch(() => updateStatus("failed"));
+    },
+    onError: () => updateStatus("failed"),
   };
 
-  return fill ? <Image {...common} fill /> : <Image {...common} width={width} height={height} />;
+  const skeleton = (
+    <LoadingSkeleton
+      testId="image-loading-skeleton"
+      className={cn(
+        "absolute inset-0 h-full w-full transition-opacity duration-300 motion-reduce:transition-none",
+        fallback === "hero"
+          ? "bg-[linear-gradient(115deg,#351b1d_0%,color-mix(in_srgb,var(--primary)_45%,#4a2427)_48%,#291719_100%)]"
+          : "bg-gray-200",
+        loaded ? "pointer-events-none opacity-0" : "opacity-100",
+        skeletonClassName,
+      )}
+    />
+  );
+
+  if (fill) {
+    return (
+      <>
+        {skeleton}
+        <Image key={normalizedSource} {...common} fill />
+      </>
+    );
+  }
+
+  return (
+    <span
+      className="relative inline-block overflow-hidden"
+      style={{ width, height }}
+    >
+      {skeleton}
+      <Image
+        key={normalizedSource}
+        {...common}
+        width={width}
+        height={height}
+      />
+    </span>
+  );
 };
