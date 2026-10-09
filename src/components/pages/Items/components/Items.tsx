@@ -16,6 +16,8 @@ import {
 } from "@/components/pages/Items/utils/restaurant-card-utils";
 import {
   getCategoryLoadOrder,
+  getCategoryPlaceholderCount,
+  getProgressiveCategoryLoadCandidates,
   isProgrammaticCategoryTargetReached,
   loadCategoryIdsInBatches,
 } from "@/components/pages/Items/utils/category-scroll";
@@ -58,6 +60,12 @@ type CategoryItemsState = {
   loadedOnce: boolean;
   failed: boolean;
   totalCount: number | null;
+};
+
+type CategoryRequest = {
+  controller: AbortController;
+  categoryId: string;
+  page: number;
 };
 
 const ITEMS_PAGE_LIMIT = 50;
@@ -143,8 +151,8 @@ export function ItemsListing({
   }, []);
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
-  const inFlightRequestsRef = useRef<Set<string>>(new Set());
-  const requestControllersRef = useRef<Map<string, AbortController>>(new Map());
+  const inFlightRequestsRef = useRef<Map<string, AbortController>>(new Map());
+  const requestControllersRef = useRef<Map<string, CategoryRequest>>(new Map());
   const handledScrollNonceRef = useRef<number | null>(null);
   const programmaticScrollTargetRef = useRef<string | null>(null);
 
@@ -168,7 +176,7 @@ export function ItemsListing({
   const requestContextRef = useRef(requestContextKey);
 
   useEffect(() => {
-    requestControllersRef.current.forEach((controller) => controller.abort());
+    requestControllersRef.current.forEach(({ controller }) => controller.abort());
     requestControllersRef.current.clear();
     requestContextRef.current = requestContextKey;
     inFlightRequestsRef.current.clear();
@@ -176,7 +184,7 @@ export function ItemsListing({
     setCategoryItemsMap({});
 
     return () => {
-      requestControllersRef.current.forEach((controller) => controller.abort());
+      requestControllersRef.current.forEach(({ controller }) => controller.abort());
       requestControllersRef.current.clear();
     };
   }, [requestContextKey]);
@@ -211,8 +219,12 @@ export function ItemsListing({
     const controller = new AbortController();
 
     try {
-      inFlightRequestsRef.current.add(requestKey);
-      requestControllersRef.current.set(requestKey, controller);
+      inFlightRequestsRef.current.set(requestKey, controller);
+      requestControllersRef.current.set(requestKey, {
+        controller,
+        categoryId,
+        page,
+      });
 
       queueMicrotask(() => {
         setCategoryItemsMap((prev) => {
@@ -324,8 +336,12 @@ export function ItemsListing({
         });
       });
     } finally {
-      inFlightRequestsRef.current.delete(requestKey);
-      if (requestControllersRef.current.get(requestKey) === controller) {
+      if (inFlightRequestsRef.current.get(requestKey) === controller) {
+        inFlightRequestsRef.current.delete(requestKey);
+      }
+      if (
+        requestControllersRef.current.get(requestKey)?.controller === controller
+      ) {
         requestControllersRef.current.delete(requestKey);
       }
     }
@@ -337,6 +353,19 @@ export function ItemsListing({
     if (contentSource !== "category") return;
     if (viewMode !== "multiple") return;
     if (!activeCategoryId || !restaurantId) return;
+
+    const existing = categoryItemsMapRef.current[activeCategoryId];
+    if (existing?.loadedOnce) return;
+
+    requestControllersRef.current.forEach((request, requestKey) => {
+      if (request.page === 1 && request.categoryId !== activeCategoryId) {
+        request.controller.abort();
+        requestControllersRef.current.delete(requestKey);
+        if (inFlightRequestsRef.current.get(requestKey) === request.controller) {
+          inFlightRequestsRef.current.delete(requestKey);
+        }
+      }
+    });
 
     queueMicrotask(() => {
       fetchCategoryItems({
@@ -382,7 +411,24 @@ export function ItemsListing({
       sections,
       scrollTarget?.id,
     );
+    const requestedTargetId = categoryIdsToLoad[0];
     let cancelled = false;
+
+    if (scrollTarget?.id) {
+      programmaticScrollTargetRef.current = String(scrollTarget.id);
+    }
+
+    if (requestedTargetId) {
+      requestControllersRef.current.forEach((request, requestKey) => {
+        if (request.page === 1 && request.categoryId !== requestedTargetId) {
+          request.controller.abort();
+          requestControllersRef.current.delete(requestKey);
+          if (inFlightRequestsRef.current.get(requestKey) === request.controller) {
+            inFlightRequestsRef.current.delete(requestKey);
+          }
+        }
+      });
+    }
 
     queueMicrotask(() => {
       void loadCategoryIdsInBatches({
@@ -394,7 +440,7 @@ export function ItemsListing({
 
           const state = categoryItemsMapRef.current[categoryId];
 
-          if (state?.loadedOnce || state?.loading) return;
+          if (state?.loadedOnce) return;
 
           await fetchCategoryItems({
             categoryId,
@@ -432,8 +478,16 @@ export function ItemsListing({
           )
           .filter(Boolean);
 
+        const categoryIdsToLoad = getProgressiveCategoryLoadCandidates({
+          visibleCategoryIds: visibleIds.filter((categoryId) => {
+            const state = categoryItemsMapRef.current[categoryId];
+            return !state?.loadedOnce && !state?.loading;
+          }),
+          programmaticTargetId: programmaticScrollTargetRef.current,
+        });
+
         void loadCategoryIdsInBatches({
-          categoryIds: visibleIds,
+          categoryIds: categoryIdsToLoad,
           batchSize: CATEGORY_LOAD_BATCH_SIZE,
           load: async (visibleCategoryId) => {
             const state = categoryItemsMapRef.current[visibleCategoryId];
@@ -447,7 +501,7 @@ export function ItemsListing({
           },
         });
       },
-      { rootMargin: "400px 0px", threshold: 0.01 },
+      { rootMargin: "160px 0px", threshold: 0.01 },
     );
 
     sections.forEach((section) => {
@@ -576,7 +630,7 @@ export function ItemsListing({
       }
 
       el.scrollIntoView({
-        behavior: "smooth",
+        behavior: "auto",
         block: "start",
       });
       handledScrollNonceRef.current = scrollTarget.nonce;
@@ -806,12 +860,18 @@ export function ItemsListing({
 
   const renderItemsGrid = ({
     categoryId,
+    category,
     emptyLabel = t("noItems"),
   }: {
     categoryId: string;
+    category?: ItemsSection | null;
     emptyLabel?: string;
   }) => {
     const state = categoryItemsMap[categoryId] || createEmptyCategoryState();
+    const placeholderCount = getCategoryPlaceholderCount(
+      category,
+      ITEMS_PAGE_LIMIT,
+    );
 
     if (state.failed && !state.items.length) {
       return (
@@ -857,9 +917,23 @@ export function ItemsListing({
       }
 
       return (
-        <div className="flex min-h-[180px] items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white text-sm text-gray-500">
-          <Loader2 size={18} className="mr-2 animate-spin text-primary" />
-          {t("loadingItems")}
+        <div
+          data-testid={`category-skeleton-${categoryId}`}
+          aria-label={t("loadingItems")}
+          className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2 md:gap-4 xl:grid-cols-3"
+        >
+          {Array.from({ length: placeholderCount }, (_, index) => (
+            <div
+              key={index}
+              aria-hidden="true"
+              className="min-h-[132px] animate-pulse rounded-xl border border-gray-100 bg-white p-3 shadow-[0_6px_18px_rgba(15,23,42,0.04)] motion-reduce:animate-none"
+            >
+              <div className="h-4 w-2/3 rounded bg-gray-200" />
+              <div className="mt-3 h-3 w-full rounded bg-gray-100" />
+              <div className="mt-2 h-3 w-4/5 rounded bg-gray-100" />
+              <div className="mt-5 h-4 w-20 rounded bg-gray-200" />
+            </div>
+          ))}
         </div>
       );
     }
@@ -981,6 +1055,7 @@ export function ItemsListing({
                   ? renderMenuItemsGrid(menuItems, t("noItemsInMenu"))
                   : renderItemsGrid({
                       categoryId: id,
+                      category,
                       emptyLabel: t("noItemsInCategory"),
                     })}
               </section>
@@ -1024,6 +1099,7 @@ export function ItemsListing({
       ) : (
         renderItemsGrid({
           categoryId: activeCategoryId,
+          category: activeCategory,
           emptyLabel: t("noItems"),
         })
       )}

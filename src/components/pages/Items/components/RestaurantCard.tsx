@@ -2472,7 +2472,7 @@ export function RestaurantCard({
         tabIndex={0}
         onClick={handlePlusClick}
         onKeyDown={handleCardKeyDown}
-        className="group relative cursor-pointer rounded-xl border border-gray-100 bg-white p-3 shadow-[0_6px_18px_rgba(15,23,42,0.055)] transition duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-[0_12px_26px_rgba(15,23,42,0.09)] focus:outline-none focus:ring-2 focus:ring-primary/30"
+        className="group relative min-h-[132px] cursor-pointer rounded-xl border border-gray-100 bg-white p-3 shadow-[0_6px_18px_rgba(15,23,42,0.055)] transition duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-[0_12px_26px_rgba(15,23,42,0.09)] focus:outline-none focus:ring-2 focus:ring-primary/30"
       >
         <div className="flex justify-between gap-3 md:gap-4">
           <div className="order-2 min-w-0 flex-1 md:order-1">

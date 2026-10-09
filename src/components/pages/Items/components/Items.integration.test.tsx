@@ -78,11 +78,21 @@ describe("ItemsListing mounted progressive loading", () => {
     expect(maxConcurrency).toBe(1);
     await screen.findByText("category-1 item 50");
     const loadingObserver = TestIntersectionObserver.instances.find(
-      (observer) => observer.rootMargin === "400px 0px",
+      (observer) => observer.rootMargin === "160px 0px",
     );
     expect(loadingObserver).toBeDefined();
     const laterSections = Array.from(container.querySelectorAll<HTMLElement>("[data-category-id]")).slice(1);
-    loadingObserver?.intersect(laterSections);
+    for (const section of laterSections) {
+      loadingObserver?.intersect([section]);
+      await waitFor(() =>
+        expect(testState.fetchMenuItemsPage).toHaveBeenCalledWith(
+          expect.objectContaining({
+            categoryId: section.dataset.categoryId,
+            page: 1,
+          }),
+        ),
+      );
+    }
     await waitFor(() => expect(testState.fetchMenuItemsPage).toHaveBeenCalledTimes(18));
     expect(maxConcurrency).toBe(1);
     expect(await screen.findByText("category-18 item 1")).toBeTruthy();
@@ -130,6 +140,80 @@ describe("ItemsListing mounted progressive loading", () => {
       expect.objectContaining({ categoryId: "category-18", page: 1 }),
     );
     expect(await screen.findByText("category-18 item 1")).toBeTruthy();
+  });
+
+  it("makes rapid Pizza to Hamburger to rolls to Pizza navigation latest-wins", async () => {
+    globalThis.IntersectionObserver = TestIntersectionObserver;
+    const scrollIntoView = vi.fn();
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+      configurable: true,
+      value: scrollIntoView,
+    });
+    const pending: Array<{
+      categoryId: string;
+      signal?: AbortSignal;
+      resolve: (value: ReturnType<typeof makePage>) => void;
+    }> = [];
+    testState.fetchMenuItemsPage.mockImplementation(
+      ({ categoryId, signal }: { categoryId: string; signal?: AbortSignal }) =>
+        new Promise((resolve) => {
+          pending.push({
+            categoryId,
+            signal,
+            resolve: (value) => resolve(value),
+          });
+        }),
+    );
+    const rapidSections = [
+      { id: "pizza", name: "Pizza", itemCount: 82 },
+      { id: "hamburger", name: "Hamburger", itemCount: 14 },
+      { id: "rolls", name: "Pizzabrötchen", itemCount: 10 },
+    ];
+    const { rerender } = render(
+      <ItemsListing
+        activeSectionId="pizza"
+        sections={rapidSections}
+        contentSource="category"
+        viewMode="onePage"
+        scrollTarget={{ id: "pizza", nonce: 1 }}
+      />,
+    );
+    await waitFor(() => expect(pending).toHaveLength(1));
+    expect(screen.getByTestId("category-skeleton-pizza").children).toHaveLength(50);
+
+    for (const [id, nonce] of [
+      ["hamburger", 2],
+      ["rolls", 3],
+      ["pizza", 4],
+    ] as const) {
+      rerender(
+        <ItemsListing
+          activeSectionId={id}
+          sections={rapidSections}
+          contentSource="category"
+          viewMode="onePage"
+          scrollTarget={{ id, nonce }}
+        />,
+      );
+      await waitFor(() => expect(pending).toHaveLength(nonce));
+    }
+
+    expect(
+      pending.slice(0, 3).every((request) => request.signal?.aborted),
+    ).toBe(true);
+    expect(pending[3].categoryId).toBe("pizza");
+    expect(pending[3].signal?.aborted).toBe(false);
+    pending[3].resolve(makePage("pizza", 1));
+
+    expect(await screen.findByText("pizza item 1")).toBeTruthy();
+    await waitFor(() =>
+      expect(scrollIntoView).toHaveBeenLastCalledWith({
+        behavior: "auto",
+        block: "start",
+      }),
+    );
+    expect(screen.queryByText("hamburger item 1")).toBeNull();
+    expect(screen.queryByText("rolls item 1")).toBeNull();
   });
 
   it("loads only the active category in multiple mode", async () => {
