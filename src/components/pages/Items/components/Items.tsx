@@ -474,25 +474,23 @@ export function ItemsListing({
       });
     }
 
-    queueMicrotask(() => {
-      void loadCategoryIdsInBatches({
-        categoryIds: categoryIdsToLoad,
-        batchSize: CATEGORY_LOAD_BATCH_SIZE,
-        shouldContinue: () => !cancelled,
-        load: async (categoryId) => {
-          if (cancelled) return;
+    void loadCategoryIdsInBatches({
+      categoryIds: categoryIdsToLoad,
+      batchSize: CATEGORY_LOAD_BATCH_SIZE,
+      shouldContinue: () => !cancelled,
+      load: async (categoryId) => {
+        if (cancelled) return;
 
-          const state = categoryItemsMapRef.current[categoryId];
+        const state = categoryItemsMapRef.current[categoryId];
 
-          if (state?.loadedOnce) return;
+        if (state?.loadedOnce) return;
 
-          await fetchCategoryItems({
-            categoryId,
-            page: 1,
-            append: false,
-          });
-        },
-      });
+        await fetchCategoryItems({
+          categoryId,
+          page: 1,
+          append: false,
+        });
+      },
     });
 
     return () => {
@@ -525,7 +523,14 @@ export function ItemsListing({
         const categoryIdsToLoad = getProgressiveCategoryLoadCandidates({
           visibleCategoryIds: visibleIds.filter((categoryId) => {
             const state = categoryItemsMapRef.current[categoryId];
-            return !state?.loadedOnce && !state?.loading;
+            const hasPageOneRequest = Array.from(
+              requestControllersRef.current.values(),
+            ).some(
+              (request) =>
+                request.page === 1 && request.categoryId === categoryId,
+            );
+
+            return !state?.loadedOnce && !state?.loading && !hasPageOneRequest;
           }),
           programmaticTargetId: programmaticScrollTargetRef.current,
         });

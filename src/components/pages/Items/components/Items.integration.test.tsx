@@ -31,6 +31,7 @@ const flush = () => new Promise<void>((resolve) => window.setTimeout(resolve, 0)
 
 class TestIntersectionObserver implements IntersectionObserver {
   static instances: TestIntersectionObserver[] = [];
+  static eagerIntersectionCount = 0;
   readonly root = null;
   readonly rootMargin: string;
   readonly thresholds: ReadonlyArray<number>;
@@ -45,7 +46,15 @@ class TestIntersectionObserver implements IntersectionObserver {
     TestIntersectionObserver.instances.push(this);
   }
   disconnect = vi.fn();
-  observe = (target: Element) => { this.observed.push(target); };
+  observe = (target: Element) => {
+    this.observed.push(target);
+    if (
+      this.rootMargin === "160px 0px" &&
+      this.observed.length === TestIntersectionObserver.eagerIntersectionCount
+    ) {
+      this.intersect(this.observed);
+    }
+  };
   unobserve = vi.fn();
   takeRecords = () => [];
   intersect(targets: Element[]) {
@@ -61,10 +70,43 @@ beforeEach(() => {
   testState.domain.context = { restaurantId: "restaurant-1", branchId: "branch-1" };
   testState.fetchMenuItemsPage.mockReset();
   TestIntersectionObserver.instances = [];
+  TestIntersectionObserver.eagerIntersectionCount = 0;
   delete (globalThis as { IntersectionObserver?: typeof IntersectionObserver }).IntersectionObserver;
 });
 
 describe("ItemsListing mounted progressive loading", () => {
+  it("loads the next visible category when the observer fires during initial request startup", async () => {
+    globalThis.IntersectionObserver = TestIntersectionObserver;
+    TestIntersectionObserver.eagerIntersectionCount = 2;
+    const pending: Array<{ categoryId: string; resolve: (value: ReturnType<typeof makePage>) => void }> = [];
+    testState.fetchMenuItemsPage.mockImplementation(
+      ({ categoryId }: { categoryId: string }) =>
+        new Promise((resolve) => {
+          pending.push({
+            categoryId,
+            resolve: (value) => resolve(value),
+          });
+        }),
+    );
+
+    render(
+      <ItemsListing
+        sections={sections.slice(0, 2)}
+        contentSource="category"
+        viewMode="onePage"
+      />,
+    );
+
+    await waitFor(() => expect(pending).toHaveLength(2));
+    expect(pending.map((request) => request.categoryId)).toEqual([
+      "category-1",
+      "category-2",
+    ]);
+
+    pending.forEach((request) => request.resolve(makePage(request.categoryId, 1)));
+    expect(await screen.findByText("category-2 item 1")).toBeTruthy();
+  });
+
   it("starts one bounded request, observer-loads later categories, and paginates all 82 items", async () => {
     globalThis.IntersectionObserver = TestIntersectionObserver;
     let activeRequests = 0;
