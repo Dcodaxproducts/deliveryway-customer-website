@@ -5,7 +5,7 @@ import { RestaurantCard } from "./RestaurantCard";
 import useItems from "@/hooks/useItems";
 import { useAuth } from "@/hooks/useAuth";
 import { useDomainContext } from "@/hooks/useDomainContext";
-import { getStorefrontRequestIdentity } from "@/lib/storefront-request-identity";
+import { getStorefrontDomainIdentity } from "@/lib/storefront-request-identity";
 import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
 import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -175,7 +175,7 @@ export function ItemsListing({
   onRetrySections,
 }: ItemsListingProps) {
   const t = useTranslations("items.common");
-  const { restaurantId: authRestaurantId, token, user } = useAuth();
+  const { restaurantId: authRestaurantId, user } = useAuth();
   const { context: domainContext } = useDomainContext();
   const { fetchMenuItemsPage } = useItems(null);
 
@@ -212,11 +212,7 @@ export function ItemsListing({
     return sections.map((category) => String(category?.id || "")).join("|");
   }, [sections]);
 
-  const storefrontRequestIdentity = getStorefrontRequestIdentity({
-    token,
-    userId: user?.id,
-  });
-  const requestContextKey = `${storefrontRequestIdentity}:${restaurantId}:${branchId}`;
+  const requestContextKey = `${getStorefrontDomainIdentity()}:${restaurantId}:${branchId}`;
   const requestContextRef = useRef(requestContextKey);
 
   useEffect(() => {

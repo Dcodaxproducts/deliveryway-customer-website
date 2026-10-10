@@ -280,6 +280,42 @@ describe("ItemsListing mounted progressive loading", () => {
     );
   });
 
+  it("preserves loaded category items when add-to-cart creates a guest session", async () => {
+    testState.auth.token = null;
+    testState.auth.user = {
+      id: "",
+      restaurantId: "restaurant-1",
+      branchId: "branch-1",
+    };
+    testState.fetchMenuItemsPage.mockImplementation(
+      async ({ categoryId, page }: { categoryId: string; page: number }) =>
+        makePage(categoryId, page),
+    );
+
+    const props = {
+      sections: sections.slice(0, 1),
+      contentSource: "category" as const,
+      viewMode: "onePage" as const,
+    };
+    const { rerender } = render(<ItemsListing {...props} />);
+
+    expect(await screen.findByText("category-1 item 1")).toBeTruthy();
+    expect(testState.fetchMenuItemsPage).toHaveBeenCalledTimes(1);
+
+    testState.auth.token = "guest-token";
+    testState.auth.user = {
+      id: "guest-user",
+      restaurantId: "restaurant-1",
+      branchId: "branch-1",
+    };
+    rerender(<ItemsListing {...props} />);
+    await flush();
+
+    expect(screen.getByText("category-1 item 1")).toBeTruthy();
+    expect(screen.queryByTestId("category-skeleton-category-1")).toBeNull();
+    expect(testState.fetchMenuItemsPage).toHaveBeenCalledTimes(1);
+  });
+
   it("shows geometry-preserving cards instead of a false empty state while loading", () => {
     render(
       <ItemsListing
