@@ -22,6 +22,22 @@ export const shouldFetchCartAfterChange = (detail?: CartChangedDetail) =>
 export const shouldCancelCartFetchAfterChange = (detail?: CartChangedDetail) =>
   detail?.mutationStatus === "pending" || detail?.cartData !== undefined;
 
+export const shouldAutoOpenCartAfterChange = (
+  detail: CartChangedDetail | undefined,
+  isMobileViewport: boolean,
+) =>
+  !isMobileViewport &&
+  detail?.mutationStatus === "pending" &&
+  Boolean(detail.optimisticItem);
+
+export const isMobileCartViewport = () => {
+  if (typeof window === "undefined") return false;
+
+  return typeof window.matchMedia === "function"
+    ? window.matchMedia("(max-width: 1023px)").matches
+    : window.innerWidth < 1024;
+};
+
 export const dispatchCartChanged = (detail?: CartChangedDetail) => {
   if (typeof window === "undefined") return;
 

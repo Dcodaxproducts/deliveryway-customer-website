@@ -13,6 +13,8 @@ import { useHome } from "@/hooks/useHome";
 import { getSelectedOrderType } from "@/lib/branch-selector";
 import {
   CART_CHANGED_EVENT,
+  isMobileCartViewport,
+  shouldAutoOpenCartAfterChange,
   shouldCancelCartFetchAfterChange,
   shouldFetchCartAfterChange,
   type CartChangedDetail,
@@ -179,7 +181,11 @@ export function SiteFloatingCart() {
             ),
           );
           setCartLoadState("ready");
-          setIsOpen(true);
+          if (
+            shouldAutoOpenCartAfterChange(detail, isMobileCartViewport())
+          ) {
+            setIsOpen(true);
+          }
           setCartRefreshKey((current) => current + 1);
         }
         setHasCartItems(true);

@@ -137,6 +137,18 @@ describe("getHomeCategories", () => {
     );
   });
 
+  it("rejects transient first-load failures instead of caching a false empty state", async () => {
+    getRequestMock.mockResolvedValue({
+      data: undefined,
+      error: "Temporary category request failure",
+      status: 503,
+    });
+
+    await expect(getHomeCategories("restaurant-1")).rejects.toThrow(
+      "Temporary category request failure",
+    );
+  });
+
   it("deduplicates categories across pages", async () => {
     getRequestMock.mockResolvedValue({
       data: {

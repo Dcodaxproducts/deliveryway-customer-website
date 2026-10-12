@@ -27,6 +27,32 @@ const HOME_CATEGORIES_MAX_PAGES = 30;
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
+const assertSuccessfulResponse = (response: unknown) => {
+  if (!isRecord(response)) return;
+
+  const responseError = response.error;
+  const hasError =
+    typeof responseError === "string"
+      ? Boolean(responseError.trim())
+      : responseError !== undefined &&
+        responseError !== null &&
+        responseError !== false;
+  const failed =
+    response.success === false ||
+    hasError ||
+    response.aborted === true ||
+    response.timedOut === true;
+
+  if (!failed) return;
+
+  const message =
+    typeof response.error === "string" && response.error.trim()
+      ? response.error
+      : "Failed to load categories";
+
+  throw new Error(message);
+};
+
 const unwrapHomeData = (value: unknown) => {
   if (!isRecord(value)) {
     return {};
@@ -194,6 +220,7 @@ export const getHomeCategories = async (restaurantId: string) => {
     const response = await getRequest(
       `/customer-app/categories?${params.toString()}`,
     );
+    assertSuccessfulResponse(response);
     const pageCategories = normalizeHomeCategories(response);
 
     for (const category of pageCategories) {

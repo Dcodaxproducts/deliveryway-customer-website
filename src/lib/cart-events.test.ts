@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  shouldAutoOpenCartAfterChange,
   shouldCancelCartFetchAfterChange,
   shouldFetchCartAfterChange,
 } from "./cart-events";
@@ -29,5 +30,28 @@ describe("cart event fetch policy", () => {
       shouldCancelCartFetchAfterChange({ cartData: { items: [] } }),
     ).toBe(true);
     expect(shouldCancelCartFetchAfterChange({ itemCount: 1 })).toBe(false);
+  });
+
+  it("keeps mobile ordering uninterrupted while preserving desktop auto-open", () => {
+    const pendingAdd = {
+      mutationStatus: "pending" as const,
+      optimisticItem: {
+        id: "pending-item",
+        quantity: 1,
+        __optimisticPending: true as const,
+        __optimisticSequence: 1,
+        __optimisticPricingUnconfirmed: true as const,
+        __optimisticCustomization: {},
+      },
+    };
+
+    expect(shouldAutoOpenCartAfterChange(pendingAdd, true)).toBe(false);
+    expect(shouldAutoOpenCartAfterChange(pendingAdd, false)).toBe(true);
+    expect(
+      shouldAutoOpenCartAfterChange(
+        { mutationStatus: "committed", optimisticItem: pendingAdd.optimisticItem },
+        false,
+      ),
+    ).toBe(false);
   });
 });

@@ -184,7 +184,7 @@ export function MobileCategoryTabs({
   return (
     <nav
       aria-label={t("browseCategories")}
-      className="sticky top-0 z-30 overflow-x-auto border-b border-gray-100 bg-white/95 px-4 py-3 shadow-sm backdrop-blur [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="sticky top-[var(--storefront-sticky-offset)] z-30 overflow-x-auto border-b border-gray-100 bg-white/95 px-4 py-3 shadow-sm backdrop-blur [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
       <div className="flex w-max min-w-full gap-2">
         {loading && categories.length === 0
