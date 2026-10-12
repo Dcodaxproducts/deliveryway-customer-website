@@ -71,9 +71,11 @@ describe("mobile storefront layout contract", () => {
     expect(cssSource).toContain(".storefront-rail::-webkit-scrollbar-thumb");
   });
 
-  it("shows one primary mobile card with a peek and preserves the desktop cuisine carousel", () => {
+  it("shows one primary mobile card with a peek and a balanced desktop cuisine grid", () => {
     expect(cssSource).toContain("flex: 0 0 calc(100% - 2.75rem)");
-    expect(cuisineSource).toContain('className="hidden min-w-0 md:block"');
+    expect(cuisineSource).toContain(
+      "hidden grid-cols-2 gap-5 pb-8 md:grid lg:grid-cols-3 2xl:grid-cols-4",
+    );
   });
 
   it("uses one shared page-width and heading contract for promotions, deals, and cuisines", () => {
