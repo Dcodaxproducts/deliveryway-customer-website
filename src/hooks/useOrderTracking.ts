@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { io, type Socket } from "socket.io-client";
 
-import { API_BASE_URL } from "@/lib/axios";
-import { getOrderTrackingSocketUrl } from "@/lib/order-tracking";
+import { useVisibilityPolling } from "@/hooks/useVisibilityPolling";
+
+export const ORDER_TRACKING_POLL_INTERVAL_MS = 10_000;
 
 type UseOrderTrackingOptions = {
   orderId: string | null;
@@ -23,28 +23,9 @@ export const useOrderTracking = ({
     onUpdateRef.current = onUpdate;
   }, [onUpdate]);
 
-  useEffect(() => {
-    if (!orderId || !token) return;
-
-    const socket: Socket = io(getOrderTrackingSocketUrl(API_BASE_URL), {
-      auth: { token },
-      transports: ["websocket", "polling"],
-      withCredentials: true,
-    });
-    const subscription = { orderId };
-    const refreshOrder = () => onUpdateRef.current();
-
-    socket.on("connect", () => {
-      socket.emit("order.tracking.subscribe", subscription);
-    });
-    socket.on("order.tracking.snapshot", refreshOrder);
-    socket.on("order.tracking.updated", refreshOrder);
-
-    return () => {
-      if (socket.connected) {
-        socket.emit("order.tracking.unsubscribe", subscription);
-      }
-      socket.disconnect();
-    };
-  }, [orderId, token]);
+  useVisibilityPolling({
+    enabled: Boolean(orderId && token),
+    intervalMs: ORDER_TRACKING_POLL_INTERVAL_MS,
+    poll: () => onUpdateRef.current(),
+  });
 };

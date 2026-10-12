@@ -166,18 +166,6 @@ function OrderStatusContent() {
     onUpdate: refreshOrder,
   });
 
-  useEffect(() => {
-    if (!orderId) return;
-
-    const interval = window.setInterval(() => {
-      if (document.visibilityState === "visible") {
-        refreshOrder();
-      }
-    }, 30_000);
-
-    return () => window.clearInterval(interval);
-  }, [orderId, refreshOrder]);
-
   const handleChangePaymentMethod = async (paymentMethod: string) => {
     if (!order?.id) return;
 

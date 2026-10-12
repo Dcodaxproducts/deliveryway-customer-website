@@ -1,14 +1,16 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useCallback, useState, useEffect, useRef } from "react";
 import { Send, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import useChat from "@/hooks/useChat";
-import type { ChatMessage, ChatMessageCreatedEvent, ChatThread } from "@/services/chat";
-import { io, Socket } from "socket.io-client";
+import { useVisibilityPolling } from "@/hooks/useVisibilityPolling";
+import type { ChatMessage, ChatThread } from "@/services/chat";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { CHAT_BASE_URL } from "@/lib/axios";
+
+export const CHAT_THREADS_POLL_INTERVAL_MS = 10_000;
+export const CHAT_MESSAGES_POLL_INTERVAL_MS = 5_000;
 
 export default function ChatUI() {
   const t = useTranslations("contact.chat");
@@ -25,11 +27,6 @@ const [creatingThread, setCreatingThread] = useState(false);
   const [sending, setSending] = useState(false);
 
   const chatBodyRef = useRef<HTMLDivElement>(null);
-  const socketRef = useRef<Socket | null>(null);
-  const activeThreadRef = useRef<ChatThread | null>(null);
-  useEffect(() => {
-    activeThreadRef.current = activeThread;
-  }, [activeThread]);
 
   const createGeneralThread = async () => {
   if (creatingThread) return;
@@ -114,7 +111,7 @@ useEffect(() => {
       year: "numeric",
     });
 
-  const fetchThreads = async () => {
+  const fetchThreads = useCallback(async () => {
     const { response: res, threads: nextThreads } = await fetchChatThreads();
     if (res?.success) {
       setThreads(nextThreads);
@@ -122,22 +119,39 @@ useEffect(() => {
   setActiveThread(nextThreads[0]);
 }
     }
-  };
+  }, [activeThread, fetchChatThreads, orderId]);
 
-const fetchMessages = async (id: string) => {
+const fetchMessages = useCallback(async (id: string) => {
   const { response: res, messages: nextMessages } = await fetchChatThreadMessages({ threadId: id });
   if (res?.success) {
     setMessages(nextMessages);
   }
-};
+}, [fetchChatThreadMessages]);
+
+  useVisibilityPolling({
+    enabled: Boolean(token),
+    intervalMs: CHAT_THREADS_POLL_INTERVAL_MS,
+    poll: fetchThreads,
+  });
+
+  useVisibilityPolling({
+    enabled: Boolean(token && activeThread?.id),
+    intervalMs: CHAT_MESSAGES_POLL_INTERVAL_MS,
+    poll: () => activeThread?.id ? fetchMessages(activeThread.id) : undefined,
+  });
+
   const handleSend = async () => {
     if (!message.trim() || !activeThread) return;
 
     setSending(true);
 
-    await sendChatMessage({ threadId: activeThread.id, message });
+    const threadId = activeThread.id;
+    const response = await sendChatMessage({ threadId, message });
 
     setMessage("");
+    if (response?.success && document.visibilityState === "visible") {
+      await Promise.all([fetchMessages(threadId), fetchThreads()]);
+    }
 
     setSending(false);
   };
@@ -159,63 +173,6 @@ const fetchMessages = async (id: string) => {
       behavior: "smooth",
     });
   }, [messages]);
-
-  useEffect(() => {
-    if (token) fetchThreads();
-  }, [token]);
-
-  useEffect(() => {
-    if (activeThread?.id) {
-      fetchMessages(activeThread.id);
-    }
-  }, [activeThread]);
-
-  useEffect(() => {
-    if (!token) return;
-
-    const socket = io(CHAT_BASE_URL, {
-      transports: ["websocket"],
-      auth: { token },
-    });
-
-    socketRef.current = socket;
-
-    socket.on("connect", () => {
-    });
-
-    socket.on("chat.message.created", (data: ChatMessageCreatedEvent) => {
-      const incomingMessage = data.message;
-      const threadId = data.threadId;
-
-
-      //  only update if active thread
-      if (threadId === activeThreadRef.current?.id) {
-        setMessages((prev) => {
-          if (prev.some((m) => m.id === incomingMessage.id)) return prev;
-          return [...prev, incomingMessage];
-        });
-      }
-
-      // update sidebar
-      setThreads((prev) =>
-        prev.map((t) =>
-          t.id === threadId
-            ? { ...t, lastMessagePreview: incomingMessage.body }
-            : t
-        )
-      );
-    });
-
-    socket.on("chat.thread.updated", (data: ChatThread) => {
-      setThreads((prev) =>
-        prev.map((t) => (t.id === data.id ? { ...t, ...data } : t))
-      );
-    });
-
-    return () => {
-      socket.disconnect();
-    };
-  }, [token]);
 
   return (
     <div className="flex h-[calc(100dvh-88px)] overflow-hidden bg-[#f7f6f5] text-[13px] text-[#1f1f1f]">
