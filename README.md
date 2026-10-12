@@ -20,6 +20,10 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Realtime transport
+
+Order tracking and live chat use authenticated Socket.IO over WebSocket by default. Set `NEXT_PUBLIC_REALTIME_ENABLED=false` at build time to disable Socket.IO immediately and use the visibility-aware 10-second HTTP polling fallback.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

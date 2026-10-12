@@ -6,12 +6,14 @@ type UseVisibilityPollingOptions = {
   enabled: boolean;
   intervalMs: number;
   poll: () => Promise<unknown> | unknown;
+  immediate?: boolean;
 };
 
 export const useVisibilityPolling = ({
   enabled,
   intervalMs,
   poll,
+  immediate = true,
 }: UseVisibilityPollingOptions) => {
   const pollRef = useRef(poll);
 
@@ -64,12 +66,16 @@ export const useVisibilityPolling = ({
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    void runPoll();
+    if (immediate) {
+      void runPoll();
+    } else {
+      schedule();
+    }
 
     return () => {
       cancelled = true;
       clearTimer();
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [enabled, intervalMs]);
+  }, [enabled, immediate, intervalMs]);
 };

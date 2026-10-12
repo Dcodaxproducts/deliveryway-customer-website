@@ -1,102 +1,202 @@
 "use client";
 
-import { useCallback, useState, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Send, Loader2 } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
-import useChat from "@/hooks/useChat";
-import { useVisibilityPolling } from "@/hooks/useVisibilityPolling";
-import type { ChatMessage, ChatThread } from "@/services/chat";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 
-export const CHAT_THREADS_POLL_INTERVAL_MS = 10_000;
-export const CHAT_MESSAGES_POLL_INTERVAL_MS = 5_000;
+import { useAuth } from "@/hooks/useAuth";
+import useChat from "@/hooks/useChat";
+import { useChatRealtime } from "@/hooks/useChatRealtime";
+import { isRealtimeEnabled } from "@/lib/realtime";
+import type {
+  ChatInboxSummary,
+  ChatMessage,
+  ChatMessageCreatedEvent,
+  ChatThread,
+  ChatThreadReadEvent,
+  CreateChatThreadPayload,
+} from "@/services/chat";
+
+const getCommandThread = (value: unknown): ChatThread | null => {
+  if (!value || typeof value !== "object") return null;
+  const record = value as Record<string, unknown>;
+  const candidate = record.data && typeof record.data === "object"
+    ? record.data as Record<string, unknown>
+    : record;
+  return typeof candidate.id === "string" ? candidate as ChatThread : null;
+};
 
 export default function ChatUI() {
   const t = useTranslations("contact.chat");
   const { token, user } = useAuth();
   const { createChatThread, fetchChatThreads, fetchChatThreadMessages, sendChatMessage } = useChat(token);
-const searchParams = useSearchParams();
+  const searchParams = useSearchParams();
+  const orderId = searchParams.get("orderId");
+  const realtimeEnabled = isRealtimeEnabled();
 
-const orderId = searchParams.get("orderId");
-const [creatingThread, setCreatingThread] = useState(false);
+  const [creatingThread, setCreatingThread] = useState(false);
   const [message, setMessage] = useState("");
   const [threads, setThreads] = useState<ChatThread[]>([]);
   const [activeThread, setActiveThread] = useState<ChatThread | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [sending, setSending] = useState(false);
+  const [threadsLoaded, setThreadsLoaded] = useState(false);
 
   const chatBodyRef = useRef<HTMLDivElement>(null);
+  const activeThreadRef = useRef<ChatThread | null>(null);
+  const inboxSummaryRef = useRef<ChatInboxSummary | null>(null);
 
-  const createGeneralThread = async () => {
-  if (creatingThread) return;
+  useEffect(() => {
+    activeThreadRef.current = activeThread;
+  }, [activeThread]);
 
+  const upsertThread = useCallback((thread: ChatThread) => {
+    setThreads((previous) => {
+      const index = previous.findIndex((candidate) => candidate.id === thread.id);
+      if (index === -1) return [thread, ...previous];
+      return previous.map((candidate) =>
+        candidate.id === thread.id ? { ...candidate, ...thread } : candidate,
+      );
+    });
+    setActiveThread((current) =>
+      current?.id === thread.id ? { ...current, ...thread } : current,
+    );
+  }, []);
 
-  setCreatingThread(true);
+  const fetchThreads = useCallback(async () => {
+    const { response, threads: nextThreads } = await fetchChatThreads();
+    if (response?.success) {
+      setThreads(nextThreads);
+      setThreadsLoaded(true);
+      setActiveThread((current) => {
+        if (current) {
+          return nextThreads.find((thread) => thread.id === current.id) ?? current;
+        }
+        return !orderId && nextThreads.length > 0 ? nextThreads[0] : null;
+      });
+    }
+  }, [fetchChatThreads, orderId]);
 
-  const { response: res, thread: newThread } = await createChatThread({
-    payload: {
-      message: "Hi, I need support.",
-      subject: "General Support",
-    },
+  const fetchMessages = useCallback(async (threadId: string) => {
+    const { response, messages: nextMessages } = await fetchChatThreadMessages({ threadId });
+    if (response?.success && activeThreadRef.current?.id === threadId) {
+      setMessages(nextMessages);
+    }
+  }, [fetchChatThreadMessages]);
+
+  const resyncChat = useCallback(async () => {
+    await fetchThreads();
+    const activeId = activeThreadRef.current?.id;
+    if (activeId) await fetchMessages(activeId);
+  }, [fetchMessages, fetchThreads]);
+
+  const handleRealtimeMessage = useCallback((event: ChatMessageCreatedEvent) => {
+    if (event.thread) upsertThread(event.thread);
+    if (event.threadId === activeThreadRef.current?.id) {
+      setMessages((previous) =>
+        previous.some((candidate) => candidate.id === event.message.id)
+          ? previous
+          : [...previous, event.message],
+      );
+    }
+    setThreads((previous) => previous.map((thread) =>
+      thread.id === event.threadId
+        ? { ...thread, lastMessagePreview: event.message.body }
+        : thread,
+    ));
+  }, [upsertThread]);
+
+  const handleRealtimeRead = useCallback((event: ChatThreadReadEvent) => {
+    if (event.thread) upsertThread(event.thread);
+  }, [upsertThread]);
+
+  const handleSummary = useCallback((summary: ChatInboxSummary) => {
+    inboxSummaryRef.current = summary;
+  }, []);
+
+  const { socketHealthy, command } = useChatRealtime({
+    token,
+    activeThreadId: activeThread?.id ?? null,
+    onResync: resyncChat,
+    onThread: upsertThread,
+    onMessage: handleRealtimeMessage,
+    onRead: handleRealtimeRead,
+    onSummary: handleSummary,
+    realtimeEnabled,
   });
 
-  if (res?.success && newThread) {
+  const createThread = useCallback(async (payload: CreateChatThreadPayload) => {
+    const realtime = await command("chat.thread.create", payload);
+    const realtimeThread = realtime.handled ? getCommandThread(realtime.data) : null;
+    if (realtimeThread) return realtimeThread;
 
-    setThreads([newThread]);
-    setActiveThread(newThread);
-  }
+    const { response, thread } = await createChatThread({ payload });
+    return response?.success ? thread : null;
+  }, [command, createChatThread]);
 
-  setCreatingThread(false);
-};
+  const createGeneralThread = useCallback(async () => {
+    if (creatingThread) return;
+    setCreatingThread(true);
+    try {
+      const thread = await createThread({
+        message: "Hi, I need support.",
+        subject: "General Support",
+      });
+      if (thread) {
+        setThreads([thread]);
+        setActiveThread(thread);
+      }
+    } finally {
+      setCreatingThread(false);
+    }
+  }, [createThread, creatingThread]);
 
+  const ensureOrderThread = useCallback(async (nextOrderId: string) => {
+    if (!nextOrderId || creatingThread) return;
+    const existing = threads.find((thread) => thread.orderId === nextOrderId);
+    if (existing) {
+      setActiveThread(existing);
+      return;
+    }
 
-  const ensureOrderThread = async (orderId: string) => {
-  if (!orderId || creatingThread) return;
+    setCreatingThread(true);
+    try {
+      const thread = await createThread({
+        message: "Hi, I need help regarding this order.",
+        orderId: nextOrderId,
+        subject: `Order #${nextOrderId.slice(-6).toUpperCase()}`,
+      });
+      if (thread) {
+        upsertThread(thread);
+        setActiveThread(thread);
+      }
+    } finally {
+      setCreatingThread(false);
+    }
+  }, [createThread, creatingThread, threads, upsertThread]);
 
-  setCreatingThread(true);
+  useEffect(() => {
+    if (!token || !threadsLoaded) return;
+    if (orderId) {
+      void ensureOrderThread(orderId);
+    } else if (threads.length === 0 && !creatingThread) {
+      void createGeneralThread();
+    }
+  }, [createGeneralThread, creatingThread, ensureOrderThread, orderId, threads.length, threadsLoaded, token]);
 
-  const existing = threads.find((t) => t.orderId === orderId);
-
-  if (existing) {
-    setActiveThread(existing);
-    setCreatingThread(false);
-    return;
-  }
-
-  const shortId = orderId.slice(-6).toUpperCase();
-  const subject = `Order #${shortId}`;
-
-  const { response: res, thread: newThread } = await createChatThread({
-    payload: {
-      message: "Hi, I need help regarding this order.",
-      orderId,
-      subject,
-    },
-  });
-
-  if (res?.success && newThread) {
-    setThreads((prev) => [newThread, ...prev]);
-    setActiveThread(newThread);
-  }
-
-  setCreatingThread(false);
-};
-
-
-useEffect(() => {
-
-  if (!token) return;
-
-  if (orderId) {
-    ensureOrderThread(orderId);
-  }
-
-  else if (threads.length === 0 && !creatingThread) {
-    createGeneralThread();
-  }
-
-}, [orderId, threads.length, token]);
+  useEffect(() => {
+    const threadId = activeThread?.id;
+    if (!threadId) {
+      setMessages([]);
+      return;
+    }
+    if (socketHealthy) {
+      void command("chat.thread.markRead", { threadId });
+    } else if (threadsLoaded) {
+      void fetchMessages(threadId);
+    }
+  }, [activeThread?.id, command, fetchMessages, socketHealthy, threadsLoaded]);
 
   const formatTime = (date: string) =>
     new Date(date).toLocaleTimeString([], {
@@ -111,67 +211,40 @@ useEffect(() => {
       year: "numeric",
     });
 
-  const fetchThreads = useCallback(async () => {
-    const { response: res, threads: nextThreads } = await fetchChatThreads();
-    if (res?.success) {
-      setThreads(nextThreads);
-     if (nextThreads.length > 0 && !activeThread && !orderId) {
-  setActiveThread(nextThreads[0]);
-}
-    }
-  }, [activeThread, fetchChatThreads, orderId]);
-
-const fetchMessages = useCallback(async (id: string) => {
-  const { response: res, messages: nextMessages } = await fetchChatThreadMessages({ threadId: id });
-  if (res?.success) {
-    setMessages(nextMessages);
-  }
-}, [fetchChatThreadMessages]);
-
-  useVisibilityPolling({
-    enabled: Boolean(token),
-    intervalMs: CHAT_THREADS_POLL_INTERVAL_MS,
-    poll: fetchThreads,
-  });
-
-  useVisibilityPolling({
-    enabled: Boolean(token && activeThread?.id),
-    intervalMs: CHAT_MESSAGES_POLL_INTERVAL_MS,
-    poll: () => activeThread?.id ? fetchMessages(activeThread.id) : undefined,
-  });
-
   const handleSend = async () => {
-    if (!message.trim() || !activeThread) return;
+    const trimmedMessage = message.trim();
+    if (!trimmedMessage || !activeThread) return;
 
     setSending(true);
-
     const threadId = activeThread.id;
-    const response = await sendChatMessage({ threadId, message });
-
-    setMessage("");
-    if (response?.success && document.visibilityState === "visible") {
-      await Promise.all([fetchMessages(threadId), fetchThreads()]);
+    try {
+      const realtime = await command("chat.message.send", {
+        threadId,
+        message: trimmedMessage,
+      });
+      if (!realtime.handled) {
+        const response = await sendChatMessage({ threadId, message: trimmedMessage });
+        if (response?.success && document.visibilityState === "visible") {
+          await Promise.all([fetchMessages(threadId), fetchThreads()]);
+        }
+      }
+      setMessage("");
+    } finally {
+      setSending(false);
     }
-
-    setSending(false);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleSend();
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      void handleSend();
     }
   };
 
   useEffect(() => {
     const chatBody = chatBodyRef.current;
-
     if (!chatBody) return;
-
-    chatBody.scrollTo({
-      top: chatBody.scrollHeight,
-      behavior: "smooth",
-    });
+    chatBody.scrollTo({ top: chatBody.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
   return (

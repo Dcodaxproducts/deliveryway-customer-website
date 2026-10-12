@@ -156,8 +156,13 @@ function OrderStatusContent() {
     returnedStripePaymentIntentId,
   ]);
 
-  const refreshOrder = useCallback(() => {
-    void fetchOrder({ silent: true });
+  const refreshOrder = useCallback((snapshot?: Record<string, unknown>) => {
+    if (snapshot) {
+      setNotFound(false);
+      setOrder(snapshot as unknown as Order);
+      return;
+    }
+    return fetchOrder({ silent: true });
   }, [fetchOrder]);
 
   useOrderTracking({
