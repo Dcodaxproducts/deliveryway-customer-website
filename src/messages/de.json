@@ -242,7 +242,10 @@
       "searching": "{mode} werden gesucht...",
       "noneFound": "Keine {mode} gefunden",
       "categoryFallback": "Kategorie",
-      "menuItemFallback": "Menüartikel"
+      "menuItemFallback": "Menüartikel",
+      "loadErrorTitle": "Dieses Restaurant konnte nicht geladen werden",
+      "loadErrorDescription": "Die Verbindung wurde unterbrochen. Bitte versuchen Sie es erneut, ohne die Seite zu verlassen.",
+      "retry": "Erneut versuchen"
     },
     "mobile": {
       "deliverTo": "Liefern an",

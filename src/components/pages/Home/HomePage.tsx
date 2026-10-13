@@ -215,7 +215,11 @@ const HomePage = () => {
   const homeResponse = homeQuery.data;
   const homeData = homeResponse ? homeResponse.data : undefined;
   const isRestaurantContentLoading =
-    authLoading || domainLoading || (hasRestaurantContext && !homeData);
+    authLoading ||
+    domainLoading ||
+    (hasRestaurantContext && homeQuery.isPending);
+  const hasRestaurantContentError =
+    hasRestaurantContext && homeQuery.isError && !homeData;
 
   const branding = homeData?.branding ?? fallbackBranding ?? DEFAULT_BRANDING;
   const resolvedBranch = useMemo(
@@ -328,6 +332,29 @@ const HomePage = () => {
               ))}
             </div>
           </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (hasRestaurantContentError) {
+    return (
+      <main className="flex min-h-[60vh] items-center justify-center bg-white px-5 py-16">
+        <div className="w-full max-w-lg rounded-[24px] border border-gray-100 bg-white p-8 text-center shadow-sm">
+          <h1 className="text-2xl font-semibold text-gray-950">
+            {t("loadErrorTitle")}
+          </h1>
+          <p className="mt-3 text-sm leading-6 text-gray-600">
+            {t("loadErrorDescription")}
+          </p>
+          <button
+            type="button"
+            disabled={homeQuery.isFetching}
+            onClick={() => void homeQuery.refetch()}
+            className="mt-6 inline-flex min-h-11 items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-60"
+          >
+            {t("retry")}
+          </button>
         </div>
       </main>
     );

@@ -21,6 +21,13 @@ describe("home loading experience contract", () => {
     expect(homeSource).toContain('role="status"');
   });
 
+  it("does not leave the storefront skeleton active after a home request fails", () => {
+    expect(homeSource).toContain("homeQuery.isPending");
+    expect(homeSource).toContain("homeQuery.isError");
+    expect(homeSource).toContain("homeQuery.refetch()");
+    expect(homeSource).not.toContain("hasRestaurantContext && !homeData");
+  });
+
   it("distinguishes category loading, error, empty, and loaded states", () => {
     expect(categoriesSource).toContain("categoriesQuery.isLoading");
     expect(categoriesSource).toContain("categoriesQuery.isError");

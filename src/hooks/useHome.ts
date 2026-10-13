@@ -33,6 +33,7 @@ export const useHome = (
     refetchOnMount: options?.refetchOnMount,
     refetchOnReconnect: options?.refetchOnReconnect,
     refetchOnWindowFocus: options?.refetchOnWindowFocus,
-    retry: false,
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(250 * 2 ** attemptIndex, 1_000),
   });
 };

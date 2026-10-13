@@ -242,7 +242,10 @@
       "searching": "Searching {mode}...",
       "noneFound": "No {mode} found",
       "categoryFallback": "Category",
-      "menuItemFallback": "Menu item"
+      "menuItemFallback": "Menu item",
+      "loadErrorTitle": "We could not load this restaurant",
+      "loadErrorDescription": "The connection was interrupted. Please try again without leaving this page.",
+      "retry": "Try again"
     },
     "mobile": {
       "deliverTo": "Deliver to",
