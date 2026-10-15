@@ -354,7 +354,30 @@ export function ItemsListing({
         });
       });
     } catch (err) {
-      if (controller.signal.aborted) return;
+      if (controller.signal.aborted) {
+        queueMicrotask(() => {
+          setCategoryItemsMap((prev) => {
+            const replacement = requestControllersRef.current.get(requestKey);
+            if (replacement && replacement.controller !== controller) {
+              return prev;
+            }
+            if (requestContextRef.current !== requestContext) return prev;
+
+            const existing = prev[categoryId];
+            if (!existing) return prev;
+
+            return {
+              ...prev,
+              [categoryId]: {
+                ...existing,
+                loading: false,
+                loadingMore: false,
+              },
+            };
+          });
+        });
+        return;
+      }
 
       queueMicrotask(() => {
         setCategoryItemsMap((prev) => {
@@ -679,6 +702,12 @@ export function ItemsListing({
         block: "start",
       });
       handledScrollNonceRef.current = scrollTarget.nonce;
+      frameId = window.requestAnimationFrame(() => {
+        if (programmaticScrollTargetRef.current !== targetId) return;
+
+        programmaticScrollTargetRef.current = null;
+        onActiveCategoryChange?.(targetId);
+      });
     };
 
     frameId = window.requestAnimationFrame(scrollWhenReady);
@@ -692,6 +721,7 @@ export function ItemsListing({
     scrollTarget?.nonce,
     contentSource,
     categoryItemsMap,
+    onActiveCategoryChange,
   ]);
 
   /* ================= ONE PAGE ACTIVE CATEGORY TRACKING ================= */
