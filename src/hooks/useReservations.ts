@@ -29,38 +29,61 @@ const service = {
 };
 
 export type ReservationsApi = DomainApiHook & {
-  fetchReservations: () => Promise<{ response: ApiResult; reservations: Reservation[]; meta: ReservationMeta | null }>;
-  createReservation: (args: { customerId: string; payload: ReservationPayload }) => Promise<ApiResult>;
+  fetchReservations: () => Promise<{
+    response: ApiResult;
+    reservations: Reservation[];
+    meta: ReservationMeta | null;
+  }>;
+  createReservation: (args: {
+    payload: ReservationPayload;
+  }) => Promise<ApiResult>;
   cancelReservation: (args: { reservationId: string }) => Promise<ApiResult>;
-  fetchReservationBranch: (args: { branchId: string }) => Promise<{ response: ApiResult; branch: BranchRecord | null }>;
-  fetchReservationBranches: (args: { restaurantId?: string | number | null; search?: string; page?: number }) => Promise<ApiResult>;
+  fetchReservationBranch: (args: {
+    branchId: string;
+  }) => Promise<{ response: ApiResult; branch: BranchRecord | null }>;
+  fetchReservationBranches: (args: {
+    restaurantId?: string | number | null;
+    search?: string;
+    page?: number;
+  }) => Promise<ApiResult>;
 };
 
 export const useReservations = (token: string | null): ReservationsApi => {
-  const api = useDomainApi(token, { service, requestKey: queryKeys.reservations.request });
+  const api = useDomainApi(token, {
+    service,
+    requestKey: queryKeys.reservations.request,
+  });
 
-  const getReservationList = useCallback(() => fetchReservations(token), [token]);
+  const getReservationList = useCallback(
+    () => fetchReservations(token),
+    [token],
+  );
 
   const addReservation = useCallback(
-    ({ customerId, payload }: { customerId: string; payload: ReservationPayload }) =>
-      createReservation({ customerId, payload, token }),
-    [token]
+    ({ payload }: { payload: ReservationPayload }) =>
+      createReservation({ payload, token }),
+    [token],
   );
 
   const cancelReservationById = useCallback(
-    ({ reservationId }: { reservationId: string }) => cancelReservation({ reservationId, token }),
-    [token]
+    ({ reservationId }: { reservationId: string }) =>
+      cancelReservation({ reservationId, token }),
+    [token],
   );
 
   const getReservationBranch = useCallback(
-    ({ branchId }: { branchId: string }) => fetchReservationBranch({ branchId, token }),
-    [token]
+    ({ branchId }: { branchId: string }) =>
+      fetchReservationBranch({ branchId, token }),
+    [token],
   );
 
   const getReservationBranches = useCallback(
-    (args: { restaurantId?: string | number | null; search?: string; page?: number }) =>
-      fetchReservationBranches({ ...args, token }),
-    [token]
+    (args: {
+      restaurantId?: string | number | null;
+      search?: string;
+      page?: number;
+    }) => fetchReservationBranches({ ...args, token }),
+    [token],
   );
 
   return useMemo(
@@ -72,7 +95,14 @@ export const useReservations = (token: string | null): ReservationsApi => {
       fetchReservationBranch: getReservationBranch,
       fetchReservationBranches: getReservationBranches,
     }),
-    [api, addReservation, cancelReservationById, getReservationBranch, getReservationBranches, getReservationList]
+    [
+      api,
+      addReservation,
+      cancelReservationById,
+      getReservationBranch,
+      getReservationBranches,
+      getReservationList,
+    ],
   );
 };
 

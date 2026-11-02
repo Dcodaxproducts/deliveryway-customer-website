@@ -1,7 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { AlertTriangle, CalendarX, Clock, LoaderCircle, Star, Store } from "lucide-react";
+import {
+  AlertTriangle,
+  CalendarX,
+  Clock,
+  LoaderCircle,
+  Star,
+  Store,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,10 +21,14 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import useReservations from "@/hooks/useReservations";
 import { useAuth } from "@/hooks/useAuth";
+import { useDomainContext } from "@/hooks/useDomainContext";
 import { ReservationSuccess } from "@/components/pages/Reservations/components/ReservationSuccess";
 import { AsyncSelect } from "@/components/ui/AsyncSelect";
 import { getApiErrorMessage } from "@/lib/errors";
-import { createReservationSchema, type ReservationFormValues } from "@/validations/reservations";
+import {
+  createReservationSchema,
+  type ReservationFormValues,
+} from "@/validations/reservations";
 import {
   getReservationStatusLabelKey,
   normalizeReservationBranches,
@@ -60,12 +71,12 @@ type DateRangeRule = {
 type ReservationBlockReason = "temporaryClosure" | "holiday" | "unavailable";
 
 const normalizeArray = <T = unknown,>(value: unknown): T[] => {
-  return Array.isArray(value) ? value as T[] : [];
+  return Array.isArray(value) ? (value as T[]) : [];
 };
 
 const getRecord = (value: unknown): Record<string, unknown> | null =>
   typeof value === "object" && value !== null && !Array.isArray(value)
-    ? value as Record<string, unknown>
+    ? (value as Record<string, unknown>)
     : null;
 
 const getTodayDateValue = () => {
@@ -92,9 +103,7 @@ const getDayOfWeek = (dateValue: string) => {
 
   if (!date) return "";
 
-  return date
-    .toLocaleDateString("en-US", { weekday: "long" })
-    .toUpperCase();
+  return date.toLocaleDateString("en-US", { weekday: "long" }).toUpperCase();
 };
 
 const isPastDateValue = (value: string) => {
@@ -143,14 +152,18 @@ const formatHoursRangeLabel = (openTime?: string, closeTime?: string) => {
 };
 
 const formatDayShortLabel = (value?: string) => {
-  const text = String(value || "").trim().toLowerCase();
+  const text = String(value || "")
+    .trim()
+    .toLowerCase();
 
   if (!text) return "Day";
 
   return `${text.slice(0, 1).toUpperCase()}${text.slice(1, 3)}`;
 };
 
-const formatBreakTimeLabel = (breakTime: NonNullable<OpeningHours["breakTimes"]>[number]) => {
+const formatBreakTimeLabel = (
+  breakTime: NonNullable<OpeningHours["breakTimes"]>[number],
+) => {
   const range = formatHoursRangeLabel(breakTime.startTime, breakTime.endTime);
   const note = String(breakTime.note || "").trim();
 
@@ -177,11 +190,11 @@ const normalizeDateValue = (value: unknown) => {
 
 const getDateRangeDates = (rule: DateRangeRule) => {
   const fromDate = normalizeDateValue(
-    rule?.fromDate || rule?.startDate || rule?.dateFrom || rule?.date
+    rule?.fromDate || rule?.startDate || rule?.dateFrom || rule?.date,
   );
 
   const toDate = normalizeDateValue(
-    rule?.toDate || rule?.endDate || rule?.dateTo || rule?.date || fromDate
+    rule?.toDate || rule?.endDate || rule?.dateTo || rule?.date || fromDate,
   );
 
   return {
@@ -210,7 +223,9 @@ const getDateRangeRules = (branch?: BranchRecord | null): DateRangeRule[] => {
 };
 
 const getTemporaryClosure = (branch?: BranchRecord | null) =>
-  branch?.availability?.temporaryClosure || branch?.settings?.temporaryClosure || null;
+  branch?.availability?.temporaryClosure ||
+  branch?.settings?.temporaryClosure ||
+  null;
 
 const getDateTimeFromDateAndMinutes = (dateValue: string, minutes: number) => {
   const date = getDateFromValue(dateValue);
@@ -230,10 +245,17 @@ const getTimestamp = (value?: string | null) => {
   return Number.isFinite(timestamp) ? timestamp : null;
 };
 
-const isTemporaryClosureActiveForDate = (branch: BranchRecord | null, dateValue: string) => {
+const isTemporaryClosureActiveForDate = (
+  branch: BranchRecord | null,
+  dateValue: string,
+) => {
   const closure = getTemporaryClosure(branch);
 
-  if (!branch || !dateValue || (!closure?.isClosed && !branch.availability?.isTemporarilyClosed)) {
+  if (
+    !branch ||
+    !dateValue ||
+    (!closure?.isClosed && !branch.availability?.isTemporarilyClosed)
+  ) {
     return false;
   }
 
@@ -271,7 +293,11 @@ const isSlotInsideTemporaryClosure = ({
 }) => {
   const closure = getTemporaryClosure(branch);
 
-  if (!branch || !dateValue || (!closure?.isClosed && !branch.availability?.isTemporarilyClosed)) {
+  if (
+    !branch ||
+    !dateValue ||
+    (!closure?.isClosed && !branch.availability?.isTemporarilyClosed)
+  ) {
     return false;
   }
 
@@ -290,7 +316,9 @@ const isSlotInsideTemporaryClosure = ({
   const closureStart = from ?? Number.NEGATIVE_INFINITY;
   const closureEnd = to ?? Number.POSITIVE_INFINITY;
 
-  return slotStartDate.getTime() < closureEnd && slotEndDate.getTime() > closureStart;
+  return (
+    slotStartDate.getTime() < closureEnd && slotEndDate.getTime() > closureStart
+  );
 };
 
 const getHolidayOpeningHoursForDate = ({
@@ -300,15 +328,18 @@ const getHolidayOpeningHoursForDate = ({
   branch?: BranchRecord | null;
   dateValue: string;
 }): OpeningHours | null => {
-  const holidayOpeningHour = getRecord(branch?.availability?.holidayOpeningHour);
+  const holidayOpeningHour = getRecord(
+    branch?.availability?.holidayOpeningHour,
+  );
 
   if (!holidayOpeningHour || !dateValue) {
     return null;
   }
 
-  const holidayDate = typeof holidayOpeningHour.date === "string"
-    ? normalizeDateValue(holidayOpeningHour.date)
-    : "";
+  const holidayDate =
+    typeof holidayOpeningHour.date === "string"
+      ? normalizeDateValue(holidayOpeningHour.date)
+      : "";
 
   if (holidayDate && holidayDate !== dateValue) {
     return null;
@@ -321,10 +352,19 @@ const getHolidayOpeningHoursForDate = ({
   return {
     dayOfWeek: getDayOfWeek(dateValue),
     isClosed: Boolean(holidayOpeningHour.isClosed),
-    openTime: typeof holidayOpeningHour.openTime === "string" ? holidayOpeningHour.openTime : undefined,
-    closeTime: typeof holidayOpeningHour.closeTime === "string" ? holidayOpeningHour.closeTime : undefined,
+    openTime:
+      typeof holidayOpeningHour.openTime === "string"
+        ? holidayOpeningHour.openTime
+        : undefined,
+    closeTime:
+      typeof holidayOpeningHour.closeTime === "string"
+        ? holidayOpeningHour.closeTime
+        : undefined,
     breakTimes: [],
-    note: typeof holidayOpeningHour.note === "string" ? holidayOpeningHour.note : "",
+    note:
+      typeof holidayOpeningHour.note === "string"
+        ? holidayOpeningHour.note
+        : "",
   };
 };
 
@@ -346,7 +386,10 @@ const getBranchAvailabilityBlock = ({
     };
   }
 
-  if (branch.availability?.isHolidayClosed && dateValue === getTodayDateValue()) {
+  if (
+    branch.availability?.isHolidayClosed &&
+    dateValue === getTodayDateValue()
+  ) {
     return {
       reason: "holiday" as ReservationBlockReason,
       message: branch.availability?.reason || "",
@@ -358,7 +401,11 @@ const getBranchAvailabilityBlock = ({
 
     return {
       reason: "temporaryClosure" as ReservationBlockReason,
-      message: closure?.message || closure?.reason || branch.availability?.reason || "",
+      message:
+        closure?.message ||
+        closure?.reason ||
+        branch.availability?.reason ||
+        "",
     };
   }
 
@@ -386,8 +433,12 @@ const isSlotInsideBreak = ({
   breakTime: unknown;
 }) => {
   const breakRecord = getRecord(breakTime);
-  const breakStart = timeToMinutes(typeof breakRecord?.startTime === "string" ? breakRecord.startTime : null);
-  const breakEnd = timeToMinutes(typeof breakRecord?.endTime === "string" ? breakRecord.endTime : null);
+  const breakStart = timeToMinutes(
+    typeof breakRecord?.startTime === "string" ? breakRecord.startTime : null,
+  );
+  const breakEnd = timeToMinutes(
+    typeof breakRecord?.endTime === "string" ? breakRecord.endTime : null,
+  );
 
   if (breakStart === null || breakEnd === null) return false;
 
@@ -410,8 +461,9 @@ const getOpeningHoursForDate = ({
   }
 
   const rangeRule =
-    getDateRangeRules(branch).find((rule) => isDateInsideRange(dateValue, rule)) ||
-    null;
+    getDateRangeRules(branch).find((rule) =>
+      isDateInsideRange(dateValue, rule),
+    ) || null;
 
   if (rangeRule) {
     const closed = Boolean(rangeRule?.isClosed);
@@ -430,7 +482,10 @@ const getOpeningHoursForDate = ({
     };
   }
 
-  const holidayOpeningHours = getHolidayOpeningHoursForDate({ branch, dateValue });
+  const holidayOpeningHours = getHolidayOpeningHoursForDate({
+    branch,
+    dateValue,
+  });
 
   if (holidayOpeningHours) {
     return {
@@ -440,12 +495,18 @@ const getOpeningHoursForDate = ({
     };
   }
 
-  const openingHours = normalizeArray<OpeningHours>(branch?.settings?.openingHours);
+  const openingHours = normalizeArray<OpeningHours>(
+    branch?.settings?.openingHours,
+  );
   const selectedDay = getDayOfWeek(dateValue);
 
   const weeklySchedule =
     openingHours.find((hour) => {
-      return String(hour?.dayOfWeek || "").trim().toUpperCase() === selectedDay;
+      return (
+        String(hour?.dayOfWeek || "")
+          .trim()
+          .toUpperCase() === selectedDay
+      );
     }) || null;
 
   return {
@@ -466,7 +527,10 @@ const buildAvailableTimeSlots = ({
 
   const availabilityBlock = getBranchAvailabilityBlock({ branch, dateValue });
 
-  if (availabilityBlock?.reason === "unavailable" || availabilityBlock?.reason === "holiday") {
+  if (
+    availabilityBlock?.reason === "unavailable" ||
+    availabilityBlock?.reason === "holiday"
+  ) {
     return [];
   }
 
@@ -503,7 +567,7 @@ const buildAvailableTimeSlots = ({
           slotStart,
           slotEnd,
           breakTime,
-        })
+        }),
     );
 
     const isDuringTemporaryClosure = isSlotInsideTemporaryClosure({
@@ -526,24 +590,44 @@ export function ReserveTablePage() {
   const validationT = useTranslations("validation");
   const errorsT = useTranslations("errors");
   const { token, user } = useAuth();
-  const { createReservation, fetchReservationBranch, fetchReservationBranches, loading } = useReservations(token);
+  const { context: domainContext } = useDomainContext();
+  const {
+    createReservation,
+    fetchReservationBranch,
+    fetchReservationBranches,
+    loading,
+  } = useReservations(token);
+  const restaurantId =
+    user?.restaurantId ?? domainContext?.restaurantId ?? null;
 
   const [success, setSuccess] = useState(false);
-  const [reservationData, setReservationData] = useState<Reservation | null>(null);
+  const [reservationData, setReservationData] = useState<Reservation | null>(
+    null,
+  );
 
-  const reservationSchema = useMemo(() => createReservationSchema({
-    branchRequired: validationT("reservationBranchRequired"),
-    dateTimeRequired: validationT("reservationDateTimeRequired"),
-    pastDate: validationT("reservationPastDate"),
-    guestWholeNumber: validationT("reservationGuestWholeNumber"),
-    guestMin: validationT("reservationGuestMin"),
-    guestMax: validationT("reservationGuestMax"),
-    noteMax: validationT("reservationNoteMax"),
-  }), [validationT]);
+  const reservationSchema = useMemo(
+    () =>
+      createReservationSchema({
+        branchRequired: validationT("reservationBranchRequired"),
+        dateTimeRequired: validationT("reservationDateTimeRequired"),
+        pastDate: validationT("reservationPastDate"),
+        guestWholeNumber: validationT("reservationGuestWholeNumber"),
+        guestMin: validationT("reservationGuestMin"),
+        guestMax: validationT("reservationGuestMax"),
+        noteMax: validationT("reservationNoteMax"),
+        nameRequired: validationT("reservationGuestNameRequired"),
+        emailInvalid: validationT("reservationGuestEmailInvalid"),
+        phoneInvalid: validationT("reservationGuestPhoneInvalid"),
+      }),
+    [validationT],
+  );
 
   const form = useForm<ReservationFormValues>({
     resolver: zodResolver(reservationSchema),
     defaultValues: {
+      guestName: "",
+      guestEmail: "",
+      guestPhone: "",
       branchId: "",
       date: "",
       time: "",
@@ -553,25 +637,45 @@ export function ReserveTablePage() {
   });
 
   const {
-    formState: { isSubmitting },
+    formState: { isSubmitting, errors },
     handleSubmit: handleFormSubmit,
     setValue,
     watch,
     reset,
+    register,
   } = form;
   const date = watch("date");
   const time = watch("time");
   const guestCount = watch("guestCount");
   const note = watch("note") || "";
 
-  const [selectedBranch, setSelectedBranch] = useState<BranchRecord | null>(null);
+  const [selectedBranch, setSelectedBranch] = useState<BranchRecord | null>(
+    null,
+  );
 
-  const customerId = user?.id;
   const todayDate = useMemo(() => getTodayDateValue(), []);
 
   useEffect(() => {
+    const userRecord = getRecord(user);
+    const profile = getRecord(userRecord?.profile);
+    const firstName = String(
+      profile?.firstName ?? userRecord?.firstName ?? "",
+    ).trim();
+    const lastName = String(
+      profile?.lastName ?? userRecord?.lastName ?? "",
+    ).trim();
+    const email = String(userRecord?.email ?? "").trim();
+    const phone = String(profile?.phone ?? userRecord?.phone ?? "").trim();
+
+    if (firstName || lastName)
+      setValue("guestName", `${firstName} ${lastName}`.trim());
+    if (email) setValue("guestEmail", email);
+    if (phone) setValue("guestPhone", phone);
+  }, [setValue, user]);
+
+  useEffect(() => {
     const prefillSelectedBranch = async () => {
-      if (!user?.branchId && !user?.restaurantId) return;
+      if (!user?.branchId && !restaurantId) return;
 
       try {
         const branchId = user?.branchId ? String(user.branchId) : null;
@@ -580,7 +684,7 @@ export function ReserveTablePage() {
           : selectDefaultReservationBranch(
               normalizeReservationBranches(
                 await fetchReservationBranches({
-                  restaurantId: user?.restaurantId,
+                  restaurantId,
                   page: 1,
                 }),
               ),
@@ -590,8 +694,7 @@ export function ReserveTablePage() {
           setSelectedBranch(branch);
           setValue("branchId", String(branch.id), { shouldValidate: true });
         }
-      } catch (error) {
-      }
+      } catch (error) {}
     };
 
     prefillSelectedBranch();
@@ -600,13 +703,13 @@ export function ReserveTablePage() {
     fetchReservationBranches,
     setValue,
     user?.branchId,
-    user?.restaurantId,
+    restaurantId,
   ]);
 
   /* ---------------- FETCH ---------------- */
   const fetchBranches = async ({ search = "", page = 1 }) => {
     return await fetchReservationBranches({
-      restaurantId: user?.restaurantId,
+      restaurantId,
       search,
       page,
     });
@@ -614,7 +717,9 @@ export function ReserveTablePage() {
 
   const handleBranchSelect = (branch: BranchRecord | null) => {
     setSelectedBranch(branch);
-    setValue("branchId", branch?.id ? String(branch.id) : "", { shouldValidate: true });
+    setValue("branchId", branch?.id ? String(branch.id) : "", {
+      shouldValidate: true,
+    });
     setValue("date", "", { shouldValidate: true });
     setValue("time", "", { shouldValidate: true });
 
@@ -646,7 +751,8 @@ export function ReserveTablePage() {
   const todaysHours = selectedScheduleState.schedule;
   const selectedDateRule = selectedScheduleState.dateRule;
   const isClosed = Boolean(todaysHours?.isClosed);
-  const reservationsEnabled = selectedBranch?.settings?.tableReservationsEnabled === true;
+  const reservationsEnabled =
+    selectedBranch?.settings?.tableReservationsEnabled === true;
   const selectedAvailabilityBlock = useMemo(() => {
     return getBranchAvailabilityBlock({
       branch: selectedBranch,
@@ -669,9 +775,12 @@ export function ReserveTablePage() {
     }
   }, [availableTimeSlots, time]);
 
-  const hasOpeningHours = normalizeArray(selectedBranch?.settings?.openingHours).length > 0;
+  const hasOpeningHours =
+    normalizeArray(selectedBranch?.settings?.openingHours).length > 0;
   const dateRangeRules = getDateRangeRules(selectedBranch);
-  const openingHoursRows = normalizeArray<OpeningHours>(selectedBranch?.settings?.openingHours);
+  const openingHoursRows = normalizeArray<OpeningHours>(
+    selectedBranch?.settings?.openingHours,
+  );
 
   const dateError = useMemo(() => {
     if (!date) return "";
@@ -744,25 +853,31 @@ export function ReserveTablePage() {
     }
 
     const closure = getTemporaryClosure(selectedBranch);
-    const closureUntil = closure?.closedUntil ? new Date(closure.closedUntil) : null;
-    const formattedClosureUntil = closureUntil && !Number.isNaN(closureUntil.getTime())
-      ? closureUntil.toLocaleString("en-US", {
-          weekday: "short",
-          month: "short",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          hourCycle: "h23",
-        })
-      : "";
+    const closureUntil = closure?.closedUntil
+      ? new Date(closure.closedUntil)
+      : null;
+    const formattedClosureUntil =
+      closureUntil && !Number.isNaN(closureUntil.getTime())
+        ? closureUntil.toLocaleString("en-US", {
+            weekday: "short",
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hourCycle: "h23",
+          })
+        : "";
 
     if (date && selectedAvailabilityBlock?.reason === "temporaryClosure") {
       return {
         tone: "warning" as const,
         icon: AlertTriangle,
         title: t("temporaryClosureTitle"),
-        message: selectedAvailabilityBlock.message || t("temporaryClosureDescription"),
-        meta: formattedClosureUntil ? t("temporaryClosureUntil", { date: formattedClosureUntil }) : "",
+        message:
+          selectedAvailabilityBlock.message || t("temporaryClosureDescription"),
+        meta: formattedClosureUntil
+          ? t("temporaryClosureUntil", { date: formattedClosureUntil })
+          : "",
       };
     }
 
@@ -771,7 +886,8 @@ export function ReserveTablePage() {
         tone: "danger" as const,
         icon: CalendarX,
         title: t("holidayClosureTitle"),
-        message: selectedAvailabilityBlock.message || t("holidayClosureDescription"),
+        message:
+          selectedAvailabilityBlock.message || t("holidayClosureDescription"),
         meta: "",
       };
     }
@@ -781,7 +897,9 @@ export function ReserveTablePage() {
         tone: "danger" as const,
         icon: CalendarX,
         title: t("branchUnavailableTitle"),
-        message: selectedAvailabilityBlock.message || t("branchUnavailableDescription"),
+        message:
+          selectedAvailabilityBlock.message ||
+          t("branchUnavailableDescription"),
         meta: "",
       };
     }
@@ -832,7 +950,7 @@ export function ReserveTablePage() {
   /* ---------------- SUBMIT ---------------- */
   async function handleSubmit(values: ReservationFormValues) {
     try {
-      if (!customerId) return toast.error(t("userNotFound"));
+      if (!restaurantId) return toast.error(t("restaurantNotFound"));
 
       if (!selectedBranch?.id) {
         return toast.error(t("selectBranchToast"));
@@ -854,16 +972,23 @@ export function ReserveTablePage() {
         return toast.error(t("selectedTimeUnavailable"));
       }
 
-      const reservationDate = new Date(`${values.date}T${values.time}:00`).toISOString();
+      const reservationDate = new Date(
+        `${values.date}T${values.time}:00`,
+      ).toISOString();
 
       const payload: ReservationPayload = {
+        restaurantId,
         branchId: selectedBranch.id,
+        guestName: values.guestName.trim(),
+        guestEmail: values.guestEmail.trim().toLowerCase(),
+        guestPhone: values.guestPhone.trim(),
+        clientRequestId: crypto.randomUUID(),
         reservationDate,
         guestCount: values.guestCount,
         note: values.note || "",
       };
 
-      const res = await createReservation({ customerId, payload });
+      const res = await createReservation({ payload });
 
       if (!res || res.error) {
         return toast.error(getApiErrorMessage(res, t("failedFallback")));
@@ -883,7 +1008,16 @@ export function ReserveTablePage() {
       setSuccess(true);
       setReservationData(reservation);
 
-      reset({ branchId: "", date: "", time: "", guestCount: 2, note: "" });
+      reset({
+        guestName: "",
+        guestEmail: "",
+        guestPhone: "",
+        branchId: "",
+        date: "",
+        time: "",
+        guestCount: 2,
+        note: "",
+      });
       setSelectedBranch(null);
     } catch {
       toast.error(errorsT("somethingWentWrong"));
@@ -917,12 +1051,13 @@ export function ReserveTablePage() {
         {/* LEFT */}
         <div className="mt-10 space-y-3">
           <h1 className="text-[60px] font-bold">
-            {t("heroTitlePrefix")} <span className="block text-primary">{t("heroTitleHighlight")}</span>
+            {t("heroTitlePrefix")}{" "}
+            <span className="block text-primary">
+              {t("heroTitleHighlight")}
+            </span>
           </h1>
 
-          <p className="text-gray-600">
-            {t("heroDescription")}
-          </p>
+          <p className="text-gray-600">{t("heroDescription")}</p>
 
           <div className="flex items-center gap-2">
             <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
@@ -937,9 +1072,7 @@ export function ReserveTablePage() {
             <h2 className="text-[23px] font-semibold text-gray-900">
               {t("title")}
             </h2>
-            <p className="text-sm text-gray-500">
-              {t("subtitle")}
-            </p>
+            <p className="text-sm text-gray-500">{t("subtitle")}</p>
           </div>
 
           <form
@@ -947,6 +1080,72 @@ export function ReserveTablePage() {
             className="space-y-6"
             onSubmit={handleFormSubmit(handleSubmit)}
           >
+            <fieldset className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <legend className="sr-only">{t("contactDetails")}</legend>
+              <div className="sm:col-span-2">
+                <label
+                  htmlFor="reservation-name"
+                  className="text-sm font-medium"
+                >
+                  {t("guestName")}
+                </label>
+                <Input
+                  id="reservation-name"
+                  autoComplete="name"
+                  {...register("guestName")}
+                  className="mt-2 rounded-full bg-[#FAFAF9]"
+                  aria-invalid={Boolean(errors.guestName)}
+                />
+                {errors.guestName ? (
+                  <p className="mt-1 text-xs text-red-500" role="alert">
+                    {errors.guestName.message}
+                  </p>
+                ) : null}
+              </div>
+              <div>
+                <label
+                  htmlFor="reservation-email"
+                  className="text-sm font-medium"
+                >
+                  {t("guestEmail")}
+                </label>
+                <Input
+                  id="reservation-email"
+                  type="email"
+                  autoComplete="email"
+                  {...register("guestEmail")}
+                  className="mt-2 rounded-full bg-[#FAFAF9]"
+                  aria-invalid={Boolean(errors.guestEmail)}
+                />
+                {errors.guestEmail ? (
+                  <p className="mt-1 text-xs text-red-500" role="alert">
+                    {errors.guestEmail.message}
+                  </p>
+                ) : null}
+              </div>
+              <div>
+                <label
+                  htmlFor="reservation-phone"
+                  className="text-sm font-medium"
+                >
+                  {t("guestPhone")}
+                </label>
+                <Input
+                  id="reservation-phone"
+                  type="tel"
+                  autoComplete="tel"
+                  {...register("guestPhone")}
+                  className="mt-2 rounded-full bg-[#FAFAF9]"
+                  aria-invalid={Boolean(errors.guestPhone)}
+                />
+                {errors.guestPhone ? (
+                  <p className="mt-1 text-xs text-red-500" role="alert">
+                    {errors.guestPhone.message}
+                  </p>
+                ) : null}
+              </div>
+            </fieldset>
+
             {/* BRANCH */}
             <div>
               <label className="text-sm font-medium">{t("selectBranch")}</label>
@@ -979,8 +1178,13 @@ export function ReserveTablePage() {
                           subtitle: t("openingHours"),
                           statusLabel: hour.isClosed ? t("closed") : t("open"),
                           isClosed: Boolean(hour.isClosed),
-                          hoursLabel: formatHoursRangeLabel(hour.openTime, hour.closeTime),
-                          breakLabels: normalizeArray<NonNullable<OpeningHours["breakTimes"]>[number]>(hour.breakTimes).map(formatBreakTimeLabel),
+                          hoursLabel: formatHoursRangeLabel(
+                            hour.openTime,
+                            hour.closeTime,
+                          ),
+                          breakLabels: normalizeArray<
+                            NonNullable<OpeningHours["breakTimes"]>[number]
+                          >(hour.breakTimes).map(formatBreakTimeLabel),
                           closedTitle: t("closed"),
                           closedDescription: t("openingHoursNotConfigured"),
                           breakPrefix: t("breakTime", { time: "" }).trim(),
@@ -988,28 +1192,41 @@ export function ReserveTablePage() {
                         emptyTitle: t("openingHoursNotConfigured"),
                       },
                       ...(dateRangeRules.length > 0
-                        ? [{
-                            id: "date-range-rules",
-                            title: t("dateRangeRules"),
-                            icon: CalendarX,
-                            rows: dateRangeRules.slice(0, 5).map((rule, index) => {
-                              const { fromDate, toDate } = getDateRangeDates(rule);
+                        ? [
+                            {
+                              id: "date-range-rules",
+                              title: t("dateRangeRules"),
+                              icon: CalendarX,
+                              rows: dateRangeRules
+                                .slice(0, 5)
+                                .map((rule, index) => {
+                                  const { fromDate, toDate } =
+                                    getDateRangeDates(rule);
 
-                              return {
-                                id: `date-rule-${index}`,
-                                title: `${fromDate}${toDate && toDate !== fromDate ? ` - ${toDate}` : ""}`,
-                                subtitle: t("dateRangeRules"),
-                                statusLabel: rule?.isClosed ? t("closed") : t("open"),
-                                isClosed: Boolean(rule?.isClosed),
-                                hoursLabel: formatHoursRangeLabel(rule?.openTime, rule?.closeTime),
-                                breakLabels: [],
-                                closedTitle: t("closed"),
-                                closedDescription: rule?.note || t("errors.closedDateRange"),
-                                breakPrefix: t("breakTime", { time: "" }).trim(),
-                              };
-                            }),
-                            emptyTitle: t("dateRangeRules"),
-                          }]
+                                  return {
+                                    id: `date-rule-${index}`,
+                                    title: `${fromDate}${toDate && toDate !== fromDate ? ` - ${toDate}` : ""}`,
+                                    subtitle: t("dateRangeRules"),
+                                    statusLabel: rule?.isClosed
+                                      ? t("closed")
+                                      : t("open"),
+                                    isClosed: Boolean(rule?.isClosed),
+                                    hoursLabel: formatHoursRangeLabel(
+                                      rule?.openTime,
+                                      rule?.closeTime,
+                                    ),
+                                    breakLabels: [],
+                                    closedTitle: t("closed"),
+                                    closedDescription:
+                                      rule?.note || t("errors.closedDateRange"),
+                                    breakPrefix: t("breakTime", {
+                                      time: "",
+                                    }).trim(),
+                                  };
+                                }),
+                              emptyTitle: t("dateRangeRules"),
+                            },
+                          ]
                         : []),
                     ]}
                     closeLabel={t("closeModal")}
@@ -1038,7 +1255,9 @@ export function ReserveTablePage() {
                           : "bg-red-100 text-red-700"
                     }`}
                   >
-                    {ReservationNoticeIcon ? <ReservationNoticeIcon className="h-5 w-5" /> : null}
+                    {ReservationNoticeIcon ? (
+                      <ReservationNoticeIcon className="h-5 w-5" />
+                    ) : null}
                   </div>
 
                   <div className="min-w-0">
@@ -1047,7 +1266,9 @@ export function ReserveTablePage() {
                     </p>
                     <p className="mt-1 text-sm leading-5 opacity-80">
                       {reservationNotice.message}
-                      {reservationNotice.meta ? ` ${reservationNotice.meta}` : ""}
+                      {reservationNotice.meta
+                        ? ` ${reservationNotice.meta}`
+                        : ""}
                     </p>
                   </div>
                 </div>
@@ -1096,7 +1317,9 @@ export function ReserveTablePage() {
                 <select
                   value={time}
                   disabled={!selectedBranch?.id || !date || Boolean(dateError)}
-                  onChange={(e) => setValue("time", e.target.value, { shouldValidate: true })}
+                  onChange={(e) =>
+                    setValue("time", e.target.value, { shouldValidate: true })
+                  }
                   className="mt-2 h-10 w-full rounded-full border border-input bg-[#FAFAF9] px-4 text-sm outline-none transition focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <option value="">{timeSelectPlaceholder}</option>
@@ -1127,7 +1350,9 @@ export function ReserveTablePage() {
                   <button
                     key={g}
                     type="button"
-                    onClick={() => setValue("guestCount", g, { shouldValidate: true })}
+                    onClick={() =>
+                      setValue("guestCount", g, { shouldValidate: true })
+                    }
                     className={`rounded-full py-2 ${
                       guestCount === g ? "bg-primary text-white" : "bg-gray-100"
                     }`}
@@ -1140,14 +1365,18 @@ export function ReserveTablePage() {
 
             {/* NOTE */}
             <div>
-              <label className="text-sm font-medium">{t("specialRequest")}</label>
+              <label className="text-sm font-medium">
+                {t("specialRequest")}
+              </label>
 
               <Textarea
-  value={note}
-  onChange={(e) => setValue("note", e.target.value, { shouldValidate: true })}
-  placeholder={t("specialRequestPlaceholder")}
-  className="mt-2 rounded-xl border border-gray-200 bg-[#FAFAF9] placeholder:text-gray-400 focus:border-primary focus:ring-1 focus:ring-primary"
-/>
+                value={note}
+                onChange={(e) =>
+                  setValue("note", e.target.value, { shouldValidate: true })
+                }
+                placeholder={t("specialRequestPlaceholder")}
+                className="mt-2 rounded-xl border border-gray-200 bg-[#FAFAF9] placeholder:text-gray-400 focus:border-primary focus:ring-1 focus:ring-primary"
+              />
               <p className="mt-1 text-xs text-gray-500">
                 {t("specialRequestTip")}
               </p>

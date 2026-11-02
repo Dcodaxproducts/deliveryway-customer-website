@@ -14,6 +14,9 @@ const getDateValue = (offsetDays: number) => {
 };
 
 const validReservation = {
+  guestName: "Ali Khan",
+  guestEmail: "ALI@EXAMPLE.COM",
+  guestPhone: "+49 170 1234567",
   branchId: "branch-1",
   date: getDateValue(1),
   time: "18:30",
@@ -29,13 +32,24 @@ describe("reservationSchema", () => {
     });
 
     expect(result.success).toBe(false);
-    expect(result.error?.issues[0]?.message).toBe("Past dates are not available for reservation.");
+    expect(result.error?.issues[0]?.message).toBe(
+      "Past dates are not available for reservation.",
+    );
   });
 
   it("validates guest count range", () => {
-    expect(reservationSchema.safeParse({ ...validReservation, guestCount: 0 }).success).toBe(false);
-    expect(reservationSchema.safeParse({ ...validReservation, guestCount: 21 }).success).toBe(false);
-    expect(reservationSchema.safeParse({ ...validReservation, guestCount: 5 }).success).toBe(true);
+    expect(
+      reservationSchema.safeParse({ ...validReservation, guestCount: 0 })
+        .success,
+    ).toBe(false);
+    expect(
+      reservationSchema.safeParse({ ...validReservation, guestCount: 21 })
+        .success,
+    ).toBe(false);
+    expect(
+      reservationSchema.safeParse({ ...validReservation, guestCount: 5 })
+        .success,
+    ).toBe(true);
   });
 
   it("requires date, time, guest count, and contact branch fields", () => {
@@ -49,12 +63,15 @@ describe("reservationSchema", () => {
 
     expect(result.success).toBe(false);
     expect(result.error?.issues.map((issue) => issue.path.join("."))).toEqual(
-      expect.arrayContaining(["branchId", "date", "time", "guestCount"])
+      expect.arrayContaining(["branchId", "date", "time", "guestCount"]),
     );
   });
 
   it("accepts optional fields", () => {
-    expect(reservationSchema.safeParse({ ...validReservation, note: undefined }).success).toBe(true);
+    expect(
+      reservationSchema.safeParse({ ...validReservation, note: undefined })
+        .success,
+    ).toBe(true);
   });
 
   it("supports translated validation messages from the schema factory", () => {
@@ -66,6 +83,9 @@ describe("reservationSchema", () => {
       guestMin: "Mindestens ein Gast",
       guestMax: "Zu viele Gäste",
       noteMax: "Notiz zu lang",
+      nameRequired: "Name erforderlich",
+      emailInvalid: "E-Mail ungültig",
+      phoneInvalid: "Telefon ungültig",
     });
 
     const result = translatedSchema.safeParse({
@@ -83,7 +103,31 @@ describe("reservationSchema", () => {
         "Vergangenes Datum",
         "Zu viele Gäste",
         "Notiz zu lang",
-      ])
+      ]),
     );
+  });
+});
+
+describe("guest reservation contact validation", () => {
+  it("requires and validates guest contact fields", () => {
+    expect(
+      reservationSchema.safeParse({ ...validReservation, guestName: "" })
+        .success,
+    ).toBe(false);
+    expect(
+      reservationSchema.safeParse({
+        ...validReservation,
+        guestEmail: "invalid",
+      }).success,
+    ).toBe(false);
+    expect(
+      reservationSchema.safeParse({ ...validReservation, guestPhone: "12" })
+        .success,
+    ).toBe(false);
+  });
+
+  it("normalizes guest email", () => {
+    const result = reservationSchema.parse(validReservation);
+    expect(result.guestEmail).toBe("ali@example.com");
   });
 });

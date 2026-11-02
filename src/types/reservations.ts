@@ -35,7 +35,12 @@ export type Reservation = {
 };
 
 export type ReservationPayload = {
+  restaurantId: string;
   branchId: string;
+  guestName: string;
+  guestEmail: string;
+  guestPhone: string;
+  clientRequestId: string;
   reservationDate: string;
   guestCount: number;
   note?: string;
@@ -49,7 +54,7 @@ export type ReservationMeta = {
 };
 
 export const getReservationStatusLabelKey = (
-  status?: string | null
+  status?: string | null,
 ): ReservationStatusLabelKey => {
   switch (String(status || "").toUpperCase()) {
     case "REQUESTED":

@@ -2,7 +2,11 @@ import { createDomainApiService } from "@/services/domain-api";
 import { normalizeBranch } from "@/lib/branch-selector";
 import type { ApiResult } from "@/services/http";
 import type { BranchRecord } from "@/types/branch-selector";
-import type { Reservation, ReservationMeta, ReservationPayload } from "@/types/reservations";
+import type {
+  Reservation,
+  ReservationMeta,
+  ReservationPayload,
+} from "@/types/reservations";
 export type {
   Reservation,
   ReservationBranch,
@@ -24,7 +28,7 @@ export const deleteReservations = reservationsService.del;
 
 const getRecord = (value: unknown): Record<string, unknown> | null =>
   typeof value === "object" && value !== null && !Array.isArray(value)
-    ? value as Record<string, unknown>
+    ? (value as Record<string, unknown>)
     : null;
 
 const normalizeReservationList = (response: ApiResult): Reservation[] => {
@@ -45,10 +49,17 @@ const normalizeReservationList = (response: ApiResult): Reservation[] => {
   return candidate as Reservation[];
 };
 
-const normalizeReservationMeta = (response: ApiResult): ReservationMeta | null => {
+const normalizeReservationMeta = (
+  response: ApiResult,
+): ReservationMeta | null => {
   const dataRecord = getRecord(response.data);
   const nestedData = getRecord(dataRecord?.data);
-  const meta = dataRecord?.meta || dataRecord?.pagination || nestedData?.meta || nestedData?.pagination || response.meta;
+  const meta =
+    dataRecord?.meta ||
+    dataRecord?.pagination ||
+    nestedData?.meta ||
+    nestedData?.pagination ||
+    response.meta;
 
   return getRecord(meta) as ReservationMeta | null;
 };
@@ -78,7 +89,9 @@ export const selectDefaultReservationBranch = (
     ? branches[0]
     : null);
 
-export const normalizeReservationResponse = (response: ApiResult): Reservation | null => {
+export const normalizeReservationResponse = (
+  response: ApiResult,
+): Reservation | null => {
   const dataRecord = getRecord(response.data);
   const nestedData = getRecord(dataRecord?.data);
 
@@ -86,7 +99,10 @@ export const normalizeReservationResponse = (response: ApiResult): Reservation |
 };
 
 export const fetchReservations = async (token?: string | null) => {
-  const response = await getReservations("/customer-app/table-reservations", token);
+  const response = await getReservations(
+    "/customer-app/table-reservations",
+    token,
+  );
 
   return {
     response,
@@ -96,14 +112,13 @@ export const fetchReservations = async (token?: string | null) => {
 };
 
 export const createReservation = ({
-  customerId,
   payload,
   token,
 }: {
-  customerId: string;
   payload: ReservationPayload;
   token?: string | null;
-}) => postReservations(`/customer-app/table-reservations?customerId=${customerId}`, payload, token);
+}) =>
+  postReservations("/customer-app/table-reservations/public", payload, token);
 
 export const cancelReservation = ({
   reservationId,
@@ -111,7 +126,12 @@ export const cancelReservation = ({
 }: {
   reservationId: string;
   token?: string | null;
-}) => postReservations(`/customer-app/table-reservations/${reservationId}/cancel`, {}, token);
+}) =>
+  postReservations(
+    `/customer-app/table-reservations/${reservationId}/cancel`,
+    {},
+    token,
+  );
 
 export const fetchReservationBranch = async ({
   branchId,
@@ -144,5 +164,5 @@ export const fetchReservationBranches = ({
 }) =>
   getReservations(
     `/v1/branches?restaurantId=${restaurantId ?? ""}&search=${search ?? ""}&page=${page ?? 1}`,
-    token
+    token,
   );
