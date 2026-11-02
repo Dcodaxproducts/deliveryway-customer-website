@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { OpeningHoursDialog } from "@/components/common/popups/OpeningHoursDialog";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -586,6 +586,10 @@ const buildAvailableTimeSlots = ({
 };
 
 export function ReserveTablePage() {
+  const reservationAttemptRef = useRef<{
+    fingerprint: string;
+    clientRequestId: string;
+  } | null>(null);
   const t = useTranslations("reserveTable");
   const validationT = useTranslations("validation");
   const errorsT = useTranslations("errors");
@@ -976,16 +980,26 @@ export function ReserveTablePage() {
         `${values.date}T${values.time}:00`,
       ).toISOString();
 
-      const payload: ReservationPayload = {
+      const semanticPayload = {
         restaurantId,
         branchId: selectedBranch.id,
         guestName: values.guestName.trim(),
         guestEmail: values.guestEmail.trim().toLowerCase(),
         guestPhone: values.guestPhone.trim(),
-        clientRequestId: crypto.randomUUID(),
         reservationDate,
         guestCount: values.guestCount,
         note: values.note || "",
+      };
+      const fingerprint = JSON.stringify(semanticPayload);
+      if (reservationAttemptRef.current?.fingerprint !== fingerprint) {
+        reservationAttemptRef.current = {
+          fingerprint,
+          clientRequestId: crypto.randomUUID(),
+        };
+      }
+      const payload: ReservationPayload = {
+        ...semanticPayload,
+        clientRequestId: reservationAttemptRef.current.clientRequestId,
       };
 
       const res = await createReservation({ payload });
@@ -1004,6 +1018,7 @@ export function ReserveTablePage() {
             : t("reservationCreatedToast");
 
       toast.success(toastMessage);
+      reservationAttemptRef.current = null;
 
       setSuccess(true);
       setReservationData(reservation);
