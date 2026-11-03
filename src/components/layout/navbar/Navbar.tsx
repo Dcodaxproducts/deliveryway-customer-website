@@ -333,7 +333,9 @@ export const Navbar = () => {
 
     return () => {
       resizeObserver.disconnect();
-      document.documentElement.style.removeProperty("--storefront-sticky-offset");
+      document.documentElement.style.removeProperty(
+        "--storefront-sticky-offset",
+      );
     };
   }, []);
 
@@ -341,21 +343,27 @@ export const Navbar = () => {
     if (!mobileOpen) return;
 
     const previousBodyStyles = captureBodyScrollStyles(document.body.style);
-    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    const scrollbarWidth =
+      window.innerWidth - document.documentElement.clientWidth;
     const focusableSelector =
       'a[href]:not([aria-disabled="true"]), button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
     document.body.style.overflow = "hidden";
-    if (scrollbarWidth > 0) document.body.style.paddingRight = scrollbarWidth + "px";
+    if (scrollbarWidth > 0)
+      document.body.style.paddingRight = scrollbarWidth + "px";
 
     const focusTimer = window.setTimeout(() => {
-      mobileMenuRef.current?.querySelector<HTMLElement>(focusableSelector)?.focus();
+      mobileMenuRef.current
+        ?.querySelector<HTMLElement>(focusableSelector)
+        ?.focus();
     }, 20);
 
     const handleKeyDown = (event: KeyboardEvent) => {
       const focusable = mobileMenuRef.current
         ? Array.from(
-            mobileMenuRef.current.querySelectorAll<HTMLElement>(focusableSelector),
+            mobileMenuRef.current.querySelectorAll<HTMLElement>(
+              focusableSelector,
+            ),
           )
         : [];
       const activeIndex = focusable.findIndex(
@@ -559,9 +567,7 @@ export const Navbar = () => {
       const itemCountDelta = detail?.itemCountDelta;
 
       if (typeof itemCountDelta === "number") {
-        setCartItemCount((current) =>
-          toCartQuantity(current + itemCountDelta),
-        );
+        setCartItemCount((current) => toCartQuantity(current + itemCountDelta));
 
         if (
           mutationStatus !== "pending" &&
@@ -623,7 +629,9 @@ export const Navbar = () => {
         ref={navbarWrapRef}
         data-visible={navbarVisible}
         className={`sticky top-0 z-50 border-b border-black/[0.06] bg-white/95 shadow-[0_6px_20px_rgba(15,23,42,0.06)] backdrop-blur-[10px] transition-transform duration-300 ease-out will-change-transform supports-[backdrop-filter]:bg-white/88 motion-reduce:transition-none ${
-          navbarVisible ? "translate-y-0" : "max-md:translate-y-0 md:-translate-y-full"
+          navbarVisible
+            ? "translate-y-0"
+            : "max-md:translate-y-0 md:-translate-y-full"
         }`}
       >
         <CouponPerkBanner coupons={couponsQuery.coupons} currency={currency} />
@@ -741,9 +749,7 @@ export const Navbar = () => {
                       />
                     </span>
                     <span className="truncate text-sm font-semibold">
-                      {hasCustomerAccount && userName
-                        ? userName
-                        : tNav("user")}
+                      {hasCustomerAccount && userName ? userName : tNav("user")}
                     </span>
                     <ChevronDown
                       size={15}
@@ -1022,8 +1028,8 @@ export const Navbar = () => {
                               ),
                               currency,
                               {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
                               },
                             )}
                           </div>
@@ -1085,8 +1091,10 @@ export const Navbar = () => {
 
       {/* MOBILE MENU */}
       <div
-        className={`fixed inset-0 z-[70] transition-opacity duration-300 motion-reduce:transition-none ${
-          mobileOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+        className={`fixed inset-0 z-[70] overflow-x-hidden transition-opacity duration-300 motion-reduce:transition-none ${
+          mobileOpen
+            ? "pointer-events-auto opacity-100"
+            : "pointer-events-none opacity-0"
         }`}
         aria-hidden={!mobileOpen}
         inert={!mobileOpen}
@@ -1098,162 +1106,162 @@ export const Navbar = () => {
           aria-label={tCommon("close")}
           tabIndex={mobileOpen ? 0 : -1}
         />
-          <div
-            id="mobile-navigation"
-            ref={mobileMenuRef}
-            role="dialog"
-            aria-modal="true"
-            aria-label={tNav("openMenu")}
-            className={`fixed right-0 top-0 flex h-[100dvh] w-[min(88vw,360px)] flex-col gap-5 overflow-y-auto overscroll-contain bg-white px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-[calc(1.25rem+env(safe-area-inset-top))] shadow-[-20px_0_60px_rgba(15,23,42,0.2)] transition-transform duration-300 ease-out motion-reduce:transition-none ${
-              mobileOpen ? "translate-x-0" : "translate-x-full"
+        <div
+          id="mobile-navigation"
+          ref={mobileMenuRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label={tNav("openMenu")}
+          className={`absolute right-0 top-0 h-[100dvh] w-[min(88vw,360px)] flex-col gap-5 overflow-y-auto overscroll-contain bg-white px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-[calc(1.25rem+env(safe-area-inset-top))] shadow-[-20px_0_60px_rgba(15,23,42,0.2)] transition-transform duration-300 ease-out motion-reduce:transition-none ${
+            mobileOpen ? "flex translate-x-0" : "hidden"
+          }`}
+        >
+          <button
+            type="button"
+            onClick={() => setMobileOpen(false)}
+            className="flex h-11 w-11 shrink-0 items-center justify-center self-end rounded-full bg-gray-100 text-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            aria-label={tCommon("close")}
+            tabIndex={mobileOpen ? 0 : -1}
+          >
+            <X />
+          </button>
+
+          <div className="flex flex-col gap-2">
+            {NAV_LINKS.map((item) => {
+              const isActive = isNavLinkActive(item.href);
+              const isDisabled = isNavLinkDisabled(item.href);
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-disabled={isDisabled}
+                  tabIndex={isDisabled ? -1 : undefined}
+                  onClick={(event) => {
+                    if (isDisabled) {
+                      event.preventDefault();
+                      return;
+                    }
+
+                    setMobileOpen(false);
+                  }}
+                  className={`rounded-2xl px-4 py-3 text-sm font-semibold transition-colors ${
+                    isDisabled
+                      ? "pointer-events-none cursor-not-allowed bg-gray-50 text-gray-300"
+                      : isActive
+                        ? "bg-primary text-white"
+                        : "bg-gray-50 text-gray-800 hover:bg-primary/10"
+                  }`}
+                >
+                  {tNav(item.labelKey)}
+                </Link>
+              );
+            })}
+          </div>
+
+          <button
+            onClick={() => {
+              setMobileOpen(false);
+              setTimeout(() => setSearchOpen(true), 150);
+            }}
+            aria-label={tNav("searchFood")}
+            title={tNav("searchFood")}
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-50 text-primary"
+          >
+            <Search />
+          </button>
+
+          <BranchSwitcher
+            presentation="navbar"
+            className="w-full justify-between"
+          />
+
+          {showActiveGroupOrderLink ? (
+            <Link
+              href={activeGroupOrderHref}
+              className="flex items-center gap-3 text-emerald-700"
+            >
+              <Users size={20} /> {tNav("activeGroupOrder")}
+            </Link>
+          ) : null}
+
+          <Link
+            href={tableReservationsEnabled ? "/reservetable" : "#"}
+            aria-disabled={!tableReservationsEnabled}
+            onClick={(event) => {
+              if (!tableReservationsEnabled) {
+                event.preventDefault();
+              }
+            }}
+            className={`flex items-center gap-3 text-primary ${
+              tableReservationsEnabled ? "" : "cursor-not-allowed opacity-40"
             }`}
           >
+            <Coffee size={20} /> {tNav("reserveTable")}
+          </Link>
+
+          <Link href="/checkout" className="flex items-center gap-3">
+            <span className="relative">
+              <ShoppingBag />
+              {cartItemCount > 0 ? (
+                <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold leading-none text-white ring-2 ring-white">
+                  {cartItemCount > 99 ? "99+" : cartItemCount}
+                </span>
+              ) : null}
+            </span>
+            {tNav("cart")}
+          </Link>
+
+          <LanguageSelector className="w-full justify-between" />
+
+          {user ? (
+            <>
+              <Link
+                href="/orders-history"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-3"
+              >
+                <ShoppingBag /> {tNav("myOrders")}
+              </Link>
+              <Link
+                href="/notifications"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-3"
+              >
+                <Bell /> {tNav("notifications")}
+              </Link>
+              <Link
+                href="/contact"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-3"
+              >
+                <HelpCircle /> {tNav("helpCenter")}
+              </Link>
+            </>
+          ) : null}
+
+          {hasCustomerAccount ? (
             <button
               type="button"
-              onClick={() => setMobileOpen(false)}
-              className="flex h-11 w-11 shrink-0 items-center justify-center self-end rounded-full bg-gray-100 text-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              aria-label={tCommon("close")}
-              tabIndex={mobileOpen ? 0 : -1}
-            >
-              <X />
-            </button>
-
-            <div className="flex flex-col gap-2">
-              {NAV_LINKS.map((item) => {
-                const isActive = isNavLinkActive(item.href);
-                const isDisabled = isNavLinkDisabled(item.href);
-
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    aria-disabled={isDisabled}
-                    tabIndex={isDisabled ? -1 : undefined}
-                    onClick={(event) => {
-                      if (isDisabled) {
-                        event.preventDefault();
-                        return;
-                      }
-
-                      setMobileOpen(false);
-                    }}
-                    className={`rounded-2xl px-4 py-3 text-sm font-semibold transition-colors ${
-                      isDisabled
-                        ? "pointer-events-none cursor-not-allowed bg-gray-50 text-gray-300"
-                        : isActive
-                          ? "bg-primary text-white"
-                          : "bg-gray-50 text-gray-800 hover:bg-primary/10"
-                    }`}
-                  >
-                    {tNav(item.labelKey)}
-                  </Link>
-                );
-              })}
-            </div>
-
-            <button
               onClick={() => {
                 setMobileOpen(false);
-                setTimeout(() => setSearchOpen(true), 150);
+                handleLogout();
               }}
-              aria-label={tNav("searchFood")}
-              title={tNav("searchFood")}
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-50 text-primary"
+              className="flex items-center gap-3 text-left"
             >
-              <Search />
+              <LogOut /> {tNav("logout")}
             </button>
-
-            <BranchSwitcher
-              presentation="navbar"
-              className="w-full justify-between"
-            />
-
-            {showActiveGroupOrderLink ? (
-              <Link
-                href={activeGroupOrderHref}
-                className="flex items-center gap-3 text-emerald-700"
-              >
-                <Users size={20} /> {tNav("activeGroupOrder")}
-              </Link>
-            ) : null}
-
+          ) : (
             <Link
-              href={tableReservationsEnabled ? "/reservetable" : "#"}
-              aria-disabled={!tableReservationsEnabled}
-              onClick={(event) => {
-                if (!tableReservationsEnabled) {
-                  event.preventDefault();
-                }
-              }}
-              className={`flex items-center gap-3 text-primary ${
-                tableReservationsEnabled ? "" : "cursor-not-allowed opacity-40"
-              }`}
+              href="/auth/login"
+              onClick={() => setMobileOpen(false)}
+              className="flex min-h-11 items-center justify-center gap-3 rounded-xl bg-primary px-4 font-semibold text-white shadow-[0_8px_18px_rgba(206,24,27,0.2)]"
             >
-              <Coffee size={20} /> {tNav("reserveTable")}
+              <User /> {tNav("login")}
             </Link>
-
-            <Link href="/checkout" className="flex items-center gap-3">
-              <span className="relative">
-                <ShoppingBag />
-                {cartItemCount > 0 ? (
-                  <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold leading-none text-white ring-2 ring-white">
-                    {cartItemCount > 99 ? "99+" : cartItemCount}
-                  </span>
-                ) : null}
-              </span>
-              {tNav("cart")}
-            </Link>
-
-            <LanguageSelector className="w-full justify-between" />
-
-            {user ? (
-              <>
-                <Link
-                  href="/orders-history"
-                  onClick={() => setMobileOpen(false)}
-                  className="flex items-center gap-3"
-                >
-                  <ShoppingBag /> {tNav("myOrders")}
-                </Link>
-                <Link
-                  href="/notifications"
-                  onClick={() => setMobileOpen(false)}
-                  className="flex items-center gap-3"
-                >
-                  <Bell /> {tNav("notifications")}
-                </Link>
-                <Link
-                  href="/contact"
-                  onClick={() => setMobileOpen(false)}
-                  className="flex items-center gap-3"
-                >
-                  <HelpCircle /> {tNav("helpCenter")}
-                </Link>
-              </>
-            ) : null}
-
-            {hasCustomerAccount ? (
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileOpen(false);
-                  handleLogout();
-                }}
-                className="flex items-center gap-3 text-left"
-              >
-                <LogOut /> {tNav("logout")}
-              </button>
-            ) : (
-              <Link
-                href="/auth/login"
-                onClick={() => setMobileOpen(false)}
-                className="flex min-h-11 items-center justify-center gap-3 rounded-xl bg-primary px-4 font-semibold text-white shadow-[0_8px_18px_rgba(206,24,27,0.2)]"
-              >
-                <User /> {tNav("login")}
-              </Link>
-            )}
-          </div>
+          )}
         </div>
+      </div>
     </>
   );
 };

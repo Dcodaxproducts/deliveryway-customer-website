@@ -109,19 +109,19 @@ export function AsyncSelect<TValue extends AsyncSelectOption = AsyncSelectOption
   };
 
   return (
-  <div ref={wrapperRef} className="relative w-full">
+  <div ref={wrapperRef} className="relative min-w-0 w-full">
     <button
       type="button"
       onClick={() => setOpen((p) => !p)}
-      className="flex h-[44px] w-full items-center justify-between rounded-xl bg-white/70 backdrop-blur px-4 text-sm shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-[0_6px_24px_rgba(0,0,0,0.08)] transition"
+      className="flex h-[44px] w-full min-w-0 items-center justify-between gap-2 rounded-xl bg-white/70 backdrop-blur px-4 text-sm shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-[0_6px_24px_rgba(0,0,0,0.08)] transition"
     >
-      <span className={value ? "text-gray-900" : "text-gray-400"}>
+      <span className={`min-w-0 flex-1 truncate text-left ${value ? "text-gray-900" : "text-gray-400"}`}>
         {value ? String(getOptionValue(value, labelKey) ?? "") : placeholder || t("select")}
       </span>
 
       <ChevronDown
         size={16}
-        className={`transition ${open ? "rotate-180" : ""}`}
+        className={`shrink-0 transition ${open ? "rotate-180" : ""}`}
       />
     </button>
 
@@ -132,7 +132,7 @@ export function AsyncSelect<TValue extends AsyncSelectOption = AsyncSelectOption
           <div className="flex items-center gap-2 bg-gray-50/70 rounded-lg px-3 h-[38px] focus-within:ring-2 focus-within:ring-orange-200 transition">
             <Search size={14} className="text-gray-400" />
             <input
-              className="w-full bg-transparent outline-none text-sm"
+              className="min-w-0 w-full bg-transparent outline-none text-sm"
               placeholder={t("searchPlaceholder")}
               value={search}
               onChange={(e) => {
@@ -158,14 +158,16 @@ export function AsyncSelect<TValue extends AsyncSelectOption = AsyncSelectOption
                   onChange(opt);
                   setOpen(false);
                 }}
-                className={`mx-2 px-3 py-2 cursor-pointer text-sm flex justify-between items-center rounded-lg transition ${
+                className={`mx-2 px-3 py-2 cursor-pointer text-sm flex min-w-0 justify-between items-center gap-2 rounded-lg transition ${
                   selected
                     ? "bg-orange-50 text-orange-600"
                     : "hover:bg-gray-100/70"
                 }`}
               >
-                {String(getOptionValue(opt, labelKey) ?? "")}
-                {selected && <Check size={14} />}
+                <span className="min-w-0 flex-1 break-words">
+                  {String(getOptionValue(opt, labelKey) ?? "")}
+                </span>
+                {selected && <Check size={14} className="shrink-0" />}
               </div>
             );
           })}

@@ -1052,7 +1052,7 @@ export function ReserveTablePage() {
   const ReservationNoticeIcon = reservationNotice?.icon;
 
   return (
-    <main className="relative flex min-h-screen w-full items-center justify-center overflow-hidden">
+    <main className="relative flex min-h-screen w-full min-w-0 items-center justify-center overflow-x-clip">
       {/* BG */}
       <div className="absolute inset-0 z-0">
         <Image
@@ -1063,17 +1063,17 @@ export function ReserveTablePage() {
         />
       </div>
 
-      <div className="relative z-10 mx-auto grid w-full max-w-[1200px] gap-12 px-6 py-12 lg:grid-cols-2">
+      <div className="relative z-10 mx-auto grid w-full min-w-0 max-w-[1200px] grid-cols-1 gap-8 px-4 py-6 sm:px-6 sm:py-12 lg:grid-cols-2 lg:gap-12">
         {/* LEFT */}
-        <div className="mt-10 space-y-3">
-          <h1 className="text-[60px] font-bold">
+        <div className="min-w-0 space-y-3 sm:mt-10">
+          <h1 className="break-words text-[clamp(1.875rem,9vw,60px)] font-bold leading-[1.08]">
             {t("heroTitlePrefix")}{" "}
-            <span className="block text-primary">
+            <span className="block max-w-full text-primary [overflow-wrap:anywhere]">
               {t("heroTitleHighlight")}
             </span>
           </h1>
 
-          <p className="text-gray-600">{t("heroDescription")}</p>
+          <p className="break-words text-gray-600">{t("heroDescription")}</p>
 
           <div className="flex items-center gap-2">
             <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
@@ -1083,22 +1083,22 @@ export function ReserveTablePage() {
         </div>
 
         {/* RIGHT */}
-        <div className="rounded-2xl bg-white p-10 shadow-xl">
-          <div className="mb-[27px] space-y-[2px]">
-            <h2 className="text-[23px] font-semibold text-gray-900">
+        <div className="w-full min-w-0 rounded-2xl bg-white p-5 shadow-xl sm:p-10">
+          <div className="mb-[27px] min-w-0 space-y-[2px]">
+            <h2 className="break-words text-[23px] font-semibold text-gray-900">
               {t("title")}
             </h2>
-            <p className="text-sm text-gray-500">{t("subtitle")}</p>
+            <p className="break-words text-sm text-gray-500">{t("subtitle")}</p>
           </div>
 
           <form
             noValidate
-            className="space-y-6"
+            className="min-w-0 space-y-6"
             onSubmit={handleFormSubmit(handleSubmit)}
           >
-            <fieldset className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <fieldset className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
               <legend className="sr-only">{t("contactDetails")}</legend>
-              <div className="sm:col-span-2">
+              <div className="min-w-0 sm:col-span-2">
                 <label
                   htmlFor="reservation-name"
                   className="text-sm font-medium"
@@ -1110,7 +1110,7 @@ export function ReserveTablePage() {
                   autoComplete="name"
                   placeholder={t("guestNamePlaceholder")}
                   {...register("guestName")}
-                  className="mt-2 rounded-full bg-[#FAFAF9]"
+                  className="mt-2 min-w-0 max-w-full rounded-full bg-[#FAFAF9]"
                   aria-invalid={Boolean(errors.guestName)}
                 />
                 {errors.guestName ? (
@@ -1119,7 +1119,7 @@ export function ReserveTablePage() {
                   </p>
                 ) : null}
               </div>
-              <div>
+              <div className="min-w-0">
                 <label
                   htmlFor="reservation-email"
                   className="text-sm font-medium"
@@ -1132,7 +1132,7 @@ export function ReserveTablePage() {
                   autoComplete="email"
                   placeholder={t("guestEmailPlaceholder")}
                   {...register("guestEmail")}
-                  className="mt-2 rounded-full bg-[#FAFAF9]"
+                  className="mt-2 min-w-0 max-w-full rounded-full bg-[#FAFAF9]"
                   aria-invalid={Boolean(errors.guestEmail)}
                 />
                 {errors.guestEmail ? (
@@ -1141,7 +1141,7 @@ export function ReserveTablePage() {
                   </p>
                 ) : null}
               </div>
-              <div>
+              <div className="min-w-0">
                 <label
                   htmlFor="reservation-phone"
                   className="text-sm font-medium"
@@ -1154,7 +1154,7 @@ export function ReserveTablePage() {
                   autoComplete="tel"
                   placeholder={t("guestPhonePlaceholder")}
                   {...register("guestPhone")}
-                  className="mt-2 rounded-full bg-[#FAFAF9]"
+                  className="mt-2 min-w-0 max-w-full rounded-full bg-[#FAFAF9]"
                   aria-invalid={Boolean(errors.guestPhone)}
                 />
                 {errors.guestPhone ? (
@@ -1166,16 +1166,18 @@ export function ReserveTablePage() {
             </fieldset>
 
             {/* BRANCH */}
-            <div>
+            <div className="min-w-0">
               <label className="text-sm font-medium">{t("selectBranch")}</label>
 
-              <div className="mt-2 flex items-center gap-2">
-                <AsyncSelect
-                  value={selectedBranch}
-                  onChange={handleBranchSelect}
-                  placeholder={t("chooseBranch")}
-                  fetchOptions={fetchBranches}
-                />
+              <div className="mt-2 flex min-w-0 items-center gap-2">
+                <div className="min-w-0 flex-1">
+                  <AsyncSelect
+                    value={selectedBranch}
+                    onChange={handleBranchSelect}
+                    placeholder={t("chooseBranch")}
+                    fetchOptions={fetchBranches}
+                  />
+                </div>
 
                 {/* INFO POPUP */}
                 {selectedBranch?.settings ? (
@@ -1249,6 +1251,7 @@ export function ReserveTablePage() {
                         : []),
                     ]}
                     closeLabel={t("closeModal")}
+                    triggerClassName="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-sm transition hover:border-primary hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                   />
                 ) : null}
               </div>
@@ -1295,8 +1298,8 @@ export function ReserveTablePage() {
             ) : null}
 
             {/* DATE + TIME */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
+            <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="min-w-0">
                 <label className="text-sm font-medium">{t("date")}</label>
                 <Input
                   type="date"
@@ -1316,7 +1319,7 @@ export function ReserveTablePage() {
                     setValue("date", nextDate, { shouldValidate: true });
                     setValue("time", "", { shouldValidate: true });
                   }}
-                  className="mt-2 rounded-full bg-[#FAFAF9] pr-11"
+                  className="mt-2 min-w-0 max-w-full rounded-full bg-[#FAFAF9] pr-11"
                 />
 
                 {dateError ? (
@@ -1330,7 +1333,7 @@ export function ReserveTablePage() {
                 ) : null}
               </div>
 
-              <div>
+              <div className="min-w-0">
                 <label className="text-sm font-medium">{t("time")}</label>
 
                 <Select
@@ -1340,12 +1343,16 @@ export function ReserveTablePage() {
                     setValue("time", value, { shouldValidate: true })
                   }
                 >
-                  <SelectTrigger className="mt-2 h-10 w-full rounded-full border-input bg-[#FAFAF9] px-4 text-sm shadow-none focus-visible:border-primary focus-visible:ring-primary/20">
+                  <SelectTrigger className="mt-2 h-11 w-full min-w-0 max-w-full rounded-full border-input bg-[#FAFAF9] px-4 text-sm shadow-none focus-visible:border-primary focus-visible:ring-primary/20">
                     <SelectValue placeholder={timeSelectPlaceholder} />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl border-gray-100 shadow-xl">
                     {availableTimeSlots.map((slot) => (
-                      <SelectItem key={slot} value={slot} className="rounded-lg">
+                      <SelectItem
+                        key={slot}
+                        value={slot}
+                        className="rounded-lg"
+                      >
                         {formatTimeLabel(slot)}
                       </SelectItem>
                     ))}
@@ -1374,7 +1381,7 @@ export function ReserveTablePage() {
                     onClick={() =>
                       setValue("guestCount", g, { shouldValidate: true })
                     }
-                    className={`rounded-full py-2 ${
+                    className={`min-h-11 min-w-0 rounded-full px-2 py-2 ${
                       guestCount === g ? "bg-primary text-white" : "bg-gray-100"
                     }`}
                   >

@@ -293,9 +293,9 @@ export const Footer = () => {
       }`}
     >
       <div className="mx-auto max-w-[1440px]">
-        <div className="mb-8 grid grid-cols-2 gap-x-8 gap-y-7 lg:grid-cols-[1.2fr_0.65fr_0.75fr_1fr] lg:gap-x-10 lg:gap-y-7">
+        <div className="mb-8 grid min-w-0 grid-cols-1 gap-x-8 gap-y-7 sm:grid-cols-2 lg:grid-cols-[1.2fr_0.65fr_0.75fr_1fr] lg:gap-x-10 lg:gap-y-7">
           {/* BRAND */}
-          <div className="col-span-2 flex flex-col md:col-span-1">
+          <div className="min-w-0 sm:col-span-2 md:col-span-1 flex flex-col">
             <div className="flex items-center gap-3">
               {logoUrl ? (
                 <Image
@@ -372,7 +372,7 @@ export const Footer = () => {
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-sm text-[#AEB1B8] transition-colors hover:text-white"
+                    className="break-words text-sm text-[#AEB1B8] transition-colors hover:text-white"
                   >
                     {link.label}
                   </Link>
@@ -382,7 +382,7 @@ export const Footer = () => {
           </div>
 
           {/* CONTACT */}
-          <div className="col-span-2 md:col-span-1">
+          <div className="min-w-0 sm:col-span-2 md:col-span-1">
             <h3 className="mb-3 text-[15px] font-semibold text-white">
               {t("contact")}
             </h3>
