@@ -684,7 +684,7 @@ export function ReserveTablePage() {
       try {
         const branchId = user?.branchId ? String(user.branchId) : null;
         const branch = branchId
-          ? (await fetchReservationBranch({ branchId })).branch
+          ? (await fetchReservationBranch({ branchId, restaurantId })).branch
           : selectDefaultReservationBranch(
               normalizeReservationBranches(
                 await fetchReservationBranches({
@@ -729,7 +729,10 @@ export function ReserveTablePage() {
 
     if (!branch?.id) return;
 
-    fetchReservationBranch({ branchId: String(branch.id) })
+    fetchReservationBranch({
+      branchId: String(branch.id),
+      restaurantId,
+    })
       .then(({ branch: branchDetails }) => {
         if (branchDetails) {
           setSelectedBranch(branchDetails);

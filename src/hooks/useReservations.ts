@@ -40,6 +40,7 @@ export type ReservationsApi = DomainApiHook & {
   cancelReservation: (args: { reservationId: string }) => Promise<ApiResult>;
   fetchReservationBranch: (args: {
     branchId: string;
+    restaurantId?: string | number | null;
   }) => Promise<{ response: ApiResult; branch: BranchRecord | null }>;
   fetchReservationBranches: (args: {
     restaurantId?: string | number | null;
@@ -72,8 +73,8 @@ export const useReservations = (token: string | null): ReservationsApi => {
   );
 
   const getReservationBranch = useCallback(
-    ({ branchId }: { branchId: string }) =>
-      fetchReservationBranch({ branchId, token }),
+    ({ branchId, restaurantId }: { branchId: string; restaurantId?: string | number | null }) =>
+      fetchReservationBranch({ branchId, restaurantId, token }),
     [token],
   );
 

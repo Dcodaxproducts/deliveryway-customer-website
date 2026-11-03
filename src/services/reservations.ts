@@ -135,15 +135,25 @@ export const cancelReservation = ({
 
 export const fetchReservationBranch = async ({
   branchId,
+  restaurantId,
   token,
 }: {
   branchId: string;
+  restaurantId?: string | number | null;
   token?: string | null;
 }) => {
-  const response = await getReservations(`/v1/branches/${branchId}`, token);
+  const response = token
+    ? await getReservations(`/v1/branches/${branchId}`, token)
+    : await getReservations(
+        `/v1/customer-app/branches?restaurantId=${encodeURIComponent(String(restaurantId ?? ""))}`,
+      );
   const dataRecord = getRecord(response.data);
   const nestedData = getRecord(dataRecord?.data);
-  const branch = normalizeBranch(nestedData || dataRecord);
+  const branch = token
+    ? normalizeBranch(nestedData || dataRecord)
+    : normalizeReservationBranches(response).find(
+        (item) => String(item.id) === branchId,
+      ) ?? null;
 
   return {
     response,
@@ -163,6 +173,8 @@ export const fetchReservationBranches = ({
   token?: string | null;
 }) =>
   getReservations(
-    `/v1/branches?restaurantId=${restaurantId ?? ""}&search=${search ?? ""}&page=${page ?? 1}`,
+    token
+      ? `/v1/branches?restaurantId=${restaurantId ?? ""}&search=${search ?? ""}&page=${page ?? 1}`
+      : `/v1/customer-app/branches?restaurantId=${encodeURIComponent(String(restaurantId ?? ""))}&search=${encodeURIComponent(search ?? "")}&page=${page ?? 1}`,
     token,
   );

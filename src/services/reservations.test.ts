@@ -1,10 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   getReservationStatusLabel,
   getReservationStatusLabelKey,
   normalizeReservationBranches,
   normalizeReservationResponse,
+  fetchReservationBranch,
+  fetchReservationBranches,
   selectDefaultReservationBranch,
 } from "./reservations";
 import type { ApiResult } from "./http";
@@ -51,5 +53,36 @@ describe("reservation service helpers", () => {
     } as ApiResult);
 
     expect(selectDefaultReservationBranch(branches)?.id).toBe("branch-2");
+  });
+});
+
+const getRequestMock = vi.hoisted(() => vi.fn());
+
+vi.mock("@/services/http", () => ({
+  getRequest: getRequestMock,
+  postRequest: vi.fn(),
+  patchRequest: vi.fn(),
+  deleteRequest: vi.fn(),
+}));
+
+describe("reservation branch hydration", () => {
+  beforeEach(() => {
+    getRequestMock.mockReset();
+    getRequestMock.mockResolvedValue({ data: [] });
+  });
+
+  it("uses only the public customer-app branch endpoint anonymously", async () => {
+    await fetchReservationBranches({ restaurantId: "restaurant 1", search: "Main" });
+    await fetchReservationBranch({ branchId: "branch-1", restaurantId: "restaurant 1" });
+    expect(getRequestMock).toHaveBeenNthCalledWith(1, "/v1/customer-app/branches?restaurantId=restaurant%201&search=Main&page=1", undefined);
+    expect(getRequestMock).toHaveBeenNthCalledWith(2, "/v1/customer-app/branches?restaurantId=restaurant%201", undefined);
+    expect(getRequestMock.mock.calls.flat().join(" ")).not.toContain("/v1/branches");
+  });
+
+  it("preserves protected branch endpoints for authenticated callers", async () => {
+    await fetchReservationBranches({ restaurantId: "restaurant-1", token: "token" });
+    await fetchReservationBranch({ branchId: "branch-1", token: "token" });
+    expect(getRequestMock).toHaveBeenNthCalledWith(1, "/v1/branches?restaurantId=restaurant-1&search=&page=1", "token");
+    expect(getRequestMock).toHaveBeenNthCalledWith(2, "/v1/branches/branch-1", "token");
   });
 });
