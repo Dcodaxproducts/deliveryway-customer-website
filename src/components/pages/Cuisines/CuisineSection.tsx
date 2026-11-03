@@ -87,7 +87,7 @@ export function CuisineSection() {
     >
       {loading ? (
         <>
-          <MobileStorefrontRail className="md:hidden" aria-hidden="true">
+          <MobileStorefrontRail aria-hidden="true">
             {[1, 2, 3, 4].map((item) => (
               <div
                 key={item}
@@ -101,7 +101,7 @@ export function CuisineSection() {
         </>
       ) : (
         <>
-          <MobileStorefrontRail className="md:hidden" aria-label={t("title")}>
+          <MobileStorefrontRail aria-label={t("title")}>
             {cuisines.map((cuisine) => (
               <div key={cuisine.id} className="flex min-w-0">
                 <CuisineCard cuisine={cuisine} />

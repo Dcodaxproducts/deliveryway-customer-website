@@ -258,6 +258,51 @@ describe("ItemsListing mounted progressive loading", () => {
     expect(screen.queryByText("rolls item 1")).toBeNull();
   });
 
+  it("releases aborted skeletons and resumes observer loading after category navigation", async () => {
+    globalThis.IntersectionObserver = TestIntersectionObserver;
+    const scrollIntoView = vi.fn();
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", { configurable: true, value: scrollIntoView });
+    const pending: Array<{ categoryId: string; signal?: AbortSignal; resolve: (value: ReturnType<typeof makePage>) => void }> = [];
+    testState.fetchMenuItemsPage.mockImplementation(
+      ({ categoryId, signal }: { categoryId: string; signal?: AbortSignal }) =>
+        new Promise((resolve, reject) => {
+          signal?.addEventListener("abort", () => {
+            const error = new Error("Request aborted");
+            error.name = "AbortError";
+            reject(error);
+          }, { once: true });
+          pending.push({ categoryId, signal, resolve: (value) => resolve(value) });
+        }),
+    );
+    const visibleSections = sections.slice(0, 3);
+    const { container, rerender } = render(
+      <ItemsListing activeSectionId="category-1" sections={visibleSections} contentSource="category" viewMode="onePage" />,
+    );
+
+    await waitFor(() => expect(pending).toHaveLength(1));
+    rerender(
+      <ItemsListing activeSectionId="category-2" sections={visibleSections} contentSource="category" viewMode="onePage" scrollTarget={{ id: "category-2", nonce: 2 }} />,
+    );
+
+    await waitFor(() => expect(pending).toHaveLength(2));
+    expect(pending[0].signal?.aborted).toBe(true);
+    pending[1].resolve(makePage("category-2", 1));
+    expect(await screen.findByText("category-2 item 1")).toBeTruthy();
+    await waitFor(() => expect(scrollIntoView).toHaveBeenCalled());
+    await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
+
+    const loadingObserver = TestIntersectionObserver.instances.find((observer) => observer.rootMargin === "160px 0px");
+    const firstSection = container.querySelector<HTMLElement>('[data-category-id="category-1"]');
+    expect(loadingObserver).toBeDefined();
+    expect(firstSection).not.toBeNull();
+    loadingObserver?.intersect([firstSection as HTMLElement]);
+
+    await waitFor(() => expect(pending).toHaveLength(3));
+    expect(pending[2].categoryId).toBe("category-1");
+    pending[2].resolve(makePage("category-1", 1));
+    expect(await screen.findByText("category-1 item 1")).toBeTruthy();
+  });
+
   it("loads only the active category in multiple mode", async () => {
     testState.fetchMenuItemsPage.mockImplementation(
       async ({ categoryId, page }: { categoryId: string; page: number }) =>

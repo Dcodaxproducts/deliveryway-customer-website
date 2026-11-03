@@ -73,6 +73,9 @@ describe("mobile storefront layout contract", () => {
 
   it("shows one primary mobile card with a peek and a balanced desktop cuisine grid", () => {
     expect(cssSource).toContain("flex: 0 0 calc(100% - 2.75rem)");
+    expect(cssSource).toMatch(
+      /@media \(min-width: 48rem\) \{\s*\.storefront-rail \{\s*display: none;/,
+    );
     expect(cuisineSource).toContain(
       "hidden grid-cols-2 gap-5 pb-8 md:grid lg:grid-cols-3 2xl:grid-cols-4",
     );

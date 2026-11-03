@@ -358,6 +358,17 @@ button{
   border-radius: 999px;
 }
 
+/*
+ * Rails are intentionally mobile-only. Keep this breakpoint in the canonical
+ * rail stylesheet: the unlayered display:flex declaration above otherwise
+ * wins over Tailwind's layered md:hidden utility in the cascade.
+ */
+@media (min-width: 48rem) {
+  .storefront-rail {
+    display: none;
+  }
+}
+
 .storefront-category-tile {
   display: flex;
   width: 5rem;

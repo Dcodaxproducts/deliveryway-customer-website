@@ -17,14 +17,14 @@ export function CuisineCard({ cuisine }: { cuisine: CustomerCuisine }) {
   return (
     <Link
       href={`/cuisines/${encodeURIComponent(cuisine.id)}`}
-      className="group flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[26px] border border-gray-100 bg-white shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition-shadow hover:shadow-[0_20px_48px_rgba(15,23,42,0.12)]"
+      className="group flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[26px] border border-gray-100 bg-white shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition-shadow hover:shadow-[0_20px_48px_rgba(15,23,42,0.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 motion-reduce:transition-none"
     >
       <div className="relative h-44 bg-primary/5">
         <Image
           src={imageUrl}
           alt={cuisine.name}
           fill
-          className="object-cover transition duration-500 group-hover:scale-[1.03]"
+          className="object-cover transition duration-500 group-hover:scale-[1.03] motion-reduce:transform-none motion-reduce:transition-none"
           sizes="(max-width: 640px) 92vw, (max-width: 1280px) 48vw, 350px"
           unoptimized
           onError={handleImageError}
@@ -50,11 +50,11 @@ export function CuisineCard({ cuisine }: { cuisine: CustomerCuisine }) {
         </div>
 
         <div className="mt-auto flex items-center justify-between border-t border-dashed border-gray-100 pt-4 text-sm">
-          <span className="inline-flex items-center gap-1 font-semibold text-gray-500">
+          <span className="inline-flex min-w-0 items-center gap-1 truncate font-semibold text-gray-500">
             <Utensils className="h-4 w-4" />
             {cuisine.itemCount ? t("itemCount", { count: cuisine.itemCount }) : t("exploreItems")}
           </span>
-          <span className="font-bold text-primary">{t("viewCuisine")}</span>
+          <span className="shrink-0 font-bold text-primary">{t("viewCuisine")}</span>
         </div>
       </div>
     </Link>
