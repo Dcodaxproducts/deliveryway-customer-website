@@ -69,4 +69,17 @@ describe("message catalog completeness", () => {
   it("provides the German closing-time label", () => {
     expect(deMessages.items.common.closesAt).toBe("Schließt um {time}");
   });
+
+  it("provides localized reservation contact placeholders", () => {
+    expect(enMessages.reserveTable).toMatchObject({
+      guestNamePlaceholder: "Enter your full name",
+      guestEmailPlaceholder: "you@example.com",
+      guestPhonePlaceholder: "+49 151 23456789",
+    });
+    expect(deMessages.reserveTable).toMatchObject({
+      guestNamePlaceholder: "Vollständigen Namen eingeben",
+      guestEmailPlaceholder: "name@beispiel.de",
+      guestPhonePlaceholder: "+49 151 23456789",
+    });
+  });
 });

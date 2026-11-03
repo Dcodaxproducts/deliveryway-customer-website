@@ -1108,6 +1108,7 @@ export function ReserveTablePage() {
                 <Input
                   id="reservation-name"
                   autoComplete="name"
+                  placeholder={t("guestNamePlaceholder")}
                   {...register("guestName")}
                   className="mt-2 rounded-full bg-[#FAFAF9]"
                   aria-invalid={Boolean(errors.guestName)}
@@ -1129,6 +1130,7 @@ export function ReserveTablePage() {
                   id="reservation-email"
                   type="email"
                   autoComplete="email"
+                  placeholder={t("guestEmailPlaceholder")}
                   {...register("guestEmail")}
                   className="mt-2 rounded-full bg-[#FAFAF9]"
                   aria-invalid={Boolean(errors.guestEmail)}
@@ -1150,6 +1152,7 @@ export function ReserveTablePage() {
                   id="reservation-phone"
                   type="tel"
                   autoComplete="tel"
+                  placeholder={t("guestPhonePlaceholder")}
                   {...register("guestPhone")}
                   className="mt-2 rounded-full bg-[#FAFAF9]"
                   aria-invalid={Boolean(errors.guestPhone)}
