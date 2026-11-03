@@ -45,6 +45,7 @@ import {
   type ReservationPayload,
 } from "@/services/reservations";
 import type { BranchRecord } from "@/types/branch-selector";
+import { getReservationContactPrefill } from "@/components/pages/Reservations/utils/reservation-contact";
 
 const SLOT_INTERVAL_MINUTES = 30;
 
@@ -667,21 +668,11 @@ export function ReserveTablePage() {
   const todayDate = useMemo(() => getTodayDateValue(), []);
 
   useEffect(() => {
-    const userRecord = getRecord(user);
-    const profile = getRecord(userRecord?.profile);
-    const firstName = String(
-      profile?.firstName ?? userRecord?.firstName ?? "",
-    ).trim();
-    const lastName = String(
-      profile?.lastName ?? userRecord?.lastName ?? "",
-    ).trim();
-    const email = String(userRecord?.email ?? "").trim();
-    const phone = String(profile?.phone ?? userRecord?.phone ?? "").trim();
+    const contact = getReservationContactPrefill(user);
 
-    if (firstName || lastName)
-      setValue("guestName", `${firstName} ${lastName}`.trim());
-    if (email) setValue("guestEmail", email);
-    if (phone) setValue("guestPhone", phone);
+    setValue("guestName", contact.guestName);
+    setValue("guestEmail", contact.guestEmail);
+    setValue("guestPhone", contact.guestPhone);
   }, [setValue, user]);
 
   useEffect(() => {
