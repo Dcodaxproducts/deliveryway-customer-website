@@ -72,17 +72,48 @@ describe("reservation branch hydration", () => {
   });
 
   it("uses only the public customer-app branch endpoint anonymously", async () => {
-    await fetchReservationBranches({ restaurantId: "restaurant 1", search: "Main" });
-    await fetchReservationBranch({ branchId: "branch-1", restaurantId: "restaurant 1" });
-    expect(getRequestMock).toHaveBeenNthCalledWith(1, "/v1/customer-app/branches?restaurantId=restaurant%201&search=Main&page=1", undefined);
-    expect(getRequestMock).toHaveBeenNthCalledWith(2, "/v1/customer-app/branches?restaurantId=restaurant%201", undefined);
-    expect(getRequestMock.mock.calls.flat().join(" ")).not.toContain("/v1/branches");
+    await fetchReservationBranches({
+      restaurantId: "restaurant 1",
+      search: "Main",
+    });
+    await fetchReservationBranch({
+      branchId: "branch-1",
+      restaurantId: "restaurant 1",
+    });
+    expect(getRequestMock).toHaveBeenNthCalledWith(
+      1,
+      "/v1/customer-app/branches?restaurantId=restaurant%201&search=Main&page=1",
+      undefined,
+      undefined,
+    );
+    expect(getRequestMock).toHaveBeenNthCalledWith(
+      2,
+      "/v1/customer-app/branches?restaurantId=restaurant%201",
+      undefined,
+      undefined,
+    );
+    expect(getRequestMock.mock.calls.flat().join(" ")).not.toContain(
+      "/v1/branches",
+    );
   });
 
   it("preserves protected branch endpoints for authenticated callers", async () => {
-    await fetchReservationBranches({ restaurantId: "restaurant-1", token: "token" });
+    await fetchReservationBranches({
+      restaurantId: "restaurant-1",
+      token: "token",
+    });
     await fetchReservationBranch({ branchId: "branch-1", token: "token" });
-    expect(getRequestMock).toHaveBeenNthCalledWith(1, "/v1/branches?restaurantId=restaurant-1&search=&page=1", "token");
-    expect(getRequestMock).toHaveBeenNthCalledWith(2, "/v1/branches/branch-1", "token");
+    expect(getRequestMock).toHaveBeenNthCalledWith(
+      1,
+      "/v1/branches?restaurantId=restaurant-1&search=&page=1",
+      "token",
+      undefined,
+    );
+    expect(getRequestMock).toHaveBeenNthCalledWith(
+      2,
+      "/v1/branches/branch-1",
+      "token",
+      undefined,
+    );
   });
 });
