@@ -86,6 +86,7 @@ export type CartItem = {
   discountedUnitPrice?: number | null;
   discountedLineTotal?: number | null;
   includedItems?: CartIncludedItem[];
+  __optimisticPending?: boolean;
 };
 
 export type CartResponse = {
@@ -516,6 +517,7 @@ export const normalizeCartItem = (itemInput: unknown): CartItem => {
       ? null
       : Math.max(0, toNumber(item.discountedLineTotal, 0)),
     includedItems: normalizeArray<ApiRecord>(item.includedItems).map(normalizeIncludedDealItem),
+    __optimisticPending: item.__optimisticPending === true,
   };
 };
 

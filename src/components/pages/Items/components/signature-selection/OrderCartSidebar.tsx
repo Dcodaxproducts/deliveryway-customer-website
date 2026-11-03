@@ -10,7 +10,7 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -49,8 +49,18 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
 import { normalizeCartQuote, normalizeCustomerCartData } from "@/services/cart";
+import {
+  createLatestRequestCoordinator,
+  type LatestRequest,
+} from "@/lib/latest-request";
+import {
+  createCartMutationCoordinator,
+  resolveDeliveryQuoteResult,
+  type DeliveryQuoteResult,
+} from "@/lib/cart-reliability";
 import { cn } from "@/lib/utils";
 import { getStoredDeliveryLocation } from "@/lib/delivery-location";
+import { isPendingCartItem } from "@/lib/optimistic-cart";
 import {
   getGuestDeliveryAddressFromStoredLocation,
   getGuestDeliveryAddressPayload,
@@ -61,6 +71,9 @@ type OrderCartSidebarProps = {
   customerId?: string;
   cartRefreshKey: number;
   cartSnapshot?: unknown;
+  cartLoadState?: "idle" | "loading" | "ready" | "error";
+  managedSnapshot?: boolean;
+  onCartRetry?: () => void;
   onCartRefresh?: () => void;
   presentation?: "embedded" | "floating";
   checkoutType?: CheckoutType;
@@ -71,6 +84,9 @@ export function OrderCartSidebar({
   customerId,
   cartRefreshKey,
   cartSnapshot,
+  cartLoadState,
+  managedSnapshot = false,
+  onCartRetry,
   presentation = "embedded",
   checkoutType = "delivery",
   currency,
@@ -91,33 +107,70 @@ export function OrderCartSidebar({
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cartQuote, setCartQuote] = useState<ApiRecord | null>(null);
   const [loadingCart, setLoadingCart] = useState(false);
+  const [cartLoadError, setCartLoadError] = useState(false);
   const [actionId, setActionId] = useState<string | null>(null);
+  const cartRequestRef = useRef(createLatestRequestCoordinator());
+  const cartMutationRef = useRef(createCartMutationCoordinator());
 
-  const fetchStoredLocationQuote = async () => {
-    if (!customerId || checkoutType !== "delivery") return null;
+  const fetchStoredLocationQuote = async (
+    signal: AbortSignal,
+  ): Promise<DeliveryQuoteResult> => {
+    if (!customerId || checkoutType !== "delivery") {
+      return resolveDeliveryQuoteResult(false, null, normalizeCartQuote);
+    }
 
     const address = getGuestDeliveryAddressFromStoredLocation(
       getStoredDeliveryLocation(),
     );
-    if (!address || !hasGuestDeliveryAddress(address)) return null;
+    if (!address || !hasGuestDeliveryAddress(address)) {
+      return resolveDeliveryQuoteResult(false, null, normalizeCartQuote);
+    }
 
     const response = await quoteCustomerCart({
       customerId,
       payload: {
         guestDeliveryAddress: getGuestDeliveryAddressPayload(address),
       },
+      signal,
     });
 
-    if (!response || response.error || response.success === false) return null;
+    return resolveDeliveryQuoteResult(true, response, normalizeCartQuote);
+  };
 
-    return normalizeCartQuote(response.data);
+  const applyCartSnapshot = async (
+    responseData: unknown,
+    request: LatestRequest,
+  ) => {
+    const { items, quote } = normalizeCustomerCartData(responseData);
+    setCartItems(items.map((item) => normalizeCartItem(item)));
+    setLoadingCart(false);
+    const locationQuote = await fetchStoredLocationQuote(request.signal);
+
+    if (!cartRequestRef.current.isCurrent(request)) return;
+
+    if (locationQuote.status === "error") {
+      setCartQuote(null);
+      setCartLoadError(true);
+      return;
+    }
+
+    setCartQuote(
+      (locationQuote.status === "success"
+        ? locationQuote.quote
+        : quote) as ApiRecord | null,
+    );
+    setCartLoadError(false);
   };
 
   const fetchCart = async () => {
     if (!customerId) return;
 
+    const request = cartRequestRef.current.start();
+
     try {
       setLoadingCart(true);
+      setCartLoadError(false);
+      setCartQuote(null);
 
       const {
         response: res,
@@ -126,40 +179,98 @@ export function OrderCartSidebar({
       } = await fetchCustomerCartForOrderType({
         customerId,
         orderType: checkoutType === "pickup" ? "TAKEAWAY" : "DELIVERY",
+        signal: request.signal,
       });
 
-      if (!res || res.error) {
-        setCartItems([]);
-        setCartQuote(null);
+      if (!cartRequestRef.current.isCurrent(request)) return;
+
+      if (!res || res.error || res.success === false) {
+        setCartLoadError(!res?.aborted);
         return;
       }
 
       setCartItems(items.map((item) => normalizeCartItem(item)));
-      const locationQuote = await fetchStoredLocationQuote();
-      setCartQuote((locationQuote ?? quote) as ApiRecord | null);
-    } catch (err) {
-      setCartItems([]);
-      setCartQuote(null);
-    } finally {
       setLoadingCart(false);
+      const locationQuote = await fetchStoredLocationQuote(request.signal);
+      if (!cartRequestRef.current.isCurrent(request)) return;
+
+      if (locationQuote.status === "error") {
+        setCartQuote(null);
+        setCartLoadError(true);
+        return;
+      }
+
+      setCartQuote(
+        (locationQuote.status === "success"
+          ? locationQuote.quote
+          : quote) as ApiRecord | null,
+      );
+    } catch {
+      if (cartRequestRef.current.isCurrent(request)) {
+        setCartLoadError(true);
+      }
+    } finally {
+      if (cartRequestRef.current.isCurrent(request)) {
+        setLoadingCart(false);
+      }
     }
   };
 
   const syncCartFromMutationResponse = async (responseData: unknown) => {
-    const { items, quote } = normalizeCustomerCartData(responseData);
-    setCartItems(items.map((item) => normalizeCartItem(item)));
-    const locationQuote = await fetchStoredLocationQuote();
-    setCartQuote((locationQuote ?? quote) as ApiRecord | null);
+    const request = cartRequestRef.current.start();
+
+    try {
+      await applyCartSnapshot(responseData, request);
+    } finally {
+      if (cartRequestRef.current.isCurrent(request)) {
+        setLoadingCart(false);
+      }
+    }
   };
 
   useEffect(() => {
-    if (cartSnapshot !== undefined && cartSnapshot !== null) {
-      void syncCartFromMutationResponse(cartSnapshot);
+    if (!customerId) {
+      cartRequestRef.current.cancel();
+      setLoadingCart(false);
+      setCartLoadError(false);
+      setCartItems([]);
+      setCartQuote(null);
       return;
     }
 
-    void fetchCart();
-  }, [customerId, cartRefreshKey, checkoutType, cartSnapshot]);
+    if (presentation === "floating" || managedSnapshot) {
+      if (cartLoadState === "loading") {
+        cartRequestRef.current.cancel();
+        setLoadingCart(true);
+        setCartLoadError(false);
+        return;
+      }
+
+      if (cartLoadState === "error") {
+        cartRequestRef.current.cancel();
+        setLoadingCart(false);
+        setCartLoadError(true);
+        return;
+      }
+
+      if (cartSnapshot !== undefined && cartSnapshot !== null) {
+        setLoadingCart(true);
+        void syncCartFromMutationResponse(cartSnapshot);
+      }
+    } else {
+      void fetchCart();
+    }
+
+    return () => cartRequestRef.current.cancel();
+  }, [
+    customerId,
+    cartRefreshKey,
+    checkoutType,
+    cartSnapshot,
+    cartLoadState,
+    managedSnapshot,
+    presentation,
+  ]);
 
   const splitLabels = useMemo(
     () => ({
@@ -186,6 +297,10 @@ export function OrderCartSidebar({
         (acc, item) => acc + Math.max(1, toNumber(item.quantity, 1)),
         0,
       ),
+    [cartItems],
+  );
+  const hasPendingItems = useMemo(
+    () => cartItems.some(isPendingCartItem),
     [cartItems],
   );
 
@@ -298,14 +413,23 @@ export function OrderCartSidebar({
   const shouldShowTotalBeforeDiscount = hasActualDiscount;
 
   const updateQuantity = async (id: string, type: "inc" | "dec") => {
+    const mutationToken = cartMutationRef.current.start();
+    if (!mutationToken) return;
+
     const item = cartItems.find((cartItem) => String(cartItem.id) === id);
-    if (!item || !customerId) return;
+    if (!item || !customerId || isPendingCartItem(item)) {
+      cartMutationRef.current.finish(mutationToken);
+      return;
+    }
 
     const currentQty = Math.max(1, toNumber(item.quantity, 1));
     const newQty =
       type === "inc" ? currentQty + 1 : Math.max(1, currentQty - 1);
 
-    if (newQty === currentQty) return;
+    if (newQty === currentQty) {
+      cartMutationRef.current.finish(mutationToken);
+      return;
+    }
 
     try {
       setActionId(id);
@@ -336,18 +460,29 @@ export function OrderCartSidebar({
         return;
       }
 
-      await syncCartFromMutationResponse(res.data);
+      if (presentation !== "floating") {
+        await syncCartFromMutationResponse(res.data);
+      }
     } catch (err) {
       toast.error(cartT("failedUpdateQuantity"));
       await fetchCart();
     } finally {
-      setActionId(null);
+      if (cartMutationRef.current.finish(mutationToken)) {
+        setActionId(null);
+      }
     }
   };
 
   const deleteItem = async (id: string) => {
     if (!customerId) return;
+    const mutationToken = cartMutationRef.current.start();
+    if (!mutationToken) return;
+
     const item = cartItems.find((cartItem) => String(cartItem.id) === id);
+    if (isPendingCartItem(item)) {
+      cartMutationRef.current.finish(mutationToken);
+      return;
+    }
 
     try {
       setActionId(id);
@@ -363,11 +498,15 @@ export function OrderCartSidebar({
       }
 
       toast.success(cartT("itemRemoved"));
-      await syncCartFromMutationResponse(res.data);
+      if (presentation !== "floating") {
+        await syncCartFromMutationResponse(res.data);
+      }
     } catch (err) {
       toast.error(cartT("failedRemoveItem"));
     } finally {
-      setActionId(null);
+      if (cartMutationRef.current.finish(mutationToken)) {
+        setActionId(null);
+      }
     }
   };
 
@@ -398,9 +537,29 @@ export function OrderCartSidebar({
           </span>
         </div>
 
-        {loadingCart ? (
+        {loadingCart && cartItems.length === 0 ? (
           <div className="flex flex-1 items-center justify-center py-12">
             <Loader2 className="h-5 w-5 animate-spin text-primary" />
+          </div>
+        ) : cartLoadError ? (
+          <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50/70 p-5 text-center">
+            <p className="text-sm font-medium text-gray-700">
+              {cartT("failedLoad")}
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                if (presentation === "floating") {
+                  onCartRetry?.();
+                } else {
+                  void fetchCart();
+                }
+              }}
+              className="mt-3"
+            >
+              {cartT("retry")}
+            </Button>
           </div>
         ) : cartItems.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50/70 p-5 text-center">
@@ -442,11 +601,13 @@ export function OrderCartSidebar({
                 String(item.id || item.menuItemId || ""),
               );
               const itemImage = String(getItemImage(item) || "");
+              const isPending = isPendingCartItem(item);
 
               return (
                 <div
                   key={String(item.id)}
                   className="rounded-2xl border border-gray-100 bg-white p-3 shadow-sm"
+                  aria-busy={isPending}
                 >
                   <div className="flex items-start gap-3">
                     {itemImage ? (
@@ -473,6 +634,19 @@ export function OrderCartSidebar({
                             {item.name}
                           </h3>
 
+                          {isPending ? (
+                            <p
+                              className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary"
+                              role="status"
+                            >
+                              <Loader2
+                                className="h-3 w-3 animate-spin"
+                                aria-hidden="true"
+                              />
+                              {cartT("addingItem")}
+                            </p>
+                          ) : null}
+
                           {isDealItem && item.deal?.code ? (
                             <p className="mt-1 text-xs font-medium text-primary">
                               {String(item.deal.code)}
@@ -489,7 +663,7 @@ export function OrderCartSidebar({
                         <button
                           type="button"
                           onClick={() => void deleteItem(String(item.id))}
-                          disabled={actionId === String(item.id)}
+                          disabled={actionId !== null || isPending}
                           className="mt-0.5 shrink-0 rounded-md bg-red-50 p-1 text-red-500 transition hover:bg-red-100 disabled:opacity-50"
                           aria-label={t("removeItem", { name: item.name })}
                         >
@@ -687,7 +861,11 @@ export function OrderCartSidebar({
 
                       <div className="flex items-end justify-between gap-3 pt-1">
                         <div>
-                          {itemDiscountDisplay ? (
+                          {isPending ? (
+                            <p className="text-xs font-medium text-gray-500">
+                              {cartT("totalPending")}
+                            </p>
+                          ) : itemDiscountDisplay ? (
                             <div className="flex flex-wrap items-baseline gap-2">
                               <span className="text-xs font-medium text-gray-400 line-through decoration-gray-400">
                                 {formatCurrency(lineTotal, currency)}
@@ -724,7 +902,7 @@ export function OrderCartSidebar({
                             onClick={() =>
                               void updateQuantity(String(item.id), "dec")
                             }
-                            disabled={actionId === String(item.id)}
+                            disabled={actionId !== null || isPending}
                             className="flex h-6 w-6 items-center justify-center rounded-full text-[#666] transition hover:bg-white hover:text-[#222] disabled:opacity-50"
                             aria-label={`Decrease ${item.name} quantity`}
                           >
@@ -738,7 +916,7 @@ export function OrderCartSidebar({
                             onClick={() =>
                               void updateQuantity(String(item.id), "inc")
                             }
-                            disabled={actionId === String(item.id)}
+                            disabled={actionId !== null || isPending}
                             className="flex h-6 w-6 items-center justify-center rounded-full text-[#666] transition hover:bg-white hover:text-[#222] disabled:opacity-50"
                             aria-label={`Increase ${item.name} quantity`}
                           >
@@ -755,7 +933,20 @@ export function OrderCartSidebar({
         )}
 
         <div className="mt-auto pt-8">
-          <div className="space-y-3 border-t border-black/5 pt-5 text-sm text-gray-500">
+          {hasPendingItems ? (
+            <p
+              className="border-t border-black/5 pt-5 text-sm font-medium text-gray-500"
+              role="status"
+            >
+              {cartT("totalPending")}
+            </p>
+          ) : null}
+          <div
+            className={cn(
+              "space-y-3 border-t border-black/5 pt-5 text-sm text-gray-500",
+              hasPendingItems && "hidden",
+            )}
+          >
             <div className="flex items-center justify-between">
               <span>{t("itemTotal")}</span>
               <span>{formatCurrency(itemTotal, currency)}</span>
@@ -867,7 +1058,7 @@ export function OrderCartSidebar({
           <Button
             type="button"
             onClick={() => router.push(`/checkout?type=${checkoutType}`)}
-            disabled={!cartItems.length}
+            disabled={!cartItems.length || hasPendingItems}
             className="mt-5 flex h-[50px] w-full items-center justify-center gap-2 rounded-full bg-primary px-5 text-[14px] font-medium text-primary-foreground shadow-[0_10px_24px_rgba(0,0,0,0.10)] transition-all duration-200 hover:-translate-y-0.5 hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {cartT("proceedToCheckout")}

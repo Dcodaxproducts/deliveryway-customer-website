@@ -513,7 +513,7 @@ const getScheduleRuntimeSummary = ({
 
     return {
       label,
-      value: breakUntil ? `Break until ${breakUntil}` : "Break time",
+      value: breakUntil || "Break time",
       status: "closed",
       breakUntil,
       reason: "break",
@@ -806,10 +806,23 @@ export const resolveHasNext = ({ meta, page, limit, receivedCount, totalLoaded }
   return receivedCount >= limit;
 };
 
+type BranchHoursTranslate = (
+  key: string,
+  values?: Record<string, string>,
+) => string;
+
 export const localizeBranchHoursValue = (
   value: string | null | undefined,
-  translate: (key: string) => string,
+  translate: BranchHoursTranslate,
 ) =>
   String(value || "").trim().toLowerCase() === "closed"
     ? translate("closed")
     : value || "";
+
+export const localizeBranchHoursSummary = (
+  summary: BranchHoursSummary | null | undefined,
+  translate: BranchHoursTranslate,
+) =>
+  summary?.reason === "break" && summary.breakUntil
+    ? translate("breakUntil", { time: summary.breakUntil })
+    : localizeBranchHoursValue(summary?.value, translate);

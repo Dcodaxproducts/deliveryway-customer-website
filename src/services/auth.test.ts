@@ -1,11 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { API_BASE_URL } from "@/lib/axios";
+import { API_BASE_URL, API_REQUEST_TIMEOUT_MS } from "@/lib/axios";
 import { buildApiUrl } from "@/lib/api-endpoint";
 
 import {
   getCurrentUser,
   googleLoginCustomer,
+  guestLoginCustomer,
   isUnauthorizedAuthError,
   updateCustomerLocale,
 } from "./auth";
@@ -99,5 +100,25 @@ describe("auth service", () => {
         body: JSON.stringify({ locale: "de" }),
       }),
     );
+  });
+
+  it("aborts guest renewal through the shared 15-second timeout signal", async () => {
+    const timeoutController = new AbortController();
+    const timeoutSpy = vi
+      .spyOn(AbortSignal, "timeout")
+      .mockReturnValue(timeoutController.signal);
+    vi.spyOn(globalThis, "fetch").mockImplementation((_input, init) =>
+      new Promise((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () => {
+          reject(init.signal?.reason);
+        });
+      }),
+    );
+
+    const renewal = guestLoginCustomer({ restaurantId: "restaurant-1" });
+    timeoutController.abort(new DOMException("Timed out", "TimeoutError"));
+
+    await expect(renewal).rejects.toMatchObject({ name: "TimeoutError" });
+    expect(timeoutSpy).toHaveBeenCalledWith(API_REQUEST_TIMEOUT_MS);
   });
 });

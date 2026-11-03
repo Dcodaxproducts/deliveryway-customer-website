@@ -33,6 +33,7 @@ type PickupSectionProps = {
   pickupScheduleMode: "now" | "schedule";
   setPickupScheduleMode: (value: "now" | "schedule") => void;
   selectedBranch?: BranchRecord | null;
+  preorderEnabled?: boolean;
   contactErrors?: GuestContactErrors;
   onContactFieldChange?: (field: "name" | "phone" | "email") => void;
 };

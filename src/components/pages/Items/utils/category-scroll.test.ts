@@ -1,14 +1,37 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  getCategoryPlaceholderCount,
   getCategoryLoadOrder,
   getCategoryIdsThroughTarget,
+  getProgressiveCategoryLoadCandidates,
   isProgrammaticCategoryTargetReached,
   loadCategoryIdsInBatches,
   resolveCategoryNavigation,
 } from "./category-scroll";
 
 describe("category scrolling", () => {
+  it("reserves first-page geometry from category metadata", () => {
+    expect(getCategoryPlaceholderCount({ itemCount: 82 })).toBe(50);
+    expect(getCategoryPlaceholderCount({ itemsCount: 14 })).toBe(14);
+    expect(getCategoryPlaceholderCount({ _count: { items: 9 } })).toBe(9);
+    expect(getCategoryPlaceholderCount({ id: "unknown" })).toBe(6);
+  });
+
+  it("suppresses observer fan-out while programmatic navigation owns scroll", () => {
+    expect(
+      getProgressiveCategoryLoadCandidates({
+        visibleCategoryIds: ["pizza", "hamburger", "rolls"],
+        programmaticTargetId: "rolls",
+      }),
+    ).toEqual([]);
+    expect(
+      getProgressiveCategoryLoadCandidates({
+        visibleCategoryIds: ["hamburger", "rolls"],
+      }),
+    ).toEqual(["hamburger"]);
+  });
+
   it("keeps category deep links in the continuous one-page menu", () => {
     expect(resolveCategoryNavigation("vegan-pizza")).toEqual({
       activeCategoryId: "vegan-pizza",
@@ -49,21 +72,37 @@ describe("category scrolling", () => {
     ).toBe(true);
   });
 
-  it("loads every category on the initial one-page render", () => {
+  it("loads only the first category on the initial one-page render", () => {
     expect(
       getCategoryLoadOrder(
         [{ id: "pizza" }, { id: "wraps" }, { id: "desserts" }],
       ),
-    ).toEqual(["pizza", "wraps", "desserts"]);
+    ).toEqual(["pizza"]);
   });
 
-  it("prioritizes a selected category without dropping the other categories", () => {
+  it("loads only the selected category for a direct deep link", () => {
     expect(
       getCategoryLoadOrder(
         [{ id: "pizza" }, { id: "wraps" }, { id: "desserts" }],
         "desserts",
       ),
-    ).toEqual(["desserts", "pizza", "wraps"]);
+    ).toEqual(["desserts"]);
+  });
+
+  it("keeps an 82-item many-category direct reload to one initial request", () => {
+    const fixtureItems = Array.from({ length: 82 }, (_, index) => ({
+      id: `item-${index + 1}`,
+      categoryId: `category-${(index % 18) + 1}`,
+    }));
+    const categories = Array.from(
+      new Set(fixtureItems.map((item) => item.categoryId)),
+      (id) => ({ id }),
+    );
+
+    expect(categories).toHaveLength(18);
+    expect(getCategoryLoadOrder(categories, "category-14")).toEqual([
+      "category-14",
+    ]);
   });
 
   it("bounds progressive category request concurrency", async () => {

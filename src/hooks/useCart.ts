@@ -17,6 +17,7 @@ import { useDomainContext } from "@/hooks/useDomainContext";
 import { dispatchCartChanged } from "@/lib/cart-events";
 import { getApiErrorMessage } from "@/lib/errors";
 import { runWithGuestSessionRecovery } from "@/lib/guest-session";
+import type { OptimisticCartItem } from "@/lib/optimistic-cart";
 import {
   addCustomerCartItem,
   addCustomerCartDealItems,
@@ -75,8 +76,15 @@ const getOptimisticCartQuantity = (payload: CartMutationPayload) => {
 };
 
 export type CartApi = DomainApiHook & {
-  ensureCustomerSession: () => Promise<{ customerId: string; token: string }>;
-  fetchCustomerCart: (args: { customerId: string }) => Promise<{
+  ensureCustomerSession: () => Promise<{
+    customerId: string;
+    token: string;
+    isGuest: boolean;
+  }>;
+  fetchCustomerCart: (args: {
+    customerId: string;
+    signal?: AbortSignal;
+  }) => Promise<{
     response: ApiResult;
     items: CartItemRecord[];
     quote: CartQuote | null;
@@ -84,6 +92,7 @@ export type CartApi = DomainApiHook & {
   fetchCustomerCartForOrderType: (args: {
     customerId: string;
     orderType: "DELIVERY" | "TAKEAWAY";
+    signal?: AbortSignal;
   }) => Promise<{
     response: ApiResult;
     items: CartItemRecord[];
@@ -96,10 +105,12 @@ export type CartApi = DomainApiHook & {
   addCustomerCartItem: (args: {
     customerId: string;
     payload: CartMutationPayload;
+    optimisticItem?: OptimisticCartItem;
   }) => Promise<ApiResult>;
   quoteCustomerCart: (args: {
     customerId: string;
     payload?: Record<string, unknown>;
+    signal?: AbortSignal;
   }) => Promise<ApiResult>;
   updateCustomerCart: (args: {
     customerId: string;
@@ -180,22 +191,25 @@ export const useCart = (token: string | null): CartApi => {
   );
 
   const fetchCart = useCallback(
-    ({ customerId }: { customerId: string }) =>
-      fetchCustomerCart({ customerId, token }),
+    ({ customerId, signal }: { customerId: string; signal?: AbortSignal }) =>
+      fetchCustomerCart({ customerId, token, signal }),
     [token],
   );
   const fetchCartForOrderType = useCallback(
     ({
       customerId,
       orderType,
+      signal,
     }: {
       customerId: string;
       orderType: "DELIVERY" | "TAKEAWAY";
+      signal?: AbortSignal;
     }) =>
       fetchCustomerCartForOrderType({
         customerId,
         orderType,
         token,
+        signal,
       }),
     [token],
   );
@@ -210,14 +224,19 @@ export const useCart = (token: string | null): CartApi => {
     async ({
       customerId,
       payload,
+      optimisticItem,
     }: {
       customerId: string;
       payload: CartMutationPayload;
+      optimisticItem?: OptimisticCartItem;
     }) => {
       const optimisticQuantity = getOptimisticCartQuantity(payload);
       dispatchCartChanged({
         itemCountDelta: optimisticQuantity,
         mutationStatus: "pending",
+        optimisticItem,
+        optimisticItemId: optimisticItem?.id,
+        mutationSequence: optimisticItem?.__optimisticSequence,
       });
 
       try {
@@ -249,11 +268,15 @@ export const useCart = (token: string | null): CartApi => {
             mutationStatus: "committed",
             refreshCart: false,
             cartData: response.data,
+            optimisticItemId: optimisticItem?.id,
+            mutationSequence: optimisticItem?.__optimisticSequence,
           });
         } else {
           dispatchCartChanged({
             itemCountDelta: -optimisticQuantity,
             mutationStatus: "rolled-back",
+            optimisticItemId: optimisticItem?.id,
+            mutationSequence: optimisticItem?.__optimisticSequence,
           });
         }
 
@@ -262,6 +285,8 @@ export const useCart = (token: string | null): CartApi => {
         dispatchCartChanged({
           itemCountDelta: -optimisticQuantity,
           mutationStatus: "rolled-back",
+          optimisticItemId: optimisticItem?.id,
+          mutationSequence: optimisticItem?.__optimisticSequence,
         });
         throw error;
       }
@@ -273,15 +298,18 @@ export const useCart = (token: string | null): CartApi => {
     async ({
       customerId,
       payload,
+      signal,
     }: {
       customerId: string;
       payload?: Record<string, unknown>;
+      signal?: AbortSignal;
     }) => {
       const session = await resolveCustomerSession(customerId);
       return quoteCustomerCart({
         customerId: session.customerId,
         payload,
         token: session.token,
+        signal,
       });
     },
     [resolveCustomerSession],
@@ -326,7 +354,8 @@ export const useCart = (token: string | null): CartApi => {
       if (response && !response.error && response.success !== false) {
         dispatchCartChanged({
           itemCount: getCustomerCartItemCount(response.data),
-          refreshCart: true,
+          refreshCart: false,
+          cartData: response.data,
         });
       }
 
@@ -344,7 +373,7 @@ export const useCart = (token: string | null): CartApi => {
       });
 
       if (response && !response.error && response.success !== false) {
-        dispatchCartChanged({ itemCount: 0 });
+        dispatchCartChanged({ itemCount: 0, cartData: response.data });
       }
 
       return response;
@@ -372,6 +401,7 @@ export const useCart = (token: string | null): CartApi => {
       if (response && !response.error && response.success !== false) {
         dispatchCartChanged({
           itemCount: getCustomerCartItemCount(response.data),
+          cartData: response.data,
         });
       }
 
@@ -400,6 +430,7 @@ export const useCart = (token: string | null): CartApi => {
       if (response && !response.error && response.success !== false) {
         dispatchCartChanged({
           itemCount: getCustomerCartItemCount(response.data),
+          cartData: response.data,
         });
       }
 
@@ -425,6 +456,7 @@ export const useCart = (token: string | null): CartApi => {
       if (response && !response.error && response.success !== false) {
         dispatchCartChanged({
           itemCount: getCustomerCartItemCount(response.data),
+          cartData: response.data,
         });
       }
 
@@ -450,6 +482,7 @@ export const useCart = (token: string | null): CartApi => {
       if (response && !response.error && response.success !== false) {
         dispatchCartChanged({
           itemCount: getCustomerCartItemCount(response.data),
+          cartData: response.data,
         });
       }
 
@@ -525,7 +558,8 @@ export const useCart = (token: string | null): CartApi => {
 
 export const useAddDealToCart = (branchId?: string | null) => {
   const t = useTranslations("cart");
-  const { token, user } = useAuthContext();
+  const { token, user, renewGuestSession } = useAuthContext();
+  const { context: domainContext } = useDomainContext();
   const { ensureCustomerSession } = useCart(token);
   const customerId = user?.id ?? "";
 
@@ -536,9 +570,10 @@ export const useAddDealToCart = (branchId?: string | null) => {
       eligibleMenuItems,
       cartItemPayloads,
     }: AddDealToCartInput) => {
-      const session = customerId
-        ? { customerId, token }
-        : await ensureCustomerSession();
+      const session =
+        customerId && token
+          ? { customerId, token, isGuest: user?.isGuest === true }
+          : await ensureCustomerSession();
 
       if (!branchId) {
         throw new Error(t("selectBranchFirst"));
@@ -584,10 +619,28 @@ export const useAddDealToCart = (branchId?: string | null) => {
         throw new Error(t("dealNoItems"));
       }
 
-      const response = await addCustomerCartDealItems({
-        customerId: session.customerId,
-        payloads,
-        token: session.token,
+      const response = await runWithGuestSessionRecovery({
+        session,
+        request: (activeSession) =>
+          addCustomerCartDealItems({
+            customerId: activeSession.customerId,
+            payloads,
+            token: activeSession.token,
+          }),
+        renewSession: async () => {
+          const restaurantId =
+            user?.restaurantId ?? domainContext?.restaurantId;
+          if (!restaurantId) {
+            throw new Error("Restaurant context is unavailable");
+          }
+
+          const renewedSession = await renewGuestSession(restaurantId);
+          return {
+            customerId: renewedSession.user.id,
+            token: renewedSession.accessToken,
+            isGuest: true,
+          };
+        },
       });
 
       if (!response || response.error || response.success === false) {

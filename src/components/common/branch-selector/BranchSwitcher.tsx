@@ -121,7 +121,7 @@ export function BranchSwitcher({
         aria-label={canSwitchBranch ? t("changeBranch") : branchName}
         className={`group inline-flex items-center text-left transition-all duration-200 ${
           isNavbar
-            ? "h-11 gap-2 rounded-full bg-[#F7F7F8] px-4 text-sm font-semibold text-[#20242A] hover:bg-[#F1F2F4]"
+            ? "h-10 gap-2 rounded-full bg-[#F7F7F8]/90 px-3.5 text-sm font-semibold text-[#20242A] hover:bg-[#F1F2F4]"
             : "gap-3 rounded-2xl border border-[#E8ECF0] bg-white px-3 py-2 shadow-sm hover:border-[var(--primary)]/35 hover:shadow-[0_10px_24px_rgba(17,24,39,0.08)]"
         } ${canSwitchBranch ? "" : "cursor-default"} ${className}`}
       >

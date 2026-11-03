@@ -1073,7 +1073,7 @@ export function DealChooserDrawer({
                             : "border-gray-100 bg-white"
                       }`}
                     >
-                      <label className="flex items-start justify-between gap-3">
+                      <label className="flex min-h-11 cursor-pointer items-center justify-between gap-3">
                         <span className="min-w-0 text-sm font-medium leading-5 text-gray-700">
                           {getDealChooserModifierName(modifier)}
                         </span>
@@ -1088,7 +1088,7 @@ export function DealChooserDrawer({
                             </span>
                           ) : null}
                           <Checkbox
-                            className="size-5"
+                            className="size-7"
                             checked={checked}
                             disabled={maxReached}
                             onCheckedChange={(value) =>
@@ -1172,14 +1172,15 @@ export function DealChooserDrawer({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] overflow-auto rounded-[24px] sm:max-w-[760px]">
-        <DialogHeader>
+      <DialogContent className="bottom-0 left-0 top-auto h-[min(94dvh,860px)] max-h-[calc(100dvh-env(safe-area-inset-top))] max-w-none translate-x-0 translate-y-0 grid-rows-[auto_minmax(0,1fr)_auto] gap-0 overflow-hidden rounded-b-none rounded-t-[26px] border-x-0 border-b-0 p-0 sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:h-[min(88dvh,860px)] sm:max-w-[760px] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-[24px] sm:border">
+        <DialogHeader className="shrink-0 border-b border-gray-100 bg-white px-5 py-4 pr-14 text-left">
           <DialogTitle>{deal?.title || t("chooseItems")}</DialogTitle>
           <DialogDescription>
             {deal?.description || getRequirementText(deal, requiredQuantity, t)}
           </DialogDescription>
         </DialogHeader>
 
+        <div className="min-h-0 space-y-4 overflow-y-auto overscroll-contain px-4 py-4 [scrollbar-gutter:stable] sm:px-6">
         {deal ? (
           <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-gray-600">
             <span className="rounded-full bg-primary/10 px-2.5 py-1 text-primary">
@@ -1312,7 +1313,7 @@ export function DealChooserDrawer({
 
                         {configurable || checked ? (
                           <Button
-                            className="h-9 shrink-0 rounded-full border border-primary/20 bg-white px-3 text-xs text-primary hover:bg-primary/5"
+                            className="min-h-11 shrink-0 rounded-full border border-primary/20 bg-white px-3 text-xs text-primary hover:bg-primary/5"
                             onClick={() => toggleExpandedItem(item.id)}
                           >
                             {expandedItemIds.includes(item.id)
@@ -1326,7 +1327,7 @@ export function DealChooserDrawer({
                               type="button"
                               variant="ghost"
                               size="icon"
-                              className="size-7 rounded-full"
+                              className="size-11 rounded-full"
                               aria-label={t("decreaseItemQuantity", {
                                 item: item.name,
                               })}
@@ -1343,7 +1344,7 @@ export function DealChooserDrawer({
                               type="button"
                               variant="ghost"
                               size="icon"
-                              className="size-7 rounded-full"
+                              className="size-11 rounded-full"
                               aria-label={t("increaseItemQuantity", {
                                 item: item.name,
                               })}
@@ -1357,7 +1358,7 @@ export function DealChooserDrawer({
                           </div>
                         ) : (
                           <Checkbox
-                            className="size-5"
+                            className="size-7"
                             checked={checked}
                             disabled={disableUnchecked || isFixedItem}
                             onCheckedChange={(value) =>
@@ -1375,7 +1376,9 @@ export function DealChooserDrawer({
           </div>
         ) : null}
 
-        <DialogFooter>
+        </div>
+
+        <DialogFooter className="shrink-0 border-t border-gray-100 bg-white px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 sm:px-6 sm:pb-4">
           <Button
             variant="primary"
             className="h-11 w-full px-6 py-2 sm:w-auto"

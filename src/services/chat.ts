@@ -18,6 +18,25 @@ export type ChatMessage = {
 export type ChatMessageCreatedEvent = {
   message: ChatMessage;
   threadId: string;
+  thread?: ChatThread;
+};
+
+export type ChatThreadReadEvent = {
+  threadId: string;
+  customerUnreadCount?: number;
+  staffUnreadCount?: number;
+  customerLastReadAt?: string | null;
+  staffLastReadAt?: string | null;
+  thread?: ChatThread;
+};
+
+export type ChatInboxSummary = {
+  scope: "customer" | "deliveryman" | "tenant" | "branch" | "global";
+  total: number;
+  open: number;
+  inProgress: number;
+  resolved: number;
+  unread: number;
 };
 
 export type CreateChatThreadPayload = {

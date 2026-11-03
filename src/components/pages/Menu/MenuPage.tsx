@@ -1,9 +1,9 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { Suspense, useEffect, useState, useSyncExternalStore } from "react";
 import { SignatureSelectionContent } from "@/components/pages/Items/components/signature-selection/SignatureSelectionContent";
 import { OrderCartSidebar } from "@/components/pages/Items/components/signature-selection/OrderCartSidebar";
+import { MenuPageSkeleton } from "@/components/pages/Menu/MenuLoadingSkeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { getSelectedOrderType } from "@/lib/branch-selector";
 import {
@@ -11,11 +11,20 @@ import {
   resolveSelectedCheckoutType,
   type CheckoutTypePreference,
 } from "@/lib/checkout-type-preference";
+import { dispatchCartChanged } from "@/lib/cart-events";
+import {
+  getCartSnapshotState,
+  getServerCartSnapshotState,
+  subscribeCartSnapshotState,
+} from "@/lib/cart-snapshot-store";
 
 function MenuPageContent() {
-  const t = useTranslations("menu");
   const { restaurantId, user, loading } = useAuth();
-  const [cartRefreshKey, setCartRefreshKey] = useState(0);
+  const cartState = useSyncExternalStore(
+    subscribeCartSnapshotState,
+    getCartSnapshotState,
+    getServerCartSnapshotState,
+  );
   const [storedCheckoutType, setStoredCheckoutType] =
     useState<CheckoutTypePreference | null>(null);
   const checkoutType = resolveSelectedCheckoutType(
@@ -27,16 +36,10 @@ function MenuPageContent() {
     setStoredCheckoutType(getStoredCheckoutTypePreference());
   }, []);
 
-  const handleCartRefresh = useCallback(() => {
-    setCartRefreshKey((prev) => prev + 1);
-  }, []);
+  const handleCartRefresh = () => dispatchCartChanged({ refreshCart: true });
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-sm text-[#777]">{t("loading")}</p>
-      </div>
-    );
+    return <MenuPageSkeleton />;
   }
 
   return (
@@ -55,7 +58,11 @@ function MenuPageContent() {
           <div className="min-w-0">
             <OrderCartSidebar
               customerId={user?.id}
-              cartRefreshKey={cartRefreshKey}
+              cartRefreshKey={cartState.cartRefreshKey}
+              cartSnapshot={cartState.cartSnapshot}
+              cartLoadState={cartState.cartLoadState}
+              managedSnapshot
+              onCartRetry={handleCartRefresh}
               onCartRefresh={handleCartRefresh}
               checkoutType={checkoutType}
             />
@@ -68,7 +75,7 @@ function MenuPageContent() {
 
 export function MenuPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen overflow-x-hidden" />}>
+    <Suspense fallback={<MenuPageSkeleton />}>
       <MenuPageContent />
     </Suspense>
   );

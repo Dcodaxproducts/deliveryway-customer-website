@@ -52,12 +52,12 @@ type ItemsSectionForListing = Omit<ItemsCategory, "items"> & {
   items?: ItemsMenu["items"];
 };
 
-const CATEGORY_PAGE_LIMIT = 20;
-const PUBLIC_CATEGORIES_REQUEST_ATTEMPTS = 3;
+const CATEGORY_PAGE_LIMIT = 50;
 const MOBILE_ITEMS_QUERY = "(max-width: 1023px)";
 
 type ItemsLayoutProps = {
   categoryId?: string;
+  onCategoryResolved?: (category: ItemsCategory | null) => void;
 };
 
 const subscribeToMobileItemsViewport = (onStoreChange: () => void) => {
@@ -79,7 +79,10 @@ const isFailedPublicCategoriesResponse = (response: {
   error?: unknown;
 }) => response.success === false || Boolean(response.error);
 
-export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
+export function ItemsLayout({
+  categoryId,
+  onCategoryResolved,
+}: ItemsLayoutProps) {
   const isMobileItemsViewport = useSyncExternalStore(
     subscribeToMobileItemsViewport,
     getMobileItemsViewportSnapshot,
@@ -93,9 +96,10 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
 
   const [categories, setCategories] = useState<ItemsCategory[]>([]);
   const [menus, setMenus] = useState<ItemsMenu[]>([]);
-  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [categoryLoadFailed, setCategoryLoadFailed] = useState(false);
   const [loadingMoreCategories, setLoadingMoreCategories] = useState(false);
-  const [loadingMenus, setLoadingMenus] = useState(false);
+  const [loadingMenus, setLoadingMenus] = useState(true);
 
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -118,6 +122,7 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
 
   const requestInFlightRef = useRef(false);
   const latestCategoryRequestRef = useRef(0);
+  const categoryRequestControllerRef = useRef<AbortController | null>(null);
 
   const restaurantId = useMemo(() => {
     return resolveHomeRestaurantId(user, authRestaurantId, domainContext);
@@ -243,6 +248,10 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
     if (!restaurantId) return;
     if (append && requestInFlightRef.current) return;
 
+    categoryRequestControllerRef.current?.abort();
+    const controller = new AbortController();
+    categoryRequestControllerRef.current = controller;
+
     const requestId = latestCategoryRequestRef.current + 1;
     latestCategoryRequestRef.current = requestId;
 
@@ -256,31 +265,15 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
           setLoadingCategories(true);
         }
       }
+      if (!append) setCategoryLoadFailed(false);
 
-      let pageResult: Awaited<
-        ReturnType<typeof fetchMenuCategoriesPage>
-      > | null = null;
-
-      for (
-        let attempt = 1;
-        attempt <= PUBLIC_CATEGORIES_REQUEST_ATTEMPTS;
-        attempt += 1
-      ) {
-        pageResult = await fetchMenuCategoriesPage({
-          restaurantId: String(restaurantId),
-          page,
-          limit: CATEGORY_PAGE_LIMIT,
-          search: searchValue,
-        });
-
-        if (!isFailedPublicCategoriesResponse(pageResult.response)) break;
-
-        if (attempt < PUBLIC_CATEGORIES_REQUEST_ATTEMPTS) {
-          await new Promise((resolve) => {
-            window.setTimeout(resolve, attempt * 250);
-          });
-        }
-      }
+      const pageResult = await fetchMenuCategoriesPage({
+        restaurantId: String(restaurantId),
+        page,
+        limit: CATEGORY_PAGE_LIMIT,
+        search: searchValue,
+        signal: controller.signal,
+      });
 
       if (
         !pageResult ||
@@ -320,10 +313,13 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
         }),
       );
     } catch (err) {
+      if (controller.signal.aborted) return;
+
       if (requestId !== latestCategoryRequestRef.current) return;
 
       if (!append) {
         setCategories([]);
+        setCategoryLoadFailed(true);
       }
 
       setHasMoreCategories(false);
@@ -332,6 +328,10 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
         requestInFlightRef.current = false;
         setLoadingCategories(false);
         if (!background) setLoadingMoreCategories(false);
+      }
+
+      if (categoryRequestControllerRef.current === controller) {
+        categoryRequestControllerRef.current = null;
       }
     }
   };
@@ -362,22 +362,19 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
       searchValue: debouncedSearch,
       append: false,
     });
+
+    return () => categoryRequestControllerRef.current?.abort();
   }, [restaurantId, debouncedSearch]);
 
   useEffect(() => {
-    if (!hasMoreCategories || requestInFlightRef.current) return;
+    const resolvedCategory = categoryId
+      ? categories.find(
+          (category) => String(category.id) === String(categoryId),
+        ) ?? null
+      : null;
 
-    const timer = window.setTimeout(() => {
-      void fetchCategories({
-        page: currentPage + 1,
-        searchValue: debouncedSearch,
-        append: true,
-        background: true,
-      });
-    }, 120);
-
-    return () => window.clearTimeout(timer);
-  }, [currentPage, debouncedSearch, hasMoreCategories]);
+    onCategoryResolved?.(resolvedCategory);
+  }, [categories, categoryId, onCategoryResolved]);
 
   useEffect(() => {
     if (!token || !restaurantId) return;
@@ -433,6 +430,14 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
       page: currentPage + 1,
       searchValue: debouncedSearch,
       append: true,
+    });
+  };
+
+  const handleRetryCategories = () => {
+    void fetchCategories({
+      page: 1,
+      searchValue: debouncedSearch,
+      append: false,
     });
   };
 
@@ -516,6 +521,7 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
       <div className="pb-[max(2.5rem,env(safe-area-inset-bottom))]">
         <MobileCategoryTabs
           categories={categories}
+          loading={loadingCategories}
           activeCategoryId={activeCategoryId}
           onCategorySelect={(id) => {
             if (id === activeCategoryId) return;
@@ -537,6 +543,8 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
             onActiveCategoryChange={setActiveOnePageCategoryId}
             currency={currency}
             loading={loadingCategories}
+            sectionLoadFailed={categoryLoadFailed}
+            onRetrySections={handleRetryCategories}
           />
         </main>
       </div>
@@ -544,13 +552,15 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
   }
 
   return (
-    <div className="hidden min-w-0 flex-col gap-6 px-4 py-6 md:px-10 lg:flex lg:flex-row lg:items-start">
+    <div className="mx-auto hidden w-full max-w-[1440px] min-w-0 flex-col gap-6 px-5 py-6 lg:flex lg:flex-row lg:items-start lg:px-8 2xl:px-10">
       {/* SIDEBAR */}
-      <aside className="w-full min-w-0 shrink-0 lg:sticky lg:top-24 lg:w-[280px] lg:self-start">
+      <aside className="w-full min-w-0 shrink-0 lg:sticky lg:top-[var(--storefront-sticky-offset)] lg:w-[260px] lg:self-start lg:transition-[top] lg:duration-300 lg:ease-out xl:w-[280px] motion-reduce:transition-none">
         <CategorySidebar
           activeCategoryId={activeSectionId}
           categories={activeSections}
           loading={loadingSections}
+          loadFailed={contentSource === "category" && categoryLoadFailed}
+          onRetry={handleRetryCategories}
           loadingMore={loadingMoreSections}
           hasMore={hasMoreSections}
           search={search}
@@ -596,6 +606,10 @@ export function ItemsLayout({ categoryId }: ItemsLayoutProps) {
           }
           currency={currency}
           loading={loadingSections}
+          sectionLoadFailed={
+            contentSource === "category" && categoryLoadFailed
+          }
+          onRetrySections={handleRetryCategories}
         />
       </main>
     </div>

@@ -5,9 +5,11 @@ import { RestaurantCard } from "./RestaurantCard";
 import useItems from "@/hooks/useItems";
 import { useAuth } from "@/hooks/useAuth";
 import { useDomainContext } from "@/hooks/useDomainContext";
+import { getStorefrontDomainIdentity } from "@/lib/storefront-request-identity";
 import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
 import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import type { ItemsCategory, MenuItem } from "@/components/pages/Items/types";
 import {
   mergeUniqueById,
@@ -15,7 +17,8 @@ import {
 } from "@/components/pages/Items/utils/restaurant-card-utils";
 import {
   getCategoryLoadOrder,
-  getCategoryIdsThroughTarget,
+  getCategoryPlaceholderCount,
+  getProgressiveCategoryLoadCandidates,
   isProgrammaticCategoryTargetReached,
   loadCategoryIdsInBatches,
 } from "@/components/pages/Items/utils/category-scroll";
@@ -47,6 +50,8 @@ type ItemsListingProps = {
   currency?: string | null;
   hideSectionHeading?: boolean;
   loading?: boolean;
+  sectionLoadFailed?: boolean;
+  onRetrySections?: () => void;
 };
 
 type CategoryItemsState = {
@@ -60,9 +65,14 @@ type CategoryItemsState = {
   totalCount: number | null;
 };
 
+type CategoryRequest = {
+  controller: AbortController;
+  categoryId: string;
+  page: number;
+};
+
 const ITEMS_PAGE_LIMIT = 50;
-const CATEGORY_LOAD_BATCH_SIZE = 2;
-const PUBLIC_ITEMS_REQUEST_ATTEMPTS = 3;
+const CATEGORY_LOAD_BATCH_SIZE = 1;
 
 export const createEmptyCategoryState = (): CategoryItemsState => ({
   items: [],
@@ -84,6 +94,51 @@ export const resolveFailedCategoryItemsState = (
   loadedOnce: true,
   failed: true,
 });
+
+export const canCommitCategoryItemsRequest = (
+  activeContext: string,
+  requestContext: string,
+  aborted = false,
+) => !aborted && activeContext === requestContext;
+
+export function ItemsGridSkeleton({
+  count = 6,
+  label = "Loading menu items",
+  testId,
+}: {
+  count?: number;
+  label?: string;
+  testId?: string;
+} = {}) {
+  return (
+    <div
+      aria-busy="true"
+      aria-label={label}
+      data-testid={testId}
+      role="status"
+      className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 md:gap-4"
+    >
+      {Array.from({ length: count }, (_, index) => (
+        <div
+          key={index}
+          data-testid="item-card-skeleton"
+          className="overflow-hidden rounded-[20px] border border-black/5 bg-white shadow-[-12px_0_32px_0_rgba(26,28,28,0.06)]"
+        >
+          <LoadingSkeleton className="h-[210px] w-full" />
+          <div className="space-y-3 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <LoadingSkeleton className="h-5 w-3/5 rounded-md" />
+              <LoadingSkeleton className="h-5 w-16 rounded-md" />
+            </div>
+            <LoadingSkeleton className="h-4 w-full rounded-md" />
+            <LoadingSkeleton className="h-4 w-4/5 rounded-md" />
+            <LoadingSkeleton className="h-11 w-full rounded-full" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 const getSortOrder = (value: unknown) => {
   const parsed = Number(value);
@@ -116,6 +171,8 @@ export function ItemsListing({
   currency,
   hideSectionHeading = false,
   loading = false,
+  sectionLoadFailed = false,
+  onRetrySections,
 }: ItemsListingProps) {
   const t = useTranslations("items.common");
   const { restaurantId: authRestaurantId, user } = useAuth();
@@ -125,9 +182,21 @@ export function ItemsListing({
   const [categoryItemsMap, setCategoryItemsMap] = useState<
     Record<string, CategoryItemsState>
   >({});
+  const [supportsIntersectionObserver, setSupportsIntersectionObserver] =
+    useState(false);
+  const categoryItemsMapRef = useRef(categoryItemsMap);
+
+  useEffect(() => {
+    categoryItemsMapRef.current = categoryItemsMap;
+  }, [categoryItemsMap]);
+
+  useEffect(() => {
+    setSupportsIntersectionObserver("IntersectionObserver" in window);
+  }, []);
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
-  const inFlightRequestsRef = useRef<Set<string>>(new Set());
+  const inFlightRequestsRef = useRef<Map<string, AbortController>>(new Map());
+  const requestControllersRef = useRef<Map<string, CategoryRequest>>(new Map());
   const handledScrollNonceRef = useRef<number | null>(null);
   const programmaticScrollTargetRef = useRef<string | null>(null);
 
@@ -143,13 +212,21 @@ export function ItemsListing({
     return sections.map((category) => String(category?.id || "")).join("|");
   }, [sections]);
 
-  const requestContextKey = `${restaurantId}:${branchId}`;
+  const requestContextKey = `${getStorefrontDomainIdentity()}:${restaurantId}:${branchId}`;
   const requestContextRef = useRef(requestContextKey);
 
   useEffect(() => {
+    requestControllersRef.current.forEach(({ controller }) => controller.abort());
+    requestControllersRef.current.clear();
     requestContextRef.current = requestContextKey;
     inFlightRequestsRef.current.clear();
+    categoryItemsMapRef.current = {};
     setCategoryItemsMap({});
+
+    return () => {
+      requestControllersRef.current.forEach(({ controller }) => controller.abort());
+      requestControllersRef.current.clear();
+    };
   }, [requestContextKey]);
 
   const activeCategoryId = useMemo(() => {
@@ -175,16 +252,30 @@ export function ItemsListing({
     if (!categoryId || !restaurantId) return;
 
     const requestContext = requestContextKey;
-    const requestKey = `${branchId}:${categoryId}:${page}`;
+    const requestKey = `items:${restaurantId}:${branchId}:${categoryId}:${page}`;
 
     if (inFlightRequestsRef.current.has(requestKey)) return;
 
+    const controller = new AbortController();
+
     try {
-      inFlightRequestsRef.current.add(requestKey);
+      inFlightRequestsRef.current.set(requestKey, controller);
+      requestControllersRef.current.set(requestKey, {
+        controller,
+        categoryId,
+        page,
+      });
 
       queueMicrotask(() => {
         setCategoryItemsMap((prev) => {
-          if (requestContextRef.current !== requestContext) return prev;
+          if (
+            !canCommitCategoryItemsRequest(
+              requestContextRef.current,
+              requestContext,
+              controller.signal.aborted,
+            )
+          )
+            return prev;
 
           const existing = prev[categoryId] || createEmptyCategoryState();
 
@@ -201,32 +292,14 @@ export function ItemsListing({
         });
       });
 
-      let pageResult: Awaited<ReturnType<typeof fetchMenuItemsPage>> | null =
-        null;
-
-      for (
-        let attempt = 1;
-        attempt <= PUBLIC_ITEMS_REQUEST_ATTEMPTS;
-        attempt += 1
-      ) {
-        pageResult = await fetchMenuItemsPage({
-          restaurantId: String(restaurantId),
-          branchId,
-          categoryId: String(categoryId),
-          page,
-          limit: ITEMS_PAGE_LIMIT,
-        });
-
-        if (!isFailedPublicItemsResponse(pageResult.response)) break;
-
-        if (Number(pageResult.response.status) === 429) break;
-
-        if (attempt < PUBLIC_ITEMS_REQUEST_ATTEMPTS) {
-          await new Promise((resolve) => {
-            window.setTimeout(resolve, attempt * 250);
-          });
-        }
-      }
+      const pageResult = await fetchMenuItemsPage({
+        restaurantId: String(restaurantId),
+        branchId,
+        categoryId: String(categoryId),
+        page,
+        limit: ITEMS_PAGE_LIMIT,
+        signal: controller.signal,
+      });
 
       if (
         !pageResult ||
@@ -239,7 +312,14 @@ export function ItemsListing({
 
       queueMicrotask(() => {
         setCategoryItemsMap((prev) => {
-          if (requestContextRef.current !== requestContext) return prev;
+          if (
+            !canCommitCategoryItemsRequest(
+              requestContextRef.current,
+              requestContext,
+              controller.signal.aborted,
+            )
+          )
+            return prev;
 
           const existing = prev[categoryId] || createEmptyCategoryState();
 
@@ -274,9 +354,18 @@ export function ItemsListing({
         });
       });
     } catch (err) {
+      if (controller.signal.aborted) return;
+
       queueMicrotask(() => {
         setCategoryItemsMap((prev) => {
-          if (requestContextRef.current !== requestContext) return prev;
+          if (
+            !canCommitCategoryItemsRequest(
+              requestContextRef.current,
+              requestContext,
+              controller.signal.aborted,
+            )
+          )
+            return prev;
 
           const existing = prev[categoryId] || createEmptyCategoryState();
 
@@ -287,7 +376,14 @@ export function ItemsListing({
         });
       });
     } finally {
-      inFlightRequestsRef.current.delete(requestKey);
+      if (inFlightRequestsRef.current.get(requestKey) === controller) {
+        inFlightRequestsRef.current.delete(requestKey);
+      }
+      if (
+        requestControllersRef.current.get(requestKey)?.controller === controller
+      ) {
+        requestControllersRef.current.delete(requestKey);
+      }
     }
   };
 
@@ -297,6 +393,19 @@ export function ItemsListing({
     if (contentSource !== "category") return;
     if (viewMode !== "multiple") return;
     if (!activeCategoryId || !restaurantId) return;
+
+    const existing = categoryItemsMapRef.current[activeCategoryId];
+    if (existing?.loadedOnce) return;
+
+    requestControllersRef.current.forEach((request, requestKey) => {
+      if (request.page === 1 && request.categoryId !== activeCategoryId) {
+        request.controller.abort();
+        requestControllersRef.current.delete(requestKey);
+        if (inFlightRequestsRef.current.get(requestKey) === request.controller) {
+          inFlightRequestsRef.current.delete(requestKey);
+        }
+      }
+    });
 
     queueMicrotask(() => {
       fetchCategoryItems({
@@ -311,6 +420,7 @@ export function ItemsListing({
     activeCategoryId,
     restaurantId,
     branchId,
+    requestContextKey,
   ]);
 
   const activeCategoryState = categoryItemsMap[activeCategoryId];
@@ -341,27 +451,42 @@ export function ItemsListing({
       sections,
       scrollTarget?.id,
     );
+    const requestedTargetId = categoryIdsToLoad[0];
     let cancelled = false;
 
-    queueMicrotask(() => {
-      void loadCategoryIdsInBatches({
-        categoryIds: categoryIdsToLoad,
-        batchSize: CATEGORY_LOAD_BATCH_SIZE,
-        shouldContinue: () => !cancelled,
-        load: async (categoryId) => {
-          if (cancelled) return;
+    if (scrollTarget?.id) {
+      programmaticScrollTargetRef.current = String(scrollTarget.id);
+    }
 
-          const state = categoryItemsMap[categoryId];
-
-          if (state?.loadedOnce || state?.loading) return;
-
-          await fetchCategoryItems({
-            categoryId,
-            page: 1,
-            append: false,
-          });
-        },
+    if (requestedTargetId) {
+      requestControllersRef.current.forEach((request, requestKey) => {
+        if (request.page === 1 && request.categoryId !== requestedTargetId) {
+          request.controller.abort();
+          requestControllersRef.current.delete(requestKey);
+          if (inFlightRequestsRef.current.get(requestKey) === request.controller) {
+            inFlightRequestsRef.current.delete(requestKey);
+          }
+        }
       });
+    }
+
+    void loadCategoryIdsInBatches({
+      categoryIds: categoryIdsToLoad,
+      batchSize: CATEGORY_LOAD_BATCH_SIZE,
+      shouldContinue: () => !cancelled,
+      load: async (categoryId) => {
+        if (cancelled) return;
+
+        const state = categoryItemsMapRef.current[categoryId];
+
+        if (state?.loadedOnce) return;
+
+        await fetchCategoryItems({
+          categoryId,
+          page: 1,
+          append: false,
+        });
+      },
     });
 
     return () => {
@@ -374,6 +499,125 @@ export function ItemsListing({
     branchId,
     categoryIdsKey,
     scrollTarget?.id,
+    requestContextKey,
+  ]);
+
+  useEffect(() => {
+    if (contentSource !== "category" || viewMode !== "onePage") return;
+    if (!restaurantId || !sections.length) return;
+    if (!supportsIntersectionObserver) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visibleIds = entries
+          .filter((entry) => entry.isIntersecting)
+          .map((entry) =>
+            String((entry.target as HTMLElement).dataset.categoryId || ""),
+          )
+          .filter(Boolean);
+
+        const categoryIdsToLoad = getProgressiveCategoryLoadCandidates({
+          visibleCategoryIds: visibleIds.filter((categoryId) => {
+            const state = categoryItemsMapRef.current[categoryId];
+            const hasPageOneRequest = Array.from(
+              requestControllersRef.current.values(),
+            ).some(
+              (request) =>
+                request.page === 1 && request.categoryId === categoryId,
+            );
+
+            return !state?.loadedOnce && !state?.loading && !hasPageOneRequest;
+          }),
+          programmaticTargetId: programmaticScrollTargetRef.current,
+        });
+
+        void loadCategoryIdsInBatches({
+          categoryIds: categoryIdsToLoad,
+          batchSize: CATEGORY_LOAD_BATCH_SIZE,
+          load: async (visibleCategoryId) => {
+            const state = categoryItemsMapRef.current[visibleCategoryId];
+            if (state?.loadedOnce || state?.loading) return;
+
+            await fetchCategoryItems({
+              categoryId: visibleCategoryId,
+              page: 1,
+              append: false,
+            });
+          },
+        });
+      },
+      { rootMargin: "160px 0px", threshold: 0.01 },
+    );
+
+    sections.forEach((section) => {
+      const id = String(section.id || "");
+      const element = sectionRefs.current[id];
+      if (element) observer.observe(element);
+    });
+
+    return () => observer.disconnect();
+  }, [
+    contentSource,
+    viewMode,
+    restaurantId,
+    branchId,
+    categoryIdsKey,
+    supportsIntersectionObserver,
+    requestContextKey,
+  ]);
+
+  useEffect(() => {
+    if (contentSource !== "category" || viewMode !== "onePage") return;
+    if (!restaurantId || !sections.length || supportsIntersectionObserver) return;
+
+    let frameId: number | null = null;
+
+    const loadNearestVisibleCategory = () => {
+      frameId = null;
+      const viewportHeight =
+        window.innerHeight || document.documentElement.clientHeight || 0;
+      const nextCategoryId = sections
+        .map((section) => String(section.id || ""))
+        .find((id) => {
+          if (!id) return false;
+          const state = categoryItemsMapRef.current[id];
+          if (state?.loadedOnce || state?.loading) return false;
+
+          const rect = sectionRefs.current[id]?.getBoundingClientRect();
+          return Boolean(rect && rect.top <= viewportHeight + 400 && rect.bottom >= -400);
+        });
+
+      if (nextCategoryId) {
+        void fetchCategoryItems({
+          categoryId: nextCategoryId,
+          page: 1,
+          append: false,
+        });
+      }
+    };
+
+    const scheduleFallbackLoad = () => {
+      if (frameId !== null) return;
+      frameId = window.requestAnimationFrame(loadNearestVisibleCategory);
+    };
+
+    window.addEventListener("scroll", scheduleFallbackLoad, { passive: true });
+    window.addEventListener("resize", scheduleFallbackLoad);
+
+    return () => {
+      window.removeEventListener("scroll", scheduleFallbackLoad);
+      window.removeEventListener("resize", scheduleFallbackLoad);
+      if (frameId !== null) window.cancelAnimationFrame(frameId);
+    };
+  }, [
+    contentSource,
+    viewMode,
+    restaurantId,
+    branchId,
+    categoryIdsKey,
+    sections,
+    supportsIntersectionObserver,
+    requestContextKey,
   ]);
 
   /* ================= PRUNE OLD CATEGORY STATES AFTER SEARCH ================= */
@@ -410,10 +654,8 @@ export function ItemsListing({
     programmaticScrollTargetRef.current = targetId;
 
     if (contentSource === "category") {
-      const categoryIdsToLoad = getCategoryIdsThroughTarget(sections, targetId);
-      const targetPositionIsStable = categoryIdsToLoad.every(
-        (categoryId) => categoryItemsMap[categoryId]?.loadedOnce,
-      );
+      const targetPositionIsStable =
+        categoryItemsMap[targetId]?.loadedOnce === true;
 
       if (!targetPositionIsStable) return;
     }
@@ -433,7 +675,7 @@ export function ItemsListing({
       }
 
       el.scrollIntoView({
-        behavior: "smooth",
+        behavior: "auto",
         block: "start",
       });
       handledScrollNonceRef.current = scrollTarget.nonce;
@@ -663,12 +905,18 @@ export function ItemsListing({
 
   const renderItemsGrid = ({
     categoryId,
+    category,
     emptyLabel = t("noItems"),
   }: {
     categoryId: string;
+    category?: ItemsSection | null;
     emptyLabel?: string;
   }) => {
     const state = categoryItemsMap[categoryId] || createEmptyCategoryState();
+    const placeholderCount = getCategoryPlaceholderCount(
+      category,
+      ITEMS_PAGE_LIMIT,
+    );
 
     if (state.failed && !state.items.length) {
       return (
@@ -692,11 +940,33 @@ export function ItemsListing({
     }
 
     if (!state.loadedOnce && !state.items.length) {
-      return (
-        <div className="flex min-h-[180px] items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white text-sm text-gray-500">
-          <Loader2 size={18} className="mr-2 animate-spin text-primary" />
-          {t("loadingItems")}
-        </div>
+      if (!state.loading && !supportsIntersectionObserver) {
+        return (
+          <div className="flex min-h-[180px] items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white">
+            <button
+              type="button"
+              data-testid={`load-category-${categoryId}`}
+              onClick={() => {
+                void fetchCategoryItems({
+                  categoryId,
+                  page: 1,
+                  append: false,
+                });
+              }}
+              className="inline-flex h-11 items-center justify-center rounded-full border border-primary px-6 text-sm font-semibold text-primary transition hover:bg-primary/5"
+            >
+              {t("loadCategoryItems")}
+            </button>
+          </div>
+        );
+      }
+
+return (
+        <ItemsGridSkeleton
+          count={placeholderCount}
+          label={t("loadingItems")}
+          testId={`category-skeleton-${categoryId}`}
+        />
       );
     }
 
@@ -710,7 +980,7 @@ export function ItemsListing({
 
     return (
       <>
-        <div className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2 md:gap-5">
+        <div className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 md:gap-4">
           {state.items.map((item) => (
             <RestaurantCard key={item.id} item={item} currency={currency} />
           ))}
@@ -752,7 +1022,7 @@ export function ItemsListing({
     }
 
     return (
-      <div className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2 md:gap-5">
+      <div className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 md:gap-4">
         {items.map((item) => (
           <RestaurantCard key={item.id} item={item} currency={currency} />
         ))}
@@ -762,22 +1032,22 @@ export function ItemsListing({
 
   if (viewMode === "onePage") {
     return (
-      <div className="min-w-0 space-y-10">
-        <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-          <h2 className="text-xl font-semibold text-gray-900">
-            {t("fullMenu")}
-          </h2>
-          <p className="mt-1 text-sm text-gray-500">
-            {contentSource === "menu"
-              ? t("menusDescription")
-              : t("menuDescription")}
-          </p>
-        </div>
-
+      <div className="min-w-0 space-y-8">
         {loading && sections.length === 0 ? (
-          <div className="flex min-h-48 items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white text-sm text-gray-500">
-            <Loader2 className="mr-2 h-4 w-4 animate-spin text-primary" />
-            {t("loadingItems")}
+          <div className="space-y-4">
+            <LoadingSkeleton className="h-7 w-44 rounded-lg" />
+            <ItemsGridSkeleton />
+          </div>
+        ) : sectionLoadFailed ? (
+          <div className="flex min-h-48 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-red-200 bg-red-50/40 px-6 text-center text-sm text-gray-600">
+            <p>{t("loadCategoriesFailed")}</p>
+            <button
+              type="button"
+              onClick={onRetrySections}
+              className="inline-flex h-10 items-center justify-center rounded-full border border-primary px-5 text-sm font-semibold text-primary transition hover:bg-primary/5"
+            >
+              {t("retryCategories")}
+            </button>
           </div>
         ) : sections.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-400">
@@ -828,6 +1098,7 @@ export function ItemsListing({
                   ? renderMenuItemsGrid(menuItems, t("noItemsInMenu"))
                   : renderItemsGrid({
                       categoryId: id,
+                      category,
                       emptyLabel: t("noItemsInCategory"),
                     })}
               </section>
@@ -855,9 +1126,17 @@ export function ItemsListing({
       ) : null}
 
       {loading && !activeCategoryId ? (
-        <div className="flex min-h-48 items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white text-sm text-gray-500">
-          <Loader2 className="mr-2 h-4 w-4 animate-spin text-primary" />
-          {t("loadingItems")}
+        <ItemsGridSkeleton />
+      ) : sectionLoadFailed ? (
+        <div className="flex min-h-48 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-red-200 bg-red-50/40 px-6 text-center text-sm text-gray-600">
+          <p>{t("loadCategoriesFailed")}</p>
+          <button
+            type="button"
+            onClick={onRetrySections}
+            className="inline-flex h-10 items-center justify-center rounded-full border border-primary px-5 text-sm font-semibold text-primary transition hover:bg-primary/5"
+          >
+            {t("retryCategories")}
+          </button>
         </div>
       ) : !activeCategoryId ? (
         <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-400">
@@ -871,6 +1150,7 @@ export function ItemsListing({
       ) : (
         renderItemsGrid({
           categoryId: activeCategoryId,
+          category: activeCategory,
           emptyLabel: t("noItems"),
         })
       )}

@@ -88,34 +88,34 @@ export function GroupOrderSection() {
   };
 
   return (
-    <section className="relative w-full overflow-hidden bg-white px-4 py-16 sm:px-6 md:px-10 lg:px-24 xl:px-40">
+    <section className="relative w-full overflow-hidden bg-white px-5 py-10 lg:px-8 lg:py-14 2xl:px-10">
       <GroupOrderModal open={open} onClose={() => setOpen(false)} />
 
       <div className="absolute left-[-140px] top-[-120px] h-[320px] w-[320px] rounded-full bg-primary/10 blur-3xl" />
       <div className="absolute bottom-[-160px] right-[-120px] h-[360px] w-[360px] rounded-full bg-orange-200/30 blur-3xl" />
 
-      <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 lg:grid-cols-[minmax(0,1fr)_520px]">
+      <div className="relative mx-auto grid max-w-[1440px] grid-cols-1 items-center gap-10 lg:grid-cols-[minmax(0,1fr)_440px] xl:grid-cols-[minmax(0,1fr)_480px]">
         {/* LEFT CONTENT */}
         <div className="max-w-2xl">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/10 bg-primary/5 px-4 py-2 text-sm font-semibold text-primary">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/10 bg-primary/5 px-3.5 py-1.5 text-xs font-semibold text-primary">
             <UsersRound size={16} />
             {t("badge")}
           </div>
 
-          <h1 className="text-[40px] font-extrabold leading-[1.05] tracking-[-0.04em] text-gray-950 sm:text-5xl lg:text-6xl">
+          <h1 className="text-[34px] font-extrabold leading-[1.07] tracking-[-0.04em] text-gray-950 sm:text-[42px] lg:text-[48px]">
             Start a{" "}
             <span className="bg-gradient-to-r from-primary to-red-600 bg-clip-text text-transparent">
               {t("highlight")}
             </span>
           </h1>
 
-          <p className="mt-6 max-w-xl text-base leading-8 text-gray-500 sm:text-lg">
+          <p className="mt-4 max-w-xl text-[15px] leading-7 text-gray-500">
             {t("description")}
           </p>
 
-          <div className="mt-7 grid max-w-xl grid-cols-1 gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <div className="mt-6 grid max-w-2xl grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="rounded-xl bg-gray-50 p-3.5">
+              <div className="mb-2.5 flex h-9 w-9 items-center justify-center rounded-lg bg-white text-primary shadow-sm">
                 <Share2 size={18} />
               </div>
               <p className="text-sm font-semibold text-gray-900">{t("featureShareTitle")}</p>
@@ -124,8 +124,8 @@ export function GroupOrderSection() {
               </p>
             </div>
 
-            <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <div className="rounded-xl bg-gray-50 p-3.5">
+              <div className="mb-2.5 flex h-9 w-9 items-center justify-center rounded-lg bg-white text-primary shadow-sm">
                 <Utensils size={18} />
               </div>
               <p className="text-sm font-semibold text-gray-900">{t("featureMealsTitle")}</p>
@@ -134,8 +134,8 @@ export function GroupOrderSection() {
               </p>
             </div>
 
-            <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <div className="rounded-xl bg-gray-50 p-3.5">
+              <div className="mb-2.5 flex h-9 w-9 items-center justify-center rounded-lg bg-white text-primary shadow-sm">
                 <UsersRound size={18} />
               </div>
               <p className="text-sm font-semibold text-gray-900">{t("featureTogetherTitle")}</p>
@@ -145,11 +145,11 @@ export function GroupOrderSection() {
             </div>
           </div>
 
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
             <button
               type="button"
               onClick={handlePrimaryAction}
-              className="inline-flex h-14 items-center justify-center gap-2 rounded-full bg-primary px-7 text-base font-semibold text-white shadow-[0_14px_30px_rgba(220,38,38,0.22)] transition hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-[0_18px_36px_rgba(220,38,38,0.28)]"
+              className="inline-flex h-11 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-primary px-5 text-sm font-semibold text-white shadow-[0_10px_22px_rgba(220,38,38,0.18)] transition hover:-translate-y-0.5 hover:bg-primary/90"
             >
               {hasActiveGroupOrder ? t("viewLobby") : t("startGroupOrder")}
               <ArrowRight size={18} />
@@ -157,9 +157,9 @@ export function GroupOrderSection() {
 
             <Link
               href="/group-order/ongoing"
-              className="inline-flex h-14 items-center justify-center rounded-full border border-primary/15 bg-white px-7 text-base font-semibold text-primary shadow-sm transition hover:-translate-y-0.5 hover:border-primary/30 hover:bg-primary/5 hover:shadow-md"
+              className="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-xl border border-gray-200 bg-white px-5 text-sm font-semibold text-gray-800 transition hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
             >
-              View ongoing group orders
+              {t("myGroupOrders")}
             </Link>
           </div>
 
@@ -169,7 +169,7 @@ export function GroupOrderSection() {
             </p>
           ) : null}
 
-          <div className="mt-6 max-w-xl rounded-3xl border border-gray-100 bg-white p-4 shadow-sm">
+          <div className="mt-5 max-w-2xl rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,0.055)]">
             <p className="text-sm font-semibold text-gray-950">{t("joinWithCodeTitle")}</p>
             <p className="mt-1 text-xs leading-5 text-gray-500">{t("joinWithCodeDescription")}</p>
             <div className="mt-4 flex flex-col gap-3 sm:flex-row">
@@ -218,7 +218,7 @@ export function GroupOrderSection() {
             <img
               src="https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=1200&q=85"
               alt={t("heroImageAlt")}
-              className="h-[320px] w-full object-cover sm:h-[420px] lg:h-[460px]"
+              className="h-[300px] w-full object-cover sm:h-[360px] lg:h-[400px]"
             />
 
             <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/5 to-transparent" />

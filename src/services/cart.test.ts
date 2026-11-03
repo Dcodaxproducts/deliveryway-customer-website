@@ -670,11 +670,56 @@ describe("cart service", () => {
       orderType: "DELIVERY",
     });
 
+    expect(getCartMock).toHaveBeenCalledTimes(1);
     expect(getCartMock).toHaveBeenCalledWith(
       "/v1/cart?customerId=customer-1",
       undefined,
     );
     expect(cart.quote?.payableAmount).toBe(12.55);
+  });
+
+  it.each([
+    [{ aborted: true, error: "canceled" }],
+    [{ timedOut: true, error: "timeout" }],
+  ])("does not start a fallback GET after cancellation or timeout", async (failure) => {
+    patchCartMock.mockResolvedValue(failure);
+
+    const cart = await fetchCustomerCartForOrderType({
+      customerId: "customer-1",
+      orderType: "DELIVERY",
+    });
+
+    expect(getCartMock).not.toHaveBeenCalled();
+    expect(cart.items).toEqual([]);
+    expect(cart.response).toBe(failure);
+  });
+
+  it("passes one abort signal through order-type sync and its GET fallback", async () => {
+    const controller = new AbortController();
+    patchCartMock.mockResolvedValue({ success: true });
+    getCartMock.mockResolvedValue({
+      success: true,
+      data: { items: [{ id: "cart-item-1" }] },
+    });
+
+    await fetchCustomerCartForOrderType({
+      customerId: "customer-1",
+      orderType: "DELIVERY",
+      signal: controller.signal,
+    });
+
+    expect(patchCartMock).toHaveBeenCalledWith(
+      "/v1/cart?customerId=customer-1",
+      { orderType: "DELIVERY" },
+      undefined,
+      { signal: controller.signal },
+    );
+    expect(getCartMock).toHaveBeenCalledTimes(1);
+    expect(getCartMock).toHaveBeenCalledWith(
+      "/v1/cart?customerId=customer-1",
+      undefined,
+      { signal: controller.signal },
+    );
   });
 
   it("normalizes customer cart quote from GET cart response", async () => {

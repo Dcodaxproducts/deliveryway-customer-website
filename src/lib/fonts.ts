@@ -1,32 +1,27 @@
-import { Onest, Poppins, Montserrat, Nunito, Roboto } from "next/font/google";
+import localFont from "next/font/local";
 
-export const onest = Onest({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
+export const onest = localFont({
+  src: "./fonts/onest-latin.woff2",
+  weight: "400 900",
   display: "swap",
   variable: "--font-onest",
 });
 
-export const poppins = Poppins({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+export const poppins = localFont({
+  src: [
+    { path: "./fonts/poppins-latin-400.woff2", weight: "400" },
+    { path: "./fonts/poppins-latin-500.woff2", weight: "500" },
+    { path: "./fonts/poppins-latin-600.woff2", weight: "600" },
+    { path: "./fonts/poppins-latin-700.woff2", weight: "700" },
+  ],
   display: "swap",
 });
 
-export const montserrat = Montserrat({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
-
-export const nunito = Nunito({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
-
-export const roboto = Roboto({
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
+export const roboto = localFont({
+  src: [
+    { path: "./fonts/roboto-latin.woff2", weight: "400" },
+    { path: "./fonts/roboto-latin.woff2", weight: "500" },
+    { path: "./fonts/roboto-latin.woff2", weight: "700" },
+  ],
   display: "swap",
 });

@@ -2,8 +2,16 @@
 
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Grid2X2, List, Loader2, Menu, Search, Utensils } from "lucide-react";
+import { Grid2X2, List, Loader2, Menu, Search } from "lucide-react";
 import { useTranslations } from "next-intl";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 
 type MenuViewMode = "multiple" | "onePage";
 type ItemsContentSource = "category" | "menu";
@@ -17,6 +25,8 @@ type CategorySidebarProps = {
   activeCategoryId?: string;
   categories?: CategorySidebarItem[];
   loading?: boolean;
+  loadFailed?: boolean;
+  onRetry?: () => void;
   loadingMore?: boolean;
   hasMore?: boolean;
   search?: string;
@@ -34,6 +44,8 @@ export function CategorySidebar({
   activeCategoryId,
   categories = [],
   loading,
+  loadFailed,
+  onRetry,
   loadingMore,
   hasMore,
   search,
@@ -97,7 +109,7 @@ export function CategorySidebar({
   return (
     <div
       ref={sidebarRef}
-      className="min-w-0 max-h-[calc(100dvh-7.5rem)] overflow-y-auto overscroll-contain rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-100 [scrollbar-width:thin]"
+      className="custom-scrollbar min-w-0 h-[calc(100dvh-var(--storefront-sticky-offset)-1rem)] overflow-y-auto overscroll-contain rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-100 transition-[height] duration-300 ease-out motion-reduce:transition-none"
     >
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -149,20 +161,24 @@ export function CategorySidebar({
             size={16}
             className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-primary"
           />
-          <select
+          <Select
             value={viewMode}
-            onChange={(event) =>
-              onViewModeChange?.(event.target.value === "multiple" ? "multiple" : "onePage")
+            onValueChange={(value) =>
+              onViewModeChange?.(value === "multiple" ? "multiple" : "onePage")
             }
-            className="cursor-pointer h-11 w-full appearance-none rounded-xl bg-gray-100 pl-10 pr-9 text-sm font-semibold text-gray-800 outline-none transition focus:bg-white focus:ring-2 focus:ring-primary/15"
           >
-            <option value="onePage">{tSidebar("onePage")}</option>
-            <option value="multiple">{tSidebar("individual")}</option>
-          </select>
-          <Utensils
-            size={15}
-            className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
-          />
+            <SelectTrigger className="h-11 w-full cursor-pointer rounded-xl border-0 bg-gray-100 pl-10 pr-10 text-sm font-semibold text-gray-800 shadow-none transition hover:bg-gray-50 focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-primary/15">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border-gray-100 shadow-xl">
+              <SelectItem value="onePage" className="rounded-lg">
+                {tSidebar("onePage")}
+              </SelectItem>
+              <SelectItem value="multiple" className="rounded-lg">
+                {tSidebar("individual")}
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </label>
 
@@ -188,9 +204,21 @@ export function CategorySidebar({
       {/* LIST */}
       <div className="space-y-2">
         {loading ? (
-          <div className="flex items-center justify-center gap-2 py-6 text-sm text-gray-400">
-            <Loader2 size={16} className="animate-spin" />
-            {tSidebar("loadingCategories")}
+          <div aria-busy="true" role="status" className="space-y-2 py-1">
+            {Array.from({ length: 6 }, (_, index) => (
+              <LoadingSkeleton key={index} className="h-11 w-full rounded-full" />
+            ))}
+          </div>
+        ) : loadFailed ? (
+          <div className="space-y-3 py-5 text-center text-sm text-gray-500">
+            <p>{tCommon("loadCategoriesFailed")}</p>
+            <button
+              type="button"
+              onClick={onRetry}
+              className="inline-flex h-10 items-center justify-center rounded-full border border-primary px-5 text-sm font-semibold text-primary transition hover:bg-primary/5"
+            >
+              {tCommon("retryCategories")}
+            </button>
           </div>
         ) : categories.length === 0 ? (
           <p className="py-6 text-center text-sm text-gray-400">

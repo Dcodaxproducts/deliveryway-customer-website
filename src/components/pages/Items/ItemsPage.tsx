@@ -15,6 +15,8 @@ import { CheckCircle2, Loader2, Users } from "lucide-react";
 
 import RestaurantHeader from "@/components/pages/Items/components/RestaurantHeader";
 import { ItemsLayout } from "@/components/pages/Items/components/ItemsLayout";
+import { ItemsGridSkeleton } from "@/components/pages/Items/components/Items";
+import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import useBranches from "@/hooks/useBranches";
 import { useGroupOrder, useGroupOrderApi } from "@/hooks/useGroupOrder";
 import { useAuth } from "@/hooks/useAuth";
@@ -35,6 +37,7 @@ import {
   setStoredGroupOrderLobbyId,
 } from "@/lib/group-order";
 import type { GroupOrder } from "@/types/group-order";
+import type { ItemsCategory } from "@/components/pages/Items/types";
 
 function ItemsPageContent() {
   const t = useTranslations("items.groupOrder");
@@ -63,6 +66,9 @@ function ItemsPageContent() {
   const [joiningGroupOrder, setJoiningGroupOrder] = useState(false);
   const [hasAddedGroupOrderItem, setHasAddedGroupOrderItem] = useState(false);
   const [markingDone, setMarkingDone] = useState(false);
+  const [headerCategory, setHeaderCategory] = useState<ItemsCategory | null>(
+    null,
+  );
 
   const handledInviteCodeRef = useRef<string | null>(null);
 
@@ -323,7 +329,7 @@ function ItemsPageContent() {
   };
 
   return (
-    <div className="min-h-screen md:px-35">
+    <div className="min-h-screen">
       {joiningGroupOrder ? (
         <div className="mx-4 mt-4 rounded-2xl border border-primary/10 bg-primary/5 px-4 py-3 text-sm font-medium text-primary md:mx-10">
           {t("joining")}
@@ -386,16 +392,32 @@ function ItemsPageContent() {
       ) : null}
 
       <div className={categoryId ? "hidden lg:block" : undefined}>
-        <RestaurantHeader />
+        <RestaurantHeader category={headerCategory} />
       </div>
-      <ItemsLayout categoryId={categoryId} />
+      <ItemsLayout
+        categoryId={categoryId}
+        onCategoryResolved={setHeaderCategory}
+      />
     </div>
   );
 }
 
 export function ItemsPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen" />}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen" aria-busy="true" role="status">
+          <LoadingSkeleton className="h-[260px] w-full rounded-none md:h-[340px]" />
+          <div className="mx-auto grid w-full max-w-[1440px] grid-cols-1 gap-6 px-4 py-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:px-8">
+            <LoadingSkeleton className="hidden h-[calc(100dvh-8rem)] rounded-2xl lg:block" />
+            <div className="space-y-4">
+              <LoadingSkeleton className="h-7 w-44 rounded-lg" />
+              <ItemsGridSkeleton />
+            </div>
+          </div>
+        </div>
+      }
+    >
       <ItemsPageContent />
     </Suspense>
   );

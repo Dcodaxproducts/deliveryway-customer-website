@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { areBranchSchedulesIdentical, formatAddress, formatPrice, getBranchHoursDetails, getBranchHoursSummary, getImageUrl, getOperatingHours, getRestaurantAddress, getRestaurantName, getSplitPizzaPricingVariation, localizeBranchHoursValue, mergeUniqueById, resolveHasNext, resolvePromotionBadge } from "./restaurant-card-utils";
+import { areBranchSchedulesIdentical, formatAddress, formatPrice, getBranchHoursDetails, getBranchHoursSummary, getImageUrl, getOperatingHours, getRestaurantAddress, getRestaurantName, getSplitPizzaPricingVariation, localizeBranchHoursSummary, localizeBranchHoursValue, mergeUniqueById, resolveHasNext, resolvePromotionBadge } from "./restaurant-card-utils";
 
 describe("restaurant card utils", () => {
   afterEach(() => {
@@ -21,6 +21,32 @@ describe("restaurant card utils", () => {
     expect(localizeBranchHoursValue("09:00 - 17:00", (key) => key)).toBe(
       "09:00 - 17:00"
     );
+  });
+
+  it("localizes active break labels without locale branching", () => {
+    const summary = {
+      label: "Today",
+      value: "17:00",
+      status: "closed" as const,
+      reason: "break" as const,
+      breakUntil: "17:00",
+    };
+    const translate = (messages: Record<string, string>) =>
+      (key: string, values?: Record<string, string>) =>
+        messages[key].replace("{time}", values?.time ?? "");
+
+    expect(
+      localizeBranchHoursSummary(
+        summary,
+        translate({ breakUntil: "Break until {time}" }),
+      ),
+    ).toBe("Break until 17:00");
+    expect(
+      localizeBranchHoursSummary(
+        summary,
+        translate({ breakUntil: "Pause bis {time}" }),
+      ),
+    ).toBe("Pause bis 17:00");
   });
 
   it("formats address and operating hours", () => {

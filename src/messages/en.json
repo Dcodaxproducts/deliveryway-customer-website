@@ -242,7 +242,10 @@
       "searching": "Searching {mode}...",
       "noneFound": "No {mode} found",
       "categoryFallback": "Category",
-      "menuItemFallback": "Menu item"
+      "menuItemFallback": "Menu item",
+      "loadErrorTitle": "We could not load this restaurant",
+      "loadErrorDescription": "The connection was interrupted. Please try again without leaving this page.",
+      "retry": "Try again"
     },
     "mobile": {
       "deliverTo": "Deliver to",
@@ -257,6 +260,8 @@
       "categories": "Categories",
       "viewAll": "View all",
       "categoriesEmpty": "Categories will appear here once available.",
+      "categoriesError": "Categories could not be loaded.",
+      "retry": "Try again",
       "browseMenu": "Browse the menu",
       "recommendationsEmpty": "Fresh recommendations will appear here when deals are available.",
       "exploreFood": "Explore food"
@@ -269,6 +274,8 @@
       "previous": "Previous categories",
       "next": "Next categories",
       "empty": "No categories found",
+      "error": "Categories could not be loaded.",
+      "retry": "Try again",
       "groupOrder": "Group Order",
       "menu": "Menu",
       "orderNow": "Order Now"
@@ -699,6 +706,7 @@
       "closedNow": "Closed now",
       "closesAt": "Closes at {time}",
       "opensAt": "Opens at {time}",
+      "breakUntil": "Break until {time}",
       "noBreakToday": "No break today",
       "hoursPopupTitle": "Hours and break times",
       "hoursPopupSubtitle": "Current schedule for {branch}.",
@@ -735,8 +743,11 @@
       "selectCategory": "Select a category to view items",
       "selectMenu": "Select a menu to view items",
       "loadingItems": "Loading items...",
+      "loadCategoryItems": "Load category items",
       "loadItemsFailed": "Menu items could not be loaded. Please try again.",
       "retryItems": "Try again",
+      "loadCategoriesFailed": "Categories could not be loaded. Please try again.",
+      "retryCategories": "Retry categories",
       "loadingMore": "Loading more...",
       "loadMoreItems": "Load More Items"
     },
@@ -767,6 +778,7 @@
     },
     "signature": {
       "failedFetchMenus": "Failed to fetch menus",
+      "retryMenus": "Retry menus",
       "cartBranchConflict": "Your cart had items from another branch. Clearing cart...",
       "failedClearCart": "Failed to clear cart",
       "noMenus": "No menus found.",
@@ -886,6 +898,8 @@
     "failedUpdateQuantity": "Failed to update quantity",
     "failedRemoveItem": "Failed to remove item",
     "itemRemoved": "Item removed",
+    "addingItem": "Adding…",
+    "totalPending": "Final details and total are being confirmed…",
     "yourOrder": "Your Order",
     "itemCount": "{count, plural, one {# Item} other {# Items}}",
     "empty": "Your cart is empty.",
@@ -904,6 +918,8 @@
     "dealIncludes": "Deal includes",
     "failedAddDealItem": "Failed to add deal item to cart",
     "failedRefreshQuote": "Failed to refresh cart quote",
+    "failedLoad": "We could not load your cart.",
+    "retry": "Try again",
     "dealItemsAdded": "Deal items added to cart",
     "failedAddDeal": "Failed to add deal to cart",
     "transactionFee": "Transaction fee",
@@ -1706,6 +1722,7 @@
       "featureTogetherDescription": "Checkout as one group.",
       "viewLobby": "View Lobby",
       "startGroupOrder": "Start Group Order",
+      "myGroupOrders": "My group orders",
       "activeDetected": "Active group order detected. Continue from your lobby.",
       "liveGroupLabel": "Live Group",
       "liveGroupText": "4 people adding meals",

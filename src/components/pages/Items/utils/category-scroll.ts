@@ -1,5 +1,38 @@
 type CategorySection = {
   id?: string | number | null;
+  itemCount?: string | number | null;
+  itemsCount?: string | number | null;
+  _count?: { items?: string | number | null } | null;
+};
+
+const toSafeCount = (value: unknown) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? Math.floor(parsed) : null;
+};
+
+export const getCategoryPlaceholderCount = (
+  section?: CategorySection | null,
+  pageLimit = 50,
+  fallbackCount = 6,
+) => {
+  const reportedCount =
+    toSafeCount(section?.itemCount) ??
+    toSafeCount(section?.itemsCount) ??
+    toSafeCount(section?._count?.items);
+
+  return Math.min(pageLimit, reportedCount ?? fallbackCount);
+};
+
+export const getProgressiveCategoryLoadCandidates = ({
+  visibleCategoryIds,
+  programmaticTargetId,
+}: {
+  visibleCategoryIds: string[];
+  programmaticTargetId?: string | null;
+}) => {
+  if (programmaticTargetId) return [];
+
+  return visibleCategoryIds.filter(Boolean).slice(0, 1);
 };
 
 export const resolveCategoryNavigation = (
@@ -34,13 +67,9 @@ export const getCategoryLoadOrder = (
     ? categoryIds.indexOf(String(targetId))
     : -1;
 
-  if (targetIndex <= 0) return categoryIds;
+  if (!categoryIds.length) return [];
 
-  return [
-    categoryIds[targetIndex],
-    ...categoryIds.slice(0, targetIndex),
-    ...categoryIds.slice(targetIndex + 1),
-  ];
+  return [targetIndex >= 0 ? categoryIds[targetIndex] : categoryIds[0]];
 };
 
 export const loadCategoryIdsInBatches = async ({

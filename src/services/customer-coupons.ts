@@ -9,9 +9,11 @@ import {
 const CUSTOMER_COUPONS_ENDPOINT = "/customer-app/coupons";
 
 export const getCustomerCoupons = async (
-  params: CustomerCouponsParams
+  params: CustomerCouponsParams,
+  signal?: AbortSignal,
 ): Promise<CustomerCouponsResponse> => {
   const response = await httpClient.get<unknown>(CUSTOMER_COUPONS_ENDPOINT, {
+    signal,
     params: cleanParams({
       restaurantId: params.restaurantId,
       branchId: params.branchId,

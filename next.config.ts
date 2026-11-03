@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
-    unoptimized: true,
+    qualities: [75, 78, 82],
     remotePatterns: [
       {
         protocol: "https",
@@ -41,7 +41,12 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "deliveryway.s3.eu-west-2.amazonaws.com",
-        pathname: "/**",
+        pathname: "/uploads/**",
+      },
+      {
+        protocol: "https",
+        hostname: "deliveryway-production-media.s3.eu-north-1.amazonaws.com",
+        pathname: "/uploads/**",
       },
       
       

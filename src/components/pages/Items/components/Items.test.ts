@@ -1,11 +1,20 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  canCommitCategoryItemsRequest,
   createEmptyCategoryState,
   resolveFailedCategoryItemsState,
 } from "./Items";
 
 describe("category item request recovery", () => {
+  it("rejects stale or aborted writes after restaurant/branch changes", () => {
+    expect(canCommitCategoryItemsRequest("r2:b2", "r1:b1")).toBe(false);
+    expect(canCommitCategoryItemsRequest("r1:b1", "r1:b1", true)).toBe(
+      false,
+    );
+    expect(canCommitCategoryItemsRequest("r1:b1", "r1:b1")).toBe(true);
+  });
+
   it("finishes the loading state when the initial request fails", () => {
     const failedState = resolveFailedCategoryItemsState({
       ...createEmptyCategoryState(),

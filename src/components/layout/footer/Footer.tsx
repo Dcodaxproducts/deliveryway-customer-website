@@ -288,43 +288,43 @@ export const Footer = () => {
 
   return (
     <footer
-      className={`bg-[#111116] pt-[94.39px] pb-8 px-4 transition-colors duration-300 ${
+      className={`border-t border-white/5 bg-[#111318] px-5 pb-4 pt-10 text-white transition-colors duration-300 md:pt-12 ${
         hideOnMobileHome ? "hidden md:block" : ""
       }`}
     >
-      <div className="max-w-[1400px] mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+      <div className="mx-auto max-w-[1440px]">
+        <div className="mb-8 grid grid-cols-2 gap-x-8 gap-y-7 lg:grid-cols-[1.2fr_0.65fr_0.75fr_1fr] lg:gap-x-10 lg:gap-y-7">
           {/* BRAND */}
-          <div className="flex flex-col">
+          <div className="col-span-2 flex flex-col md:col-span-1">
             <div className="flex items-center gap-3">
               {logoUrl ? (
                 <Image
                   src={logoUrl}
                   alt={restaurantName}
-                  width={56}
-                  height={56}
-                  className="h-14 w-14 rounded-2xl object-cover"
+                  width={48}
+                  height={48}
+                  className="h-12 w-12 rounded-xl object-cover ring-1 ring-white/10"
                 />
               ) : null}
               <div>
-                <h2 className="text-[28px] font-bold leading-tight text-white">
+                <h2 className="text-[22px] font-bold leading-tight tracking-[-0.02em] text-white">
                   {restaurantName}
                 </h2>
                 {branch?.name ? (
-                  <p className="mt-1 text-sm font-medium text-gray-400">
+                  <p className="mt-0.5 text-xs font-medium text-[#969BA4]">
                     {branch.name}
                   </p>
                 ) : null}
               </div>
             </div>
 
-            <p className="text-gray-300 text-sm leading-relaxed max-w-[300px] mt-[16px] mb-[24px]">
+            <p className="mb-3 mt-2.5 max-w-[340px] text-sm leading-6 text-[#AEB1B8]">
               {description}
             </p>
 
             {/* SOCIAL */}
             {socialLinks.length > 0 ? (
-              <div className="flex gap-4">
+              <div className="flex gap-2.5">
                 {socialLinks.map(({ icon: Icon, href, key, label }) => (
                   <Link
                     key={key}
@@ -332,9 +332,9 @@ export const Footer = () => {
                     target="_blank"
                     rel="noreferrer"
                     aria-label={label}
-                    className="w-10 h-10 rounded-full bg-[#29292D] flex items-center justify-center hover:bg-[#F15A2B15] transition-colors"
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.07] text-[#D8DADE] ring-1 ring-white/[0.06] transition-all hover:-translate-y-0.5 hover:bg-primary hover:text-white"
                   >
-                    <Icon size={18} className="text-white" />
+                    <Icon size={16} />
                   </Link>
                 ))}
               </div>
@@ -342,17 +342,17 @@ export const Footer = () => {
           </div>
 
           {/* QUICK LINKS */}
-          <div className="lg:pl-30">
-            <h3 className="text-xl font-bold text-white mb-[26px]">
+          <div>
+            <h3 className="mb-3 text-[15px] font-semibold text-white">
               {t("quickLinks")}
             </h3>
 
-            <ul className="flex flex-col gap-[22px]">
+            <ul className="flex flex-col gap-2.5">
               {quickLinks.map((link) => (
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-gray-300 text-base hover:text-primary transition-colors"
+                    className="text-sm text-[#AEB1B8] transition-colors hover:text-white"
                   >
                     {link.label}
                   </Link>
@@ -362,17 +362,17 @@ export const Footer = () => {
           </div>
 
           {/* COMPANY */}
-          <div className="lg:pl-10">
-            <h3 className="text-xl font-bold text-white mb-[26px]">
+          <div>
+            <h3 className="mb-3 text-[15px] font-semibold text-white">
               {t("company")}
             </h3>
 
-            <ul className="flex flex-col gap-[22px]">
+            <ul className="flex flex-col gap-2.5">
               {companyLinks.map((link) => (
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-gray-300 text-base hover:text-primary transition-colors"
+                    className="text-sm text-[#AEB1B8] transition-colors hover:text-white"
                   >
                     {link.label}
                   </Link>
@@ -382,16 +382,16 @@ export const Footer = () => {
           </div>
 
           {/* CONTACT */}
-          <div>
-            <h3 className="text-xl font-bold text-white mb-[26px]">
+          <div className="col-span-2 md:col-span-1">
+            <h3 className="mb-3 text-[15px] font-semibold text-white">
               {t("contact")}
             </h3>
 
-            <div className="flex flex-col gap-[22px] text-base">
+            <div className="flex flex-col gap-2.5 text-sm leading-6">
               {branch?.name ? (
                 <p className="text-white font-medium">
                   {t("branch")} :{" "}
-                  <span className="text-gray-300 font-normal">
+                  <span className="font-normal text-[#AEB1B8]">
                     {branch.name}
                   </span>
                 </p>
@@ -400,7 +400,7 @@ export const Footer = () => {
               {branchAddress ? (
                 <p className="text-white font-medium leading-relaxed">
                   {t("address")} :{" "}
-                  <span className="text-gray-300 font-normal">
+                  <span className="font-normal text-[#AEB1B8]">
                     {branchAddress}
                   </span>
                 </p>
@@ -411,7 +411,7 @@ export const Footer = () => {
                   {t("phone")} :{" "}
                   <a
                     href={`tel:${branchPhone.replace(/[^\d+]/g, "")}`}
-                    className="text-gray-300 font-normal transition-colors hover:text-primary"
+                    className="font-normal text-[#AEB1B8] transition-colors hover:text-white"
                   >
                     {branchPhone}
                   </a>
@@ -423,7 +423,7 @@ export const Footer = () => {
                   WhatsApp :{" "}
                   <a
                     href={`https://wa.me/${branchWhatsapp.replace(/[^\d]/g, "")}`}
-                    className="text-gray-300 font-normal transition-colors hover:text-primary"
+                    className="font-normal text-[#AEB1B8] transition-colors hover:text-white"
                   >
                     {branchWhatsapp}
                   </a>
@@ -435,7 +435,7 @@ export const Footer = () => {
                   Email :{" "}
                   <a
                     href={`mailto:${branchEmail}`}
-                    className="text-gray-300 font-normal transition-colors hover:text-primary"
+                    className="font-normal text-[#AEB1B8] transition-colors hover:text-white"
                   >
                     {branchEmail}
                   </a>
@@ -446,8 +446,8 @@ export const Footer = () => {
         </div>
 
         {/* BOTTOM */}
-        <div className="border-t border-gray-800 pt-8 mt-8">
-          <p className="text-center text-gray-300 text-sm md:text-base">
+        <div className="border-t border-white/[0.08] pt-4">
+          <p className="text-center text-xs text-[#8E939C] sm:text-sm">
             {t("copyright", {
               year: new Date().getFullYear(),
               name: restaurantName,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Image from "next/image";
+import { ResilientImage } from "@/components/common/ResilientImage";
 import { ArrowUpRight, BadgePercent } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -13,6 +13,8 @@ import {
   CarouselItem,
 } from "@/components/ui/carousel";
 import { DealChooserDrawer } from "@/components/pages/Home/components/deals/DealChooserDrawer";
+import { MobileStorefrontRail } from "@/components/pages/Home/components/MobileStorefrontRail";
+import { StorefrontSection } from "@/components/pages/Home/components/StorefrontSection";
 import {
   getDealImage,
   getDealActionLabel,
@@ -47,31 +49,24 @@ type CustomerDealsSectionProps = {
   currency?: string | null;
 };
 
-const CustomerDealsSkeleton = ({ compact = false }: { compact?: boolean }) => (
-  <div
-    className={
-      compact ? "flex gap-4 overflow-hidden" : "flex gap-5 overflow-hidden"
-    }
-  >
-    {[1, 2, 3, 4].map((item) => (
+const CustomerDealsSkeleton = ({ compact = false }: { compact?: boolean }) => {
+  const skeletons = [1, 2, 3, 4].map((item) => (
       <div
         key={item}
         className={
           compact
-            ? "h-[428px] min-w-[270px] animate-pulse rounded-[22px] border border-[#EFE6DB] bg-[#FBFAF6] sm:min-w-[320px]"
+            ? "h-[366px] w-full min-w-0 animate-pulse rounded-[22px] border border-[#EFE6DB] bg-[#FBFAF6] sm:min-w-[320px]"
             : "h-[250px] min-w-[280px] animate-pulse rounded-[22px] bg-gray-100 sm:min-w-[320px]"
         }
       />
-    ))}
-  </div>
-);
+    ));
 
-const fallbackDealImages = [
-  "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=960&q=90",
-  "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=960&q=90",
-  "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=960&q=90",
-  "https://images.unsplash.com/photo-1633945274405-b6c8069047b0?auto=format&fit=crop&w=960&q=90",
-] as const;
+  if (compact) {
+    return <MobileStorefrontRail className="overflow-hidden">{skeletons}</MobileStorefrontRail>;
+  }
+
+  return <div className="flex gap-5 overflow-hidden">{skeletons}</div>;
+};
 
 const toNumber = (value: number | string | null | undefined) => {
   const parsed = Number(value);
@@ -103,11 +98,7 @@ const getDealHighlights = (
   return chips;
 };
 
-const getDealImageForCard = (deal: CustomerDeal, index: number) => {
-  const image = getDealImage(deal);
-
-  return image || fallbackDealImages[index % fallbackDealImages.length];
-};
+const getDealImageForCard = (deal: CustomerDeal) => getDealImage(deal) || null;
 
 const getComparableDealPrice = (deal: CustomerDeal, currency?: string | null) => {
   const scopedTotal = deal.scopeMenuItems.reduce(
@@ -132,7 +123,7 @@ const CustomerDealCard = ({
   onAddDeal?: (deal: CustomerDeal, selectedMenuItemIds?: string[]) => void;
 }) => {
   const t = useTranslations("home.deals");
-  const image = getDealImageForCard(deal, index);
+  const image = getDealImageForCard(deal);
   const itemNames = getDealItemNames(deal.scopeMenuItems);
   const categoryNames = getDealItemNames(deal.scopeCategories);
   const actionLabel = getDealActionLabel(deal);
@@ -229,20 +220,14 @@ const CustomerDealCard = ({
 
         <div className="relative mt-2 h-[124px] w-full self-center sm:h-[138px]">
           <div className="absolute inset-x-3 bottom-1 h-8 rounded-full bg-black/20 blur-xl" />
-          {image ? (
-            <Image
-              src={image}
-              alt={deal.title}
-              fill
-              sizes="(max-width: 640px) 112px, 132px"
-              className="object-contain drop-shadow-[0_18px_18px_rgba(17,24,39,0.22)]"
-              unoptimized
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center rounded-full bg-primary/10 text-primary">
-              <BadgePercent size={42} />
-            </div>
-          )}
+          <ResilientImage
+            src={image}
+            alt={deal.title}
+            fill
+            sizes="(max-width: 640px) 112px, 132px"
+            className="object-contain drop-shadow-[0_18px_18px_rgba(17,24,39,0.22)]"
+            fallback="deal"
+          />
         </div>
       </div>
 
@@ -283,7 +268,7 @@ const CustomerDealMenuCard = ({
   onAddDeal?: (deal: CustomerDeal, selectedMenuItemIds?: string[]) => void;
 }) => {
   const t = useTranslations("home.deals");
-  const image = getDealImageForCard(deal, index);
+  const image = getDealImageForCard(deal);
   const itemNames = getDealItemNames(deal.scopeMenuItems);
   const categoryNames = getDealItemNames(deal.scopeCategories);
   const actionLabel = getDealActionLabel(deal);
@@ -311,14 +296,14 @@ const CustomerDealMenuCard = ({
 
   return (
     <article
-      className={`group relative flex h-[428px] w-full min-w-0 flex-col overflow-hidden rounded-[24px] border p-2.5 transition duration-300 ease-out ${
+      className={`group relative flex h-[366px] w-full min-w-0 flex-col overflow-hidden rounded-[18px] border p-2 transition duration-300 ease-out motion-reduce:transition-none ${
         isFeatured
           ? "border-[#A33A47]/80 bg-[linear-gradient(155deg,#8B1D2B_0%,#77131F_100%)] text-[#FFF7EF] shadow-[0_14px_30px_rgba(79,24,33,0.13)]"
           : "border-[#EEE4D9] bg-[#FFFDF9] text-[#40312D] shadow-[0_12px_28px_rgba(64,48,33,0.055)] hover:-translate-y-0.5 hover:shadow-[0_17px_34px_rgba(64,48,33,0.08)]"
       }`}
     >
       <div
-        className={`relative h-[188px] shrink-0 overflow-hidden rounded-[17px] border ${
+        className={`relative h-[148px] shrink-0 overflow-hidden rounded-[14px] border ${
           isFeatured
             ? "border-[#A9434E]/70 bg-[#56101A]"
             : "border-white/90 bg-[#F2EBE2]"
@@ -340,23 +325,17 @@ const CustomerDealMenuCard = ({
           </span>
         ) : null}
 
-        {image ? (
-          <Image
-            src={image}
-            alt={deal.title}
-            fill
-            sizes="(max-width: 640px) 86vw, (max-width: 1024px) 44vw, 350px"
-            className="object-cover object-center transition duration-500 ease-out group-hover:scale-[1.015]"
-            unoptimized
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center text-primary">
-            <BadgePercent size={42} />
-          </div>
-        )}
+        <ResilientImage
+          src={image}
+          alt={deal.title}
+          fill
+          sizes="(max-width: 640px) 85vw, (max-width: 1024px) 62vw, 350px"
+          className="object-cover object-center transition duration-500 ease-out group-hover:scale-[1.015] motion-reduce:transition-none"
+          fallback="deal"
+        />
       </div>
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col px-2.5 pb-1.5 pt-4">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col px-2.5 pb-1.5 pt-3">
         <p
           className={`line-clamp-1 text-[10px] font-bold uppercase leading-[1.2] tracking-[0.12em] ${
             isFeatured ? "text-[#E2BD72]" : "text-[#A97747]"
@@ -468,7 +447,7 @@ const CustomerDealMenuCard = ({
           <Button
             variant="default"
             size="icon"
-            className={`h-9 w-9 shrink-0 rounded-full border shadow-none transition duration-200 ${
+            className={`h-9 w-9 shrink-0 rounded-full border shadow-none transition duration-200 motion-reduce:transition-none ${
               isFeatured
                 ? "border-[#E1BC73] bg-[#E1BC73] text-[#5B1720] hover:bg-[#E8C985]"
                 : "border-[#EBCFCB] bg-white/40 text-[#A51F30] hover:border-[#A51F30] hover:bg-[#A51F30] hover:text-white"
@@ -510,12 +489,8 @@ export const CustomerDealsSection = ({
 
     return compact ? visibleDeals : visibleDeals.slice(0, 6);
   }, [compact, deals]);
-  const sectionClassName = compact
-    ? "mb-8 min-w-0"
-    : "mx-auto max-w-[1400px] px-4 pb-[30px] pt-[30px] sm:px-6 sm:pb-[60px] sm:pt-[60px]";
-  const headingClassName = compact
-    ? "text-[25px] font-bold leading-[1.06] tracking-[-0.035em] text-[#3E2C28] sm:text-[33px]"
-    : "text-2xl font-extrabold text-gray-950";
+  const desktopSectionClassName =
+    "mx-auto max-w-[1400px] px-4 pb-[30px] pt-[30px] sm:px-6 sm:pb-[60px] sm:pt-[60px]";
   const [selectedChooserDeal, setSelectedChooserDeal] =
     useState<CustomerDeal | null>(null);
   const [pendingDeal, setPendingDeal] = useState<CustomerDeal | null>(null);
@@ -628,10 +603,18 @@ export const CustomerDealsSection = ({
   ]);
 
   if (isLoading) {
+    if (!compact) {
+      return (
+        <section className={desktopSectionClassName}>
+          <CustomerDealsSkeleton />
+        </section>
+      );
+    }
+
     return (
-      <section className={sectionClassName}>
-        <CustomerDealsSkeleton compact={compact} />
-      </section>
+      <StorefrontSection>
+        <CustomerDealsSkeleton compact />
+      </StorefrontSection>
     );
   }
 
@@ -655,57 +638,42 @@ export const CustomerDealsSection = ({
 
   if (compact) {
     return (
-      <section className={sectionClassName}>
-        <div className="relative overflow-hidden rounded-[36px] border border-[#F0E8DF] bg-[linear-gradient(108deg,#FAF7F2_0%,#FCFAF7_56%,#F6F0E9_100%)] px-5 pb-8 pt-7 shadow-[0_20px_54px_rgba(64,48,33,0.09)] sm:px-7 sm:pb-10 lg:px-9 lg:pb-[54px] lg:pt-8">
-          <div className="pointer-events-none absolute -right-[98px] -top-[111px] hidden h-[232px] w-[232px] rounded-full border border-[#DDCDBD]/50 bg-white/[0.04] shadow-[0_0_0_22px_rgba(231,220,208,0.14)] md:block" />
-
-          <div className="relative z-10 mb-5 flex items-end justify-between gap-4 sm:mb-6">
-            <div className="min-w-0">
-              <p className="mb-2.5 text-[11px] font-bold uppercase leading-[1.25] tracking-[0.18em] text-[#A51F30] sm:text-[12px]">
-                {t("specialMenusLimited")}
-              </p>
-              <h3 className={headingClassName}>{t("available")}</h3>
-            </div>
-          </div>
-
-          <Carousel
-            opts={{ align: "start", dragFree: true }}
-            className="relative z-10 min-w-0"
-          >
-            <CarouselContent className="-ml-4 cursor-grab pb-8 active:cursor-grabbing">
-              {activeDeals.map((deal, index) => (
-                <CarouselItem
-                  key={deal.id}
-                  className="flex basis-[88%] pl-4 sm:basis-[52%] lg:basis-1/3"
-                >
-                  <CustomerDealMenuCard
-                    deal={deal}
-                    index={index}
-                    isAdding={
-                      addingDealId === deal.id || pendingDeal?.id === deal.id
-                    }
-                    currency={currency}
-                    onAddDeal={handleDealClick}
-                  />
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-          </Carousel>
-        </div>
+      <StorefrontSection
+        eyebrow={t("specialMenusLimited")}
+        title={t("available")}
+      >
+        <MobileStorefrontRail
+          aria-label={t("available")}
+        >
+            {activeDeals.map((deal, index) => (
+              <div key={deal.id} className="flex">
+                <CustomerDealMenuCard
+                  deal={deal}
+                  index={index}
+                  isAdding={
+                    addingDealId === deal.id || pendingDeal?.id === deal.id
+                  }
+                  currency={currency}
+                  onAddDeal={handleDealClick}
+                />
+              </div>
+            ))}
+        </MobileStorefrontRail>
 
         {chooserDrawer}
-      </section>
+      </StorefrontSection>
     );
   }
 
   return (
-    <section className={sectionClassName}>
+    <section className={desktopSectionClassName}>
       <div className="mb-4 flex items-end justify-between gap-4">
         <div>
-          <h3 className={headingClassName}>{t("available")}</h3>
+          <h3 className="text-2xl font-extrabold text-gray-950">
+            {t("available")}
+          </h3>
         </div>
       </div>
-
       <Carousel opts={{ align: "start", dragFree: true }} className="min-w-0">
         <CarouselContent className="-ml-5 cursor-grab pb-8 active:cursor-grabbing">
           {activeDeals.map((deal, index) => (

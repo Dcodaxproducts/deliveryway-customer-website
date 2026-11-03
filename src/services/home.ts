@@ -9,6 +9,7 @@ import {
   normalizePromotions,
 } from "../lib/home";
 import { getMeta } from "../lib/response";
+import { normalizeHomeOrderingConfig } from "../types/home";
 import type {
   CustomerHomeData,
   CustomerHomeResponse,
@@ -25,6 +26,32 @@ const HOME_CATEGORIES_MAX_PAGES = 30;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
+
+const assertSuccessfulResponse = (response: unknown) => {
+  if (!isRecord(response)) return;
+
+  const responseError = response.error;
+  const hasError =
+    typeof responseError === "string"
+      ? Boolean(responseError.trim())
+      : responseError !== undefined &&
+        responseError !== null &&
+        responseError !== false;
+  const failed =
+    response.success === false ||
+    hasError ||
+    response.aborted === true ||
+    response.timedOut === true;
+
+  if (!failed) return;
+
+  const message =
+    typeof response.error === "string" && response.error.trim()
+      ? response.error
+      : "Failed to load categories";
+
+  throw new Error(message);
+};
 
 const unwrapHomeData = (value: unknown) => {
   if (!isRecord(value)) {
@@ -48,6 +75,7 @@ const normalizeHomeConfig = (value: unknown): HomeConfig | null => {
   return {
     currency: typeof value.currency === "string" ? value.currency : null,
     branding: isRecord(value.branding) ? value.branding : undefined,
+    ordering: normalizeHomeOrderingConfig(value.ordering),
   };
 };
 
@@ -185,13 +213,14 @@ export const getHomeCategories = async (restaurantId: string) => {
       restaurantId,
       page: String(page),
       limit: String(HOME_CATEGORIES_PAGE_LIMIT),
-      sortBy: "createdAt",
+      sortBy: "sortOrder",
       sortOrder: "ASC",
     });
 
     const response = await getRequest(
       `/customer-app/categories?${params.toString()}`,
     );
+    assertSuccessfulResponse(response);
     const pageCategories = normalizeHomeCategories(response);
 
     for (const category of pageCategories) {
@@ -267,6 +296,7 @@ export const getPromotionalItems = async ({
 export const getHome = async (
   restaurantId?: string | null,
   branchId?: string | null,
+  signal?: AbortSignal,
 ): Promise<CustomerHomeResponse> => {
   const params = new URLSearchParams();
 
@@ -279,9 +309,10 @@ export const getHome = async (
   }
 
   const query = params.toString();
-  const response = await getRequest(
-    `/customer-app/home${query ? `?${query}` : ""}`,
-  );
+  const endpoint = `/customer-app/home${query ? `?${query}` : ""}`;
+  const response = signal
+    ? await getRequest(endpoint, undefined, { signal })
+    : await getRequest(endpoint);
 
   if (response.error) {
     throw new Error(response.error);

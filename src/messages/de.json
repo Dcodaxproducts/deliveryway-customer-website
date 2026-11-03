@@ -242,7 +242,10 @@
       "searching": "{mode} werden gesucht...",
       "noneFound": "Keine {mode} gefunden",
       "categoryFallback": "Kategorie",
-      "menuItemFallback": "Menüartikel"
+      "menuItemFallback": "Menüartikel",
+      "loadErrorTitle": "Dieses Restaurant konnte nicht geladen werden",
+      "loadErrorDescription": "Die Verbindung wurde unterbrochen. Bitte versuchen Sie es erneut, ohne die Seite zu verlassen.",
+      "retry": "Erneut versuchen"
     },
     "mobile": {
       "deliverTo": "Liefern an",
@@ -257,6 +260,8 @@
       "categories": "Kategorien",
       "viewAll": "Alle anzeigen",
       "categoriesEmpty": "Kategorien werden hier angezeigt, sobald sie verfügbar sind.",
+      "categoriesError": "Kategorien konnten nicht geladen werden.",
+      "retry": "Erneut versuchen",
       "browseMenu": "Menü ansehen",
       "recommendationsEmpty": "Frische Empfehlungen werden hier angezeigt, sobald Angebote verfügbar sind.",
       "exploreFood": "Gerichte entdecken"
@@ -269,6 +274,8 @@
       "previous": "Vorherige Kategorien",
       "next": "Nächste Kategorien",
       "empty": "Keine Kategorien gefunden",
+      "error": "Kategorien konnten nicht geladen werden.",
+      "retry": "Erneut versuchen",
       "groupOrder": "Gruppenbestellung",
       "menu": "Menü",
       "orderNow": "Jetzt bestellen"
@@ -699,6 +706,7 @@
       "closedNow": "Jetzt geschlossen",
       "closesAt": "Schließt um {time}",
       "opensAt": "Öffnet um {time}",
+      "breakUntil": "Pause bis {time}",
       "noBreakToday": "Heute keine Pause",
       "hoursPopupTitle": "Zeiten und Pausen",
       "hoursPopupSubtitle": "Aktueller Zeitplan für {branch}.",
@@ -735,8 +743,11 @@
       "selectCategory": "Wählen Sie eine Kategorie aus, um Artikel anzuzeigen",
       "selectMenu": "Wählen Sie ein Menü aus, um Artikel anzuzeigen",
       "loadingItems": "Artikel werden geladen...",
+      "loadCategoryItems": "Kategorieartikel laden",
       "loadItemsFailed": "Die Menüartikel konnten nicht geladen werden. Bitte versuchen Sie es erneut.",
       "retryItems": "Erneut versuchen",
+      "loadCategoriesFailed": "Die Kategorien konnten nicht geladen werden. Bitte versuchen Sie es erneut.",
+      "retryCategories": "Kategorien erneut laden",
       "loadingMore": "Weitere werden geladen...",
       "loadMoreItems": "Weitere Artikel laden"
     },
@@ -767,6 +778,7 @@
     },
     "signature": {
       "failedFetchMenus": "Menüs konnten nicht geladen werden",
+      "retryMenus": "Menüs erneut laden",
       "cartBranchConflict": "Ihr Warenkorb enthält Artikel aus einer anderen Filiale. Warenkorb wird geleert...",
       "failedClearCart": "Warenkorb konnte nicht geleert werden",
       "noMenus": "Keine Menüs gefunden.",
@@ -886,6 +898,8 @@
     "failedUpdateQuantity": "Menge konnte nicht aktualisiert werden",
     "failedRemoveItem": "Artikel konnte nicht entfernt werden",
     "itemRemoved": "Artikel entfernt",
+    "addingItem": "Wird hinzugefügt…",
+    "totalPending": "Details und Gesamtbetrag werden bestätigt…",
     "yourOrder": "Ihre Bestellung",
     "itemCount": "{count, plural, one {# Artikel} other {# Artikel}}",
     "empty": "Ihr Warenkorb ist leer.",
@@ -904,6 +918,8 @@
     "dealIncludes": "Angebot enthält",
     "failedAddDealItem": "Angebotsartikel konnte nicht zum Warenkorb hinzugefügt werden",
     "failedRefreshQuote": "Warenkorbangebot konnte nicht aktualisiert werden",
+    "failedLoad": "Ihr Warenkorb konnte nicht geladen werden.",
+    "retry": "Erneut versuchen",
     "dealItemsAdded": "Angebotsartikel zum Warenkorb hinzugefügt",
     "failedAddDeal": "Angebot konnte nicht zum Warenkorb hinzugefügt werden",
     "transactionFee": "Transaktionsgebühr",
@@ -1706,6 +1722,7 @@
       "featureTogetherDescription": "Als Gruppe gemeinsam auschecken.",
       "viewLobby": "Lobby ansehen",
       "startGroupOrder": "Gruppenbestellung starten",
+      "myGroupOrders": "Meine Gruppenbestellungen",
       "activeDetected": "Aktive Gruppenbestellung gefunden. Fahren Sie in Ihrer Lobby fort.",
       "liveGroupLabel": "Live-Gruppe",
       "liveGroupText": "4 Personen fügen Gerichte hinzu",

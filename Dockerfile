@@ -28,7 +28,7 @@ ENV NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
 
 COPY . .
 
-RUN npm run build
+RUN --network=none npm run build
 
 FROM node:${NODE_VERSION}-bookworm-slim AS production
 

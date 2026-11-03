@@ -3,6 +3,9 @@ import axios from "axios";
 import { httpClient, normalizeApiEndpoint } from "@/lib/axios";
 
 export type ApiMethod = "GET" | "POST" | "PATCH" | "DELETE";
+export type ApiRequestOptions = {
+  signal?: AbortSignal;
+};
 
 type LooseValue = unknown[] & Record<string, unknown> & string & number & boolean;
 
@@ -12,6 +15,8 @@ export type ApiResult = Record<string, LooseValue> & {
   error?: string;
   status?: number;
   success?: boolean;
+  aborted?: boolean;
+  timedOut?: boolean;
 };
 
 const toErrorMessage = (error: unknown) => {
@@ -55,6 +60,8 @@ const normalizeErrorResult = (error: unknown): ApiResult => {
       data: looseValue(responseData),
       error: toErrorMessage(error),
       status: error.response?.status,
+      aborted: error.code === "ERR_CANCELED",
+      timedOut: error.code === "ECONNABORTED" || error.code === "ETIMEDOUT",
     } as unknown as ApiResult;
   }
 
@@ -65,13 +72,15 @@ export const request = async (
   method: ApiMethod,
   endpoint: string,
   body?: unknown,
-  token?: string | null
+  token?: string | null,
+  options: ApiRequestOptions = {},
 ): Promise<ApiResult> => {
   try {
     const response = await httpClient.request<unknown>({
       url: normalizeApiEndpoint(endpoint),
       method,
       data: body,
+      signal: options.signal,
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
 
@@ -81,14 +90,28 @@ export const request = async (
   }
 };
 
-export const getRequest = (endpoint: string, token?: string | null) =>
-  request("GET", endpoint, undefined, token);
+export const getRequest = (
+  endpoint: string,
+  token?: string | null,
+  options?: ApiRequestOptions,
+) => request("GET", endpoint, undefined, token, options);
 
-export const postRequest = (endpoint: string, body: unknown, token?: string | null) =>
-  request("POST", endpoint, body, token);
+export const postRequest = (
+  endpoint: string,
+  body: unknown,
+  token?: string | null,
+  options?: ApiRequestOptions,
+) => request("POST", endpoint, body, token, options);
 
-export const patchRequest = (endpoint: string, body: unknown, token?: string | null) =>
-  request("PATCH", endpoint, body, token);
+export const patchRequest = (
+  endpoint: string,
+  body: unknown,
+  token?: string | null,
+  options?: ApiRequestOptions,
+) => request("PATCH", endpoint, body, token, options);
 
-export const deleteRequest = (endpoint: string, token?: string | null) =>
-  request("DELETE", endpoint, undefined, token);
+export const deleteRequest = (
+  endpoint: string,
+  token?: string | null,
+  options?: ApiRequestOptions,
+) => request("DELETE", endpoint, undefined, token, options);

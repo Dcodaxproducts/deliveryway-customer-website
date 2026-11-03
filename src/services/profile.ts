@@ -1,5 +1,3 @@
-import { uploadAvatarFile as uploadStorageFile } from "@/services/storage";
-
 export const MAX_UPLOAD_FILE_SIZE_MB = 20;
 export const MAX_UPLOAD_FILE_SIZE_BYTES = MAX_UPLOAD_FILE_SIZE_MB * 1024 * 1024;
 import type { AuthSession, AuthUser } from "@/types/auth";
@@ -130,47 +128,19 @@ export const deleteAddress = (api: Pick<ApiClient, "del">, id: string) =>
 export const updateProfile = (api: Pick<ApiClient, "patch">, payload: ProfileUpdatePayload) =>
   api.patch("/v1/auth/me/profile", payload);
 
-export const requestPresignedAvatarUpload = async (
+export const uploadAvatarImage = async (
   api: Pick<ApiClient, "post">,
   file: File
-): Promise<PresignedUploadResponse> => {
-  const presigned = await api.post("/v1/storage/presigned-upload", {
-    fileName: file.name,
-    contentType: file.type,
-    fileSize: file.size,
-  });
-
-  const data = getData(presigned);
-
-  if (!isRecord(data)) {
-    throw new Error("Invalid upload response");
-  }
-
-  const uploadUrl = getString(data.uploadUrl);
-  const fileUrl = getString(data.fileUrl);
-  const rawHeaders = data.headers;
-
-  if (!uploadUrl || !fileUrl) {
-    throw new Error("Invalid upload response");
-  }
-
-  const headers = isRecord(rawHeaders)
-    ? Object.fromEntries(
-        Object.entries(rawHeaders).filter((entry): entry is [string, string] =>
-          typeof entry[1] === "string"
-        )
-      )
-    : undefined;
-
-  return {
-    uploadUrl,
-    fileUrl,
-    headers,
-  };
+): Promise<string> => {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("assetType", "thumb");
+  const response = await api.post("/v1/storage/upload-image", formData);
+  const data = getData(response);
+  const fileUrl = isRecord(data) ? getString(data.fileUrl) : "";
+  if (!fileUrl) throw new Error("Invalid upload response");
+  return fileUrl;
 };
-
-export const uploadAvatarFile = (upload: PresignedUploadResponse, file: File) =>
-  uploadStorageFile(upload.uploadUrl, file, upload.headers);
 
 export const mergeUpdatedProfileAuth = (
   auth: AuthSession,

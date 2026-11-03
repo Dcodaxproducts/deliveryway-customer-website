@@ -18,6 +18,28 @@ describe("http service", () => {
     requestMock.mockReset();
   });
 
+  it("passes AbortController signals to Axios", async () => {
+    const controller = new AbortController();
+    requestMock.mockResolvedValue({ data: { success: true } });
+
+    await request("GET", "/v1/cart", undefined, undefined, {
+      signal: controller.signal,
+    });
+
+    expect(requestMock).toHaveBeenCalledWith(
+      expect.objectContaining({ signal: controller.signal }),
+    );
+  });
+
+  it.each([
+    ["ERR_CANCELED", { aborted: true, timedOut: false }],
+    ["ECONNABORTED", { aborted: false, timedOut: true }],
+  ])("marks %s failures so callers can clear loading state", async (code, expected) => {
+    requestMock.mockRejectedValue(new axios.AxiosError("request failed", code));
+
+    await expect(request("GET", "/v1/cart")).resolves.toMatchObject(expected);
+  });
+
   it("preserves backend error response bodies from Axios failures", async () => {
     requestMock.mockRejectedValue(
       new axios.AxiosError(

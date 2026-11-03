@@ -78,12 +78,12 @@ export const BrandingProvider = ({ children }: BrandingProviderProps) => {
       isLoading:
         loading ||
         domainLoading ||
-        (Boolean(restaurantId) && !hasResolvedRestaurantBranding),
+        (Boolean(restaurantId) && homeQuery.isPending),
     }),
     [
       branding,
       domainLoading,
-      hasResolvedRestaurantBranding,
+      homeQuery.isPending,
       loading,
       restaurantId,
     ],

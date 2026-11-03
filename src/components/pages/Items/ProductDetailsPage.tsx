@@ -64,6 +64,10 @@ import {
 } from "@/components/pages/Items/utils/modifier-pricing";
 import { runOptimisticMutation } from "@/lib/optimistic-mutation";
 import {
+  createOptimisticCartItem,
+  type OptimisticCartItem,
+} from "@/lib/optimistic-cart";
+import {
   getDepositAmount,
   getProductDetailsQuantityLimits,
   normalizeApiList,
@@ -2508,7 +2512,11 @@ function ProductDetailsPageContent() {
       isDealMenuItemContext,
     });
 
-  const clearCartAndRetryAdd = async (activeCustomerId: string) => {
+  const clearCartAndRetryAdd = async (
+    activeCustomerId: string,
+    payload = buildCreateCartPayload(),
+    optimisticItem?: OptimisticCartItem,
+  ) => {
     const clearRes = await clearCustomerCart({
       customerId: activeCustomerId,
     });
@@ -2520,7 +2528,8 @@ function ProductDetailsPageContent() {
 
     return addCustomerCartItem({
       customerId: activeCustomerId,
-      payload: buildCreateCartPayload(),
+      payload,
+      optimisticItem,
     });
   };
 
@@ -2574,12 +2583,19 @@ function ProductDetailsPageContent() {
         }
 
         cartMutationPendingRef.current = true;
+        const payload = buildCreateCartPayload();
+        const optimisticItem = createOptimisticCartItem({
+          menuItem: item,
+          payload,
+          selectedVariation,
+        });
 
         runOptimisticMutation({
           mutation: async () => {
             let response = await addCustomerCartItem({
               customerId: activeCustomerId,
-              payload: buildCreateCartPayload(),
+              payload,
+              optimisticItem,
             });
 
             if (!isCartBranchConflict(response)) {
@@ -2587,14 +2603,18 @@ function ProductDetailsPageContent() {
             }
 
             toast.info(t("clearingPreviousBranchCart"));
-            return clearCartAndRetryAdd(activeCustomerId);
+            return clearCartAndRetryAdd(
+              activeCustomerId,
+              payload,
+              optimisticItem,
+            );
           },
           isFailure: (response) => !response || Boolean(response.error),
           onOptimistic: () => {
-            toast.success(t("addedToCart"));
           },
           onCommitted: () => {
             cartMutationPendingRef.current = false;
+            toast.success(t("addedToCart"));
           },
           onRolledBack: (response) => {
             cartMutationPendingRef.current = false;

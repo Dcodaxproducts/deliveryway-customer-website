@@ -3,9 +3,8 @@
 import Image from "next/image";
 import { CalendarDays, MapPin, Clock, Utensils, Loader2, Store, Truck, Coffee } from "lucide-react";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import useItems from "@/hooks/useItems";
 import { useAuth } from "@/hooks/useAuth";
 import { useDomainContext } from "@/hooks/useDomainContext";
 import useBranches from "@/hooks/useBranches";
@@ -15,10 +14,9 @@ import { normalizeBranch } from "@/lib/branch-selector";
 import { OpeningHoursDialog } from "@/components/common/popups/OpeningHoursDialog";
 import { CustomTooltip } from "@/components/ui/CustomTooltip";
 import type { AuthRestaurantUser, ItemsCategory, StoredAuthState } from "@/components/pages/Items/types";
-import { formatAddress, getBranchHoursDetails, getBranchHoursSummary, getCurrentBranchHoursDetail, getImageUrl, getOperatingHours, getRatingInfo, getRestaurantAddress, getRestaurantName, hasText, localizeBranchHoursValue, resolveHasNext } from "@/components/pages/Items/utils/restaurant-card-utils";
+import { formatAddress, getBranchHoursDetails, getBranchHoursSummary, getCurrentBranchHoursDetail, getImageUrl, getOperatingHours, getRatingInfo, getRestaurantAddress, getRestaurantName, hasText, localizeBranchHoursSummary, localizeBranchHoursValue } from "@/components/pages/Items/utils/restaurant-card-utils";
 import type { BranchRecord } from "@/types/branch-selector";
 
-const CATEGORY_PAGE_LIMIT = 50;
 const WEEKDAY_KEYS = new Set([
   "MONDAY",
   "TUESDAY",
@@ -151,18 +149,20 @@ const getRangeEndTime = (value: string | undefined) => {
   return endTime?.trim() || "";
 };
 
-export default function RestaurantHeader() {
+type RestaurantHeaderProps = {
+  category?: ItemsCategory | null;
+};
+
+export default function RestaurantHeader({
+  category = null,
+}: RestaurantHeaderProps) {
   const t = useTranslations("items.common");
-  const searchParams = useSearchParams();
-  const categoryId = searchParams.get("categoryId");
   const router = useRouter();
 
   const { token, restaurantId: authRestaurantId, user } = useAuth();
   const { context: domainContext } = useDomainContext();
-  const { fetchMenuCategoriesPage } = useItems(null);
   const { fetchBranches } = useBranches(token);
 
-  const [category, setCategory] = useState<ItemsCategory | null>(null);
   const [restaurant, setRestaurant] = useState<{
     name: string;
     address: string;
@@ -284,51 +284,10 @@ export default function RestaurantHeader() {
           reservationEnabled,
         };
 
-        let selectedCategory: ItemsCategory | null = null;
-
-        if (categoryId) {
-          let page = 1;
-          let totalLoaded = 0;
-          let shouldContinue = true;
-
-          while (shouldContinue) {
-            const { categories: fetchedCategories, meta } = await fetchMenuCategoriesPage({
-              restaurantId: String(restaurantId),
-              page,
-              limit: CATEGORY_PAGE_LIMIT,
-            });
-
-            selectedCategory = fetchedCategories.find(
-              ({ id }) => String(id) === String(categoryId)
-            ) ?? null;
-
-            totalLoaded += fetchedCategories.length;
-
-            if (selectedCategory) {
-              shouldContinue = false;
-            } else {
-              shouldContinue = resolveHasNext({
-                meta,
-                page,
-                limit: CATEGORY_PAGE_LIMIT,
-                receivedCount: fetchedCategories.length,
-                totalLoaded,
-              });
-
-              page += 1;
-            }
-
-            if (page > 30) {
-              shouldContinue = false;
-            }
-          }
-        }
-
         if (cancelled) return;
 
         setRestaurant(resolvedRestaurant);
         hasLoadedRestaurantRef.current = true;
-        setCategory(categoryId ? selectedCategory : null);
       } catch (err) {
 
         if (!cancelled) {
@@ -342,7 +301,6 @@ export default function RestaurantHeader() {
             reservationEnabled: getSelectedBranchFromSession(user as AuthRestaurantUser | null, storedAuth)?.settings?.tableReservationsEnabled === true,
           });
           hasLoadedRestaurantRef.current = true;
-          setCategory(null);
         }
       } finally {
         if (!cancelled) {
@@ -356,7 +314,7 @@ export default function RestaurantHeader() {
     return () => {
       cancelled = true;
     };
-  }, [categoryId, token, restaurantId, selectedBranchId, fetchBranches, user, storedAuth, t, homeQuery.data?.data.branch, homeQuery.data?.data.landingPopup]);
+  }, [token, restaurantId, selectedBranchId, fetchBranches, user, storedAuth, t, homeQuery.data?.data.branch, homeQuery.data?.data.landingPopup]);
 
   const categoryItemCount = category ? getCategoryItemCount(category) : null;
   const bannerImage = getImageUrl(category, restaurant);
@@ -378,6 +336,8 @@ export default function RestaurantHeader() {
     : t("hoursAvailable");
   const openingSubLabel = restaurant?.branchHours.opening.status === "open" && openingCloseTime
     ? t("closesAt", { time: openingCloseTime })
+    : restaurant?.branchHours.opening.reason === "break"
+      ? localizeBranchHoursSummary(restaurant.branchHours.opening, t)
     : restaurant?.branchHours.opening.reason === "before-open" &&
         restaurant.branchHours.opening.opensAt
       ? t("opensAt", { time: restaurant.branchHours.opening.opensAt })
@@ -409,7 +369,9 @@ export default function RestaurantHeader() {
         text: "text-red-600",
       };
 
-  const title = category?.name ? category.name : t("fullMenu");
+  const title = category?.name
+    ? category.name
+    : restaurant?.name || t("restaurantMenu");
 
   const description = hasText(category?.description)
     ? String(category?.description)
@@ -419,7 +381,7 @@ export default function RestaurantHeader() {
 
   if (loading) {
     return (
-      <div className="mx-4 mt-6 rounded-3xl border border-gray-100 bg-white p-6 shadow-sm md:mx-10">
+      <div className="mx-auto mt-6 w-[calc(100%-2.5rem)] max-w-[1376px] rounded-3xl border border-gray-100 bg-white p-6 shadow-sm lg:w-[calc(100%-4rem)] 2xl:w-[calc(100%-5rem)]">
         <div className="flex min-h-[240px] items-center justify-center">
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
@@ -428,7 +390,7 @@ export default function RestaurantHeader() {
   }
 
   return (
-    <div className="mx-4 mt-6 overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm md:mx-10 md:mt-7">
+    <div className="mx-auto mt-6 w-[calc(100%-2.5rem)] max-w-[1376px] overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm md:mt-7 lg:w-[calc(100%-4rem)] 2xl:w-[calc(100%-5rem)]">
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_480px]">
         {/* LEFT CONTENT */}
         <div className="flex min-w-0 flex-col justify-center bg-white px-5 py-5 md:px-7 md:py-6 lg:px-8">

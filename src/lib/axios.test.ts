@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { LOCALE_STORAGE_KEY } from "@/config/i18n";
 
 import { buildApiUrl, normalizeApiEndpoint } from "./api-endpoint";
-import { httpClient } from "./axios";
+import { API_REQUEST_TIMEOUT_MS, httpClient } from "./axios";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -34,6 +34,11 @@ describe("normalizeApiEndpoint", () => {
 });
 
 describe("httpClient request context", () => {
+  it("bounds API requests so loading states cannot wait indefinitely", () => {
+    expect(httpClient.defaults.timeout).toBe(API_REQUEST_TIMEOUT_MS);
+    expect(API_REQUEST_TIMEOUT_MS).toBe(15_000);
+  });
+
   it("adds the persisted locale to first-party API requests", async () => {
     vi.stubGlobal("window", {
       localStorage: {
