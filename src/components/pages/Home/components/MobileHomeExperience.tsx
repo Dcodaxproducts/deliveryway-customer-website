@@ -38,6 +38,7 @@ type MobileHomeExperienceProps = {
   promotionalItemsLoading: boolean;
   deals: CustomerDeal[];
   dealsLoading?: boolean;
+  dealsError?: boolean;
   addingDealId?: string | null;
   branchId?: string | null;
   onAddDeal?: (deal: CustomerDeal, selectedMenuItemIds?: string[]) => void;
@@ -67,6 +68,7 @@ export function MobileHomeExperience({
   promotionalItemsLoading,
   deals,
   dealsLoading = false,
+  dealsError = false,
   addingDealId = null,
   branchId = null,
   onAddDeal,
@@ -84,7 +86,7 @@ export function MobileHomeExperience({
   useEffect(() => {
     setSelectedCheckoutType(checkoutType);
   }, [checkoutType]);
-  const activeDeals = deals.filter(isDealActive).slice(0, 8);
+  const hasActiveDeals = deals.some(isDealActive);
   const featuredDeal = getFeaturedDeal(deals);
   const featuredImage = featuredDeal ? getDealImage(featuredDeal) : null;
   const bannerImage = resolveHttpsImageUrl(
@@ -296,6 +298,7 @@ export function MobileHomeExperience({
         <CustomerDealsSection
           deals={deals}
           isLoading={dealsLoading}
+          isError={dealsError}
           addingDealId={addingDealId}
           branchId={branchId}
           onAddDeal={onAddDeal}
@@ -303,7 +306,7 @@ export function MobileHomeExperience({
           currency={currency}
         />
 
-        {activeDeals.length === 0 &&
+        {!hasActiveDeals &&
         promotionalItems.length === 0 &&
         !promotionalItemsLoading ? (
           <section>

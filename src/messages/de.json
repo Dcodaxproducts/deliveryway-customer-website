@@ -339,6 +339,7 @@
       "bestSeller": "Bestseller",
       "includes": "Enthält {items}",
       "noAvailableItems": "Dieses Angebot enthält keine verfügbaren Artikel.",
+      "loadError": "Angebote konnten nicht geladen werden. Bitte versuchen Sie es erneut.",
       "adding": "Wird hinzugefügt...",
       "addDeal": "Angebot hinzufügen",
       "chooseItems": "Artikel auswählen",

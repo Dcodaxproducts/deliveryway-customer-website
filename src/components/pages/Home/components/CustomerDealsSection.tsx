@@ -7,11 +7,6 @@ import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-} from "@/components/ui/carousel";
 import { DealChooserDrawer } from "@/components/pages/Home/components/deals/DealChooserDrawer";
 import {
   getDealImage,
@@ -40,6 +35,7 @@ import type { CustomerDeal } from "@/types/customer-deals";
 type CustomerDealsSectionProps = {
   deals: CustomerDeal[];
   isLoading?: boolean;
+  isError?: boolean;
   addingDealId?: string | null;
   branchId?: string | null;
   onAddDeal?: (deal: CustomerDeal, selectedMenuItemIds?: string[]) => void;
@@ -498,6 +494,7 @@ const CustomerDealMenuCard = ({
 export const CustomerDealsSection = ({
   deals,
   isLoading = false,
+  isError = false,
   addingDealId = null,
   branchId = null,
   onAddDeal,
@@ -505,11 +502,7 @@ export const CustomerDealsSection = ({
   currency,
 }: CustomerDealsSectionProps) => {
   const t = useTranslations("home.deals");
-  const activeDeals = useMemo(() => {
-    const visibleDeals = deals.filter(isDealActive);
-
-    return compact ? visibleDeals : visibleDeals.slice(0, 6);
-  }, [compact, deals]);
+  const activeDeals = useMemo(() => deals.filter(isDealActive), [deals]);
   const sectionClassName = compact
     ? "mb-8 min-w-0"
     : "mx-auto max-w-[1400px] px-4 pb-[30px] pt-[30px] sm:px-6 sm:pb-[60px] sm:pt-[60px]";
@@ -635,6 +628,16 @@ export const CustomerDealsSection = ({
     );
   }
 
+  if (isError) {
+    return (
+      <section className={sectionClassName} aria-live="polite">
+        <div className="rounded-2xl bg-red-50 px-5 py-4 text-sm font-semibold text-red-800">
+          {t("loadError")}
+        </div>
+      </section>
+    );
+  }
+
   if (activeDeals.length === 0) {
     return null;
   }
@@ -668,29 +671,23 @@ export const CustomerDealsSection = ({
             </div>
           </div>
 
-          <Carousel
-            opts={{ align: "start", dragFree: true }}
-            className="relative z-10 min-w-0"
+          <div
+            className="relative z-10 grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+            data-testid="available-deals-grid"
           >
-            <CarouselContent className="-ml-4 cursor-grab pb-8 active:cursor-grabbing">
-              {activeDeals.map((deal, index) => (
-                <CarouselItem
-                  key={deal.id}
-                  className="flex basis-[88%] pl-4 sm:basis-[52%] lg:basis-1/3"
-                >
-                  <CustomerDealMenuCard
-                    deal={deal}
-                    index={index}
-                    isAdding={
-                      addingDealId === deal.id || pendingDeal?.id === deal.id
-                    }
-                    currency={currency}
-                    onAddDeal={handleDealClick}
-                  />
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-          </Carousel>
+            {activeDeals.map((deal, index) => (
+              <CustomerDealMenuCard
+                key={deal.id}
+                deal={deal}
+                index={index}
+                isAdding={
+                  addingDealId === deal.id || pendingDeal?.id === deal.id
+                }
+                currency={currency}
+                onAddDeal={handleDealClick}
+              />
+            ))}
+          </div>
         </div>
 
         {chooserDrawer}
@@ -706,26 +703,23 @@ export const CustomerDealsSection = ({
         </div>
       </div>
 
-      <Carousel opts={{ align: "start", dragFree: true }} className="min-w-0">
-        <CarouselContent className="-ml-5 cursor-grab pb-8 active:cursor-grabbing">
-          {activeDeals.map((deal, index) => (
-            <CarouselItem
-              key={deal.id}
-              className="flex basis-[92%] pl-5 sm:basis-[62%] md:basis-[48%] xl:basis-1/3 2xl:basis-1/4"
-            >
-              <CustomerDealCard
-                deal={deal}
-                index={index}
-                isAdding={
-                  addingDealId === deal.id || pendingDeal?.id === deal.id
-                }
-                currency={currency}
-                onAddDeal={handleDealClick}
-              />
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-      </Carousel>
+      <div
+        className="grid min-w-0 grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
+        data-testid="available-deals-grid"
+      >
+        {activeDeals.map((deal, index) => (
+          <CustomerDealCard
+            key={deal.id}
+            deal={deal}
+            index={index}
+            isAdding={
+              addingDealId === deal.id || pendingDeal?.id === deal.id
+            }
+            currency={currency}
+            onAddDeal={handleDealClick}
+          />
+        ))}
+      </div>
 
       {chooserDrawer}
     </section>
