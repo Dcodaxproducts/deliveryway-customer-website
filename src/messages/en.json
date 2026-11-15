@@ -346,6 +346,7 @@
       "bestSeller": "Best seller",
       "includes": "Includes {items}",
       "noAvailableItems": "This deal has no available items.",
+      "loadError": "Deals could not be loaded. Please try again.",
       "adding": "Adding...",
       "addDeal": "Add Deal",
       "chooseItems": "Choose Items",

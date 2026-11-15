@@ -203,7 +203,7 @@ const HomePage = () => {
     restaurantId,
     branchId,
     locale,
-    limit: 20,
+    limit: 50,
   });
   const addDealMutation = useAddDealToCart(branchId);
   const handleAddDeal = useCallback(
@@ -378,6 +378,7 @@ const HomePage = () => {
         promotionalItemsLoading={promotionalItemsQuery.isLoading}
         deals={dealsQuery.deals}
         dealsLoading={dealsQuery.isLoading}
+        dealsError={dealsQuery.isError}
         addingDealId={
           addDealMutation.isPending
             ? (addDealMutation.variables?.deal.id ?? null)
@@ -436,6 +437,7 @@ const HomePage = () => {
         <CustomerDealsSection
           deals={dealsQuery.deals}
           isLoading={dealsQuery.isLoading}
+          isError={dealsQuery.isError}
           addingDealId={
             addDealMutation.isPending
               ? (addDealMutation.variables?.deal.id ?? null)

@@ -42,6 +42,7 @@ import type { CustomerDeal } from "@/types/customer-deals";
 type CustomerDealsSectionProps = {
   deals: CustomerDeal[];
   isLoading?: boolean;
+  isError?: boolean;
   addingDealId?: string | null;
   branchId?: string | null;
   onAddDeal?: (deal: CustomerDeal, selectedMenuItemIds?: string[]) => void;
@@ -477,6 +478,7 @@ const CustomerDealMenuCard = ({
 export const CustomerDealsSection = ({
   deals,
   isLoading = false,
+  isError = false,
   addingDealId = null,
   branchId = null,
   onAddDeal,
@@ -484,11 +486,7 @@ export const CustomerDealsSection = ({
   currency,
 }: CustomerDealsSectionProps) => {
   const t = useTranslations("home.deals");
-  const activeDeals = useMemo(() => {
-    const visibleDeals = deals.filter(isDealActive);
-
-    return compact ? visibleDeals : visibleDeals.slice(0, 6);
-  }, [compact, deals]);
+  const activeDeals = useMemo(() => deals.filter(isDealActive), [deals]);
   const desktopSectionClassName =
     "mx-auto max-w-[1400px] px-4 pb-[30px] pt-[30px] sm:px-6 sm:pb-[60px] sm:pt-[60px]";
   const [selectedChooserDeal, setSelectedChooserDeal] =
@@ -618,6 +616,22 @@ export const CustomerDealsSection = ({
     );
   }
 
+  if (isError) {
+    const errorMessage = (
+      <div className="rounded-2xl bg-red-50 px-5 py-4 text-sm font-semibold text-red-800">
+        {t("loadError")}
+      </div>
+    );
+
+    return compact ? (
+      <StorefrontSection>{errorMessage}</StorefrontSection>
+    ) : (
+      <section className={desktopSectionClassName} aria-live="polite">
+        {errorMessage}
+      </section>
+    );
+  }
+
   if (activeDeals.length === 0) {
     return null;
   }
@@ -644,6 +658,7 @@ export const CustomerDealsSection = ({
       >
         <MobileStorefrontRail
           aria-label={t("available")}
+          data-testid="available-deals-grid"
         >
             {activeDeals.map((deal, index) => (
               <div key={deal.id} className="flex">
