@@ -5,10 +5,8 @@ import { Building2, FileText, Loader2, Mail, MapPin, ShieldCheck, Store } from "
 import { useTranslations } from "next-intl";
 
 import { useAuth } from "@/hooks/useAuth";
-import { useBranding } from "@/hooks/useBranding";
 import { useDomainContext } from "@/hooks/useDomainContext";
 import { useHome } from "@/hooks/useHome";
-import { DEFAULT_BRANDING } from "@/config/default-branding";
 import { formatDisplayAddress } from "@/lib/address-display";
 import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
 import {
@@ -77,7 +75,6 @@ const ImpressumPage = () => {
   const t = useTranslations("legal.impressum");
   const { user, restaurantId: authRestaurantId, loading: authLoading } = useAuth();
   const { context: domainContext, loading: domainLoading } = useDomainContext();
-  const { branding: fallbackBranding } = useBranding();
   const [urlContext, setUrlContext] = useState({ restaurantId: "", branchId: "" });
   const [legalProfile, setLegalProfile] = useState<LegalProfile | null>(null);
   const [legalProfileLoading, setLegalProfileLoading] = useState(false);
@@ -141,17 +138,16 @@ const ImpressumPage = () => {
   const homeData = homeQuery.data?.data;
   const restaurant = homeData?.restaurant;
   const branch = homeData?.branch;
-  const branding = homeData?.branding ?? fallbackBranding ?? DEFAULT_BRANDING;
-
   const restaurantName =
     legalProfile?.legalBusinessName ||
-    getTextField(restaurant, ["legalBusinessName", "businessName", "name"]) ||
-    branding.restaurantName ||
-    t("fallbackRestaurantName");
+    getTextField(restaurant, ["legalBusinessName", "businessName", "name"]);
   const tradeName = getTextField(restaurant, ["name"]);
   const ownerName =
     legalProfile?.ownerName ||
-    getTextField(restaurant, ["ownerName", "owner", "representativeName"]);
+    getTextField(restaurant, ["ownerName", "owner"]);
+  const representativeName =
+    legalProfile?.representativeName ||
+    getTextField(restaurant, ["representativeName", "authorizedRepresentative"]);
   const taxNumber =
     legalProfile?.taxNumber ||
     getTextField(restaurant, ["taxNumber", "vatNumber", "vatId", "taxId"]);
@@ -221,11 +217,16 @@ const ImpressumPage = () => {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <DetailCard label={t("legalName")} value={restaurantName} />
+              {restaurantName ? (
+                <DetailCard label={t("legalName")} value={restaurantName} />
+              ) : null}
               {tradeName && tradeName !== restaurantName ? (
                 <DetailCard label={t("tradeName")} value={tradeName} />
               ) : null}
               {ownerName ? <DetailCard label={t("ownerName")} value={ownerName} /> : null}
+              {representativeName ? (
+                <DetailCard label={t("representativeName")} value={representativeName} />
+              ) : null}
               {taxNumber ? <DetailCard label={t("taxNumber")} value={taxNumber} /> : null}
               {registrationNumber ? (
                 <DetailCard label={t("registrationNumber")} value={registrationNumber} />

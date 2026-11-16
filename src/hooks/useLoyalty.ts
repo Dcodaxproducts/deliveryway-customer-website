@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 import { queryKeys } from "@/config/query-keys";
 import { useDomainApi } from "@/hooks/useDomainApi";
@@ -28,6 +29,23 @@ export type LoyaltyActions = {
   fetchLoyalty: () => Promise<{ response: ApiResult; loyalty: LoyaltySummary | null }>;
   redeemToWallet: (points: number) => Promise<{ response: ApiResult; redemption: LoyaltyRedeemResult | null }>;
 };
+
+export const useCustomerLoyaltyQuery = ({
+  token,
+  customerId,
+  enabled = true,
+}: {
+  token: string | null;
+  customerId?: string | null;
+  enabled?: boolean;
+}) =>
+  useQuery({
+    queryKey: queryKeys.loyalty.summary(customerId),
+    queryFn: () => fetchCustomerLoyaltyPoints(token),
+    enabled: enabled && Boolean(token && customerId),
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
+  });
 
 export const useLoyalty = (token: string | null): LoyaltyActions => {
   const api = useDomainApi(token, { service, requestKey: queryKeys.loyalty.request });

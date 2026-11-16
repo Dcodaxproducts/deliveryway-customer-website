@@ -12,12 +12,23 @@ import { useAuth } from "@/hooks/useAuth";
 import { useDomainContext } from "@/hooks/useDomainContext";
 import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
 import { fetchBranchStats } from "@/services/public-content";
+import type { BranchStats } from "@/services/public-content";
 
 const compactNumber = (value: number) =>
   new Intl.NumberFormat("en", {
     notation: value >= 1000 ? "compact" : "standard",
     maximumFractionDigits: 1,
   }).format(value);
+
+export const getBranchStatsDisplay = (stats?: BranchStats) => ({
+  completedOrders: stats ? compactNumber(stats.completedOrders) : "—",
+  averageRating:
+    stats?.averageRating !== null && stats?.averageRating !== undefined
+      ? `${stats.averageRating.toFixed(1)}/5`
+      : "—",
+  activeMenuItems: stats ? compactNumber(stats.activeMenuItems) : "—",
+  fiveStarReviews: stats ? compactNumber(stats.fiveStarReviews) : "—",
+});
 
 export default function Stats() {
   const t = useTranslations("home.stats");
@@ -36,33 +47,36 @@ export default function Stats() {
     staleTime: 5 * 60 * 1000,
   });
   const branchStats = statsQuery.data;
+  const display = getBranchStatsDisplay(branchStats);
   const stats = [
     {
       icon: ClipboardCheck,
       labelKey: "completedOrders",
-      value: branchStats ? `${compactNumber(branchStats.completedOrders)}+` : "2M+",
+      value: display.completedOrders,
     },
     {
       icon: ThumbsUp,
       labelKey: "averageRating",
-      value: branchStats?.averageRating
-        ? `${branchStats.averageRating.toFixed(1)}/5`
-        : "98%",
+      value: display.averageRating,
     },
     {
       icon: Utensils,
       labelKey: "activeMenuItems",
-      value: branchStats ? `${compactNumber(branchStats.activeMenuItems)}+` : "20+",
+      value: display.activeMenuItems,
     },
     {
       icon: Star,
       labelKey: "fiveStarReviews",
-      value: branchStats ? `${compactNumber(branchStats.fiveStarReviews)}+` : "100+",
+      value: display.fiveStarReviews,
     },
   ] as const;
 
   return (
-    <section className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 md:py-14">
+    <section
+      aria-busy={statsQuery.isLoading}
+      aria-live="polite"
+      className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 md:py-14"
+    >
       <div className="grid grid-cols-2 gap-4 rounded-[30px] bg-white px-4 py-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)] sm:px-6 md:grid-cols-4 md:gap-6 md:px-8 md:py-7">
         {stats.map((stat) => {
           const Icon = stat.icon;

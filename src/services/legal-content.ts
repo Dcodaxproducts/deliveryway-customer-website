@@ -11,6 +11,7 @@ type LegalAddress = {
 
 export type LegalProfile = {
   ownerName?: string;
+  representativeName?: string;
   legalBusinessName?: string;
   taxNumber?: string;
   businessAddress?: LegalAddress;
@@ -114,6 +115,7 @@ const normalizeLegalProfile = (value: unknown): LegalProfile | null => {
 
   const profile = {
     ownerName: getString(value.ownerName),
+    representativeName: getString(value.representativeName),
     legalBusinessName: getString(value.legalBusinessName),
     taxNumber: getString(value.taxNumber),
     businessAddress: normalizeLegalAddress(value.businessAddress),

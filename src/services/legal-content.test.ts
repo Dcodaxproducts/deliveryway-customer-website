@@ -12,6 +12,7 @@ describe("legal content service", () => {
         restaurantCoverImage: "https://example.com/cover.jpg",
         legalProfile: {
           ownerName: "Badar",
+          representativeName: "Amina Khan",
           legalBusinessName: "DeliveryWays Kitchen LLC",
           taxNumber: "VAT-123456789",
           businessAddress: {
@@ -33,6 +34,7 @@ describe("legal content service", () => {
       restaurantCoverImage: "https://example.com/cover.jpg",
       legalProfile: {
         ownerName: "Badar",
+        representativeName: "Amina Khan",
         legalBusinessName: "DeliveryWays Kitchen LLC",
         taxNumber: "VAT-123456789",
         businessAddress: {
@@ -57,6 +59,24 @@ describe("legal content service", () => {
       content: "",
       legalProfile: null,
       policyLink: undefined,
+    });
+  });
+
+  it("keeps tenant representative and configured tax ID without shared defaults", () => {
+    const profile = normalizePrivacyPolicyContent({
+      legalProfile: {
+        representativeName: "Tenant Representative",
+        taxNumber: "DE-LOCAL-42",
+      },
+    }).legalProfile;
+
+    expect(profile).toEqual({
+      ownerName: undefined,
+      representativeName: "Tenant Representative",
+      legalBusinessName: undefined,
+      taxNumber: "DE-LOCAL-42",
+      businessAddress: undefined,
+      contractText: undefined,
     });
   });
 

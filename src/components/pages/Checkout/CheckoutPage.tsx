@@ -12,7 +12,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCheckout } from "@/hooks/useCheckout";
 import { useCart } from "@/hooks/useCart";
 import { useHome } from "@/hooks/useHome";
-import { useLoyalty } from "@/hooks/useLoyalty";
+import { useCustomerLoyaltyQuery } from "@/hooks/useLoyalty";
 import { usePayments } from "@/hooks/usePayments";
 import { toast } from "sonner";
 import { useAuthContext } from "@/hooks/useAuth";
@@ -76,7 +76,6 @@ import {
   getCheckoutOrderTime,
   getCheckoutTipAmount,
 } from "@/components/pages/Checkout/utils/checkout-ordering-controls";
-import type { LoyaltySummary } from "@/services/loyalty";
 import {
   getGuestDeliveryAddressFromStoredLocation,
   getGuestDeliveryAddressError,
@@ -382,7 +381,6 @@ function CheckoutPageContent() {
   } = useCheckout(token);
   const { updateCustomerCart, updateCustomerCartOrderType, quoteCustomerCart } =
     useCart(token);
-  const { fetchLoyalty } = useLoyalty(token);
   const { createOrderPaymentAttempt, reconcileStripeOrder } =
     usePayments(token);
   const checkoutBranchId = checkoutContextBranchId;
@@ -439,9 +437,7 @@ function CheckoutPageContent() {
   const [backendError, setBackendError] = useState<BackendErrorState | null>(
     null,
   );
-  const [loyalty, setLoyalty] = useState<LoyaltySummary | null>(null);
   const [loyaltyPoints, setLoyaltyPoints] = useState("");
-  const [loadingLoyalty, setLoadingLoyalty] = useState(false);
   const loadedCartCustomerIdRef = useRef<string | null>(null);
   const lastQuoteSignatureRef = useRef("");
   const lastQuotedPaymentMethodRef = useRef("");
@@ -450,6 +446,13 @@ function CheckoutPageContent() {
   const clearedTipsCustomerRef = useRef<string | null>(null);
   const router = useRouter();
   const customerId = user?.id;
+  const loyaltyQuery = useCustomerLoyaltyQuery({
+    token,
+    customerId,
+    enabled: Boolean(customerId && !isGuest),
+  });
+  const loyalty = loyaltyQuery.data?.loyalty ?? null;
+  const loadingLoyalty = loyaltyQuery.isLoading;
 
   const reportBackendError = (
     context: string,
@@ -645,38 +648,9 @@ function CheckoutPageContent() {
 
   useEffect(() => {
     if (!customerId || isGuest || !token) {
-      setLoyalty(null);
       setLoyaltyPoints("");
-      setLoadingLoyalty(false);
-      return;
     }
-
-    let isMounted = true;
-
-    const loadLoyalty = async () => {
-      try {
-        setLoadingLoyalty(true);
-        const { loyalty: nextLoyalty } = await fetchLoyalty();
-
-        if (!isMounted) return;
-
-        setLoyalty(nextLoyalty);
-      } catch {
-        if (!isMounted) return;
-        setLoyalty(null);
-      } finally {
-        if (isMounted) {
-          setLoadingLoyalty(false);
-        }
-      }
-    };
-
-    void loadLoyalty();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [customerId, fetchLoyalty, isGuest, token]);
+  }, [customerId, isGuest, token]);
 
   const [selectedAddress, setSelectedAddress] = useState<string | null>("");
   const [guestDeliveryAddress, setGuestDeliveryAddress] =

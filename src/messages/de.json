@@ -444,6 +444,15 @@
       "activeMenuItems": "Menüartikel",
       "fiveStarReviews": "Fünf-Sterne-Bewertungen"
     },
+    "loyalty": {
+      "eyebrow": "Treueprogramm aktiviert",
+      "title": "Ihre Treuevorteile sind verfügbar",
+      "description": "Sammeln Sie Punkte mit berechtigten Bestellungen und lösen Sie verfügbare Punkte beim Checkout ein.",
+      "availablePoints": "Verfügbare Punkte",
+      "earnedPoints": "Gesammelte Punkte",
+      "viewProgram": "Treueprogramm ansehen",
+      "useAtCheckout": "Punkte beim Checkout nutzen"
+    },
     "blog": {
       "decorativeAlt": "Dekorativer Hintergrund",
       "title": "Neueste Nachrichten & Blog",
@@ -2161,7 +2170,8 @@
       "branchDescription": "Geschäftsadresse und Administrationskontakt der aktiven Filiale.",
       "legalName": "Rechts- / Geschäftsname",
       "tradeName": "Handelsname",
-      "ownerName": "Inhaber / Vertreter",
+      "ownerName": "Inhaber",
+      "representativeName": "Vertretungsberechtigte Person",
       "taxNumber": "Steuer- / USt-IdNr.",
       "registrationNumber": "Registernummer",
       "restaurantAdminEmail": "Restaurant-Admin-E-Mail",
@@ -2235,6 +2245,9 @@
     "itemsEyebrow": "Küchenartikel",
     "itemsTitle": "Gerichte dieser Küche",
     "emptyItems": "Keine Artikel für diese Küche gefunden.",
+    "loadingItems": "Küchenartikel werden geladen...",
+    "itemsLoadError": "Die Küchenartikel konnten nicht geladen werden.",
+    "retry": "Erneut versuchen",
     "itemCount": "{count} Artikel",
     "exploreItems": "Artikel ansehen",
     "viewCuisine": "Küche ansehen",

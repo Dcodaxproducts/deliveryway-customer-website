@@ -14,6 +14,7 @@ import { CustomerDealsSection } from "@/components/pages/Home/components/Custome
 import { GiftCardsSection } from "@/components/pages/Home/components/GiftCardsSection";
 import { MobileHomeExperience } from "@/components/pages/Home/components/MobileHomeExperience";
 import { PromotionalItemsSection } from "@/components/pages/Home/components/PromotionalItemsSection";
+import { LoyaltyProgramSection } from "@/components/pages/Home/components/LoyaltyProgramSection";
 import { CuisineSection } from "@/components/pages/Cuisines/CuisineSection";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 
@@ -459,6 +460,8 @@ const HomePage = () => {
         {branding.showAppPromotion ? <AppPromo /> : null}
         <Stats />
       </div>
+
+      <LoyaltyProgramSection />
 
       {shouldRequireBranchSelection(restaurantId, branchId) ? (
         <RequiredBranchSelectionModal restaurantId={restaurantId} />

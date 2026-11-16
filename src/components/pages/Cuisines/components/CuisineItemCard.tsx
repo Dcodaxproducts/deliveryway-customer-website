@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { FavoriteHeartButton } from "@/components/common/favorites/FavoriteHeartButton";
+import { ResilientImage } from "@/components/common/ResilientImage";
 import { getItemImageUrl } from "@/components/pages/Items/utils/restaurant-card-utils";
 import {
   getMenuItemBasePrice,
@@ -40,12 +40,12 @@ export function CuisineItemCard({ item, currency }: { item: MenuItem; currency?:
     <article className="group overflow-hidden rounded-[18px] border border-gray-100 bg-white shadow-[0_8px_24px_rgba(17,24,39,0.065)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(17,24,39,0.1)]">
       <Link href={getItemHref(item)} className="flex h-full flex-col text-left">
         <div className="relative h-[146px] bg-[#F7F3EF]">
-          <Image
+          <ResilientImage
             src={getItemImageUrl(item)}
             alt={item.name || t("menuItem")}
             fill
             className="object-cover transition duration-500 group-hover:scale-[1.02]"
-            unoptimized
+            fallback="brand"
           />
           {badge ? (
             <span className="absolute left-3 top-3 max-w-[calc(100%-64px)] truncate rounded-full bg-white px-3 py-1 text-[11px] font-black text-primary shadow-sm">

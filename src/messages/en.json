@@ -444,6 +444,15 @@
       "activeMenuItems": "Menu Items",
       "fiveStarReviews": "Five-Star Reviews"
     },
+    "loyalty": {
+      "eyebrow": "Loyalty program enabled",
+      "title": "Your loyalty rewards are ready",
+      "description": "Earn points with eligible orders and use available points during checkout.",
+      "availablePoints": "Available points",
+      "earnedPoints": "Points earned",
+      "viewProgram": "View loyalty program",
+      "useAtCheckout": "Use points at checkout"
+    },
     "blog": {
       "decorativeAlt": "Decorative background",
       "title": "Latest news & Blog",
@@ -2161,7 +2170,8 @@
       "branchDescription": "Business address and branch administration contact for the active location.",
       "legalName": "Legal / business name",
       "tradeName": "Trading name",
-      "ownerName": "Owner / representative",
+      "ownerName": "Owner",
+      "representativeName": "Authorized representative",
       "taxNumber": "Tax / VAT number",
       "registrationNumber": "Registration number",
       "restaurantAdminEmail": "Restaurant admin email",
@@ -2235,6 +2245,9 @@
     "itemsEyebrow": "Cuisine items",
     "itemsTitle": "Dishes in this cuisine",
     "emptyItems": "No items found for this cuisine yet.",
+    "loadingItems": "Loading cuisine items...",
+    "itemsLoadError": "Cuisine items could not be loaded.",
+    "retry": "Try again",
     "itemCount": "{count} items",
     "exploreItems": "Explore items",
     "viewCuisine": "View cuisine",

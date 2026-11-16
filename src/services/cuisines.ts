@@ -40,6 +40,13 @@ export type FetchCuisineItemsParams = FetchCuisinesParams & {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
+const getCuisineDetailPayload = (value: unknown) => {
+  if (!isRecord(value)) return {};
+
+  const firstData = isRecord(value.data) ? value.data : value;
+  return isRecord(firstData.data) ? firstData.data : firstData;
+};
+
 const getString = (value: unknown) =>
   typeof value === "string" && value.trim() ? value.trim() : null;
 
@@ -131,10 +138,14 @@ export const fetchCustomerCuisineItems = async ({
   const response = await getRequest(
     `/customer-app/cuisines/${encodeURIComponent(cuisineId)}/items?${queryParams.toString()}`,
   );
+  const detail = getCuisineDetailPayload(response);
 
   return {
     response,
-    items: normalizeApiArray<MenuItem>(response),
+    cuisine: normalizeCuisine(detail.cuisine),
+    items: Array.isArray(detail.items)
+      ? (detail.items as MenuItem[])
+      : normalizeApiArray<MenuItem>(response),
     meta: normalizeApiMeta(response),
   };
 };

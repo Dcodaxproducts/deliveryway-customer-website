@@ -1,19 +1,18 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { ArrowLeft, Sparkles, Utensils } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { CuisineItemCard } from "@/components/pages/Cuisines/components/CuisineItemCard";
-import { getCuisineBadge } from "@/components/pages/Cuisines/components/cuisine-display";
+import { ResilientImage } from "@/components/common/ResilientImage";
+import { getCuisineBadge, getCuisineRemoteImage } from "@/components/pages/Cuisines/components/cuisine-display";
 import { useAppLocale } from "@/hooks/useAppLocale";
 import { useAuth } from "@/hooks/useAuth";
-import { useCustomerCuisineItems, useCustomerCuisines } from "@/hooks/useCuisines";
+import { useCustomerCuisineItems } from "@/hooks/useCuisines";
 import { useDomainContext } from "@/hooks/useDomainContext";
 import { useHome } from "@/hooks/useHome";
-import { useStableCuisineImage } from "@/hooks/useStableCuisineImage";
 import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
 import { resolveCustomerCurrency } from "@/lib/money";
 
@@ -24,11 +23,9 @@ function CuisineDetailContent({ cuisineId }: { cuisineId: string }) {
   const { locale } = useAppLocale();
   const restaurantId = resolveHomeRestaurantId(user, authRestaurantId, context);
   const branchId = resolveHomeBranchId(user, context);
-  const cuisinesQuery = useCustomerCuisines({ restaurantId, branchId, locale, limit: 50, enabled: Boolean(restaurantId) });
   const itemsQuery = useCustomerCuisineItems({ cuisineId, restaurantId, branchId, locale, limit: 48, enabled: Boolean(restaurantId && cuisineId) });
   const homeQuery = useHome(restaurantId, branchId, Boolean(restaurantId && branchId));
-  const cuisine = cuisinesQuery.data?.cuisines.find((entry) => entry.id === cuisineId) ?? null;
-  const { imageUrl, handleImageError } = useStableCuisineImage(cuisine);
+  const cuisine = itemsQuery.data?.cuisine ?? null;
   const items = itemsQuery.data?.items ?? [];
   const currency = resolveCustomerCurrency({
     configCurrency: homeQuery.data?.data.config?.currency,
@@ -36,7 +33,10 @@ function CuisineDetailContent({ cuisineId }: { cuisineId: string }) {
   });
 
   return (
-    <main className="mx-auto max-w-[1440px] px-5 py-5 lg:px-8 2xl:px-10">
+    <main
+      aria-busy={itemsQuery.isLoading}
+      className="mx-auto max-w-[1440px] px-5 py-5 lg:px-8 2xl:px-10"
+    >
       <Link href="/cuisines" className="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-primary">
         <ArrowLeft className="h-4 w-4" />
         {t("backToCuisines")}
@@ -71,15 +71,14 @@ function CuisineDetailContent({ cuisineId }: { cuisineId: string }) {
         </div>
 
         <div className="relative min-h-[320px] overflow-hidden bg-[#F7F0E8] lg:min-h-[430px]">
-          <Image
-            src={imageUrl}
+          <ResilientImage
+            src={getCuisineRemoteImage(cuisine)}
             alt={cuisine?.name || t("title")}
             fill
             className="object-cover"
             sizes="(max-width: 1024px) 100vw, 720px"
-            unoptimized
             priority
-            onError={handleImageError}
+            fallback="hero"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
           <div className="absolute right-6 top-1/2 hidden w-[190px] -translate-y-1/2 rounded-[18px] bg-white/95 p-5 shadow-[0_20px_46px_rgba(17,24,39,0.14)] sm:block">
@@ -105,9 +104,21 @@ function CuisineDetailContent({ cuisineId }: { cuisineId: string }) {
 
       {itemsQuery.isLoading ? (
         <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <span className="sr-only" role="status">{t("loadingItems")}</span>
           {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
             <div key={item} className="h-[360px] animate-pulse rounded-[24px] bg-gray-100" />
           ))}
+        </div>
+      ) : itemsQuery.isError ? (
+        <div role="alert" className="mt-6 rounded-[24px] border border-red-100 bg-red-50 p-8 text-center">
+          <p className="text-sm font-semibold text-red-900">{t("itemsLoadError")}</p>
+          <button
+            type="button"
+            onClick={() => void itemsQuery.refetch()}
+            className="mt-4 min-h-11 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white"
+          >
+            {t("retry")}
+          </button>
         </div>
       ) : items.length === 0 ? (
         <div className="mt-6 rounded-[24px] border border-dashed border-[#EEE4DC] bg-[#FFFBF7] p-10 text-center text-sm text-gray-500">

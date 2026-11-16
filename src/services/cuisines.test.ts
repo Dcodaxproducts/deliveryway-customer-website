@@ -58,7 +58,7 @@ describe("cuisines service", () => {
 
   it("fetches cuisine detail items independently from menu category endpoints", async () => {
     mockedGetRequest.mockResolvedValueOnce({
-      data: { items: [{ id: "item-1" }] },
+      data: { cuisine: { id: "cuisine/1", name: "First cuisine" }, items: [{ id: "item-1" }] },
     });
 
     const result = await fetchCustomerCuisineItems({
@@ -73,6 +73,33 @@ describe("cuisines service", () => {
       "/customer-app/cuisines/cuisine%2F1/items?restaurantId=restaurant-1&branchId=branch-1&page=1&limit=12&sortBy=sortOrder&sortOrder=ASC",
     );
     expect(result.items).toEqual([{ id: "item-1" }]);
+    expect(result.cuisine).toEqual(
+      expect.objectContaining({ id: "cuisine/1", name: "First cuisine" }),
+    );
+  });
+
+  it("normalizes the nested production cuisine detail envelope in one bounded request", async () => {
+    mockedGetRequest.mockResolvedValueOnce({
+      data: {
+        data: {
+          cuisine: { id: "first-created", name: "Original" },
+          items: [{ id: "actual-item", name: "Actual item" }],
+        },
+      },
+    });
+
+    const result = await fetchCustomerCuisineItems({
+      cuisineId: "first-created",
+      restaurantId: "restaurant-1",
+      branchId: "branch-1",
+      limit: 48,
+    });
+
+    expect(result.cuisine?.id).toBe("first-created");
+    expect(result.items).toEqual([
+      expect.objectContaining({ id: "actual-item", name: "Actual item" }),
+    ]);
+    expect(mockedGetRequest).toHaveBeenCalledTimes(1);
   });
 
   it("fetches promotional cuisines when available", async () => {

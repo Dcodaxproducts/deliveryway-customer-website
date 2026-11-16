@@ -92,6 +92,8 @@ export const queryKeys = {
   },
   loyalty: {
     all: ["loyalty"] as const,
+    summary: (customerId?: string | null) =>
+      ["loyalty", "summary", customerId ?? ""] as const,
     request: (endpoint: string) => ["loyalty", "request", endpoint] as const,
   },
   reservations: {

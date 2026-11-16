@@ -1,5 +1,12 @@
 export const resolveHttpsImageUrl = (imageUrl: string | null | undefined, fallback: string) => {
-  return imageUrl?.startsWith("https") ? imageUrl : fallback;
+  const trimmed = imageUrl?.trim();
+  if (trimmed?.startsWith("/")) return trimmed;
+
+  try {
+    return trimmed && new URL(trimmed).protocol === "https:" ? trimmed : fallback;
+  } catch {
+    return fallback;
+  }
 };
 
 export const isRemoteHttpsImageUrl = (imageUrl: string | null | undefined) => {
