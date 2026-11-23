@@ -164,6 +164,7 @@ export const getOperatingHours = (authUser: AuthRestaurantUser | null | undefine
 };
 
 const DAYS = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"];
+const DEFAULT_SCHEDULE_TIME_ZONE = "Europe/Berlin";
 
 const DAY_LABELS: Record<string, string> = {
   SUNDAY: "Sun",
@@ -331,16 +332,20 @@ const formatBreakRange = (breakTime: NonNullable<BranchHoursEntry["breakTimes"]>
   return note ? `${startTime} - ${endTime} (${note})` : `${startTime} - ${endTime}`;
 };
 
-export const getBranchHoursDetails = (schedule: BranchHoursEntry[]): BranchHoursDetail[] =>
+export const getBranchHoursDetails = (
+  schedule: BranchHoursEntry[],
+  timeZone = DEFAULT_SCHEDULE_TIME_ZONE,
+): BranchHoursDetail[] =>
   [...schedule]
     .sort((a, b) => DAYS.indexOf(normalizeDayKey(a.dayOfWeek)) - DAYS.indexOf(normalizeDayKey(b.dayOfWeek)))
     .map((entry) => {
       const dayKey = normalizeDayKey(entry.dayOfWeek);
-      const isTodayHoliday = String(entry.date || "").trim() === getTodayDateValue();
+      const zonedNow = getZonedNow(timeZone);
+      const isTodayHoliday = String(entry.date || "").trim() === zonedNow.dateValue;
       const hoursLabel = entry.isClosed ? "Closed" : formatHoursRange(entry) || "Not configured";
-      const isToday = isTodayHoliday || dayKey === DAYS[new Date().getDay()];
+      const isToday = isTodayHoliday || dayKey === zonedNow.dayOfWeek;
       const runtimeSummary = isToday
-        ? getScheduleRuntimeSummary({ entry, label: "Today" })
+        ? getScheduleRuntimeSummary({ entry, label: "Today", currentMinutes: zonedNow.minutes })
         : null;
 
       return {
@@ -355,10 +360,13 @@ export const getBranchHoursDetails = (schedule: BranchHoursEntry[]): BranchHours
       };
     });
 
-export const getCurrentBranchHoursDetail = (details: BranchHoursDetail[]) => {
+export const getCurrentBranchHoursDetail = (
+  details: BranchHoursDetail[],
+  timeZone = DEFAULT_SCHEDULE_TIME_ZONE,
+) => {
   if (details.length === 0) return null;
 
-  const today = DAYS[new Date().getDay()];
+  const today = getZonedNow(timeZone).dayOfWeek;
 
   return (
     details.find((entry) => normalizeDayKey(entry.dayOfWeek) === today) ??
@@ -407,21 +415,28 @@ const getHolidayScheduleForDate = (
   return holidaySchedule.find((entry) => String(entry.date || "").trim() === dateValue) ?? null;
 };
 
-const getTodayDateValue = () => {
-  const date = new Date();
+const getZonedNow = (timeZone = DEFAULT_SCHEDULE_TIME_ZONE) => {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hour12: false,
+    weekday: "long",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  const hour = values.hour === "24" ? 0 : Number(values.hour);
 
-  return [
-    date.getFullYear(),
-    String(date.getMonth() + 1).padStart(2, "0"),
-    String(date.getDate()).padStart(2, "0"),
-  ].join("-");
+  return {
+    dateValue: [values.year, values.month, values.day].join("-"),
+    dayOfWeek: String(values.weekday || "").toUpperCase(),
+    minutes: hour * 60 + Number(values.minute),
+  };
 };
 
-const getCurrentMinutes = () => {
-  const now = new Date();
-
-  return now.getHours() * 60 + now.getMinutes();
-};
+const getTodayDateValue = () => getZonedNow().dateValue;
 
 const scheduleTimeToMinutes = (value: unknown) => {
   const formatted = formatScheduleTime(value);
@@ -435,15 +450,33 @@ const scheduleTimeToMinutes = (value: unknown) => {
   return hours * 60 + minutes;
 };
 
-const getActiveBreak = (entry: BranchHoursEntry | null | undefined) => {
-  const currentMinutes = getCurrentMinutes();
+const getScheduleRange = (entry: BranchHoursEntry | null | undefined) => {
+  const open = scheduleTimeToMinutes(entry?.openTime);
+  const close = scheduleTimeToMinutes(entry?.closeTime);
+  if (open === null || close === null) return null;
+
+  return { open, close: close <= open ? close + 24 * 60 : close };
+};
+
+const getActiveBreak = (
+  entry: BranchHoursEntry | null | undefined,
+  currentMinutes: number,
+) => {
+  const scheduleRange = getScheduleRange(entry);
+  if (!scheduleRange) return null;
 
   return Array.isArray(entry?.breakTimes)
     ? entry.breakTimes.find((breakTime) => {
-        const start = scheduleTimeToMinutes(breakTime?.startTime);
-        const end = scheduleTimeToMinutes(breakTime?.endTime);
+        const rawStart = scheduleTimeToMinutes(breakTime?.startTime);
+        const rawEnd = scheduleTimeToMinutes(breakTime?.endTime);
 
-        return start !== null && end !== null && currentMinutes >= start && currentMinutes < end;
+        if (rawStart === null || rawEnd === null) return false;
+
+        const start = rawStart < scheduleRange.open ? rawStart + 24 * 60 : rawStart;
+        let end = rawEnd < scheduleRange.open ? rawEnd + 24 * 60 : rawEnd;
+        if (end <= start) end += 24 * 60;
+
+        return currentMinutes >= start && currentMinutes < end;
       }) ?? null
     : null;
 };
@@ -482,12 +515,45 @@ const getTemporaryClosureFromBranch = (branch: unknown): BranchTemporaryClosure 
   }) ?? null;
 };
 
+const getBranchScheduleTimeZone = (branch: unknown) => {
+  if (typeof branch !== "object" || branch === null || Array.isArray(branch)) {
+    return DEFAULT_SCHEDULE_TIME_ZONE;
+  }
+
+  const record = branch as ApiRecord;
+  const settings = typeof record.settings === "object" && record.settings !== null
+    ? record.settings as ApiRecord
+    : {};
+  const scheduleTimings = typeof record.scheduleTimings === "object" && record.scheduleTimings !== null
+    ? record.scheduleTimings as ApiRecord
+    : {};
+  const settingsSchedule = typeof settings.scheduleTimings === "object" && settings.scheduleTimings !== null
+    ? settings.scheduleTimings as ApiRecord
+    : {};
+  const candidates = [
+    record.timezone,
+    record.timeZone,
+    settings.timezone,
+    settings.timeZone,
+    scheduleTimings.timezone,
+    scheduleTimings.timeZone,
+    settingsSchedule.timezone,
+    settingsSchedule.timeZone,
+  ];
+
+  return candidates.find((value): value is string =>
+    typeof value === "string" && value.trim().length > 0
+  )?.trim() ?? DEFAULT_SCHEDULE_TIME_ZONE;
+};
+
 const getScheduleRuntimeSummary = ({
   entry,
   label,
+  currentMinutes = getZonedNow().minutes,
 }: {
   entry: BranchHoursEntry | null;
   label: string;
+  currentMinutes?: number;
 }): BranchHoursSummary => {
   if (!entry) {
     return { label: "Schedule", value: "Not configured", status: "unknown", reason: "unknown" };
@@ -505,8 +571,11 @@ const getScheduleRuntimeSummary = ({
     return { label, value: "Not configured", status: "unknown", reason: "unknown" };
   }
 
-  const currentMinutes = getCurrentMinutes();
-  const activeBreak = getActiveBreak(entry);
+  const range = getScheduleRange(entry);
+  if (!range) {
+    return { label, value: "Not configured", status: "unknown", reason: "unknown" };
+  }
+  const activeBreak = getActiveBreak(entry, currentMinutes);
 
   if (activeBreak) {
     const breakUntil = formatScheduleTime(activeBreak.endTime);
@@ -520,7 +589,7 @@ const getScheduleRuntimeSummary = ({
     };
   }
 
-  if (currentMinutes < open) {
+  if (currentMinutes < range.open) {
     const opensAt = formatScheduleTime(entry.openTime);
 
     return {
@@ -532,7 +601,7 @@ const getScheduleRuntimeSummary = ({
     };
   }
 
-  if (currentMinutes >= close) {
+  if (currentMinutes >= range.close) {
     return {
       label,
       value: "Closed",
@@ -550,9 +619,24 @@ const getScheduleRuntimeSummary = ({
   };
 };
 
-const getTodaySchedule = (schedule: BranchHoursEntry[]) => {
-  const today = DAYS[new Date().getDay()];
-  const todayDate = getTodayDateValue();
+const getTodaySchedule = (
+  schedule: BranchHoursEntry[],
+  timeZone = DEFAULT_SCHEDULE_TIME_ZONE,
+) => {
+  const zonedNow = getZonedNow(timeZone);
+  const today = zonedNow.dayOfWeek;
+  const todayDate = zonedNow.dateValue;
+  const todayIndex = DAYS.indexOf(today);
+  const previousDay = DAYS[(todayIndex + DAYS.length - 1) % DAYS.length];
+  const previousEntry = schedule.find((entry) => normalizeDayKey(entry.dayOfWeek) === previousDay);
+  const previousRange = getScheduleRange(previousEntry);
+  const isPreviousOvernightActive = Boolean(
+    previousEntry &&
+    !previousEntry.isClosed &&
+    previousRange &&
+    previousRange.close > 24 * 60 &&
+    zonedNow.minutes < previousRange.close - 24 * 60,
+  );
   const todayEntry = schedule.find((entry) => {
     return normalizeDayKey(entry.dayOfWeek) === today ||
       String(entry.date || "").trim() === todayDate;
@@ -560,7 +644,9 @@ const getTodaySchedule = (schedule: BranchHoursEntry[]) => {
 
   return {
     today,
-    entry: todayEntry ?? schedule.find((entry) => !entry.isClosed && hasText(entry.openTime) && hasText(entry.closeTime)) ?? null,
+    entry: isPreviousOvernightActive ? previousEntry ?? null : todayEntry ?? schedule.find((entry) => !entry.isClosed && hasText(entry.openTime) && hasText(entry.closeTime)) ?? null,
+    currentMinutes: isPreviousOvernightActive ? zonedNow.minutes + 24 * 60 : zonedNow.minutes,
+    isTodayEntry: isPreviousOvernightActive || Boolean(todayEntry),
   };
 };
 
@@ -600,10 +686,12 @@ const getScheduleWithOpeningFallback = ({
 const summarizeSchedule = ({
   fallback,
   schedule,
+  timeZone,
   useFallbackWhenMissing = false,
 }: {
   fallback?: BranchHoursSummary | null;
   schedule: BranchHoursEntry[];
+  timeZone: string;
   useFallbackWhenMissing?: boolean;
 }): BranchHoursSummary => {
   if (schedule.length === 0) {
@@ -622,7 +710,7 @@ const summarizeSchedule = ({
     };
   }
 
-  const { today, entry } = getTodaySchedule(schedule);
+  const { today, entry, currentMinutes, isTodayEntry } = getTodaySchedule(schedule, timeZone);
 
   if (!entry) {
     return {
@@ -632,15 +720,16 @@ const summarizeSchedule = ({
     };
   }
 
-  const label = String(entry.date || "").trim() === getTodayDateValue() ||
+  const label = isTodayEntry ||
+    String(entry.date || "").trim() === getTodayDateValue() ||
     normalizeDayKey(entry.dayOfWeek) === today
     ? "Today"
     : DAY_LABELS[normalizeDayKey(entry.dayOfWeek)] || "Next open";
 
-  const isTodayEntry = label === "Today";
+  const shouldUseRuntime = label === "Today";
 
-  if (isTodayEntry) {
-    return getScheduleRuntimeSummary({ entry, label });
+  if (shouldUseRuntime) {
+    return getScheduleRuntimeSummary({ entry, label, currentMinutes });
   }
 
   if (entry.isClosed) {
@@ -664,6 +753,7 @@ const summarizeSchedule = ({
 
 export const getBranchHoursSummary = (branch: unknown) => {
   const settings = getBranchSettings(branch);
+  const timeZone = getBranchScheduleTimeZone(branch);
   const temporaryClosure = getTemporaryClosureFromBranch(branch);
   const openingSchedule = getScheduleFromSettings(settings, ["openingHours", "operatingHours", "businessHours"]);
   const deliverySchedule = getScheduleFromSettings(settings, [
@@ -678,26 +768,27 @@ export const getBranchHoursSummary = (branch: unknown) => {
   });
   const holidaySchedule = getHolidayScheduleForDate(settings);
   const opening = holidaySchedule
-    ? summarizeSchedule({ schedule: [holidaySchedule] })
-    : summarizeSchedule({ schedule: openingSchedule });
+    ? summarizeSchedule({ schedule: [holidaySchedule], timeZone })
+    : summarizeSchedule({ schedule: openingSchedule, timeZone });
   const rawDelivery = holidaySchedule
     ? opening
     : summarizeSchedule({
         fallback: opening,
         schedule: deliverySchedule,
+        timeZone,
         useFallbackWhenMissing: true,
       });
-  const todayDeliveryEntry = getTodaySchedule(deliverySchedule).entry;
+  const todayDeliveryEntry = getTodaySchedule(deliverySchedule, timeZone).entry;
   const resolvedDelivery =
     holidaySchedule || isUsableHoursEntry(todayDeliveryEntry) ? rawDelivery : opening;
   const effectiveOpeningSchedule = holidaySchedule ? [holidaySchedule] : openingSchedule;
   const effectiveDeliverySchedule = holidaySchedule || !isUsableHoursEntry(todayDeliveryEntry)
-    ? [holidaySchedule ?? getTodaySchedule(openingSchedule).entry].filter(Boolean) as BranchHoursEntry[]
+    ? [holidaySchedule ?? getTodaySchedule(openingSchedule, timeZone).entry].filter(Boolean) as BranchHoursEntry[]
     : deliverySchedule;
   const deliveryMatchesOpening = areBranchSchedulesIdentical(openingSchedule, displayDeliverySchedule);
   const deliveryMatchesOpeningToday = areCurrentBranchHoursDetailsIdentical(
-    getCurrentBranchHoursDetail(getBranchHoursDetails(effectiveOpeningSchedule)),
-    getCurrentBranchHoursDetail(getBranchHoursDetails(effectiveDeliverySchedule)),
+    getCurrentBranchHoursDetail(getBranchHoursDetails(effectiveOpeningSchedule, timeZone), timeZone),
+    getCurrentBranchHoursDetail(getBranchHoursDetails(effectiveDeliverySchedule, timeZone), timeZone),
   );
   const showDeliveryHours =
     !holidaySchedule &&

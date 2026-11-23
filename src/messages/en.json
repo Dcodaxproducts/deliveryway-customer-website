@@ -1047,6 +1047,17 @@
     "addMoreItems": "Add More Items",
     "clearCart": "Clear Cart",
     "backendError": "Backend Error",
+    "errors": {
+      "outsideDeliveryArea": "This address is outside the restaurant’s delivery area.",
+      "incompleteDeliveryAddress": "Enter a complete delivery address, including its map location or postal code.",
+      "deliveryConfigurationUnavailable": "Delivery pricing is not configured for this address. Please contact the restaurant.",
+      "deliveryTimeUnavailable": "Delivery is not available at the selected time. Please choose another time.",
+      "pickupTimeUnavailable": "Pickup is not available at the selected time. Please choose another time.",
+      "branchTemporarilyClosed": "This branch is temporarily closed.",
+      "branchHolidayClosed": "This branch is closed for the selected holiday date.",
+      "minimumOrderAmountNotMet": "The minimum order amount has not been reached.",
+      "branchUnavailable": "The selected branch is unavailable."
+    },
     "loadingCart": "Loading cart",
     "yourCartIsEmpty": "Your cart is empty",
     "emptyCartDescription": "Add items from the menu to start building the order.",

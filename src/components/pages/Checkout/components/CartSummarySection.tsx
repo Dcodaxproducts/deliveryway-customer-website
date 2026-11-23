@@ -1299,6 +1299,8 @@ export function CartSummarySection({
           </div>
         ) : cartItems.length === 0 ? (
           <div
+            role={backendError ? "alert" : undefined}
+            aria-live={backendError ? "assertive" : undefined}
             className={`rounded-2xl border border-dashed p-5 text-center ${
               backendError
                 ? "border-red-200 bg-red-50/80"
@@ -1308,7 +1310,7 @@ export function CartSummarySection({
             {backendError ? (
               <div className="mx-auto max-w-sm">
                 <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-red-100 text-red-600">
-                  <AlertTriangle size={20} />
+                  <AlertTriangle size={20} aria-hidden="true" />
                 </div>
 
                 <div className="mt-3 flex flex-wrap items-center justify-center gap-2">

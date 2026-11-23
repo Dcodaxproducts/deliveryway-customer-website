@@ -132,7 +132,7 @@ describe("pickup schedule helpers", () => {
 
   it("keeps scheduled slots outside a temporary closure while blocking immediate checkout", () => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-07-01T11:52:00Z"));
+    vi.setSystemTime(new Date("2026-07-01T09:52:00Z"));
 
     const branch: BranchRecord = {
       id: "branch-1",
@@ -140,8 +140,8 @@ describe("pickup schedule helpers", () => {
       availability: {
         temporaryClosure: {
           isClosed: true,
-          closedAt: "2026-07-01T11:50:00Z",
-          closedUntil: "2026-07-01T11:55:00Z",
+          closedAt: "2026-07-01T09:50:00Z",
+          closedUntil: "2026-07-01T09:55:00Z",
           reason: "Busy kitchen",
         },
       },
@@ -633,5 +633,94 @@ describe("pickup schedule helpers", () => {
         scheduleType: "pickup",
       })
     ).toBe(true);
+  });
+
+  it("treats Friday and Saturday closing at 00:00 as midnight, not as closed", () => {
+    const branch: BranchRecord = {
+      id: "branch-1",
+      name: "Main",
+      scheduleTimings: { timezone: "Europe/Berlin" },
+      settings: {
+        openingHours: [
+          { dayOfWeek: "FRIDAY", openTime: "22:00", closeTime: "00:00" },
+          { dayOfWeek: "SATURDAY", openTime: "20:00", closeTime: "00:00" },
+        ],
+      },
+    };
+
+    expect(buildPickupTimeSlots({ branch, dateValue: "2030-01-04" })).toEqual([
+      { value: "22:00", label: "22:00" },
+      { value: "22:30", label: "22:30" },
+      { value: "23:00", label: "23:00" },
+      { value: "23:30", label: "23:30" },
+    ]);
+    expect(buildPickupTimeSlots({ branch, dateValue: "2030-01-05" })).toEqual([
+      { value: "20:00", label: "20:00" },
+      { value: "20:30", label: "20:30" },
+      { value: "21:00", label: "21:00" },
+      { value: "21:30", label: "21:30" },
+      { value: "22:00", label: "22:00" },
+      { value: "22:30", label: "22:30" },
+      { value: "23:00", label: "23:00" },
+      { value: "23:30", label: "23:30" },
+    ]);
+  });
+
+  it("carries overnight slots onto the following date and excludes overnight breaks", () => {
+    const branch: BranchRecord = {
+      id: "branch-1",
+      name: "Main",
+      settings: {
+        openingHours: [
+          {
+            dayOfWeek: "FRIDAY",
+            openTime: "22:00",
+            closeTime: "02:00",
+            breakTimes: [{ startTime: "23:30", endTime: "00:30" }],
+          },
+        ],
+      },
+    };
+
+    expect(buildPickupTimeSlots({ branch, dateValue: "2030-01-04" })).toEqual([
+      { value: "22:00", label: "22:00" },
+      { value: "22:30", label: "22:30" },
+      { value: "23:00", label: "23:00" },
+    ]);
+    expect(buildPickupTimeSlots({ branch, dateValue: "2030-01-05" })).toEqual([
+      { value: "00:30", label: "00:30" },
+      { value: "01:00", label: "01:00" },
+      { value: "01:30", label: "01:30" },
+    ]);
+  });
+
+  it("treats equal opening and closing times as a 24-hour schedule", () => {
+    const branch: BranchRecord = {
+      id: "branch-1",
+      name: "Main",
+      settings: {
+        openingHours: [
+          { dayOfWeek: "SATURDAY", openTime: "00:00", closeTime: "00:00" },
+        ],
+      },
+    };
+
+    const slots = buildPickupTimeSlots({ branch, dateValue: "2030-01-05" });
+    expect(slots).toHaveLength(48);
+    expect(slots[0]).toEqual({ value: "00:00", label: "00:00" });
+    expect(slots.at(-1)).toEqual({ value: "23:30", label: "23:30" });
+  });
+
+  it("rejects nonexistent Berlin wall times and resolves the DST fallback deterministically", () => {
+    expect(getScheduleOrderTimeIso({
+      dateValue: "2030-03-31",
+      timeValue: "02:30",
+      timeZone: "Europe/Berlin",
+    })).toBeNull();
+    expect(getScheduleOrderTimeIso({
+      dateValue: "2030-10-27",
+      timeValue: "02:30",
+      timeZone: "Europe/Berlin",
+    })).toBe("2030-10-27T01:30:00.000Z");
   });
 });

@@ -50,7 +50,9 @@ export const getDateValue = (date: Date) => {
   return `${year}-${month}-${day}`;
 };
 
-export const getTodayDateValue = () => getDateValue(new Date());
+export const getTodayDateValue = (
+  timeZone = DEFAULT_SCHEDULE_TIME_ZONE,
+) => getZonedNow(timeZone).dateValue;
 
 export const getDateFromValue = (value: string) => {
   if (!value) return null;
@@ -63,19 +65,33 @@ export const getDateFromValue = (value: string) => {
 };
 
 const getDayOfWeek = (dateValue: string) => {
-  const date = getDateFromValue(dateValue);
+  const [year, month, day] = dateValue.split("-").map(Number);
+  if (!year || !month || !day) return "";
 
-  if (!date) return "";
-
-  return date
-    .toLocaleDateString("en-US", { weekday: "long" })
+  return new Date(Date.UTC(year, month - 1, day))
+    .toLocaleDateString("en-US", { weekday: "long", timeZone: "UTC" })
     .toUpperCase();
 };
 
-export const isPastDateValue = (value: string) => {
+const shiftDateValue = (dateValue: string, days: number) => {
+  const [year, month, day] = dateValue.split("-").map(Number);
+  if (!year || !month || !day) return "";
+
+  const date = new Date(Date.UTC(year, month - 1, day + days));
+  return [
+    date.getUTCFullYear(),
+    String(date.getUTCMonth() + 1).padStart(2, "0"),
+    String(date.getUTCDate()).padStart(2, "0"),
+  ].join("-");
+};
+
+export const isPastDateValue = (
+  value: string,
+  timeZone = DEFAULT_SCHEDULE_TIME_ZONE,
+) => {
   if (!value) return false;
 
-  return value < getTodayDateValue();
+  return value < getTodayDateValue(timeZone);
 };
 
 export const timeToMinutes = (value?: string | null) => {
@@ -202,7 +218,7 @@ const parseLocalScheduleDateTimeParts = (value: string) => {
     parsed.day < 1 ||
     parsed.day > 31 ||
     parsed.hours < 0 ||
-    parsed.hours > 23 ||
+    parsed.hours > 47 ||
     parsed.minutes < 0 ||
     parsed.minutes > 59
   ) {
@@ -265,6 +281,27 @@ export const getScheduleOrderTimeIso = ({
 
     if (Number.isNaN(secondPass.getTime())) return null;
 
+    const expectedWallClock = new Date(wallClockUtcMs);
+    const actualParts = new Intl.DateTimeFormat("en-CA", {
+      timeZone,
+      hour12: false,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).formatToParts(secondPass);
+    const actual = Object.fromEntries(actualParts.map((part) => [part.type, part.value]));
+    const actualHour = actual.hour === "24" ? "00" : actual.hour;
+    const matchesWallClock =
+      Number(actual.year) === expectedWallClock.getUTCFullYear() &&
+      Number(actual.month) === expectedWallClock.getUTCMonth() + 1 &&
+      Number(actual.day) === expectedWallClock.getUTCDate() &&
+      Number(actualHour) === expectedWallClock.getUTCHours() &&
+      Number(actual.minute) === expectedWallClock.getUTCMinutes();
+
+    if (!matchesWallClock) return null;
+
     return secondPass.toISOString();
   } catch {
     return null;
@@ -323,10 +360,50 @@ export const buildScheduledDeliveryEstimate = ({
 const roundUpToInterval = (minutes: number, interval: number) =>
   Math.ceil(minutes / interval) * interval;
 
-const getCurrentMinutes = () => {
-  const now = new Date();
+const alignToScheduleInterval = (
+  minutes: number,
+  scheduleStart: number,
+  interval: number,
+) => scheduleStart + Math.ceil((minutes - scheduleStart) / interval) * interval;
 
-  return now.getHours() * 60 + now.getMinutes();
+const getZonedNow = (timeZone: string) => {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    hour12: false,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  const hour = values.hour === "24" ? 0 : Number(values.hour);
+
+  return {
+    dateValue: [values.year, values.month, values.day].join("-"),
+    minutes: hour * 60 + Number(values.minute),
+  };
+};
+
+const getScheduleRange = (schedule: OpeningHours | null | undefined) => {
+  const open = timeToMinutes(schedule?.openTime);
+  const close = timeToMinutes(schedule?.closeTime);
+  if (open === null || close === null) return null;
+
+  return { open, close: close <= open ? close + 24 * 60 : close };
+};
+
+const normalizeBreakRange = (breakTime: unknown, scheduleOpen: number) => {
+  const breakRecord = getRecord(breakTime);
+  const rawStart = timeToMinutes(typeof breakRecord?.startTime === "string" ? breakRecord.startTime : null);
+  const rawEnd = timeToMinutes(typeof breakRecord?.endTime === "string" ? breakRecord.endTime : null);
+  if (rawStart === null || rawEnd === null) return null;
+
+  const start = rawStart < scheduleOpen ? rawStart + 24 * 60 : rawStart;
+  let end = rawEnd < scheduleOpen ? rawEnd + 24 * 60 : rawEnd;
+  if (end <= start) end += 24 * 60;
+
+  return { start, end };
 };
 
 const getRecord = (value: unknown): Record<string, unknown> | null =>
@@ -449,24 +526,6 @@ const getScheduleIntervalMinutes = (
   return Math.floor(interval);
 };
 
-const isSlotInsideBreak = ({
-  slotStart,
-  slotEnd,
-  breakTime,
-}: {
-  slotStart: number;
-  slotEnd: number;
-  breakTime: unknown;
-}) => {
-  const breakRecord = getRecord(breakTime);
-  const breakStart = timeToMinutes(typeof breakRecord?.startTime === "string" ? breakRecord.startTime : null);
-  const breakEnd = timeToMinutes(typeof breakRecord?.endTime === "string" ? breakRecord.endTime : null);
-
-  if (breakStart === null || breakEnd === null) return false;
-
-  return slotStart < breakEnd && slotEnd > breakStart;
-};
-
 const isSlotInsideTemporaryClosure = ({
   branch,
   dateValue,
@@ -566,59 +625,79 @@ const buildTimeSlots = ({
   dateValue: string;
   scheduleType: "pickup" | "delivery";
 }): PickupTimeSlot[] => {
-  if (!dateValue || isPastDateValue(dateValue)) return [];
+  const timeZone = getBranchScheduleTimeZone(branch);
+  const zonedNow = getZonedNow(timeZone);
+  if (!dateValue || dateValue < zonedNow.dateValue) return [];
 
-  const { hasOpeningHours, schedule } = getBranchScheduleForDate({
+  const currentState = getBranchScheduleForDate({
     branch,
     dateValue,
     scheduleType,
   });
+  const previousState = getBranchScheduleForDate({
+    branch,
+    dateValue: shiftDateValue(dateValue, -1),
+    scheduleType,
+  });
 
-  if (!hasOpeningHours || !schedule || schedule?.isClosed) return [];
+  if (!currentState.hasOpeningHours && !previousState.hasOpeningHours) return [];
 
-  const open = timeToMinutes(schedule?.openTime);
-  const close = timeToMinutes(schedule?.closeTime);
   const slotIntervalMinutes = getScheduleIntervalMinutes(branch, scheduleType);
-
-  if (open === null || close === null || open >= close) return [];
-
-  const isToday = dateValue === getTodayDateValue();
-  const earliestTodayMinutes = isToday
-    ? roundUpToInterval(getCurrentMinutes(), slotIntervalMinutes)
-    : open;
-
-  const startAt = Math.max(open, earliestTodayMinutes);
+  const earliestTodayMinutes = dateValue === zonedNow.dateValue
+    ? roundUpToInterval(zonedNow.minutes, slotIntervalMinutes)
+    : 0;
   const slots: PickupTimeSlot[] = [];
+  const segments = [
+    { state: previousState, offset: -24 * 60 },
+    { state: currentState, offset: 0 },
+  ];
 
-  for (
-    let slotStart = startAt;
-    slotStart + slotIntervalMinutes <= close;
-    slotStart += slotIntervalMinutes
-  ) {
-    const slotEnd = slotStart + slotIntervalMinutes;
+  for (const { state, offset } of segments) {
+    const schedule = state.schedule;
+    if (!schedule || schedule.isClosed) continue;
+    const range = getScheduleRange(schedule);
+    if (!range) continue;
 
-    const isDuringBreak = normalizeArray(schedule?.breakTimes).some(
-      (breakTime) => isSlotInsideBreak({ slotStart, slotEnd, breakTime })
-    );
+    const segmentStart = Math.max(0, range.open + offset, earliestTodayMinutes);
+    const segmentEnd = Math.min(24 * 60, range.close + offset);
+    if (segmentStart >= segmentEnd) continue;
 
-    const isDuringTemporaryClosure = isSlotInsideTemporaryClosure({
-      branch,
-      dateValue,
-      slotStart,
-      slotEnd,
-    });
-
-    if (!isDuringBreak && !isDuringTemporaryClosure) {
-      const value = minutesToTime(slotStart);
-
-      slots.push({
-        value,
-        label: formatPickupTimeLabel(value),
+    for (
+      let slotStart = alignToScheduleInterval(
+        segmentStart,
+        range.open + offset,
+        slotIntervalMinutes,
+      );
+      slotStart + slotIntervalMinutes <= segmentEnd;
+      slotStart += slotIntervalMinutes
+    ) {
+      const slotEnd = slotStart + slotIntervalMinutes;
+      const isDuringBreak = normalizeArray(schedule.breakTimes).some((breakTime) => {
+        const breakRange = normalizeBreakRange(breakTime, range.open);
+        return breakRange
+          ? slotStart < breakRange.end + offset && slotEnd > breakRange.start + offset
+          : false;
       });
+
+      const isDuringTemporaryClosure = isSlotInsideTemporaryClosure({
+        branch,
+        dateValue,
+        slotStart,
+        slotEnd,
+      });
+
+      if (!isDuringBreak && !isDuringTemporaryClosure) {
+        const value = minutesToTime(slotStart);
+        if (!slots.some((slot) => slot.value === value)) {
+          slots.push({ value, label: formatPickupTimeLabel(value) });
+        }
+      }
     }
   }
 
-  return slots;
+  return slots.sort((first, second) =>
+    (timeToMinutes(first.value) ?? 0) - (timeToMinutes(second.value) ?? 0)
+  );
 };
 
 export const buildPickupTimeSlots = ({

@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { useAuthContext } from "@/hooks/useAuth";
 import { useDomainContext } from "@/hooks/useDomainContext";
 import { resolveCheckoutContext } from "@/components/pages/Checkout/utils/checkout-context";
+import { resolveCheckoutErrorMessage } from "@/components/pages/Checkout/utils/checkout-errors";
 import { X } from "lucide-react";
 import {
   Elements,
@@ -460,12 +461,17 @@ function CheckoutPageContent() {
     fallback: string,
   ) => {
     const meta = getBackendErrorMeta(res);
-    const message = getBackendErrorMessage(res, fallback);
+    const code = getBackendErrorCode(res);
+    const message = resolveCheckoutErrorMessage(
+      { code, message: getBackendErrorMessage(res, fallback) },
+      t,
+      fallback,
+    );
 
     setBackendError({
       context,
       message,
-      code: getBackendErrorCode(res),
+      code,
       timestamp:
         typeof meta?.timestamp === "string" ? meta.timestamp : undefined,
     });

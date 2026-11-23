@@ -11,7 +11,7 @@ describe("buildRuntimeClosedPopup", () => {
 
   it("uses the same opening-hours closed state shown by the restaurant header before opening", () => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date(2026, 5, 30, 12, 0));
+    vi.setSystemTime(new Date("2026-06-30T10:00:00.000Z"));
 
     const popup = buildRuntimeClosedPopup({
       t,

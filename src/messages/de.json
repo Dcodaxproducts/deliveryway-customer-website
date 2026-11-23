@@ -1047,6 +1047,17 @@
     "addMoreItems": "Weitere Artikel hinzufügen",
     "clearCart": "Warenkorb leeren",
     "backendError": "Backend-Fehler",
+    "errors": {
+      "outsideDeliveryArea": "Diese Adresse liegt außerhalb des Liefergebiets des Restaurants.",
+      "incompleteDeliveryAddress": "Geben Sie eine vollständige Lieferadresse einschließlich Kartenposition oder Postleitzahl ein.",
+      "deliveryConfigurationUnavailable": "Für diese Adresse sind keine Lieferpreise konfiguriert. Bitte kontaktieren Sie das Restaurant.",
+      "deliveryTimeUnavailable": "Zum gewählten Zeitpunkt ist keine Lieferung möglich. Bitte wählen Sie eine andere Uhrzeit.",
+      "pickupTimeUnavailable": "Zum gewählten Zeitpunkt ist keine Abholung möglich. Bitte wählen Sie eine andere Uhrzeit.",
+      "branchTemporarilyClosed": "Diese Filiale ist vorübergehend geschlossen.",
+      "branchHolidayClosed": "Diese Filiale ist am gewählten Feiertag geschlossen.",
+      "minimumOrderAmountNotMet": "Der Mindestbestellwert wurde noch nicht erreicht.",
+      "branchUnavailable": "Die ausgewählte Filiale ist nicht verfügbar."
+    },
     "loadingCart": "Warenkorb wird geladen",
     "yourCartIsEmpty": "Ihr Warenkorb ist leer",
     "emptyCartDescription": "Fügen Sie Artikel aus dem Menü hinzu, um die Bestellung zu beginnen.",

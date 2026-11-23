@@ -212,7 +212,7 @@ describe("restaurant card utils", () => {
 
   it("uses today's holiday opening hours before regular branch hours", () => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date(2026, 6, 1, 12, 0));
+    vi.setSystemTime(new Date("2026-07-01T10:00:00.000Z"));
 
     const todayDate = new Date();
     const todayValue = [
@@ -279,7 +279,7 @@ describe("restaurant card utils", () => {
 
   it("marks today's opening hours as closed before opening time", () => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date(2026, 5, 30, 14, 41));
+    vi.setSystemTime(new Date("2026-06-30T12:41:00.000Z"));
 
     const summary = getBranchHoursSummary({
       scheduleTimings: {
@@ -298,7 +298,7 @@ describe("restaurant card utils", () => {
 
   it("falls back to schedule timings when empty settings hours mask today's opening time", () => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date(2026, 5, 30, 12, 0));
+    vi.setSystemTime(new Date("2026-06-30T10:00:00.000Z"));
 
     const summary = getBranchHoursSummary({
       settings: {
@@ -320,7 +320,7 @@ describe("restaurant card utils", () => {
 
   it("marks today's opening hours as closed during break time", () => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date(2026, 6, 1, 15, 30));
+    vi.setSystemTime(new Date("2026-07-01T13:30:00.000Z"));
 
     const summary = getBranchHoursSummary({
       scheduleTimings: {
@@ -339,6 +339,72 @@ describe("restaurant card utils", () => {
       status: "closed",
       reason: "break",
       breakUntil: "17:00",
+    });
+  });
+
+  it("keeps Friday open until a 00:00 Berlin closing time", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2030-01-04T22:30:00.000Z"));
+
+    const summary = getBranchHoursSummary({
+      scheduleTimings: {
+        timezone: "Europe/Berlin",
+        openingHours: [
+          { dayOfWeek: "FRIDAY", openTime: "18:00", closeTime: "00:00" },
+        ],
+      },
+    });
+
+    expect(summary.opening).toMatchObject({
+      status: "open",
+      value: "18:00 - 00:00",
+      closesAt: "00:00",
+    });
+  });
+
+  it("uses Friday's overnight window and break after midnight on Saturday", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2030-01-04T23:15:00.000Z"));
+
+    const summary = getBranchHoursSummary({
+      scheduleTimings: {
+        timezone: "Europe/Berlin",
+        openingHours: [
+          {
+            dayOfWeek: "FRIDAY",
+            openTime: "22:00",
+            closeTime: "02:00",
+            breakTimes: [{ startTime: "23:30", endTime: "00:30" }],
+          },
+          { dayOfWeek: "SATURDAY", openTime: "18:00", closeTime: "23:00" },
+        ],
+      },
+    });
+
+    expect(summary.opening).toMatchObject({
+      label: "Today",
+      status: "closed",
+      reason: "break",
+      breakUntil: "00:30",
+    });
+  });
+
+  it("shows equal opening and closing times as a continuous 24-hour schedule", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2030-01-05T11:00:00.000Z"));
+
+    const summary = getBranchHoursSummary({
+      scheduleTimings: {
+        timezone: "Europe/Berlin",
+        openingHours: [
+          { dayOfWeek: "SATURDAY", openTime: "00:00", closeTime: "00:00" },
+        ],
+      },
+    });
+
+    expect(summary.opening).toMatchObject({
+      status: "open",
+      value: "00:00 - 00:00",
     });
   });
 
