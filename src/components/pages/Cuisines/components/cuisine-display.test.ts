@@ -1,10 +1,22 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  findCuisineForDetail,
   getMenuItemBasePrice,
   getMenuItemFinalPrice,
 } from "@/components/pages/Cuisines/components/cuisine-display";
 import type { MenuItem } from "@/components/pages/Items/types";
+
+describe("cuisine detail identity", () => {
+  const cuisines = [
+    { id: "cuisine-1", slug: "italian", name: "Italian", itemCount: 5 },
+  ];
+
+  it("keeps the selected cuisine title and count while items load", () => {
+    expect(findCuisineForDetail(cuisines, "cuisine-1")).toEqual(cuisines[0]);
+    expect(findCuisineForDetail(cuisines, "italian")).toEqual(cuisines[0]);
+  });
+});
 
 describe("cuisine item price display", () => {
   it("falls back to the default variation price when the item base price is zero", () => {

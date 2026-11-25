@@ -6,6 +6,16 @@ import { getMenuItemCardPrice } from "@/components/pages/Items/utils/product-pri
 
 export const CUISINE_FALLBACK_IMAGE = "/categories/cuisine-fallback-v1.webp";
 
+export const findCuisineForDetail = (
+  cuisines: CustomerCuisine[],
+  cuisineId: string,
+) =>
+  cuisines.find(
+    (cuisine) =>
+      cuisine.id === cuisineId ||
+      (Boolean(cuisine.slug) && cuisine.slug === cuisineId),
+  ) ?? null;
+
 export const getCuisineRemoteImage = (cuisine?: CustomerCuisine | null) => {
   const image = cuisine?.imageUrl || cuisine?.coverImage || cuisine?.bannerUrl || "";
 

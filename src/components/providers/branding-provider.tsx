@@ -8,7 +8,11 @@ import { BrandingContext } from "@/hooks/useBranding";
 import { useDomainContext } from "@/hooks/useDomainContext";
 import { useHome } from "@/hooks/useHome";
 import { getBrandingCssVariables } from "@/lib/branding";
-import { resolveFaviconUrl, updateDocumentFavicons } from "@/lib/favicon";
+import {
+  getBrandingFaviconUrl,
+  resolveFaviconUrl,
+  updateDocumentFavicons,
+} from "@/lib/favicon";
 
 const getUserRestaurantId = (user: ReturnType<typeof useAuthContext>["user"]) =>
   user?.restaurantId ?? user?.branch?.restaurantId ?? null;
@@ -43,20 +47,26 @@ export const BrandingProvider = ({ children }: BrandingProviderProps) => {
   }, [branding]);
 
   useEffect(() => {
-    if (!hasResolvedRestaurantBranding) {
+    if (!domainContext && !hasResolvedRestaurantBranding) {
       return;
     }
 
     updateDocumentFavicons(
       document,
       resolveFaviconUrl({
-        faviconUrl: branding.assets.faviconUrl,
-        logoUrl: branding.logo.default,
+        faviconUrl:
+          domainContext?.faviconUrl ??
+          getBrandingFaviconUrl(domainContext?.branding) ??
+          branding.assets.faviconUrl,
+        logoUrl: domainContext?.logoUrl ?? branding.logo.default,
       }),
+      "/favicon.ico",
+      domainContext?.brandingVersion,
     );
   }, [
     branding.assets.faviconUrl,
     branding.logo.default,
+    domainContext,
     hasResolvedRestaurantBranding,
   ]);
 

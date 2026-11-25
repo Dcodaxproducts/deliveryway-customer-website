@@ -102,6 +102,23 @@ describe("cuisines service", () => {
     expect(mockedGetRequest).toHaveBeenCalledTimes(1);
   });
 
+  it("rejects an API failure instead of caching a generic empty cuisine", async () => {
+    mockedGetRequest.mockResolvedValueOnce({
+      success: false,
+      status: 500,
+      error: { message: "Invalid string length" },
+      data: undefined,
+    });
+
+    await expect(
+      fetchCustomerCuisineItems({
+        cuisineId: "italian",
+        restaurantId: "restaurant-1",
+        branchId: "branch-1",
+      }),
+    ).rejects.toThrow("Invalid string length");
+  });
+
   it("fetches promotional cuisines when available", async () => {
     mockedGetRequest.mockResolvedValueOnce({ data: [{ id: "promo-cuisine" }] });
 

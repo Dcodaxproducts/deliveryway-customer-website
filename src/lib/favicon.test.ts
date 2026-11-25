@@ -3,6 +3,8 @@
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
+  addFaviconVersion,
+  getBrandingFaviconUrl,
   normalizeBrowserImageUrl,
   resolveFaviconUrl,
   updateDocumentFavicons,
@@ -30,6 +32,33 @@ describe("tenant favicon", () => {
     const links = Array.from(document.head.querySelectorAll<HTMLLinkElement>("link"));
     expect(links).toHaveLength(3);
     expect(links.every((link) => link.href.endsWith("/tenant-b.png"))).toBe(true);
+  });
+
+  it("updates duplicate metadata links and cache-busts a saved tenant icon", () => {
+    document.head.innerHTML =
+      '<link rel="icon" href="/old.ico"><link rel="icon" href="/older.ico">';
+
+    updateDocumentFavicons(
+      document,
+      "https://cdn.example.com/tenant.png?size=32",
+      "/favicon.ico",
+      "brand-v2",
+    );
+
+    const icons = Array.from(
+      document.head.querySelectorAll<HTMLLinkElement>("link[rel='icon']"),
+    );
+    expect(icons).toHaveLength(2);
+    expect(icons.every((icon) => icon.href.includes("v=brand-v2"))).toBe(true);
+    expect(addFaviconVersion("/tenant.ico", "42")).toBe("/tenant.ico?v=42");
+  });
+
+  it("reads the nested domain branding favicon contract", () => {
+    expect(
+      getBrandingFaviconUrl({
+        assets: { logos: { faviconUrl: "https://cdn.example.com/domain.ico" } },
+      }),
+    ).toBe("https://cdn.example.com/domain.ico");
   });
 
   it("falls back when the configured favicon fails to load", () => {

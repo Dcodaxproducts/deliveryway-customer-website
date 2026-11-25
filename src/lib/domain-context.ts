@@ -9,6 +9,8 @@ export type DomainContext = {
   subdomain?: string | null;
   customDomain?: string | null;
   logoUrl?: string | null;
+  faviconUrl?: string | null;
+  brandingVersion?: string | null;
   branding?: unknown;
 };
 
@@ -67,6 +69,8 @@ export const normalizeDomainContext = (value: unknown): DomainContext | null => 
     subdomain: getString(data.subdomain),
     customDomain: getString(data.customDomain),
     logoUrl: getString(data.logoUrl),
+    faviconUrl: getString(data.faviconUrl),
+    brandingVersion: getString(data.brandingVersion),
     branding: data.branding,
   };
 };

@@ -7,10 +7,17 @@ import { useTranslations } from "next-intl";
 
 import { CuisineItemCard } from "@/components/pages/Cuisines/components/CuisineItemCard";
 import { ResilientImage } from "@/components/common/ResilientImage";
-import { getCuisineBadge, getCuisineRemoteImage } from "@/components/pages/Cuisines/components/cuisine-display";
+import {
+  findCuisineForDetail,
+  getCuisineBadge,
+  getCuisineRemoteImage,
+} from "@/components/pages/Cuisines/components/cuisine-display";
 import { useAppLocale } from "@/hooks/useAppLocale";
 import { useAuth } from "@/hooks/useAuth";
-import { useCustomerCuisineItems } from "@/hooks/useCuisines";
+import {
+  useCustomerCuisineItems,
+  useCustomerCuisines,
+} from "@/hooks/useCuisines";
 import { useDomainContext } from "@/hooks/useDomainContext";
 import { useHome } from "@/hooks/useHome";
 import { resolveHomeBranchId, resolveHomeRestaurantId } from "@/lib/home";
@@ -24,8 +31,17 @@ function CuisineDetailContent({ cuisineId }: { cuisineId: string }) {
   const restaurantId = resolveHomeRestaurantId(user, authRestaurantId, context);
   const branchId = resolveHomeBranchId(user, context);
   const itemsQuery = useCustomerCuisineItems({ cuisineId, restaurantId, branchId, locale, limit: 48, enabled: Boolean(restaurantId && cuisineId) });
+  const cuisinesQuery = useCustomerCuisines({
+    restaurantId,
+    branchId,
+    locale,
+    limit: 24,
+    enabled: Boolean(restaurantId),
+  });
   const homeQuery = useHome(restaurantId, branchId, Boolean(restaurantId && branchId));
-  const cuisine = itemsQuery.data?.cuisine ?? null;
+  const cuisine =
+    itemsQuery.data?.cuisine ??
+    findCuisineForDetail(cuisinesQuery.data?.cuisines ?? [], cuisineId);
   const items = itemsQuery.data?.items ?? [];
   const currency = resolveCustomerCurrency({
     configCurrency: homeQuery.data?.data.config?.currency,

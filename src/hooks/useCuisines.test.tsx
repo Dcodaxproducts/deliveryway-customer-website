@@ -18,7 +18,7 @@ const fetchItemsMock = vi.mocked(fetchCustomerCuisineItems);
 describe("useCustomerCuisineItems", () => {
   beforeEach(() => fetchItemsMock.mockReset());
 
-  it("makes one bounded cold detail request and no duplicate warm request", async () => {
+  it("refetches a bounded detail request instead of reusing stale warm data", async () => {
     fetchItemsMock.mockResolvedValue({
       response: { data: {} } as never,
       cuisine: { id: "first-created", name: "First cuisine" },
@@ -44,7 +44,7 @@ describe("useCustomerCuisineItems", () => {
     const warm = renderHook(() => useCustomerCuisineItems(params), { wrapper });
     await waitFor(() => expect(warm.result.current.isSuccess).toBe(true));
 
-    expect(fetchItemsMock).toHaveBeenCalledTimes(1);
+    expect(fetchItemsMock).toHaveBeenCalledTimes(2);
     expect(fetchItemsMock).toHaveBeenCalledWith(expect.objectContaining({ limit: 48 }));
     warm.unmount();
   });

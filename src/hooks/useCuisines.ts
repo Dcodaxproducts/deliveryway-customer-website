@@ -30,7 +30,9 @@ export const useCustomerCuisineItems = (params: FetchCuisineItemsParams & { enab
     queryKey: queryKeys.cuisines.items(queryParams),
     queryFn: () => fetchCustomerCuisineItems(queryParams),
     enabled: enabled && Boolean(queryParams.restaurantId && queryParams.cuisineId),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: "always",
     retry: 1,
   });
 };

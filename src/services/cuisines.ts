@@ -55,6 +55,27 @@ const getNumber = (value: unknown) => {
   return Number.isFinite(parsed) ? parsed : null;
 };
 
+const assertCuisineResponse = (value: unknown) => {
+  if (!isRecord(value)) return;
+
+  const status = Number(value.status);
+  const failed =
+    value.success === false ||
+    Boolean(value.error) ||
+    (Number.isFinite(status) && status >= 400);
+
+  if (!failed) return;
+
+  const error = isRecord(value.error) ? value.error : null;
+  const message =
+    getString(error?.message) ??
+    getString(value.message) ??
+    getString(value.error) ??
+    "Failed to load cuisine items";
+
+  throw new Error(message);
+};
+
 const appendCuisineParams = (
   params: URLSearchParams,
   values: FetchCuisinesParams,
@@ -138,6 +159,7 @@ export const fetchCustomerCuisineItems = async ({
   const response = await getRequest(
     `/customer-app/cuisines/${encodeURIComponent(cuisineId)}/items?${queryParams.toString()}`,
   );
+  assertCuisineResponse(response);
   const detail = getCuisineDetailPayload(response);
 
   return {
