@@ -53,12 +53,27 @@ describe("tenant favicon", () => {
     expect(addFaviconVersion("/tenant.ico", "42")).toBe("/tenant.ico?v=42");
   });
 
+  it("does not invalidate signed favicon URLs while adding cache versions", () => {
+    const signed =
+      "https://media.example.com/favicon.webp?X-Amz-Credential=credential&X-Amz-Signature=signature";
+
+    expect(addFaviconVersion(signed, "brand-v2")).toBe(signed);
+  });
+
   it("reads the nested domain branding favicon contract", () => {
     expect(
       getBrandingFaviconUrl({
         assets: { logos: { faviconUrl: "https://cdn.example.com/domain.ico" } },
       }),
     ).toBe("https://cdn.example.com/domain.ico");
+    expect(
+      getBrandingFaviconUrl({
+        assets: {
+          faviconUrl: "",
+          logos: { faviconUrl: "https://cdn.example.com/legacy.ico" },
+        },
+      }),
+    ).toBe("https://cdn.example.com/legacy.ico");
   });
 
   it("falls back when the configured favicon fails to load", () => {

@@ -88,7 +88,7 @@ export const useDomainContext = (): DomainContextState => {
       handlePublicBranchChange,
     );
 
-    resolveDomainContext(host)
+    resolveDomainContext(host, { forceRefresh: true })
       .then((context) => {
         if (cancelled) return;
         const resolvedContext = applyPublicBranchSelection(context);

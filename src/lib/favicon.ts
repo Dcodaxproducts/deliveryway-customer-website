@@ -34,6 +34,13 @@ export const addFaviconVersion = (source: string, version?: string | null) => {
 
   try {
     const url = new URL(normalizedSource, "https://deliveryway.invalid");
+    const isSignedUrl =
+      url.searchParams.has("X-Amz-Signature") ||
+      url.searchParams.has("X-Amz-Credential") ||
+      url.searchParams.has("Signature");
+
+    if (isSignedUrl) return normalizedSource;
+
     url.searchParams.set("v", normalizedVersion);
 
     return normalizedSource.startsWith("/")
@@ -62,12 +69,15 @@ export const getBrandingFaviconUrl = (branding: unknown) => {
       ? (logos as Record<string, unknown>).faviconUrl
       : null;
 
-  return normalizeBrowserImageUrl(
-    typeof assetRecord.faviconUrl === "string"
-      ? assetRecord.faviconUrl
-      : typeof nestedFavicon === "string"
-        ? nestedFavicon
+  return (
+    normalizeBrowserImageUrl(
+      typeof assetRecord.faviconUrl === "string"
+        ? assetRecord.faviconUrl
         : null,
+    ) ??
+    normalizeBrowserImageUrl(
+      typeof nestedFavicon === "string" ? nestedFavicon : null,
+    )
   );
 };
 

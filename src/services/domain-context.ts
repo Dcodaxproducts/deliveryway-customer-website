@@ -32,6 +32,7 @@ const fetchDomainContext = async (
 ): Promise<DomainContext> => {
   const endpoint = `/customer-app/domain-context?host=${encodeURIComponent(normalizedHost)}`;
   const response = await fetch(buildApiUrl(API_BASE_URL, endpoint), {
+    cache: "no-store",
     headers: {
       "Content-Type": "application/json",
       "Accept-Language": getRequestLocale(),
@@ -52,7 +53,10 @@ const fetchDomainContext = async (
   return context;
 };
 
-export const resolveDomainContext = (host: string): Promise<DomainContext> => {
+export const resolveDomainContext = (
+  host: string,
+  options?: { forceRefresh?: boolean },
+): Promise<DomainContext> => {
   const normalizedHost = normalizeDomainHost(host);
 
   if (!normalizedHost) {
@@ -64,6 +68,10 @@ export const resolveDomainContext = (host: string): Promise<DomainContext> => {
   if (localContext) return Promise.resolve(localContext);
 
   const canonicalHost = getCanonicalDomainHost(normalizedHost);
+  if (options?.forceRefresh) {
+    domainContextCache.delete(canonicalHost);
+  }
+
   const cached = domainContextCache.get(canonicalHost);
 
   if (cached && cached.expiresAt > Date.now()) {

@@ -91,6 +91,43 @@ describe("resolveDomainContext", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it("bypasses the warm domain cache on an explicit page refresh", async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        createResponse({
+          data: {
+            restaurantId: "restaurant-refresh",
+            host: "refresh.example.com",
+            faviconUrl: "https://media.example.com/old.ico",
+            brandingVersion: "old",
+          },
+        }),
+      )
+      .mockResolvedValueOnce(
+        createResponse({
+          data: {
+            restaurantId: "restaurant-refresh",
+            host: "refresh.example.com",
+            faviconUrl: "https://media.example.com/new.ico",
+            brandingVersion: "new",
+          },
+        }),
+      );
+
+    const first = await resolveDomainContext("refresh.example.com");
+    const refreshed = await resolveDomainContext("refresh.example.com", {
+      forceRefresh: true,
+    });
+
+    expect(first.faviconUrl).toContain("old.ico");
+    expect(refreshed).toMatchObject({
+      faviconUrl: "https://media.example.com/new.ico",
+      brandingVersion: "new",
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls[1]?.[1]).toMatchObject({ cache: "no-store" });
+  });
+
   it("evicts failed requests so a later consumer can retry", async () => {
     fetchMock
       .mockResolvedValueOnce(
