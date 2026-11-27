@@ -11,11 +11,13 @@ const CODE_KEYS: Record<string, string> = {
   BRANCH_TEMPORARILY_CLOSED: "errors.branchTemporarilyClosed",
   BRANCH_HOLIDAY_CLOSED: "errors.branchHolidayClosed",
   MINIMUM_ORDER_AMOUNT_NOT_MET: "errors.minimumOrderAmountNotMet",
+  DELIVERY_ADDRESS_OUTSIDE_AREA: "errors.outsideDeliveryArea",
 };
 
 const MESSAGE_KEYS: Array<{ pattern: RegExp; key: string }> = [
   {
-    pattern: /outside branch delivery zone(?:s| bands)?|postal code is not serviceable/i,
+    pattern:
+      /outside (?:branch delivery zone(?:s| bands)?|the restaurant[’']s delivery area)|postal code is not serviceable/i,
     key: "errors.outsideDeliveryArea",
   },
   {

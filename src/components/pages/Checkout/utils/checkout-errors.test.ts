@@ -18,6 +18,7 @@ describe("resolveCheckoutErrorMessage", () => {
     ["BRANCH_TEMPORARILY_CLOSED", "errors.branchTemporarilyClosed"],
     ["BRANCH_HOLIDAY_CLOSED", "errors.branchHolidayClosed"],
     ["MINIMUM_ORDER_AMOUNT_NOT_MET", "errors.minimumOrderAmountNotMet"],
+    ["DELIVERY_ADDRESS_OUTSIDE_AREA", "errors.outsideDeliveryArea"],
   ])("maps backend code %s in English and German", (code, key) => {
     expect(resolveCheckoutErrorMessage({ code, message: "backend text" }, translator(en), "fallback"))
       .toBe(translator(en)(key));
@@ -29,6 +30,8 @@ describe("resolveCheckoutErrorMessage", () => {
     ["Delivery address is outside branch delivery zones", "errors.outsideDeliveryArea"],
     ["Delivery address is outside branch delivery zone bands", "errors.outsideDeliveryArea"],
     ["Delivery address postal code is not serviceable for this branch", "errors.outsideDeliveryArea"],
+    ["This address is outside the restaurant's delivery area.", "errors.outsideDeliveryArea"],
+    ["This address is outside the restaurant’s delivery area.", "errors.outsideDeliveryArea"],
     ["Delivery address must include lat/lng", "errors.incompleteDeliveryAddress"],
     ["Branch delivery zones are not configured", "errors.deliveryConfigurationUnavailable"],
     ["Delivery is not available at requested order time", "errors.deliveryTimeUnavailable"],
