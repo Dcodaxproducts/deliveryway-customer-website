@@ -271,6 +271,7 @@ const hasProductInfoContent = (item: MenuItem | null) => {
 };
 
 function ProductInfoContent({ item }: { item: MenuItem | null }) {
+  const tInfo = useTranslations("productInfo");
   const productLabels = getProductLabels(item);
   const allergenAdditives = getAllergenAdditives(item);
 
@@ -289,11 +290,10 @@ function ProductInfoContent({ item }: { item: MenuItem | null }) {
     return (
       <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-5 text-center">
         <p className="text-sm font-medium text-gray-900">
-          No additional product information
+          {tInfo("emptyTitle")}
         </p>
         <p className="mt-1 text-sm text-gray-500">
-          Details for ingredients, allergens, labels, and nutrition have not
-          been added yet.
+          {tInfo("emptyDescription")}
         </p>
       </div>
     );
@@ -304,7 +304,7 @@ function ProductInfoContent({ item }: { item: MenuItem | null }) {
       {productLabels.length > 0 ? (
         <div>
           <h3 className="mb-2 text-sm font-semibold text-gray-900">
-            Product Labels
+            {tInfo("labels")}
           </h3>
 
           <div className="flex flex-wrap gap-2">
@@ -323,7 +323,7 @@ function ProductInfoContent({ item }: { item: MenuItem | null }) {
       {allergenAdditives.length > 0 ? (
         <div>
           <h3 className="mb-2 text-sm font-semibold text-gray-900">
-            Allergens & Additives
+            {tInfo("allergens")}
           </h3>
 
           <div className="flex flex-wrap gap-2">
@@ -342,7 +342,7 @@ function ProductInfoContent({ item }: { item: MenuItem | null }) {
       {hasIngredients ? (
         <div>
           <h3 className="mb-2 text-sm font-semibold text-gray-900">
-            Ingredients
+            {tInfo("ingredients")}
           </h3>
           <p className="text-sm leading-relaxed text-gray-600">
             {String(item?.ingredients ?? "")}
@@ -353,7 +353,7 @@ function ProductInfoContent({ item }: { item: MenuItem | null }) {
       {hasNutritionalInformation ? (
         <div className="rounded-2xl bg-gray-50 p-4">
           <h3 className="mb-2 text-sm font-semibold text-gray-900">
-            Nutritional Information
+            {tInfo("nutrition")}
           </h3>
           <p className="text-sm leading-relaxed text-gray-600">
             {String(item?.nutritionalInformation ?? "")}
@@ -370,7 +370,7 @@ function ProductInfoContent({ item }: { item: MenuItem | null }) {
           className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-white"
         >
           <Download size={16} />
-          Download allergen PDF
+          {tInfo("downloadAllergenPdf")}
         </a>
       ) : null}
     </div>
@@ -1497,7 +1497,7 @@ export function SignatureSelectionContent({
 
       if (minSelect > 0 && selectedQuantity - modifierQuantity < minSelect) {
         toast.error(
-          `${group.name || "This group"} requires at least ${minSelect} selection${minSelect === 1 ? "" : "s"}`,
+          tProduct("minimumAddons", { itemName: group.name || tProduct("addons"), count: minSelect }),
         );
         return;
       }
@@ -1511,7 +1511,7 @@ export function SignatureSelectionContent({
 
     if (maxSelect && selectedQuantity >= maxSelect) {
       toast.error(
-        `You can select up to ${maxSelect} option(s) for ${group.name}`,
+        tProduct("maximumAddons", { itemName: group.name || tProduct("addons"), count: maxSelect }),
       );
       return;
     }
@@ -1576,7 +1576,7 @@ export function SignatureSelectionContent({
         otherSelectedQuantity + normalizedNextQuantity > maxSelect
       ) {
         toast.error(
-          `You can select up to ${maxSelect} option(s) for ${group.name}`,
+          tProduct("maximumAddons", { itemName: group.name || tProduct("addons"), count: maxSelect }),
         );
       }
 
@@ -1617,18 +1617,14 @@ export function SignatureSelectionContent({
 
       if (minSelect > 0 && selectedQuantity < minSelect) {
         toast.error(
-          `${
-            group?.name || "This group"
-          } requires at least ${minSelect} selection(s)`,
+          tProduct("minimumAddons", { itemName: group?.name || tProduct("addons"), count: minSelect }),
         );
         return false;
       }
 
       if (maxSelect && selectedQuantity > maxSelect) {
         toast.error(
-          `${
-            group?.name || "This group"
-          } allows at most ${maxSelect} selection(s)`,
+          tProduct("maximumAddons", { itemName: group?.name || tProduct("addons"), count: maxSelect }),
         );
         return false;
       }
@@ -1824,11 +1820,11 @@ export function SignatureSelectionContent({
     const { minSelect, maxSelect } = addonSelectionRules;
 
     if (minSelect > 0 && maxSelect) {
-      return `Min ${minSelect} · Max ${maxSelect}`;
+      return tProduct("selectionRange", { min: minSelect, max: maxSelect });
     }
 
     if (minSelect > 0) {
-      return `Min ${minSelect}`;
+      return tProduct("selectAtLeastOptions", { count: minSelect });
     }
 
     if (maxSelect) {
@@ -2875,7 +2871,7 @@ export function SignatureSelectionContent({
                   }`}
                 >
                   <MenuIcon size={15} />
-                  By Menu
+                  {tSignature("byMenu")}
                 </button>
 
                 <button
@@ -2887,7 +2883,7 @@ export function SignatureSelectionContent({
                       : "text-gray-500 hover:bg-white/70 hover:text-gray-800"
                   }`}
                 >
-                  <List size={15} />1 Page
+                  <List size={15} />{tSignature("onePage")}
                 </button>
               </div>
             </div>
@@ -3162,10 +3158,10 @@ export function SignatureSelectionContent({
                   <div className="flex items-center justify-between gap-4">
                     <div>
                       <p className="font-medium text-gray-900">
-                        Enable split pizza
+                        {tProduct("enableSplitPizza")}
                       </p>
                       <p className="text-xs text-gray-500">
-                        Choose another split-pizza item for the second half.
+                        {tProduct("splitPizzaHelp")}
                       </p>
                     </div>
 
@@ -3188,7 +3184,7 @@ export function SignatureSelectionContent({
                     <div className="mt-4 space-y-4">
                       <div>
                         <p className="mb-2 text-sm font-medium text-gray-900">
-                          Select other pizza half
+                          {tProduct("selectOtherHalf")}
                         </p>
 
                         <AsyncSelect

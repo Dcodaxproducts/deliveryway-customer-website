@@ -350,7 +350,7 @@ export function DeliveryAddressSection({
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-[24px] font-semibold text-gray-900">
-          Where should we deliver?
+          {t("deliveryPrompt")}
         </h2>
 
         <Button
@@ -441,7 +441,7 @@ export function DeliveryAddressSection({
             {canScrollLeft ? (
               <button
                 type="button"
-                aria-label="Previous delivery addresses"
+                aria-label={t("previousDeliveryAddresses")}
                 onClick={() => scrollAddressPage("left")}
                 className="flex size-11 items-center justify-center rounded-[12px] bg-white text-gray-900 shadow-[0_12px_30px_rgba(15,23,42,0.14)] transition hover:-translate-y-0.5 hover:text-primary"
               >
@@ -454,7 +454,7 @@ export function DeliveryAddressSection({
               <div
                 ref={addressRailRef}
                 role="listbox"
-                aria-label="Saved delivery addresses"
+                aria-label={t("savedDeliveryAddresses")}
                 tabIndex={0}
                 {...dragScrollHandlers}
                 className="grid auto-cols-[calc((100%_-_1.25rem)/2)] grid-flow-col grid-rows-1 gap-5 overflow-x-auto scroll-smooth px-4 pb-10 pt-5 [scrollbar-width:none] active:cursor-grabbing [&::-webkit-scrollbar]:hidden"
@@ -529,7 +529,7 @@ export function DeliveryAddressSection({
             {canScrollRight ? (
               <button
                 type="button"
-                aria-label="Next delivery addresses"
+                aria-label={t("nextDeliveryAddresses")}
                 onClick={() => scrollAddressPage("right")}
                 className="flex size-11 items-center justify-center rounded-[12px] bg-white text-gray-900 shadow-[0_12px_30px_rgba(15,23,42,0.14)] transition hover:-translate-y-0.5 hover:text-primary"
               >

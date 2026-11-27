@@ -81,6 +81,7 @@ export function OrderSummary({
   const checkoutT = useTranslations("checkout");
   const cartT = useTranslations("cart");
   const errorT = useTranslations("errors");
+  const commonT = useTranslations("common");
   const summary = order?.summary;
   const router = useRouter();
   const { token } = useAuth();
@@ -646,7 +647,7 @@ export function OrderSummary({
               type="button"
               onClick={handleCloseStripePayment}
               className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
-              aria-label="Close payment popup"
+              aria-label={commonT("closePaymentPopup")}
             >
               <X className="h-4 w-4" />
             </button>

@@ -110,9 +110,63 @@ export const updateDocumentFavicons = (
     for (const link of links) {
       link.onerror = () => {
         link.onerror = null;
+        link.dataset.faviconFallback = "true";
         link.href = fallback;
       };
-      link.href = safeSource;
+      delete link.dataset.faviconFallback;
+      if (link.getAttribute("href") !== safeSource) {
+        link.href = safeSource;
+      }
     }
   }
+};
+
+export const maintainDocumentFavicons = (
+  document: Document,
+  source: string,
+  fallback = "/favicon.ico",
+  version?: string | null,
+) => {
+  let isApplying = false;
+  let isStopped = false;
+
+  const apply = () => {
+    isApplying = true;
+    updateDocumentFavicons(document, source, fallback, version);
+    queueMicrotask(() => {
+      isApplying = false;
+    });
+  };
+
+  apply();
+
+  const observer = new MutationObserver((mutations) => {
+    const isFallbackMutation = mutations.every(
+      (mutation) =>
+        mutation.target instanceof HTMLLinkElement &&
+        mutation.target.dataset.faviconFallback === "true",
+    );
+    if (isFallbackMutation) return;
+
+    if (isApplying) {
+      queueMicrotask(() => {
+        if (!isStopped) apply();
+      });
+      return;
+    }
+
+    apply();
+  });
+
+  observer.observe(document.head, {
+    attributes: true,
+    attributeFilter: ["href", "rel"],
+    childList: true,
+    subtree: true,
+  });
+
+  return () => {
+    isStopped = true;
+    observer.disconnect();
+  };
 };

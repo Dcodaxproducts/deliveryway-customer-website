@@ -294,7 +294,7 @@ const HomePage = () => {
         className="min-h-screen bg-white"
       >
         <span id="restaurant-loading-status" className="sr-only" role="status">
-          Loading restaurant
+          {t("loadingRestaurant")}
         </span>
 
         <div className="relative min-h-[620px] overflow-hidden md:min-h-[620px] lg:min-h-[660px]">

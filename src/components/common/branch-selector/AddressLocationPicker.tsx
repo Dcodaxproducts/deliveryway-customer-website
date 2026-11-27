@@ -617,7 +617,7 @@ export function AddressLocationPicker({
           ) : (
             <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-sm text-[#6B7280]">
               <Loader2 className="h-5 w-5 animate-spin text-primary" />
-              Loading Google map...
+              {t("loadingGoogleMap")}
             </div>
           )}
         </div>

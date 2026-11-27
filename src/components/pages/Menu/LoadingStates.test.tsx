@@ -2,18 +2,30 @@
 
 import { cleanup, render, screen } from "@testing-library/react";
 import { readFileSync } from "node:fs";
+import type { ReactNode } from "react";
 import { afterEach, describe, expect, it } from "vitest";
+import { NextIntlClientProvider } from "next-intl";
 
 import { MenuItemsSkeleton, MenuPageSkeleton } from "./MenuLoadingSkeleton";
 
 const read = (relativePath: string) =>
   readFileSync(new URL(relativePath, import.meta.url), "utf8");
 
+const renderLocalized = (component: ReactNode) =>
+  render(
+    <NextIntlClientProvider
+      locale="en"
+      messages={{ common: { loadingMenu: "Loading menu" } }}
+    >
+      {component}
+    </NextIntlClientProvider>,
+  );
+
 afterEach(cleanup);
 
 describe("items and menu loading contracts", () => {
   it("reserves menu card and cart geometry on cold load", () => {
-    const { container } = render(<MenuPageSkeleton />);
+    const { container } = renderLocalized(<MenuPageSkeleton />);
 
     expect(screen.getAllByTestId("menu-card-skeleton")).toHaveLength(6);
     expect(container.querySelector("aside")).not.toBeNull();
@@ -21,7 +33,7 @@ describe("items and menu loading contracts", () => {
   });
 
   it("keeps the same product-grid geometry for inner menu loads", () => {
-    render(<MenuItemsSkeleton />);
+    renderLocalized(<MenuItemsSkeleton />);
 
     expect(screen.getAllByTestId("menu-card-skeleton")).toHaveLength(6);
     expect(screen.getByRole("status").className).toContain("md:grid-cols-2");

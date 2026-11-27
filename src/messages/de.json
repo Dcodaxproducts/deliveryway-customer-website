@@ -1,44 +1,18 @@
 {
   "common": {
-    "language": "Sprache",
-    "english": "Englisch",
-    "german": "Deutsch",
-    "loading": "Wird geladen...",
-    "saving": "Wird gespeichert...",
-    "submitting": "Wird gesendet...",
-    "save": "Speichern",
-    "cancel": "Abbrechen",
-    "close": "Schließen",
-    "delete": "Löschen",
-    "edit": "Bearbeiten",
-    "update": "Aktualisieren",
-    "search": "Suchen",
-    "reset": "Zurücksetzen",
-    "clear": "Leeren",
-    "actions": "Aktionen",
-    "status": "Status",
-    "active": "Aktiv",
-    "inactive": "Inaktiv",
-    "yes": "Ja",
-    "no": "Nein",
-    "back": "Zurück",
-    "next": "Weiter",
+    "loadingGoogleMap": "Google-Karte wird geladen...",
+    "manualBranchFallbackSearch": "Manuelle Suche nach einer Filiale",
+    "chooseNearestBranch": "Nächstgelegene Filiale auswählen",
+    "closePaymentPopup": "Zahlungsfenster schließen",
     "previous": "Zurück",
-    "continue": "Fortfahren",
-    "confirm": "Bestätigen",
-    "view": "Ansehen",
-    "details": "Details",
-    "required": "Erforderlich",
-    "optional": "Optional",
-    "select": "Auswählen",
-    "searchPlaceholder": "Suchen...",
-    "noResults": "Keine Ergebnisse gefunden",
-    "goToPreviousPage": "Zur vorherigen Seite",
-    "goToNextPage": "Zur nächsten Seite",
-    "previousSlide": "Vorherige Folie",
-    "nextSlide": "Nächste Folie",
-    "showingFromData": "{showing} von {total} Einträgen werden angezeigt",
-    "orderNow": "Jetzt bestellen"
+    "next": "Weiter",
+    "loadingMenu": "Speisekarte wird geladen",
+    "loading": "Wird geladen...",
+    "close": "Schließen",
+    "orderNow": "Jetzt bestellen",
+    "search": "Suchen",
+    "cancel": "Abbrechen",
+    "continue": "Weiter"
   },
   "locationPicker": {
     "selectedMapLocation": "Ausgewählter Kartenstandort",
@@ -48,7 +22,8 @@
     "searching": "Adressen werden gesucht...",
     "currentLocation": "Aktueller Standort",
     "hideMap": "Karte ausblenden",
-    "pickOnMap": "Auf Karte auswählen"
+    "pickOnMap": "Auf Karte auswählen",
+    "loadingGoogleMap": "Google-Karte wird geladen..."
   },
   "navigation": {
     "changeLanguage": "Sprache ändern",
@@ -245,7 +220,8 @@
       "menuItemFallback": "Menüartikel",
       "loadErrorTitle": "Dieses Restaurant konnte nicht geladen werden",
       "loadErrorDescription": "Die Verbindung wurde unterbrochen. Bitte versuchen Sie es erneut, ohne die Seite zu verlassen.",
-      "retry": "Erneut versuchen"
+      "retry": "Erneut versuchen",
+      "loadingRestaurant": "Restaurant wird geladen"
     },
     "mobile": {
       "deliverTo": "Liefern an",
@@ -386,7 +362,8 @@
       "reviewDealItems": "Bitte prüfen Sie die Angebotsartikel vor dem Hinzufügen zum Warenkorb.",
       "fixedRequirement": "Enthält ausgewählte Artikel",
       "flexibleRequirement": "Wählen Sie beliebige {count, plural, one {# Artikel} other {# Artikel}}",
-      "categoryRequirement": "Wählen Sie beliebige {count, plural, one {# Artikel} other {# Artikel}} aus ausgewählten Kategorien"
+      "categoryRequirement": "Wählen Sie beliebige {count, plural, one {# Artikel} other {# Artikel}} aus ausgewählten Kategorien",
+      "sizeLabel": "Größe: {size}"
     },
     "giftCards": {
       "label": "Geschenkkarten",
@@ -521,7 +498,8 @@
       "browseNotice": "Sie können das Menü weiterhin durchsuchen, aber Bestellungen sind während dieses Zeitfensters möglicherweise nicht verfügbar.",
       "understand": "Ich verstehe",
       "browseMenu": "Menü ansehen"
-    }
+    },
+    "loadingRestaurant": "Restaurant wird geladen"
   },
   "about": {
     "banner": {
@@ -575,7 +553,8 @@
       "localGuide": "Lokale Expertin",
       "lisaText": "Die einzige App, die Essen liefert, das wirklich wie auf den Bildern aussieht. Jedes Mal absolute Perfektion.",
       "davidText": "Blitzschnelle Lieferung. Ich weiß nicht, wie sie es machen, aber meine Pasta ist immer dampfend heiß.",
-      "miaText": "Nachhaltigkeit und Qualität in einem. Die Verpackung ist umweltfreundlich und der Geschmack ist 5-Sterne."
+      "miaText": "Nachhaltigkeit und Qualität in einem. Die Verpackung ist umweltfreundlich und der Geschmack ist 5-Sterne.",
+      "emptyReviews": "Kundenbewertungen erscheinen hier, sobald verifizierte Bestellungen bewertet wurden."
     },
     "cta": {
       "appTitleLineOne": "Großartiges Essen,",
@@ -798,7 +777,9 @@
       "description": "Jedes Gericht ist ein kuratiertes Meisterwerk, zubereitet mit regionalen Zutaten und Leidenschaft für kulinarische Exzellenz.",
       "exploreMenuItems": "Entdecken Sie verfügbare Artikel aus diesem Menü.",
       "selectOptions": "Variation, Extras und Menge auswählen",
-      "addToCartWithPlus": "+ In den Warenkorb"
+      "addToCartWithPlus": "+ In den Warenkorb",
+      "byMenu": "Nach Speisekarte",
+      "onePage": "1 Seite"
     },
     "productCard": {
       "promotionApplied": "Aktion angewendet",
@@ -816,8 +797,8 @@
       "selectOptionRange": "{min}-{max} auswählen",
       "selectAtLeastOptions": "Mindestens {count} auswählen",
       "thisItem": "Dieser Artikel",
-      "minimumAddons": "{itemName} erfordert mindestens {count, plural, one {# Extra} other {# Extras}}",
-      "maximumAddons": "{itemName} erlaubt höchstens {count, plural, one {# Extra} other {# Extras}}",
+      "minimumAddons": "Für „{itemName}“ muss mindestens {count, plural, one {# Option} other {# Optionen}} ausgewählt werden.",
+      "maximumAddons": "Für „{itemName}“ dürfen höchstens {count, plural, one {# Option} other {# Optionen}} ausgewählt werden.",
       "clearPreviousBranchCartFailed": "Warenkorb der vorherigen Filiale konnte nicht geleert werden",
       "previousBranchCartCleared": "Warenkorb der vorherigen Filiale geleert. Ausgewählter Artikel wird erneut hinzugefügt.",
       "itemNotFound": "Artikel nicht gefunden",
@@ -838,7 +819,14 @@
       "specialInstructions": "Besondere Hinweise",
       "notesPlaceholder": "Kochhinweise hinzufügen, z. B. ohne Zwiebeln, extra scharf...",
       "processing": "Wird verarbeitet...",
-      "addToCart": "In den Warenkorb"
+      "addToCart": "In den Warenkorb",
+      "save": "Speichern",
+      "itemInfo": "Artikelinformationen",
+      "productInformation": "Produktinformationen",
+      "enableSplitPizza": "Geteilte Pizza aktivieren",
+      "splitPizzaHelp": "Wählen Sie für die zweite Hälfte eine weitere Pizza aus.",
+      "selectOtherHalf": "Andere Pizzahälfte auswählen",
+      "saveAmount": "{amount} sparen"
     }
   },
   "productDetails": {
@@ -875,8 +863,8 @@
     "failedFetchItem": "Artikel konnte nicht geladen werden",
     "selectedSecondHalf": "Zweite Hälfte ausgewählt",
     "thisItem": "Dieser Artikel",
-    "minimumAddons": "{itemName} erfordert mindestens {count, plural, one {# Extra} other {# Extras}}",
-    "maximumAddons": "{itemName} erlaubt höchstens {count, plural, one {# Extra} other {# Extras}}",
+    "minimumAddons": "Für „{itemName}“ muss mindestens {count, plural, one {# Option} other {# Optionen}} ausgewählt werden.",
+    "maximumAddons": "Für „{itemName}“ dürfen höchstens {count, plural, one {# Option} other {# Optionen}} ausgewählt werden.",
     "failedClearBranchCart": "Warenkorb konnte vor dem Filialwechsel nicht geleert werden",
     "itemNotFound": "Artikel nicht gefunden",
     "unsupportedDealCustomization": "Variationen und Split-Section-Anpassungen werden für Angebotsartikel noch nicht unterstützt.",
@@ -901,7 +889,26 @@
     "updating": "Wird aktualisiert...",
     "processing": "Wird verarbeitet...",
     "updateCart": "Warenkorb aktualisieren",
-    "addToCart": "In den Warenkorb"
+    "addToCart": "In den Warenkorb",
+    "quantityMaximum": "Sie können höchstens {count, plural, one {# Artikel} other {# Artikel}} hinzufügen.",
+    "requestedItemMissing": "Das gewünschte Gericht wurde nicht gefunden.",
+    "prepTime": "Zubereitungszeit:",
+    "youSave": "Sie sparen",
+    "pickupPricingApplied": "Abholpreis angewendet",
+    "includesDeposit": "Inklusive Pfand",
+    "perItem": "pro Artikel",
+    "pickupPrice": "Abholpreis",
+    "save": "Speichern",
+    "enableSplitPizza": "Geteilte Pizza aktivieren",
+    "splitPizzaHelp": "Wählen Sie für die zweite Hälfte eine weitere Pizza aus.",
+    "selectOtherHalf": "Andere Pizzahälfte auswählen",
+    "minimumShort": "Min. {count}",
+    "prepTimeMinutes": "Zubereitungszeit: {minutes} Min.",
+    "youSaveAmount": "Sie sparen {amount}",
+    "depositPerItem": "Inklusive {amount} Pfand pro Artikel",
+    "saveAmount": "{amount} sparen",
+    "quantityRange": "Min. {min} · Max. {max}",
+    "minimumQuantity": "Min. {min}"
   },
   "cart": {
     "untitledItem": "Unbenannter Artikel",
@@ -1185,7 +1192,11 @@
       "paymentPending": "Zahlung ausstehend. Du kannst die Zahlung über die Bestelldetails fortsetzen.",
       "paymentSuccessfulPendingWebhook": "Zahlung bestätigt. Wir aktualisieren die Bestellung, sobald Stripe sie bestätigt."
     },
-    "paymentPendingDescription": "Schließe die Kartenzahlung ab, damit Stripe die Bestellung bestätigen kann. Du kannst dieses Fenster schließen und später über die Bestelldetails fortfahren."
+    "paymentPendingDescription": "Schließe die Kartenzahlung ab, damit Stripe die Bestellung bestätigen kann. Du kannst dieses Fenster schließen und später über die Bestelldetails fortfahren.",
+    "deliveryPrompt": "Wohin dürfen wir liefern?",
+    "previousDeliveryAddresses": "Vorherige Lieferadressen",
+    "savedDeliveryAddresses": "Gespeicherte Lieferadressen",
+    "nextDeliveryAddresses": "Weitere Lieferadressen"
   },
   "orders": {
     "orderDetails": "Bestelldetails",
@@ -1271,7 +1282,8 @@
     "cancel": "Abbrechen",
     "loadingReviewsPage": "Bewertungsseite wird geladen...",
     "onlinePaymentPendingDescription": "Diese Online-Zahlungsbestellung ist noch nicht platziert. Schließe die Zahlung ab; nach der Bestätigung des Zahlungsanbieters wird der Status automatisch aktualisiert.",
-    "paymentPendingOverviewDescription": "Zahlung ausstehend — die Bestellung wird erst nach erfolgreicher Zahlungsbestätigung platziert."
+    "paymentPendingOverviewDescription": "Zahlung ausstehend — die Bestellung wird erst nach erfolgreicher Zahlungsbestätigung platziert.",
+    "orderNumber": "Bestellung Nr. {number}"
   },
   "ordersHistory": {
     "title": "Ihre Bestellhistorie",
@@ -1762,7 +1774,8 @@
       "joinGroupOrder": "Gruppenbestellung beitreten",
       "joining": "Beitreten...",
       "joined": "Gruppenbestellung beigetreten",
-      "failedJoin": "Gruppenbestellung konnte nicht beigetreten werden"
+      "failedJoin": "Gruppenbestellung konnte nicht beigetreten werden",
+      "startPrefix": "Starten Sie eine"
     },
     "howItWorks": {
       "eyebrow": "Der Ablauf",
@@ -1925,7 +1938,8 @@
           "fallback": "Gruppenbestellung"
         },
         "branch": "Filiale",
-        "branchFallback": "Ausgewählte Filiale"
+        "branchFallback": "Ausgewählte Filiale",
+        "editSchedule": "Zeitplan bearbeiten"
       },
       "invite": {
         "linkCopied": "Link kopiert",
@@ -2091,7 +2105,8 @@
     "noActiveBranchesFound": "Keine aktiven Filialen gefunden",
     "noActiveBranchesDescription": "Derzeit sind keine Filialen verfügbar. Bitte versuchen Sie es später erneut.",
     "branchLocationAvailable": "Filialstandort verfügbar",
-    "away": "entfernt"
+    "away": "entfernt",
+    "chooseNearestBranch": "Nächstgelegene Filiale auswählen"
   },
   "legal": {
     "privacy": {
@@ -2237,7 +2252,13 @@
     "contactSubjectRequired": "Betreff ist erforderlich",
     "contactMessageRequired": "Nachricht ist erforderlich",
     "reviewMax": "Bewertung darf höchstens 1000 Zeichen lang sein",
-    "guestNameRequired": "Bitte geben Sie Ihren Namen ein"
+    "guestNameRequired": "Bitte geben Sie Ihren Namen ein",
+    "giftCardAmountRequired": "Der Geschenkkartenbetrag ist erforderlich",
+    "giftCardAmountPositive": "Der Geschenkkartenbetrag muss größer als 0 sein",
+    "giftCardExpiryInvalid": "Geben Sie ein gültiges Ablaufdatum ein",
+    "giftCardExpiryFuture": "Das Ablaufdatum muss in der Zukunft liegen",
+    "giftCardRecipientEmailInvalid": "Geben Sie eine gültige E-Mail-Adresse des Empfängers ein",
+    "giftCardCodeInvalid": "Geben Sie einen gültigen Geschenkkartencode ein"
   },
   "errors": {
     "somethingWentWrong": "Etwas ist schiefgelaufen"
@@ -2274,5 +2295,29 @@
       "description": "Ein eigener Küchenbereich – getrennt von regulären Kategorien und Menüartikeln.",
       "viewAll": "Alle Küchen ansehen"
     }
+  },
+  "favorites": {
+    "loginRequiredToast": "Bitte melden Sie sich an, um Favoriten zu speichern.",
+    "loginTitle": "Anmelden, um Favoriten anzuzeigen",
+    "loginDescription": "Speichern Sie Gerichte in Ihrem Profil und finden Sie sie auf jedem Gerät wieder.",
+    "login": "Anmelden",
+    "savedItems": "Gespeicherte Artikel",
+    "title": "Favoriten",
+    "description": "Ihre gespeicherten Gerichte bleiben mit Ihrem Kundenprofil verknüpft.",
+    "browseMenu": "Speisekarte ansehen",
+    "loadError": "Favoriten konnten nicht geladen werden.",
+    "retry": "Erneut versuchen",
+    "emptyTitle": "Noch keine Favoriten.",
+    "emptyDescription": "Tippen Sie bei einem Gericht auf das Herz, um es hier zu speichern.",
+    "refreshing": "Favoriten werden aktualisiert"
+  },
+  "productInfo": {
+    "emptyTitle": "Keine weiteren Produktinformationen",
+    "emptyDescription": "Angaben zu Zutaten, Allergenen, Kennzeichnungen und Nährwerten wurden noch nicht hinterlegt.",
+    "labels": "Produktkennzeichnungen",
+    "allergens": "Allergene & Zusatzstoffe",
+    "ingredients": "Zutaten",
+    "nutrition": "Nährwertangaben",
+    "downloadAllergenPdf": "Allergen-PDF herunterladen"
   }
 }

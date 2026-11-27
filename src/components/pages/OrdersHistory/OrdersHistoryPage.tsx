@@ -15,6 +15,7 @@ import {
   type OrderMeta,
 } from "@/services/orders";
 import { useCustomerReviews } from "@/hooks/useCustomerReviews";
+import { formatMoney } from "@/lib/money";
 import { useLocale, useTranslations } from "next-intl";
 
 export function OrdersHistoryPage() {
@@ -224,7 +225,7 @@ export function OrdersHistoryPage() {
                         </div>
 
                         <p className="text-[14px] sm:text-[15px] font-semibold text-gray-900">
-                          Rs {order.totalAmount}
+                          {formatMoney(order.totalAmount)}
                         </p>
                       </div>
 

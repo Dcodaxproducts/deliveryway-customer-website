@@ -99,7 +99,7 @@ export default function HeaderSection({ order, canEditSchedule = false, onSchedu
               onClick={() => setScheduleOpen(true)}
               className="mt-3 inline-flex rounded-full border border-primary/15 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary transition hover:border-primary/30 hover:bg-primary/10"
             >
-              Edit schedule
+              {t("editSchedule")}
             </button>
           ) : null}
           {expiresAt ? (

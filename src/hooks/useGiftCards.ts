@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 import { queryKeys } from "@/config/query-keys";
 import { getApiErrorMessage } from "@/lib/errors";
@@ -40,6 +41,7 @@ const invalidateWalletQueries = async (
 };
 
 export const usePurchaseGiftCard = () => {
+  const t = useTranslations("profile.giftCards");
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -48,7 +50,7 @@ export const usePurchaseGiftCard = () => {
     onSuccess: () => {
       void invalidateWalletQueries(queryClient);
       window.dispatchEvent(new Event("wallet-updated"));
-      toast.success("Gift card purchased successfully");
+      toast.success(t("purchaseSuccess"));
     },
     onError: (error) => {
       toast.error(getApiErrorMessage(error));

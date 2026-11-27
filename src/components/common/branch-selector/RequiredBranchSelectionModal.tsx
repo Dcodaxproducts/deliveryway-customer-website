@@ -145,7 +145,7 @@ export function RequiredBranchSelectionModal({
       endpoint={endpoint}
       forceSelection
       badgeText={t("branchRequired")}
-      title="Choose your nearest branch"
+      title={t("chooseNearestBranch")}
       description=""
       onSelected={handleSelected}
     />

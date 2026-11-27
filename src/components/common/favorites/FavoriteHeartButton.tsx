@@ -1,6 +1,7 @@
 "use client";
 
 import { Heart } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import type { MouseEvent } from "react";
 import { toast } from "sonner";
@@ -24,6 +25,7 @@ export function FavoriteHeartButton({
   const router = useRouter();
   const { token } = useAuthContext();
   const { data: favorites } = useCustomerFavorites();
+  const t = useTranslations("favorites");
   const toggleFavorite = useToggleFavorite();
   const resolvedMenuItemId = String(menuItemId ?? "");
   const isFavorite = favorites?.favoriteIds.has(resolvedMenuItemId) ?? false;
@@ -37,7 +39,7 @@ export function FavoriteHeartButton({
     event.stopPropagation();
 
     if (!token) {
-      toast.error("Please login to save favourites.");
+      toast.error(t("loginRequiredToast"));
       router.push("/auth/login");
       return;
     }

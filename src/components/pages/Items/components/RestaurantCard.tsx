@@ -475,6 +475,7 @@ const getAllergenAdditives = (item: MenuItem | null) => {
 };
 
 function ProductInfoContent({ item }: { item: MenuItem | null }) {
+  const tInfo = useTranslations("productInfo");
   const productLabels = getProductLabels(item);
   const allergenAdditives = getAllergenAdditives(item);
 
@@ -493,11 +494,10 @@ function ProductInfoContent({ item }: { item: MenuItem | null }) {
     return (
       <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-5 text-center">
         <p className="text-sm font-medium text-gray-900">
-          No additional product information
+          {tInfo("emptyTitle")}
         </p>
         <p className="mt-1 text-sm text-gray-500">
-          Details for ingredients, allergens, labels, and nutrition have not
-          been added yet.
+          {tInfo("emptyDescription")}
         </p>
       </div>
     );
@@ -508,7 +508,7 @@ function ProductInfoContent({ item }: { item: MenuItem | null }) {
       {productLabels.length > 0 ? (
         <div>
           <h3 className="mb-2 text-sm font-semibold text-gray-900">
-            Product Labels
+            {tInfo("labels")}
           </h3>
 
           <div className="flex flex-wrap gap-2">
@@ -527,7 +527,7 @@ function ProductInfoContent({ item }: { item: MenuItem | null }) {
       {allergenAdditives.length > 0 ? (
         <div>
           <h3 className="mb-2 text-sm font-semibold text-gray-900">
-            Allergens & Additives
+            {tInfo("allergens")}
           </h3>
 
           <div className="flex flex-wrap gap-2">
@@ -546,7 +546,7 @@ function ProductInfoContent({ item }: { item: MenuItem | null }) {
       {hasIngredients ? (
         <div>
           <h3 className="mb-2 text-sm font-semibold text-gray-900">
-            Ingredients
+            {tInfo("ingredients")}
           </h3>
           <p className="text-sm leading-relaxed text-gray-600">
             {String(item?.ingredients ?? "")}
@@ -557,7 +557,7 @@ function ProductInfoContent({ item }: { item: MenuItem | null }) {
       {hasNutritionalInformation ? (
         <div className="rounded-2xl bg-gray-50 p-4">
           <h3 className="mb-2 text-sm font-semibold text-gray-900">
-            Nutritional Information
+            {tInfo("nutrition")}
           </h3>
           <p className="text-sm leading-relaxed text-gray-600">
             {String(item?.nutritionalInformation ?? "")}
@@ -574,7 +574,7 @@ function ProductInfoContent({ item }: { item: MenuItem | null }) {
           className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-white"
         >
           <Download size={16} />
-          Download allergen PDF
+          {tInfo("downloadAllergenPdf")}
         </a>
       ) : null}
     </div>
@@ -2521,8 +2521,12 @@ export function RestaurantCard({
 
             {cardPromotionPricing.hasDiscount ? (
               <p className="mt-1 text-[11px] font-medium text-green-700">
-                Save{" "}
-                {formatMoney(cardPromotionPricing.discountAmount, currency)}
+                {t("saveAmount", {
+                  amount: formatMoney(
+                    cardPromotionPricing.discountAmount,
+                    currency,
+                  ),
+                })}
               </p>
             ) : null}
 
@@ -2534,7 +2538,7 @@ export function RestaurantCard({
               }}
               className="mt-2 flex items-center gap-1 text-xs text-primary"
             >
-              <Info size={14} /> Item Info
+              <Info size={14} /> {t("itemInfo")}
             </button>
           </div>
 
@@ -2619,7 +2623,7 @@ export function RestaurantCard({
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">
-                  Product Information
+                  {t("productInformation")}
                 </h2>
                 <p className="mt-1 text-sm text-gray-500">{item?.name}</p>
               </div>
@@ -2732,11 +2736,12 @@ export function RestaurantCard({
 
                                 {variationPromotionPricing.hasDiscount ? (
                                   <span className="text-xs font-medium text-green-700">
-                                    Save{" "}
-                                    {formatMoney(
-                                      variationPromotionPricing.discountAmount,
-                                      currency,
-                                    )}
+                                    {t("saveAmount", {
+                                      amount: formatMoney(
+                                        variationPromotionPricing.discountAmount,
+                                        currency,
+                                      ),
+                                    })}
                                   </span>
                                 ) : null}
                               </div>
@@ -2765,10 +2770,10 @@ export function RestaurantCard({
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="font-medium text-gray-900">
-                    Enable split pizza
+                    {t("enableSplitPizza")}
                   </p>
                   <p className="text-xs text-gray-500">
-                    Choose another split-pizza item for the second half.
+                    {t("splitPizzaHelp")}
                   </p>
                 </div>
 
@@ -2791,7 +2796,7 @@ export function RestaurantCard({
                 <div className="mt-4 space-y-4">
                   <div>
                     <p className="mb-2 text-sm font-medium text-gray-900">
-                      Select other pizza half
+                      {t("selectOtherHalf")}
                     </p>
 
                     <AsyncSelect
@@ -2807,7 +2812,7 @@ export function RestaurantCard({
                   {splitPizzaItem ? (
                     <div className="rounded-xl bg-white p-3">
                       <p className="text-sm font-semibold text-gray-900">
-                        Selected second half
+                        {t("selectedSecondHalf")}
                       </p>
 
                       <div className="mt-2 flex items-start justify-between gap-3 rounded-lg bg-gray-50 px-3 py-2 text-sm">
@@ -2931,7 +2936,9 @@ export function RestaurantCard({
                     currency={currency}
                   />
                   <span className="mt-0.5 text-xs font-medium text-green-700">
-                    Save {formatMoney(totalPromotionDiscount, currency)}
+                    {t("saveAmount", {
+                      amount: formatMoney(totalPromotionDiscount, currency),
+                    })}
                   </span>
                 </div>
               ) : (

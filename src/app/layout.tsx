@@ -7,7 +7,7 @@ import { Providers } from "@/app/providers";
 const siteUrl = new URL(
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://deliveryway.dcodax.co",
 );
-const siteTitle = "DeliveryWay | Frische Essenslieferung";
+const siteTitle = "DeliveryWay";
 const siteDescription =
   "Bestellen Sie mit DeliveryWay frische Gerichte bei Ihrem Restaurant vor Ort. Entdecken Sie Angebote, Favoriten, Lieferung, Abholung, Reservierungen und Geschenkkarten.";
 
@@ -29,10 +29,6 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: "/",
-  },
-  icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
   },
   openGraph: {
     type: "website",

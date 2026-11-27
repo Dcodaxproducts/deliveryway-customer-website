@@ -10,8 +10,8 @@ import { useHome } from "@/hooks/useHome";
 import { getBrandingCssVariables } from "@/lib/branding";
 import {
   getBrandingFaviconUrl,
+  maintainDocumentFavicons,
   resolveFaviconUrl,
-  updateDocumentFavicons,
 } from "@/lib/favicon";
 
 const getUserRestaurantId = (user: ReturnType<typeof useAuthContext>["user"]) =>
@@ -51,7 +51,7 @@ export const BrandingProvider = ({ children }: BrandingProviderProps) => {
       return;
     }
 
-    updateDocumentFavicons(
+    return maintainDocumentFavicons(
       document,
       resolveFaviconUrl({
         faviconUrl:

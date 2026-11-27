@@ -471,7 +471,7 @@ export function BranchSelectorModal({
                     setUseNearbyResults(false);
                     setSearchInput(e.target.value);
                   }}
-                  placeholder="Manual branch fallback search"
+                  placeholder={tCommon("manualBranchFallbackSearch")}
                   className="h-12 w-full rounded-2xl border border-[#E5E7EB] bg-[#F9FAFB] pl-11 pr-4 text-sm text-[#111827] outline-none transition-all duration-200 placeholder:text-[#9CA3AF] focus:border-[var(--primary)] focus:bg-white focus:ring-4 focus:ring-[color:rgba(206,24,27,0.08)]"
                 />
               </div>

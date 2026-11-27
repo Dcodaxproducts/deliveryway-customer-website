@@ -1295,7 +1295,7 @@ export function DealChooserDrawer({
                             ) : null}
                             {forcedVariation ? (
                               <span className="rounded-full bg-blue-50 px-2 py-0.5 text-blue-700">
-                                Size: {forcedVariation.label}
+                                {t("sizeLabel", { size: forcedVariation.label })}
                               </span>
                             ) : null}
                             {status ? (

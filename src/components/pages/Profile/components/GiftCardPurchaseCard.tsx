@@ -16,7 +16,7 @@ import { DEFAULT_DISPLAY_CURRENCY, formatMoney } from "@/lib/money";
 import type { GiftCardPurchaseResult } from "@/types/gift-cards";
 import {
   buildGiftCardPurchasePayload,
-  giftCardPurchaseSchema,
+  createGiftCardPurchaseSchema,
   type GiftCardPurchaseFormValues,
 } from "@/validations/gift-cards";
 
@@ -42,16 +42,31 @@ export const GiftCardPurchaseCard = ({
 }: GiftCardPurchaseCardProps) => {
   const t = useTranslations("profile.giftCards");
   const profileT = useTranslations("profile");
+  const validationT = useTranslations("validation");
   const purchaseGiftCard = usePurchaseGiftCard();
   const [purchaseResult, setPurchaseResult] = useState<GiftCardPurchaseResult | null>(null);
   const formValues = useMemo(() => defaultValues, []);
+  const purchaseSchema = useMemo(
+    () =>
+      createGiftCardPurchaseSchema({
+        amountRequired: validationT("giftCardAmountRequired"),
+        amountPositive: validationT("giftCardAmountPositive"),
+        expiryInvalid: validationT("giftCardExpiryInvalid"),
+        expiryFuture: validationT("giftCardExpiryFuture"),
+        emailInvalid: validationT("emailInvalid"),
+        recipientEmailInvalid: validationT("giftCardRecipientEmailInvalid"),
+        codeRequired: validationT("giftCardCodeRequired"),
+        codeInvalid: validationT("giftCardCodeInvalid"),
+      }),
+    [validationT],
+  );
   const {
     formState: { errors },
     handleSubmit,
     register,
     reset,
   } = useForm<GiftCardPurchaseFormValues>({
-    resolver: zodResolver(giftCardPurchaseSchema),
+    resolver: zodResolver(purchaseSchema),
     defaultValues: formValues,
   });
 

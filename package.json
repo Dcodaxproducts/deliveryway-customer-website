@@ -7,10 +7,11 @@
     "build": "next build",
     "start": "next start",
     "check:imports": "eslint . --quiet",
+    "check:i18n": "node scripts/check-i18n.mjs",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "check": "npm run lint && npm run typecheck && npm test && npm run build"
+    "check": "npm run lint && npm run typecheck && npm run check:i18n && npm test && npm run build"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",

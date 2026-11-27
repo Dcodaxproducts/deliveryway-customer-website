@@ -1,10 +1,13 @@
+import { useTranslations } from "next-intl";
+
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 
 export function MenuItemsSkeleton() {
+  const t = useTranslations("common");
   return (
     <div
       aria-busy="true"
-      aria-label="Loading menu"
+      aria-label={t("loadingMenu")}
       role="status"
       className="grid grid-cols-1 gap-5 md:grid-cols-2 2xl:grid-cols-3"
     >

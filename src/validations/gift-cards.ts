@@ -24,19 +24,45 @@ const isFutureDateTime = (value: string) => {
   return Number.isFinite(timestamp) && timestamp > Date.now();
 };
 
-export const giftCardPurchaseSchema = z.object({
+export type GiftCardValidationMessages = {
+  amountRequired: string;
+  amountPositive: string;
+  expiryInvalid: string;
+  expiryFuture: string;
+  emailInvalid: string;
+  recipientEmailInvalid: string;
+  codeRequired: string;
+  codeInvalid: string;
+};
+
+const defaultMessages: GiftCardValidationMessages = {
+  amountRequired: "Gift card amount is required",
+  amountPositive: "Gift card amount must be greater than 0",
+  expiryInvalid: "Expiry date must be valid",
+  expiryFuture: "Expiry date must be in the future",
+  emailInvalid: "Enter a valid email address",
+  recipientEmailInvalid: "Enter a valid recipient email address",
+  codeRequired: "Gift card code is required",
+  codeInvalid: "Enter a valid gift card code",
+};
+
+export const createGiftCardPurchaseSchema = (
+  messages: GiftCardValidationMessages,
+) => z.object({
   amount: z
     .number({
-      error: "Gift card amount is required",
+      error: messages.amountRequired,
     })
-    .positive("Gift card amount must be greater than 0"),
+    .positive(messages.amountPositive),
   title: optionalTrimmedString,
   message: optionalTrimmedString,
   currency: optionalTrimmedString,
   expiresAt: optionalTrimmedString
-    .refine((value) => !value || isValidDateTime(value), "Expiry date must be valid")
-    .refine((value) => !value || isFutureDateTime(value), "Expiry date must be in the future"),
+    .refine((value) => !value || isValidDateTime(value), messages.expiryInvalid)
+    .refine((value) => !value || isFutureDateTime(value), messages.expiryFuture),
 });
+
+export const giftCardPurchaseSchema = createGiftCardPurchaseSchema(defaultMessages);
 
 export const giftCardGuestPurchaseSchema = giftCardPurchaseSchema.extend({
   buyerEmail: z.string().trim().email("Enter a valid email address"),
@@ -49,13 +75,17 @@ export const giftCardGuestPurchaseSchema = giftCardPurchaseSchema.extend({
   currency: optionalTrimmedString,
 });
 
-export const giftCardRedeemSchema = z.object({
+export const createGiftCardRedeemSchema = (
+  messages: Pick<GiftCardValidationMessages, "codeRequired" | "codeInvalid">,
+) => z.object({
   code: z
     .string()
     .trim()
-    .min(1, "Gift card code is required")
-    .regex(giftCardCodePattern, "Enter a valid gift card code"),
+    .min(1, messages.codeRequired)
+    .regex(giftCardCodePattern, messages.codeInvalid),
 });
+
+export const giftCardRedeemSchema = createGiftCardRedeemSchema(defaultMessages);
 
 export type GiftCardPurchaseFormValues = z.infer<typeof giftCardPurchaseSchema>;
 export type GiftCardGuestPurchaseFormValues = z.infer<typeof giftCardGuestPurchaseSchema>;

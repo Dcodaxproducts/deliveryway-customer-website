@@ -14,7 +14,7 @@ import { DEFAULT_DISPLAY_CURRENCY, formatMoney } from "@/lib/money";
 import type { GiftCardRedeemResult } from "@/types/gift-cards";
 import {
   buildGiftCardRedeemPayload,
-  giftCardRedeemSchema,
+  createGiftCardRedeemSchema,
   type GiftCardRedeemFormValues,
 } from "@/validations/gift-cards";
 
@@ -31,13 +31,21 @@ export const GiftCardRedeemCard = () => {
   const redeemGiftCard = useRedeemGiftCard();
   const [redeemResult, setRedeemResult] = useState<GiftCardRedeemResult | null>(null);
   const formValues = useMemo(() => defaultValues, []);
+  const redeemSchema = useMemo(
+    () =>
+      createGiftCardRedeemSchema({
+        codeRequired: validationT("giftCardCodeRequired"),
+        codeInvalid: validationT("giftCardCodeInvalid"),
+      }),
+    [validationT],
+  );
   const {
     formState: { errors },
     handleSubmit,
     register,
     reset,
   } = useForm<GiftCardRedeemFormValues>({
-    resolver: zodResolver(giftCardRedeemSchema),
+    resolver: zodResolver(redeemSchema),
     defaultValues: formValues,
     values: formValues,
   });

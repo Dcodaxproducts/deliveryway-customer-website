@@ -113,7 +113,7 @@ export default function TestimonialsSection({ testimonials: dynamicTestimonials 
         </div>
         ) : (
           <p className="mx-auto mt-10 max-w-md text-center text-sm text-gray-500">
-            Customer reviews will appear here after verified orders are reviewed.
+            {t("emptyReviews")}
           </p>
         )}
 

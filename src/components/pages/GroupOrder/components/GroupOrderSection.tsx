@@ -103,7 +103,7 @@ export function GroupOrderSection() {
           </div>
 
           <h1 className="text-[34px] font-extrabold leading-[1.07] tracking-[-0.04em] text-gray-950 sm:text-[42px] lg:text-[48px]">
-            Start a{" "}
+            {t("startPrefix")} {" "}
             <span className="bg-gradient-to-r from-primary to-red-600 bg-clip-text text-transparent">
               {t("highlight")}
             </span>

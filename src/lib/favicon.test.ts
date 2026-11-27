@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   addFaviconVersion,
   getBrandingFaviconUrl,
+  maintainDocumentFavicons,
   normalizeBrowserImageUrl,
   resolveFaviconUrl,
   updateDocumentFavicons,
@@ -74,6 +75,39 @@ describe("tenant favicon", () => {
         },
       }),
     ).toBe("https://cdn.example.com/legacy.ico");
+  });
+
+  it("reapplies the tenant favicon after client navigation replaces metadata", async () => {
+    const signed =
+      "https://media.example.com/favicon.webp?X-Amz-Credential=credential&X-Amz-Signature=signature";
+    const stop = maintainDocumentFavicons(document, signed, "/favicon.ico", "v2");
+
+    document.head.innerHTML = '<link rel="icon" href="/favicon.ico">';
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const links = Array.from(
+      document.head.querySelectorAll<HTMLLinkElement>("link[rel='icon']"),
+    );
+    expect(links).toHaveLength(1);
+    expect(links[0].href).toBe(signed);
+    expect(links[0].href).not.toContain("v=v2");
+    stop();
+  });
+
+  it("keeps the static fallback absent until a tenant favicon fails", async () => {
+    const stop = maintainDocumentFavicons(
+      document,
+      "https://cdn.example.com/tenant.ico",
+      "/favicon.ico",
+    );
+    const icon = document.head.querySelector<HTMLLinkElement>("link[rel='icon']");
+
+    expect(icon?.href).not.toContain("/favicon.ico");
+    icon?.onerror?.(new Event("error"));
+    await Promise.resolve();
+    expect(icon?.href).toContain("/favicon.ico");
+    stop();
   });
 
   it("falls back when the configured favicon fails to load", () => {

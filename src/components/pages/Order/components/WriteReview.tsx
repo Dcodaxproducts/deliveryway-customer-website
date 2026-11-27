@@ -17,6 +17,7 @@ import {
 import { canReviewOrder, type Order } from "@/services/orders";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+import { formatMoney } from "@/lib/money";
 import { getApiErrorMessage } from "@/lib/errors";
 
 export default function WriteReview() {
@@ -229,7 +230,7 @@ export default function WriteReview() {
 
           <div>
             <p className="text-xs text-gray-500">
-              Order #{order?.id?.slice(-6)}
+              {t("orderNumber", { number: order?.id?.slice(-6) || "" })}
             </p>
 
             <h2 className="font-semibold">
@@ -237,7 +238,7 @@ export default function WriteReview() {
             </h2>
 
             <p className="text-xs text-gray-400">
-              {formatDate(order.createdAt || "")} · Rs {order.totalAmount}
+              {formatDate(order.createdAt || "")} · {formatMoney(order.totalAmount)}
             </p>
           </div>
         </div>

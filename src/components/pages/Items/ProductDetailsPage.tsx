@@ -486,6 +486,7 @@ const hasProductInfoContent = (item: MenuItem | null) => {
 };
 
 function ProductInfoContent({ item }: { item: MenuItem | null }) {
+  const tInfo = useTranslations("productInfo");
   const productLabels = getProductLabels(item);
   const allergenAdditives = getAllergenAdditives(item);
 
@@ -504,11 +505,10 @@ function ProductInfoContent({ item }: { item: MenuItem | null }) {
     return (
       <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-5 text-center">
         <p className="text-sm font-medium text-gray-900">
-          No additional product information
+          {tInfo("emptyTitle")}
         </p>
         <p className="mt-1 text-sm text-gray-500">
-          Details for ingredients, allergens, labels, and nutrition have not
-          been added yet.
+          {tInfo("emptyDescription")}
         </p>
       </div>
     );
@@ -519,7 +519,7 @@ function ProductInfoContent({ item }: { item: MenuItem | null }) {
       {productLabels.length > 0 ? (
         <div>
           <h3 className="mb-2 text-sm font-semibold text-gray-900">
-            Product Labels
+            {tInfo("labels")}
           </h3>
 
           <div className="flex flex-wrap gap-2">
@@ -538,7 +538,7 @@ function ProductInfoContent({ item }: { item: MenuItem | null }) {
       {allergenAdditives.length > 0 ? (
         <div>
           <h3 className="mb-2 text-sm font-semibold text-gray-900">
-            Allergens & Additives
+            {tInfo("allergens")}
           </h3>
 
           <div className="flex flex-wrap gap-2">
@@ -557,7 +557,7 @@ function ProductInfoContent({ item }: { item: MenuItem | null }) {
       {hasIngredients ? (
         <div>
           <h3 className="mb-2 text-sm font-semibold text-gray-900">
-            Ingredients
+            {tInfo("ingredients")}
           </h3>
           <p className="text-sm leading-relaxed text-gray-600">
             {String(item?.ingredients ?? "")}
@@ -568,7 +568,7 @@ function ProductInfoContent({ item }: { item: MenuItem | null }) {
       {hasNutritionalInformation ? (
         <div className="rounded-2xl bg-gray-50 p-4">
           <h3 className="mb-2 text-sm font-semibold text-gray-900">
-            Nutritional Information
+            {tInfo("nutrition")}
           </h3>
           <p className="text-sm leading-relaxed text-gray-600">
             {String(item?.nutritionalInformation ?? "")}
@@ -585,7 +585,7 @@ function ProductInfoContent({ item }: { item: MenuItem | null }) {
           className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-white"
         >
           <Download size={16} />
-          Download allergen PDF
+          {tInfo("downloadAllergenPdf")}
         </a>
       ) : null}
     </div>
@@ -2142,7 +2142,7 @@ function ProductDetailsPageContent() {
       nextQuantity > limits.maxQuantity &&
       qty === limits.maxQuantity
     ) {
-      toast.error(`You can add up to ${limits.maxQuantity} item(s)`);
+      toast.error(t("quantityMaximum", { count: limits.maxQuantity }));
       return;
     }
 
@@ -2775,7 +2775,7 @@ function ProductDetailsPageContent() {
             {t("itemNotFound")}
           </h2>
           <p className="mt-2 text-sm text-gray-500">
-            We could not find the requested menu item.
+            {t("requestedItemMissing")}
           </p>
         </div>
       </>
@@ -2811,7 +2811,7 @@ function ProductDetailsPageContent() {
 
           <div className="text-xs text-gray-400">
             {item?.prepTimeMinutes ? (
-              <p>Prep Time: {String(item.prepTimeMinutes)} mins</p>
+              <p>{t("prepTimeMinutes", { minutes: item.prepTimeMinutes })}</p>
             ) : null}
           </div>
         </div>
@@ -2906,7 +2906,9 @@ function ProductDetailsPageContent() {
 
                 {hasTotalPromotionDiscount ? (
                   <p className="mt-1 text-xs text-green-700">
-                    You save {formatMoney(totalPromotionDiscount, currency)}
+                    {t("youSaveAmount", {
+                      amount: formatMoney(totalPromotionDiscount, currency),
+                    })}
                   </p>
                 ) : null}
               </div>
@@ -2914,13 +2916,15 @@ function ProductDetailsPageContent() {
 
             {checkoutType === "pickup" ? (
               <p className="mt-2 text-xs font-medium text-primary">
-                Pickup pricing applied
+                {t("pickupPricingApplied")}
               </p>
             ) : null}
 
             {depositAmount > 0 ? (
               <p className="mt-1 text-xs text-amber-600">
-                Includes deposit {formatMoney(depositAmount, currency)} per item
+                {t("depositPerItem", {
+                  amount: formatMoney(depositAmount, currency),
+                })}
               </p>
             ) : null}
           </div>
@@ -2979,7 +2983,7 @@ function ProductDetailsPageContent() {
                             pickupPrice &&
                             pickupPrice > 0 ? (
                               <p className="mt-1 text-xs text-primary">
-                                Pickup price
+                                {t("pickupPrice")}
                               </p>
                             ) : null}
 
@@ -2994,11 +2998,12 @@ function ProductDetailsPageContent() {
 
                                 {variationPromotionPricing.hasDiscount ? (
                                   <span className="text-xs font-medium text-green-700">
-                                    Save{" "}
-                                    {formatMoney(
-                                      variationPromotionPricing.discountAmount,
-                                      currency,
-                                    )}
+                                    {t("saveAmount", {
+                                      amount: formatMoney(
+                                        variationPromotionPricing.discountAmount,
+                                        currency,
+                                      ),
+                                    })}
                                   </span>
                                 ) : null}
                               </div>
@@ -3025,10 +3030,10 @@ function ProductDetailsPageContent() {
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="font-medium text-gray-900">
-                    Enable split pizza
+                    {t("enableSplitPizza")}
                   </p>
                   <p className="text-xs text-gray-500">
-                    Choose another split-pizza item for the second half.
+                    {t("splitPizzaHelp")}
                   </p>
                 </div>
 
@@ -3051,7 +3056,7 @@ function ProductDetailsPageContent() {
                 <div className="mt-4 space-y-4">
                   <div>
                     <p className="mb-2 text-sm font-medium text-gray-900">
-                      Select other pizza half
+                      {t("selectOtherHalf")}
                     </p>
 
                     <AsyncSelect
@@ -3167,10 +3172,14 @@ function ProductDetailsPageContent() {
               {itemQuantityLimits.minQuantity > 1 ||
               itemQuantityLimits.maxQuantity ? (
                 <p className="mt-1 text-center text-[11px] text-gray-400">
-                  Min {itemQuantityLimits.minQuantity}
                   {itemQuantityLimits.maxQuantity
-                    ? ` · Max ${itemQuantityLimits.maxQuantity}`
-                    : ""}
+                    ? t("quantityRange", {
+                        min: itemQuantityLimits.minQuantity,
+                        max: itemQuantityLimits.maxQuantity,
+                      })
+                    : t("minimumQuantity", {
+                        min: itemQuantityLimits.minQuantity,
+                      })}
                 </p>
               ) : null}
             </div>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Heart, Loader2, RefreshCw } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { RestaurantCard } from "@/components/pages/Items/components/RestaurantCard";
 import { useAuthContext } from "@/hooks/useAuth";
@@ -25,6 +26,7 @@ const SkeletonCard = () => (
 );
 
 export function FavouritesPage() {
+  const t = useTranslations("favorites");
   const { token, user } = useAuthContext();
   const favoritesQuery = useCustomerFavorites();
   const restaurantId = resolveHomeRestaurantId(user);
@@ -45,16 +47,16 @@ export function FavouritesPage() {
         <section className="mx-auto flex max-w-3xl flex-col items-center rounded-2xl border border-gray-200 bg-white px-6 py-12 text-center shadow-sm">
           <Heart className="mb-4 h-10 w-10 text-primary" />
           <h1 className="text-2xl font-semibold text-gray-900">
-            Login to view favourites
+            {t("loginTitle")}
           </h1>
           <p className="mt-2 max-w-md text-sm leading-6 text-gray-500">
-            Save menu items to your profile and find them again on any device.
+            {t("loginDescription")}
           </p>
           <Link
             href="/auth/login"
             className="mt-6 inline-flex h-11 items-center justify-center rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground transition hover:opacity-95"
           >
-            Login
+            {t("login")}
           </Link>
         </section>
       </main>
@@ -70,13 +72,13 @@ export function FavouritesPage() {
           <div>
             <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
               <Heart size={14} fill="currentColor" />
-              Saved items
+              {t("savedItems")}
             </div>
             <h1 className="text-2xl font-semibold text-gray-900 sm:text-3xl">
-              Favourites
+              {t("title")}
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-500">
-              Your saved menu items stay linked to your customer profile.
+              {t("description")}
             </p>
           </div>
 
@@ -84,7 +86,7 @@ export function FavouritesPage() {
             href="/items"
             className="inline-flex h-11 items-center justify-center rounded-full border border-primary px-5 text-sm font-semibold text-primary transition hover:bg-primary/5"
           >
-            Browse menu
+            {t("browseMenu")}
           </Link>
         </div>
 
@@ -99,7 +101,7 @@ export function FavouritesPage() {
         {favoritesQuery.isError ? (
           <div className="rounded-2xl border border-red-100 bg-white p-8 text-center shadow-sm">
             <p className="text-sm font-medium text-gray-900">
-              Unable to load favourites.
+              {t("loadError")}
             </p>
             <button
               type="button"
@@ -107,7 +109,7 @@ export function FavouritesPage() {
               className="mt-4 inline-flex h-10 items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground"
             >
               <RefreshCw size={15} />
-              Retry
+              {t("retry")}
             </button>
           </div>
         ) : null}
@@ -118,16 +120,16 @@ export function FavouritesPage() {
           <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-10 text-center shadow-sm">
             <Heart className="mx-auto mb-4 h-10 w-10 text-gray-300" />
             <h2 className="text-lg font-semibold text-gray-900">
-              No favourites yet.
+              {t("emptyTitle")}
             </h2>
             <p className="mt-2 text-sm text-gray-500">
-              Tap the heart on any item to save it here.
+              {t("emptyDescription")}
             </p>
             <Link
               href="/items"
               className="mt-6 inline-flex h-11 items-center justify-center rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground transition hover:opacity-95"
             >
-              Browse menu
+              {t("browseMenu")}
             </Link>
           </div>
         ) : null}
@@ -145,7 +147,7 @@ export function FavouritesPage() {
         {favoritesQuery.isFetching && !favoritesQuery.isLoading ? (
           <div className="mt-5 flex items-center justify-center gap-2 text-sm text-gray-500">
             <Loader2 size={15} className="animate-spin" />
-            Refreshing favourites
+            {t("refreshing")}
           </div>
         ) : null}
       </section>
